@@ -1,9 +1,8 @@
 #include "Flux.h"
 
-
-
-Flux(double MuonPion, double MuonKaon, double ElectronPion, double ElectronKaon, double ElectronKaon3, double MuonKaonOther);
+Flux(double Energy, double MuonPion, double MuonKaon, double ElectronPion, double ElectronKaon, double ElectronKaon3, double MuonKaonOther);
 {
+	SetEnergy(Energy);
 	SetMuonPion(MuonPion);
         SetMuonKaon(MuonKaon);
         SetElectronPion(ElectronPion);
@@ -12,8 +11,12 @@ Flux(double MuonPion, double MuonKaon, double ElectronPion, double ElectronKaon,
         SetMuonKaonOther(MuonKaonOther);
 }
 
-
 //Get functions
+double Flux::GetEnergy()
+{
+	return fEnergy;
+}
+
 double Flux::GetMuonPion()
 {
 	return fMuonPion;
@@ -50,6 +53,11 @@ double Flux::GetTotalFlux()
 }
 
 //Set functions
+void Flux::Setenergy(double X)
+{
+	fEnergy = X;
+}
+
 void Flux::SetMuonPion(double X)
 {
 	fMuonPion = X;

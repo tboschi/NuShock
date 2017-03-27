@@ -26,10 +26,15 @@
 class Flux
 {
 	public:
-		Flux();
-		Flux(double Energy);
-		Flux(double MuonPion, double MuonKaon, double ElectronPion, double ElectronKaon, double ElectronKaon3, double MuonKaonOther);
+		Flux(double Energy,
+		     double MuonPion = 0,
+		     double MuonKaon = 0,
+		     double ElectronPion = 0,
+		     double ElectronKaon = 0,
+		     double ElectronKaon3 = 0,
+		     double MuonKaonOther = 0);
 
+		double GetEnergy();
 		double GetMuonPion();
 		double GetMuonKaon();
 		double GetElectronPion();
@@ -38,6 +43,7 @@ class Flux
 		double GetMuonKaonOther();
 		double GetTotalFlux();
 
+		void SetEnergy(double X);
 		void SetMuonPion(double X);
 		void SetMuonKaon(double X);
 		void SetElectronPion(double X);
@@ -47,6 +53,7 @@ class Flux
 		void SetTotalFlux(double X);
 
 	private:
+		double fEnergy;
 		double fMuonPion;
 		double fMuonKaon;
 		double fElectronPion;
