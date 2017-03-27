@@ -40,15 +40,22 @@ class FluxDriver
 		double ShrockLambda(double X, double Y, double Z);
 	
 	private:
+		Flux *SterileFlux;
+
 		TFile *SourceFile;
 
-		TH1F *TotalFlux;
-		TH1F *hMuonPion;
-		TH1F *hMuonKaon;
-		TH1F *hElectronPion;
-		TH1F *hElectronKaon;
-		TH1F *hElectronKaon3;
-		TH1F *hMuonKaonOther;
+		TH1F *hTotalFlux, sTotalFlux;
+		TH1F *hMuonPion, *sMuonPion;
+		TH1F *hMuonKaon, *sMuonKaon;
+		TH1F *hElectronPion, *sElectronPion;
+		TH1F *hElectronKaon, *sElectronKaon;
+		TH1F *hElectronKaon3, *sElectronKaon3;
+		TH1F *hMuonKaonOther, *sMuonKaonOther;
+
+		double M_Pion;
+		double M_Kaon;
+		double M_Muon;
+		double M_Electron;
 }
 
 #endif
