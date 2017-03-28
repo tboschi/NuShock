@@ -1,6 +1,8 @@
 /*
- * Flux creator for Monte Carlo using published fluxes
- *
+ * Decay rate calculator for a sterile neutrino below 500MeV in a minimal model
+ * Other decay channels could be added
+	 * Usage: create a generator Decay(f,f,f,f) defining sterile mass and the mixing elements.
+	 *
  * Author: Tommaso Boschi
  */
 
@@ -25,37 +27,71 @@
 
 #include "Tools.h"
 
+static enum ChannelName
+{
+	ev_undefined,
+	ev_ALL,
+	ev_nnn,
+	ev_nGAMMA,
+	ev_nEE,
+	ev_nEMU,
+	ev_nPI0,
+	ev_EPI,
+	ev_MUPI,
+	ev_nMUMU,
+	ev_EKA,
+	ev_nKA0
+};
+
 class Decay
 {
 	public:
-		Decay();	//Decay rates calculator
+		Decay(double MSterile, double Ue, double Um, double Ut);	//Decay rates calculator
 
-		double Total(double M_Sterile, double U_e, double U_m, double U_t);
-		double nEE(double M_Sterile, double U_e, double U_m, double U_t);
-		double EPI(double M_Sterile, double U_e, double U_m, double U_t);
-		double MUPI(double M_Sterile, double U_e, double U_m, double U_t);
-		double nPI0(double M_Sterile, double U_e, double U_m, double U_t);
-		double nGAMMA(double M_Sterile, double U_e, double U_m, double U_t);
-		double nMUMU(double M_Sterile, double U_e, double U_m, double U_t);
+		void MapInit();
+		//Decay width with A, B, and K the enhancement factors
+		double Gamma(std::string Channel, double B = 1.0);
+		double Other(std::string Channel, double A = 1.0);
+		double Branch(std::string Channel, double A = 1.0, double B = 1.0);
+		void SetEnhancement(std::Channel = "ALL", double K = 1.0);
+
+		double Total();
+		double nnn();
+		double nGAMMA();
+		double nEE();
+		double nEMU();
+		double nPI0();
+		double EPI();
+		double MUPI();
+		double nMUMU();
+		double EKA();
+		double nKA0();
+
+		//Set and Get
+		double GetMSterile();
+		double GetUe();
+		double GetUm();
+		double GetUt();
+
+		void SetMSterile(double X);
+		void SetUe(double X);
+		void SetUm(double X);
+		void SetUt(double X);
 
 	private:
+		double M_Sterile;
+		double U_e, U_m, U_t;
 
-		Flux *SterileFlux;
+		double M_Neutrino = 0.0;
+		double M_Electron = Tools::Const::fMElectron;
+		double M_Muon = Tools::Const::fMMuon;
+		double M_Pion = Tools::Const::fMPion;
+		double M_Pion0 = Tools::Const::fMPion0;
+		double M_Kaon = Tools::Const::fMKaon;
+		double M_Kaon0 = Tools::Const::fMKaon0;
 
-		TFile *SourceFile;
-
-		TH1F *hTotalFlux, sTotalFlux;
-		TH1F *hMuonPion, *sMuonPion;
-		TH1F *hMuonKaon, *sMuonKaon;
-		TH1F *hElectronPion, *sElectronPion;
-		TH1F *hElectronKaon, *sElectronKaon;
-		TH1F *hElectronKaon3, *sElectronKaon3;
-		TH1F *hMuonKaonOther, *sMuonKaonOther;
-
-		double M_Pion;
-		double M_Kaon;
-		double M_Muon;
-		double M_Electron;
-}
+		std::map<std::string, ChannelName> mapChannel;
+		std::map<std::string, double> mapEnhance;
+};
 
 #endif

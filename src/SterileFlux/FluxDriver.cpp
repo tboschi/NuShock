@@ -13,11 +13,12 @@ FluxDriver::FluxDriver(std::string SourceName)
 	hMuonKaonOther = (TH1D*) SourceFile->Get("hmuonkaonother");
 
 	SterileFlux = new Flux(0);
+}
 
-	M_Pion = genie::PDGLibrary::Instance()->Find(211)->Mass();
-	M_Kaon = genie::PDGLibrary::Instance()->Find(321)->Mass();
-	M_Muon = genie::PDGLibrary::Instance()->Find(13)->Mass();
-	M_Electron = genie::PDGLibrary::Instance()->Find(11)->Mass();
+FluxDriver::~FluxDriver()
+{
+	SourceFile->Close();
+	delete SterileFlux;
 }
 
 void FluxDriver::MakeSterileFlux(double M_Sterile)
@@ -62,5 +63,3 @@ Flux *FluxDriver::SampleEnergy()
 	SterileFlux->SetAll(RanEnergy, fMuonPion, fMuonKaon, fElectronPion, fElectronKaon, fElectronKaon3, fMuonKaonOther);
 	return SterileFlux;
 }
-
-

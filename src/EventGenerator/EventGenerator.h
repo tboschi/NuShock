@@ -1,11 +1,12 @@
 /*
- * Flux creator for Monte Carlo using published fluxes
+ * Event Generator for sterile neutrinos
+ * Generates number of events given detector, flux and decay modes
  *
  * Author: Tommaso Boschi
  */
 
-#ifndef fluxdriver_H
-#define fluxdriver_H
+#ifndef eventgenerator_H
+#define eventgenerator_H
 
 #include <iostream>
 #include <fstream>
@@ -24,13 +25,19 @@
 #include "Constants.h"
 
 #include "Tools.h"
+#include "FluxDriver.h"
 #include "Flux.h"
+#include "DecayRates.h"
 
-class FluxDriver
+class EventGenerator
 {
 	public:
-		FluxDriver(std::string SourceName);	//Load from ROOT file
-		~FluxDriver()
+		EventGenerator(double M_Sterile, double U_e, double U_m, double U_t);	//
+		~EventGenerator();
+
+		double Probability();
+		double Efficiency();
+		double GetFlux();
 
 		void MakeSterileFlux(double M_Sterile)
 		Flux * SampleEnergy()
@@ -38,7 +45,11 @@ class FluxDriver
 		void SetTotalFlux(double X);
 	
 	private:
+		double M_Sterile, E_Sterile;
+		double U_e, U_m, U_t;
+
 		Flux *SterileFlux;
+		Decay *TheGamma;
 
 		TFile *SourceFile;
 

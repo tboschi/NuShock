@@ -1,5 +1,8 @@
 /*
- * Flux creator for Monte Carlo using published fluxes
+ * Tools for MC
+ * Here namespaces are defined, continaing
+ * Kine: kinematic formualae
+ * Const: standard model constants
  *
  * Author: Tommaso Boschi
  */
@@ -67,9 +70,17 @@ namespace Tools
 		double fU_t2 = -0.45;
 		double fU_t3 = 0.77;
 
+		//Masses
+		double fMElectron = genie::PDGLibrary::Instance()->Find(11)->Mass();
+		double fMMuon = genie::PDGLibrary::Instance()->Find(13)->Mass();
+		double fMPion = genie::PDGLibrary::Instance()->Find(211)->Mass();
+		double fMPion0 = genie::PDGLibrary::Instance()->Find(111)->Mass();
+		double fMKaon = genie::PDGLibrary::Instance()->Find(321)->Mass();
+		double fMKaon0 = genie::PDGLibrary::Instance()->Find(311)->Mass();
 
-		//SM constant
-		double fSin2W = 0.231;			//Sin weinberg squared
-		double fFPion2 = pow(0.1302, 2.0);		//Decay constant
+		//SM constant - PDG 2016
+		double fSin2W = 0.23129;		//Sin weinberg squared - MSbar scheme
+		double fFPion2 = pow(0.1302, 2.0);	//Decay constant squared of pion
+		double fFkaon2 = pow(0.1556, 2.0);	//Decay constant squared of kaon
 	}
 }
