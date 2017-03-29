@@ -1,0 +1,23 @@
+#Detector configuration file
+#
+#Name of detector
+#
+Baseline	100
+Length		6
+Weight		100
+POT		1e13
+Target		2212
+#
+#Resolution
+#
+Energy		0.06
+Background	0.05
+Calibration	0.02
+#
+#Weighting factor per energy
+#WChannel	GeV	factor
+WnEE		2.0	0.74
+WnEE		4.0	0.56
+WMUPI		1.0	0.98
+WMUPI		1.5	0.99
+WMUPI		2.0	0.99
