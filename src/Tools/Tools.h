@@ -12,9 +12,9 @@
 
 #include <iostream>
 #include <fstream>
-
-//Boost lib include
-#include "boost/random.h"
+#include <cstring>
+#include <map>
+#include <vector>
 
 //ROOT include
 #include "TH1.h"
@@ -23,9 +23,7 @@
 #include "TMath.h"
 
 //GENIE include
-#include "GHepParticle.h"
-#include "Constants.h"
-
+#include "Conventions/Constants.h"
 
 //Kinematic functions
 namespace Tools
@@ -48,6 +46,9 @@ namespace Tools
 	//Constants
 	namespace Const
 	{
+		//Conversion
+		double fM2GeV = 5.06e15;
+
 		//CKM entries
 		double fV_ud = 0.97417;
 		double fV_us = 0.2248;

@@ -11,9 +11,9 @@
 
 #include <iostream>
 #include <fstream>
-
-//Boost lib include
-#include "boost/random.h"
+#include <vector>
+#include <map>
+#include <cstring>
 
 //ROOT include
 #include "TH1.h"
@@ -22,26 +22,27 @@
 #include "TMath.h"
 
 //GENIE include
-#include "GHepParticle.h"
-#include "Constants.h"
+//#include "GHepParticle.h"
+//#include "Constants.h"
 
 #include "Tools.h"
 
-static enum ChannelName
+enum ChannelName
 {
-	ev_undefined,
-	ev_ALL,
-	ev_nnn,
-	ev_nGAMMA,
-	ev_nEE,
-	ev_nEMU,
-	ev_nPI0,
-	ev_EPI,
-	ev_MUPI,
-	ev_nMUMU,
-	ev_EKA,
-	ev_nKA0
+	_undefined,
+	_ALL,
+	_nnn,
+	_nGAMMA,
+	_nEE,
+	_nEMU,
+	_nPI0,
+	_EPI,
+	_MUPI,
+	_nMUMU,
+	_EKA,
+	_nKA0
 };
+
 
 class Decay
 {
@@ -68,6 +69,7 @@ class Decay
 		double nKA0();
 
 		//Set and Get
+		std::vector<std::string> ListChannels();
 		double GetMSterile();
 		double GetUe();
 		double GetUm();

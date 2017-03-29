@@ -28,6 +28,7 @@
 #include "FluxDriver.h"
 #include "Flux.h"
 #include "DecayRates.h"
+#include "Detector.h"
 
 class EventGenerator
 {
@@ -39,6 +40,17 @@ class EventGenerator
 		double Efficiency();
 		double GetFlux();
 
+		double GetMSterile();
+		double GetUe();
+		double GetUm();
+		double GetUt();
+
+		void SetMSterile(double X);
+		void SetUe(double X);
+		void SetUm(double X);
+		void SetUt(double X);
+
+
 		void MakeSterileFlux(double M_Sterile)
 		Flux * SampleEnergy()
 
@@ -48,8 +60,11 @@ class EventGenerator
 		double M_Sterile, E_Sterile;
 		double U_e, U_m, U_t;
 
-		Flux *SterileFlux;
+		FluxDriver *TheFlux;
+		Flux *SterileEnergy;
+		Flux *StandardEnergy;
 		Decay *TheGamma;
+		Detector *TheBox;
 
 		TFile *SourceFile;
 
@@ -61,10 +76,15 @@ class EventGenerator
 		TH1F *hElectronKaon3, *sElectronKaon3;
 		TH1F *hMuonKaonOther, *sMuonKaonOther;
 
+		double M_Sterile;
+		double U_e, U_m, U_t;
+
 		double M_Electron = Tools::Constants::fMElectron;
 		double M_Muon = Tools::Constants::fMMuon;
 		double M_Pion = Tools::Constants::fMPion;
 		double M_Kaon = Tools::Constants::fMKaon;
+
+		TRandom3 *GenMT;
 }
 
 #endif

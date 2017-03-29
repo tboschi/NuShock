@@ -30,16 +30,15 @@ class FluxDriver
 {
 	public:
 		FluxDriver(std::string SourceName);	//Load from ROOT file
-		~FluxDriver()
+		~FluxDriver();
 
-		void MakeSterileFlux(double M_Sterile)
-		Flux * SampleEnergy()
+		TH1D *GetHist();
+		void MakeSterileFlux(double M_Sterile);
+		double SampleEnergy(Flux *StdFlux = 0, Flux *HeavyFlux = 0)
 
 		void SetTotalFlux(double X);
 	
 	private:
-		Flux *SterileFlux;
-
 		TFile *SourceFile;
 
 		TH1F *hTotalFlux, sTotalFlux;

@@ -41,6 +41,7 @@ class Flux
 			    double ElectronKaon = 0,
 			    double ElectronKaon3 = 0,
 			    double MuonKaonOther = 0);
+
 		void SetEnergy(double X);
 		void SetMuonPion(double X);
 		void SetMuonKaon(double X);

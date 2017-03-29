@@ -11,14 +11,16 @@ FluxDriver::FluxDriver(std::string SourceName)
 	hElectronKaon = (TH1D*) SourceFile->Get("helectronkaon");
 	hElectronKaon3 = (TH1D*) SourceFile->Get("helectronkaon3");
 	hMuonKaonOther = (TH1D*) SourceFile->Get("hmuonkaonother");
-
-	SterileFlux = new Flux(0);
 }
 
 FluxDriver::~FluxDriver()
 {
 	SourceFile->Close();
-	delete SterileFlux;
+}
+
+TH1D *GetHist()
+{
+	return hTotalFlux;
 }
 
 void FluxDriver::MakeSterileFlux(double M_Sterile)
@@ -48,18 +50,26 @@ void FluxDriver::MakeSterileFlux(double M_Sterile)
 	sTotalFlux->Add(sMuonKaonOther);
 }
 
-//Sample energy and return a flux. Detector smearing must me implemented!!
-Flux *FluxDriver::SampleEnergy()
+//Sample energy and sets values to given pointers. Detector smearing must me implemented!!
+double FluxDriver::SampleEnergy(Flux *StdFlux, Flux *HeavyFlux)
 {
 	double RanEnergy = sTotalFlux->GetRandom();
-	double fMuonPion = sMuonPion->GetBinContent(sMuonPion->FindBin(RanEnergy));
-        double fMuonKaon = sMuonKaon->GetBinContent(sMuonKaon->FindBin(RanEnergy));
-        double fElectronPion = sElectronPion->GetBinContent(sElectronPion->FindBin(RanEnergy));
-        double fElectronKaon = sElectronKaon->GetBinContent(sElectronKaon->FindBin(RanEnergy));
-        double fElectronKaon3 = sElectronKaon3->GetBinContent(sElectronKaon3->FindBin(RanEnergy));
-        double fMuonKaonOther = sMuonKaonOther->GetBinContent(sMuonKaonOther->FindBin(RanEnergy));
 
-	//Return a pointer to Flux object with components
-	SterileFlux->SetAll(RanEnergy, fMuonPion, fMuonKaon, fElectronPion, fElectronKaon, fElectronKaon3, fMuonKaonOther);
-	return SterileFlux;
+	StdFlux->SetEnergy(RanEnergy);
+	StdFlux->SetMuonPion(hMuonPion->GetBinContent(hMuonPion->FindBin(RanEnergy)));
+	StdFlux->SetMuonKaon(hMuonKaon->GetBinContent(hMuonKaon->FindBin(RanEnergy)));
+	StdFlux->SetElectronPion(hElectronPion->GetBinContent(hElectronPion->FindBin(RanEnergy)));
+	StdFlux->SetElectronKaon(hElectronKaon->GetBinContent(hElectronKaon->FindBin(RanEnergy)));
+	StdFlux->SetElectronKaon3(hElectronKaon3->GetBinContent(hElectronKaon3->FindBin(RanEnergy)));
+	StdFlux->SetMuonKaonOther(hMuonKaonOther->GetBinContent(hMuonKaonOther->FindBin(RanEnergy)));
+
+	HeavyFlux->SetEnergy(RanEnergy);
+	HeavyFlux->SetMuonPion(sMuonPion->GetBinContent(sMuonPion->FindBin(RanEnergy)));
+	HeavyFlux->SetMuonKaon(sMuonKaon->GetBinContent(sMuonKaon->FindBin(RanEnergy)));
+	HeavyFlux->SetElectronPion(sElectronPion->GetBinContent(sElectronPion->FindBin(RanEnergy)));
+	HeavyFlux->SetElectronKaon(sElectronKaon->GetBinContent(sElectronKaon->FindBin(RanEnergy)));
+	HeavyFlux->SetElectronKaon3(sElectronKaon3->GetBinContent(sElectronKaon3->FindBin(RanEnergy)));
+	HeavyFlux->SetMuonKaonOther(sMuonKaonOther->GetBinContent(sMuonKaonOther->FindBin(RanEnergy)));
+
+	return RanEnergy;
 }

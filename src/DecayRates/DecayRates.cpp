@@ -7,34 +7,24 @@ Decay::Decay(double MSterile, double Ue, double Um, double Ut)	//Decay rates cal
 	SetUm(Um);
 	Set(Ut);
 
-	MapInit();
+	Tools::Init();
+	SetEnhancement();
 }
 
 //Initialisation of maps
 void Decay::MapInit()
 {
-	mapChannel["ALL"] = ev_ALL;
-	mapChannel["nnn"] = ev_nnn;
-	mapChannel["nGAMMA"] = ev_nGAMMA;
-	mapChannel["nEE"] = ev_nEE;
-	mapChannel["nEMU"] = ev_nEMU;
-	mapChannel["nPI0"] = ev_nPI0;
-	mapChannel["EPI"] = ev_EPI;
-	mapChannel["MUPI"] = ev_MUPI;
-	mapChannel["nMUMU"] = ev_nMUMU;
-	mapChannel["EKA"] = ev_EKA;
-	mapChannel["nKA0"] = ev_nKA0;
-
-	mapEnhance["nnn"] = 1.0;
-	mapEnhance["nGAMMA"] = 1.0;
-	mapEnhance["nEE"] = 1.0;
-	mapEnhance["nEMU"] = 1.0;
-	mapEnhance["nPI0"] = 1.0;
-	mapEnhance["EPI"] = 1.0;
-	mapEnhance["MUPI"] = 1.0;
-	mapEnhance["nMUMU"] = 1.0;
-	mapEnhance["EKA"] = 1.0;
-	mapEnhance["nKA0"] = 1.0;
+	mapChannel["ALL"] = _ALL;
+	mapChannel["nnn"] = _nnn;
+	mapChannel["nGAMMA"] = _nGAMMA;
+	mapChannel["nEE"] = _nEE;
+	mapChannel["nEMU"] = _nEMU;
+	mapChannel["nPI0"] = _nPI0;
+	mapChannel["EPI"] = _EPI;
+	mapChannel["MUPI"] = _MUPI;
+	mapChannel["nMUMU"] = _nMUMU;
+	mapChannel["EKA"] = _EKA;
+	mapChannel["nKA0"] = _nKA0;
 }
 
 double Decay::Gamma(std::string Channel, double B = 1.0)
@@ -42,39 +32,39 @@ double Decay::Gamma(std::string Channel, double B = 1.0)
 	SetEnhancement(Channel, B);
 
 	double Result;
-	switch(mapChannel[Channel])
+	switch(Tools::mapChannel[Channel])
 	{
-		case ev_ALL:
+		case Tools::_ALL:
 			Result = Total();
 			break;
-		case ev_nnn:
+		case Tools::_nnn:
 			Result = nnn();
 			break;
-		case ev_nGAMMA:
+		case Tools::_nGAMMA:
 			Result = nGAMMA();
 			break;
-		case ev_nEE:
+		case Tools::_nEE:
 			Result = nEE();
 			break;
-		case ev_nEMU:
+		case Tools::_nEMU:
 			Result = nEMU();
 			break;
-		case ev_nPI0:
+		case Tools::_nPI0:
 			Result = nPI0();
 			break;
-		case ev_EPI:
+		case Tools::_EPI:
 			Result = EPI();
 			break;
-		case ev_MUPI:
+		case Tools::_MUPI:
 			Result = MUPI();
 			break;
-		case ev_nMUMu:
+		case Tools::_nMUMU:
 			Result = nMUMU();
 			break;
-		case ev_EKA:
+		case Tools::_EKA:
 			Result = EKA();
 			break;
-		case ev_nKA0:
+		case Tools::_nKA0:
 			Result = nKA0();
 			break;
 		default:
@@ -91,39 +81,39 @@ double Decay::Other(std::string Channel, double A)
 	SetEnhancement("ALL", A);
 
 	double Result;
-	switch(mapChannel[Channel])
+	switch(Tools::mapChannel[Channel])
 	{
-		case ev_ALL:
+		case Tools::_ALL:
 			Result = 0.0;
 			break;
-		case ev_nnn:
+		case Tools::_nnn:
 			Result = Total()-nnn();
 			break;
-		case ev_nGAMMA:
+		case Tools::_nGAMMA:
 			Result = Total()-nGAMMA();
 			break;
-		case ev_nEE:
+		case Tools::_nEE:
 			Result = Total()-nEE();
 			break;
-		case ev_nEMU:
+		case Tools::_nEMU:
 			Result = Total()-nEMU();
 			break;
-		case ev_nPI0:
+		case Tools::_nPI0:
 			Result = Total()-nPI0();
 			break;
-		case ev_EPI:
+		case Tools::_EPI:
 			Result = Total()-EPI();
 			break;
-		case ev_MUPI:
+		case Tools::_MUPI:
 			Result = Total()-MUPI();
 			break;
-		case ev_nMUMu:
+		case Tools::_nMUMu:
 			Result = Total()-nMUMU();
 			break;
-		case ev_EKA:
+		case Tools::_EKA:
 			Result = Total()-EKA();
 			break;
-		case ev_nKA0:
+		case Tools::_nKA0:
 			Result = Total()-nKA0();
 			break;
 		default:
@@ -142,39 +132,39 @@ double Decay::Branch(std::string Channel, double A, double B)
 	double TotalGamma = Total();
 
 	double Result;
-	switch(mapChannel[Channel])
+	switch(Tools::mapChannel[Channel])
 	{
-		case ev_ALL:
+		case Tools::_ALL:
 			Result = 1.0;
 			break;
-		case ev_nnn:
+		case Tools::_nnn:
 			Result = nnn()/Total();
 			break;
-		case ev_nGAMMA:
+		case Tools::_nGAMMA:
 			Result = nGAMMA()/Total();
 			break;
-		case ev_nEE:
+		case Tools::_nEE:
 			Result = nEE()/Total();
 			break;
-		case ev_nEMU:
+		case Tools::nEMU:
 			Result = nEMU()/Total();
 			break;
-		case ev_nPI0:
+		case Tools::_nPI0:
 			Result = nPI0()/Total();
 			break;
-		case ev_EPI:
+		case Tools::_EPI:
 			Result = EPI()/Total();
 			break;
-		case ev_MUPI:
+		case Tools::_MUPI:
 			Result = MUPI()/Total();
 			break;
-		case ev_nMUMu:
+		case Tools::_nMUMu:
 			Result = nMUMU()/Total();
 			break;
-		case ev_EKA:
+		case Tools::_EKA:
 			Result = EKA()/Total();
 			break;
-		case ev_nKA0:
+		case Tools::_nKA0:
 			Result = nKA0()/Total();
 			break;
 		default:
@@ -189,15 +179,15 @@ double Decay::Branch(std::string Channel, double A, double B)
 //Controller of decay enhancement
 void SetEnhancement(std::string Channel, double K)
 {
-	std::map<std::string, double>::iterator it;
+	std::map<std::string, ChannelName>::iterator it;
 	if (Channel == "ALL")
-		for (it = mapEnhance.begin(); it != mapEnhance.end(); ++it)
-			it->second = K;
+		for (it = mapChannel.begin(); it != mapChannel.end(); ++it)
+			mapEnhance[it->first] = K;
 	else
 	{
-		it = mapEnhance.find(Channel);
-		if (it != mapEnhance.end())
-			mapEnhance[Channel] = K;
+		it = mapChannel.find(Channel);
+		if (it != mapChannel.end())
+			mapEnhance[it->first] = K;
 	}
 }
 
@@ -369,6 +359,15 @@ double Decay::nKA0()
 	else return 0.0;
 }
 
+
+std::vector<std::string> ListChannels()
+{
+	std::map<std::string, double>::iterator it;
+	std::vector<std::string> vList;
+	for (it = mapChannel.begin(); it != mapChannel.end(); ++it)
+		vList.push_back(it-first);
+	return vList;
+}
 
 //Get functions
 double Decay::GetMSterile()
