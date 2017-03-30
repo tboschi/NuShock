@@ -5,13 +5,22 @@ Decay::Decay(double MSterile, double Ue, double Um, double Ut)	//Decay rates cal
 	SetMSterile(MSterile);
 	SetUe(Ue);
 	SetUm(Um);
-	Set(Ut);
+	SetUt(Ut);
 
-	Tools::Init();
+	//Mass initialisation
+	M_Neutrino = 0.0;
+	M_Electron = Const::fMElectron;
+	M_Muon = Const::fMMuon;
+	M_Pion = Const::fMPion;
+	M_Pion0 = Const::fMPion0;
+	M_Kaon = Const::fMKaon;
+	M_Kaon0 = Const::fMKaon0;
+
+	MapInit();
 	SetEnhancement();
 }
 
-//Initialisation of maps
+//Initialisation of map
 void Decay::MapInit()
 {
 	mapChannel["ALL"] = _ALL;
@@ -27,44 +36,44 @@ void Decay::MapInit()
 	mapChannel["nKA0"] = _nKA0;
 }
 
-double Decay::Gamma(std::string Channel, double B = 1.0)
+double Decay::Gamma(std::string Channel, double B)
 {
 	SetEnhancement(Channel, B);
 
 	double Result;
-	switch(Tools::mapChannel[Channel])
+	switch(mapChannel[Channel])
 	{
-		case Tools::_ALL:
+		case _ALL:
 			Result = Total();
 			break;
-		case Tools::_nnn:
+		case _nnn:
 			Result = nnn();
 			break;
-		case Tools::_nGAMMA:
+		case _nGAMMA:
 			Result = nGAMMA();
 			break;
-		case Tools::_nEE:
+		case _nEE:
 			Result = nEE();
 			break;
-		case Tools::_nEMU:
+		case _nEMU:
 			Result = nEMU();
 			break;
-		case Tools::_nPI0:
+		case _nPI0:
 			Result = nPI0();
 			break;
-		case Tools::_EPI:
+		case _EPI:
 			Result = EPI();
 			break;
-		case Tools::_MUPI:
+		case _MUPI:
 			Result = MUPI();
 			break;
-		case Tools::_nMUMU:
+		case _nMUMU:
 			Result = nMUMU();
 			break;
-		case Tools::_EKA:
+		case _EKA:
 			Result = EKA();
 			break;
-		case Tools::_nKA0:
+		case _nKA0:
 			Result = nKA0();
 			break;
 		default:
@@ -81,39 +90,39 @@ double Decay::Other(std::string Channel, double A)
 	SetEnhancement("ALL", A);
 
 	double Result;
-	switch(Tools::mapChannel[Channel])
+	switch(mapChannel[Channel])
 	{
-		case Tools::_ALL:
+		case _ALL:
 			Result = 0.0;
 			break;
-		case Tools::_nnn:
+		case _nnn:
 			Result = Total()-nnn();
 			break;
-		case Tools::_nGAMMA:
+		case _nGAMMA:
 			Result = Total()-nGAMMA();
 			break;
-		case Tools::_nEE:
+		case _nEE:
 			Result = Total()-nEE();
 			break;
-		case Tools::_nEMU:
+		case _nEMU:
 			Result = Total()-nEMU();
 			break;
-		case Tools::_nPI0:
+		case _nPI0:
 			Result = Total()-nPI0();
 			break;
-		case Tools::_EPI:
+		case _EPI:
 			Result = Total()-EPI();
 			break;
-		case Tools::_MUPI:
+		case _MUPI:
 			Result = Total()-MUPI();
 			break;
-		case Tools::_nMUMu:
+		case _nMUMU:
 			Result = Total()-nMUMU();
 			break;
-		case Tools::_EKA:
+		case _EKA:
 			Result = Total()-EKA();
 			break;
-		case Tools::_nKA0:
+		case _nKA0:
 			Result = Total()-nKA0();
 			break;
 		default:
@@ -132,39 +141,39 @@ double Decay::Branch(std::string Channel, double A, double B)
 	double TotalGamma = Total();
 
 	double Result;
-	switch(Tools::mapChannel[Channel])
+	switch(mapChannel[Channel])
 	{
-		case Tools::_ALL:
+		case _ALL:
 			Result = 1.0;
 			break;
-		case Tools::_nnn:
+		case _nnn:
 			Result = nnn()/Total();
 			break;
-		case Tools::_nGAMMA:
+		case _nGAMMA:
 			Result = nGAMMA()/Total();
 			break;
-		case Tools::_nEE:
+		case _nEE:
 			Result = nEE()/Total();
 			break;
-		case Tools::nEMU:
+		case _nEMU:
 			Result = nEMU()/Total();
 			break;
-		case Tools::_nPI0:
+		case _nPI0:
 			Result = nPI0()/Total();
 			break;
-		case Tools::_EPI:
+		case _EPI:
 			Result = EPI()/Total();
 			break;
-		case Tools::_MUPI:
+		case _MUPI:
 			Result = MUPI()/Total();
 			break;
-		case Tools::_nMUMu:
+		case _nMUMU:
 			Result = nMUMU()/Total();
 			break;
-		case Tools::_EKA:
+		case _EKA:
 			Result = EKA()/Total();
 			break;
-		case Tools::_nKA0:
+		case _nKA0:
 			Result = nKA0()/Total();
 			break;
 		default:
@@ -177,7 +186,7 @@ double Decay::Branch(std::string Channel, double A, double B)
 }
 
 //Controller of decay enhancement
-void SetEnhancement(std::string Channel, double K)
+void Decay::SetEnhancement(std::string Channel, double K)
 {
 	std::map<std::string, ChannelName>::iterator it;
 	if (Channel == "ALL")
@@ -205,8 +214,10 @@ double Decay::Total()
 double Decay::nnn()
 {
 	if (M_Sterile >= 3.0 * M_Neutrino)
+	{
 		return mapEnhance["nnn"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
 			(U_e*U_e + U_m*U_m + U_t*U_t) / (96.0 * genie::constants::kPi3);
+	}
 	else return 0.0;
 }
 
@@ -215,9 +226,11 @@ double Decay::nGAMMA()
 	double AemPi = genie::constants::kAem / genie::constants::kPi;
 
 	if (M_Sterile >= 3.0 * M_Neutrino)
+	{
 		return mapEnhance["nGAMMA"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
 			(U_e*U_e + U_m*U_m + U_t*U_t) * (27.0/32.0 * AemPi) /
 			(192.0 * genie::constants::kPi3);
+	}
 	else return 0.0;
 }
 
@@ -228,10 +241,10 @@ double Decay::nEE()
 	{
 		double dMe = M_Electron / M_Sterile;
 		double dMn = M_Neutrino / M_Sterile;
-		double gL = -0.5 + Tools::Const::fSin2w;
-		double gR = Tools::Const::fSin2w;
-		double Int1 = I1_xyz(dMn, dMe, dMe);
-		double Int2 = I2_xyz(dMn, dMe, dMe);
+		double gL = -0.5 + Const::fSin2W;
+		double gR = Const::fSin2W;
+		double Int1 = Kine::I1_xyz(dMn, dMe, dMe);
+		double Int2 = Kine::I2_xyz(dMn, dMe, dMe);
 		double KF_e = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
 		double KF_m = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
 //		double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
@@ -253,7 +266,8 @@ double Decay::nEMU()	//Valid for electron+antimuon and positron+muon
 		double dMn = M_Neutrino / M_Sterile;
 
 		return mapEnhance["nEMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
-			(U_e*U_e * I1_xyz(dMm, dMn, dMe) + U_m*U_mi * I1_xyz(dMe, dMn, dMm)) / 
+			(U_e*U_e * Kine::I1_xyz(dMm, dMn, dMe) +
+			U_m*U_m * Kine::I1_xyz(dMe, dMn, dMm)) / 
 			(192.0 * genie::constants::kPi3);
 	}
 	else return 0.0;
@@ -268,7 +282,7 @@ double Decay::nPI0()
 
 		return mapEnhance["nPI0"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
 			(U_e*U_e + U_m*U_m + U_t*U_t) * 
-			pow((1.0-dMp2), 2.0) * Tools::Const::fFPion2 / 
+			pow((1.0-dMp2), 2.0) * Const::fFPion2 / 
 			(64.0 * genie::constants::kPi);
 	}
 	else return 0.0;
@@ -284,7 +298,7 @@ double Decay::EPI()
 
 		return mapEnhance["EPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
 		       U_e*U_e * 
-		       pow(Tools::Const::fV_ud, 2.0) * Tools::Const:fFPion2 * I1_xy(dMe2, dMp2) / 
+		       pow(Const::fV_ud, 2.0) * Const::fFPion2 * Kine::I1_xy(dMe2, dMp2) / 
 		       (16.0 * genie::constants::kPi);
 	}
 	else return 0.0;
@@ -297,10 +311,10 @@ double Decay::nMUMU()
 	{
 		double dMm = M_Muon / M_Sterile;
 		double dMn = M_Neutrino / M_Sterile;
-		double gL = -0.5 + Tools::Const::fSin2w;
-		double gR = Tools::Const::fSin2w;
-		double Int1 = I1_xyz(dMn, dMm, dMm);
-		double Int2 = I2_xyz(dMn, dMm, dMm);
+		double gL = -0.5 + Const::fSin2W;
+		double gR = Const::fSin2W;
+		double Int1 = Kine::I1_xyz(dMn, dMm, dMm);
+		double Int2 = Kine::I2_xyz(dMn, dMm, dMm);
 		double KF_m = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
 		double KF_e = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
 //		double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
@@ -322,8 +336,8 @@ double Decay::MUPI()
 
 		return mapEnhance["MUPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
 		       U_m*U_m * 
-		       pow(Tools::Const::fV_ud, 2.0)*Tools::Const::fFPion2 * I1_xy(dMm2, dMp2) /
-		       / (16.0 * genie::constants::kPi);
+		       pow(Const::fV_ud, 2.0)*Const::fFPion2 * Kine::I1_xy(dMm2, dMp2) /
+		       (16.0 * genie::constants::kPi);
 	}
 	else return 0.0;
 }
@@ -338,7 +352,7 @@ double Decay::EKA()
 
 		return mapEnhance["EKA"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
 		       U_e*U_e * 
-		       pow(Tools::Const::fV_us, 2.0) * Tools::Const::fFKaon2 * I1_xy(dMm2, dMp2) /
+		       pow(Const::fV_us, 2.0) * Const::fFKaon2 * Kine::I1_xy(dMe2, dMk2) /
 		       (16.0 * genie::constants::kPi);
 	}
 	else return 0.0;
@@ -349,23 +363,23 @@ double Decay::nKA0()
 {
 	if (M_Sterile >= M_Kaon0)
 	{
-		double dMp2 = M_Kaon0*M_Kaon0/M_Sterile/M_Sterile;
+		double dMk2 = M_Kaon0*M_Kaon0/M_Sterile/M_Sterile;
 
 		return mapEnhance["nKA0"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
-			(U_e*U_e + U_m*U_m + U_t*U_t)
-			Tools::Const::fFKaon2 * pow((1.0-dMp2), 2.0) / 
+			(U_e*U_e + U_m*U_m + U_t*U_t) * 
+			Const::fFKaon2 * pow((1.0-dMk2), 2.0) / 
 			(64.0 * genie::constants::kPi);
 	}
 	else return 0.0;
 }
 
 
-std::vector<std::string> ListChannels()
+std::vector<std::string> Decay::ListChannels()
 {
-	std::map<std::string, double>::iterator it;
+	std::map<std::string, ChannelName>::iterator it;
 	std::vector<std::string> vList;
 	for (it = mapChannel.begin(); it != mapChannel.end(); ++it)
-		vList.push_back(it-first);
+		vList.push_back(it->first);
 	return vList;
 }
 

@@ -6,8 +6,8 @@
  * Author: Tommaso Boschi
  */
 
-#ifndef decayrates_H
-#define decayrates_H
+#ifndef DECAYRATES_H
+#define DECAYRATES_H
 
 #include <iostream>
 #include <fstream>
@@ -54,7 +54,7 @@ class Decay
 		double Gamma(std::string Channel, double B = 1.0);
 		double Other(std::string Channel, double A = 1.0);
 		double Branch(std::string Channel, double A = 1.0, double B = 1.0);
-		void SetEnhancement(std::Channel = "ALL", double K = 1.0);
+		void SetEnhancement(std::string Channel = "ALL", double K = 1.0);
 
 		double Total();
 		double nnn();
@@ -84,14 +84,16 @@ class Decay
 		double M_Sterile;
 		double U_e, U_m, U_t;
 
-		double M_Neutrino = 0.0;
-		double M_Electron = Tools::Const::fMElectron;
-		double M_Muon = Tools::Const::fMMuon;
-		double M_Pion = Tools::Const::fMPion;
-		double M_Pion0 = Tools::Const::fMPion0;
-		double M_Kaon = Tools::Const::fMKaon;
-		double M_Kaon0 = Tools::Const::fMKaon0;
+		//Masses
+		double M_Neutrino;
+		double M_Electron;
+		double M_Muon;
+		double M_Pion;
+		double M_Pion0;
+		double M_Kaon;
+		double M_Kaon0;
 
+		//Maps
 		std::map<std::string, ChannelName> mapChannel;
 		std::map<std::string, double> mapEnhance;
 };
