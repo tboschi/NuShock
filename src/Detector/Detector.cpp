@@ -60,43 +60,47 @@ double Detector::Efficiency(std::string Channel, double Energy)
 	double EA = 0, EB = 0;
 	double fA, fB;
 
-
+	std::map<std::string, std::vector<EnergyEfficiency> >::iterator imap;
 	std::vector<EnergyEfficiency>::iterator it, iA, iB;
-	for (it = mapEfficiency[Channel].begin(); it != mapEfficiency[Channel].end(); ++it)
-	{
-		if (Energy == it->E)
-			return it->f;
-		else if (Energy > it->E)
-		{
-			if (diff > (Energy - it->E))
-			{
-				diff = Energy - it->E;
-				EA = it->E;
-				fA = it->f;
-			}
-		}
-		else 
-		{
-			if (sdiff > (it->E - Energy))
-			{
-				sdiff = it->E - Energy;
-				EB = it->E;
-				fB = it->f;
-			}
-		}
-	}
 
-	if (EA == 0)
-		return fB;
-	else if (EB == 0)
-		return fA;
-	else
+	if ((imap = mapEfficiency.find(Channel)) != mapEfficiency.end())
 	{
-		double mFactor = (fB - fA)/(EB - EA);
-		double qFactor = fA - mFactor * EA;
-	
-		return Energy*mFactor+qFactor;
+		for (it = mapEfficiency[Channel].begin(); it != mapEfficiency[Channel].end(); ++it)
+		{
+			if (Energy == it->E)
+				return it->f;
+			else if (Energy > it->E)
+			{
+				if (diff > (Energy - it->E))
+				{
+					diff = Energy - it->E;
+					EA = it->E;
+					fA = it->f;
+				}
+			}
+			else 
+			{
+				if (sdiff > (it->E - Energy))
+				{
+					sdiff = it->E - Energy;
+					EB = it->E;
+					fB = it->f;
+				}
+			}
+		}
+		if (EA == 0)
+			return fB;
+		else if (EB == 0)
+			return fA;
+		else
+		{
+			double mFactor = (fB - fA)/(EB - EA);
+			double qFactor = fA - mFactor * EA;
+		
+			return Energy*mFactor+qFactor;
+		}
 	}
+	else return 1.0;
 }
 
 double Detector::EnergySigma(std::string Channel, double Energy)

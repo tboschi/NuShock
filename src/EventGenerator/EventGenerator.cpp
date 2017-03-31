@@ -4,6 +4,8 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string FluxConfig, std
 {
 	std::ifstream ConfigFile(SMConfig.c_str());
 	std::string Line, Key;
+	std::stringstream ssL;
+
 	double Element;
 	while (std::getline(ConfigFile, Line))
 	{
@@ -20,30 +22,45 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string FluxConfig, std
 		if (Key == "U_t") SetUt(Element);
 	}
 
-	TheFlux = new FluxDriver(FluxConfig)
+//	TheFlux = new FluxDriver(FluxConfig)
 	TheBox = new Detector(DetectorConfig);
-	TheGamma = new DecayRates(GetMSterile(), GetUe(), GetUm(), GetUt());
+	TheGamma = new Decay(GetMSterile(), GetUe(), GetUm(), GetUt());
 
-	StandardEnergy = Flux(0);
-	SterileEnergy = Flux(0);
+	StandardEnergy = new Flux(0);
+	SterileEnergy = new Flux(0);
 
 	GenMT = new TRandom3(0);	//19937 Mersenne Twister generator;
 }
 
-double EventGenerator::DrawEnergy()
+EventGenerator::~EventGenerator()
 {
-	TheFlux->SampleEnergy(StandardEnergy, SterileEnergy);
+	delete TheFlux;
+	delete TheBox;
+	delete TheGamma;
+	delete StandardEnergy;
+	delete SterileEnergy;
+	delete GenMT;
 }
 
-double EventGenerator::SetEnergy(double X)	//this will draw energy from distribution
+double EventGenerator::DrawEnergy()	//returns energy from distribution and also store components
+{
+	return TheFlux->SampleEnergy(StandardEnergy, SterileEnergy);
+}
+
+double EventGenerator::SetEnergy(double X)
 {
 	E_Sterile = X;
 }
 
+void EventGenerator::MakeFlux()
+{
+	TheFlux->MakeSterileFlux(GetMSterile(), GetUe(), GetUm(), GetUt());
+}
+
 double EventGenerator::Probability(std::string Channel, double ESterile)
 {
-	double Length = Tools::Const::fM2GeV * TheBox->GetElement("Baseline");
-	double Lambda = Tools::Const::fM2GeV * TheBox->GetElement("Length");
+	double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
+	double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
 	double Ratio = TheGamma->Branch(Channel); 
 	double Total = TheGamma->Total();
 	double Lorentz = M_Sterile/sqrt(ESterile*ESterile - M_Sterile*M_Sterile);
@@ -59,8 +76,11 @@ double EventGenerator::RandomDetectionEvent(std::string Channel)
 double EventGenerator::NumberOfDetected(std::string Channel)
 {
 	double TotNumber = 0;
-	for (double E = 0; E < TheFlux->GetMaxEnergy(); E += 0.1)
-		TotNumber += E*Probability(E)*TheBox->Efficiency(Channel, E);
+	for (int i = 1; i <= TheFlux->GetHist()->GetNbinsX(); ++i)
+	{
+		double E = TheFlux->GetHist()->GetBinContent(i);
+		TotNumber += E*Probability(Channel, E)*TheBox->Efficiency(Channel, E);
+	}
 	return TotNumber;
 }
 
@@ -78,13 +98,16 @@ std::string EventGenerator::RandomChannel(double Energy)
 
 	for (int i = 0; i < vChan.size(); ++i)
 	{
+		if (vChan.at(i) == "ALL") continue;
+
 		Sum += TheGamma->Branch(vChan.at(i));
 		if (Num <= Sum)
 		{
-			Decay = vChan.at(i);
+			Channel = vChan.at(i);
 			break;
 		}
 	}
+	return Channel;
 }
 
 //Get functions

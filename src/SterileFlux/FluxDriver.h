@@ -10,18 +10,11 @@
 #include <iostream>
 #include <fstream>
 
-//Boost lib include
-#include "boost/random.h"
-
 //ROOT include
 #include "TH1.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TMath.h"
-
-//GENIE include
-#include "GHepParticle.h"
-#include "Constants.h"
 
 #include "Tools.h"
 #include "Flux.h"
@@ -33,26 +26,28 @@ class FluxDriver
 		~FluxDriver();
 
 		TH1D *GetHist();
-		void MakeSterileFlux(double M_Sterile);
-		double SampleEnergy(Flux *StdFlux = 0, Flux *HeavyFlux = 0)
+		void MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
+		double SampleEnergy(Flux *StdFlux = 0, Flux *HeavyFlux = 0);
 
 		void SetTotalFlux(double X);
 	
 	private:
 		TFile *SourceFile;
 
-		TH1F *hTotalFlux, sTotalFlux;
-		TH1F *hMuonPion, *sMuonPion;
-		TH1F *hMuonKaon, *sMuonKaon;
-		TH1F *hElectronPion, *sElectronPion;
-		TH1F *hElectronKaon, *sElectronKaon;
-		TH1F *hElectronKaon3, *sElectronKaon3;
-		TH1F *hMuonKaonOther, *sMuonKaonOther;
+		TH1D *hTotalFlux, *sTotalFlux;
+		TH1D *hMuonPion, *sMuonPion;
+		TH1D *hMuonKaon, *sMuonKaon;
+		TH1D *hElectronPion, *sElectronPion;
+		TH1D *hElectronKaon, *sElectronKaon;
+		TH1D *hElectronKaon3, *sElectronKaon3;
+		TH1D *hMuonKaonOther, *sMuonKaonOther;
 
-		double M_Electron = Tools::Constants::fMElectron;
-		double M_Muon = Tools::Constants::fMMuon;
-		double M_Pion = Tools::Constants::fMPion;
-		double M_Kaon = Tools::Constants::fMKaon;
-}
+		double M_Sterile;
+		double U_e, U_m, U_t;
+		const double M_Electron = Const::fMElectron;
+		const double M_Muon = Const::fMMuon;
+		const double M_Pion = Const::fMPion;
+		const double M_Kaon = Const::fMKaon;
+};
 
 #endif

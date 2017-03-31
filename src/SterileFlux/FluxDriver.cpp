@@ -18,12 +18,12 @@ FluxDriver::~FluxDriver()
 	SourceFile->Close();
 }
 
-TH1D *GetHist()
+TH1D *FluxDriver::GetHist()
 {
-	return hTotalFlux;
+	return sTotalFlux;
 }
 
-void FluxDriver::MakeSterileFlux(double M_Sterile)
+void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t)
 {
 	//Clone from original fluxes
 	sMuonPion = (TH1D*) hMuonPion->Clone();
@@ -34,12 +34,12 @@ void FluxDriver::MakeSterileFlux(double M_Sterile)
 	sMuonKaonOther = (TH1D*) hMuonKaonOther->Clone();
 
 	//Scale accordingly
-	sMuonPion->Scale(Um*Um * ShrockFactor(M_Pion, M_Muon, M_Sterile));
-	sMuonKaon->Scale(Um*Um * ShrockFactor(M_Kaon, M_Muon, M_Sterile));
-	sElectronPion->Scale(Ue*Ue * ShrockFactor(M_Pion, M_Electron, M_Sterile));
-	sElectronKaon->Scale(Ue*Ue * ShrockFactor(M_Kaon, M_Electron, M_Sterile));
-	sElectronKaon3->Scale(Ue*Ue);
-	sMuonKaonOther->Scale(Um*Um * ShrockFactor(M_Kaon, M_Muon, M_Sterile));
+	sMuonPion->Scale(U_m*U_m * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
+	sMuonKaon->Scale(U_m*U_m * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
+	sElectronPion->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile));
+	sElectronKaon->Scale(U_e*U_e * Kine::ShrockFactor(M_Kaon, M_Electron, M_Sterile));
+	sElectronKaon3->Scale(U_e*U_e);
+	sMuonKaonOther->Scale(U_m*U_m * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
 
 	//Add fluxes to total
 	sTotalFlux->Add(sMuonPion);

@@ -1,8 +1,8 @@
 #include "Flux.h"
 
-Flux(double Energy, double MuonPion, double MuonKaon, double ElectronPion, double ElectronKaon, double ElectronKaon3, double MuonKaonOther)
+Flux::Flux(double Energy, double MuonPion, double MuonKaon, double ElectronPion, double ElectronKaon, double ElectronKaon3, double MuonKaonOther)
 {
-	SetAll(Energy, MuonPion, Muonkaon, ElectronPion, ElectronKaon, ElectronKaon3, MuonKaonOther);
+	SetAll(Energy, MuonPion, MuonKaon, ElectronPion, ElectronKaon, ElectronKaon3, MuonKaonOther);
 }
 
 //Set functions
@@ -17,7 +17,7 @@ void Flux::SetAll(double Energy, double MuonPion, double MuonKaon, double Electr
         SetMuonKaonOther(MuonKaonOther);
 }
 
-void Flux::Setenergy(double X)
+void Flux::SetEnergy(double X)
 {
 	fEnergy = X;
 }

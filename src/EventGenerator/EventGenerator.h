@@ -10,19 +10,16 @@
 
 #include <iostream>
 #include <fstream>
-
-//Boost lib include
-#include "boost/random.h"
+#include <sstream>
+#include <string>
+#include <vector>
 
 //ROOT include
 #include "TH1.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TMath.h"
-
-//GENIE include
-#include "GHepParticle.h"
-#include "Constants.h"
+#include "TRandom3.h"
 
 #include "Tools.h"
 #include "FluxDriver.h"
@@ -33,12 +30,17 @@
 class EventGenerator
 {
 	public:
-		EventGenerator(double M_Sterile, double U_e, double U_m, double U_t);	//
+		EventGenerator(std::string SMConfig, std::string FluxConfig, std::string DetectorConfig);
 		~EventGenerator();
 
-		double Probability();
-		double Efficiency();
-		double GetFlux();
+		double DrawEnergy();	//returns energy from distribution and also store components
+		double SetEnergy(double X);
+		void MakeFlux();
+		double Probability(std::string Channel, double ESterile);
+		double RandomDetectionEvent(std::string Channel);
+		double NumberOfDetected(std::string Channel);
+		double RandomEvent();
+		std::string RandomChannel(double Energy);
 
 		double GetMSterile();
 		double GetUe();
@@ -50,12 +52,6 @@ class EventGenerator
 		void SetUm(double X);
 		void SetUt(double X);
 
-
-		void MakeSterileFlux(double M_Sterile)
-		Flux * SampleEnergy()
-
-		void SetTotalFlux(double X);
-	
 	private:
 		double M_Sterile, E_Sterile;
 		double U_e, U_m, U_t;
@@ -76,15 +72,12 @@ class EventGenerator
 		TH1F *hElectronKaon3, *sElectronKaon3;
 		TH1F *hMuonKaonOther, *sMuonKaonOther;
 
-		double M_Sterile;
-		double U_e, U_m, U_t;
-
-		double M_Electron = Tools::Constants::fMElectron;
-		double M_Muon = Tools::Constants::fMMuon;
-		double M_Pion = Tools::Constants::fMPion;
-		double M_Kaon = Tools::Constants::fMKaon;
+		const double M_Electron = Const::fMElectron;
+		const double M_Muon = Const::fMMuon;
+		const double M_Pion = Const::fMPion;
+		const double M_Kaon = Const::fMKaon;
 
 		TRandom3 *GenMT;
-}
+};
 
 #endif

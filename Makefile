@@ -17,12 +17,17 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	DUNE_FGT
+NEW =	Exclusion	\
+	DecayPlot	\
+	DUNE_FGT
 TGT :=  $(NEW:%=$(SRC_DIR)/Apps/%)
 
 #Dependencies of the Main
 DEP =	Tools/Tools		\
 	DecayRates/DecayRates	\
+	SterileFlux/FluxDriver	\
+	SterileFlux/Flux		\
+	EventGenerator/EventGenerator	\
 	Detector/Detector
 
 INC_DIR := $(patsubst %,-I$(SRC_DIR)/%,$(subst /, ,$(DEP)))
@@ -35,7 +40,7 @@ CXXFLAGS := $(CXXFLAGS) $(INCLUDES) $(INC_DIR)
 #Using implicit rules for G++ and linker
 #Then moves exec into main folder
 all: $(TGT)
-	mv $(TGT) ./
+	mv $(TGT) ./bin
 
 $(TGT): $(DEP)
 
@@ -46,4 +51,4 @@ clean:
 	$(RM) $(TGT)
 	$(RM) $(DEP)
 	$(RM) *.o *~ core 
-	$(RM) $(NEW)
+	$(RM) bin/$(NEW)
