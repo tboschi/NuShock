@@ -2,10 +2,10 @@
 
 EventGenerator::EventGenerator(std::string SMConfig, std::string FluxConfig, std::string DetectorConfig)
 {
-	std::fopen ConfigFile(SMConfig.c_str());
+	std::ifstream ConfigFile(SMConfig.c_str());
 	std::string Line, Key;
 	double Element;
-	while (getline(ConfigFile, Line))
+	while (std::getline(ConfigFile, Line))
 	{
 		if (Line[0] == '#') continue;
 
@@ -42,8 +42,8 @@ double EventGenerator::SetEnergy(double X)	//this will draw energy from distribu
 
 double EventGenerator::Probability(std::string Channel, double ESterile)
 {
-	double Length = TheBox->GetElement("Baseline");
-	double Lambda = TheBox->GetElement("Length");
+	double Length = Tools::Const::fM2GeV * TheBox->GetElement("Baseline");
+	double Lambda = Tools::Const::fM2GeV * TheBox->GetElement("Length");
 	double Ratio = TheGamma->Branch(Channel); 
 	double Total = TheGamma->Total();
 	double Lorentz = M_Sterile/sqrt(ESterile*ESterile - M_Sterile*M_Sterile);

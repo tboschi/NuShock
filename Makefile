@@ -17,12 +17,13 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	DecayPlot
+NEW =	DUNE_FGT
 TGT :=  $(NEW:%=$(SRC_DIR)/Apps/%)
 
 #Dependencies of the Main
 DEP =	Tools/Tools		\
-	DecayRates/DecayRates
+	DecayRates/DecayRates	\
+	Detector/Detector
 
 INC_DIR := $(patsubst %,-I$(SRC_DIR)/%,$(subst /, ,$(DEP)))
 DEP :=  $(DEP:%=$(SRC_DIR)/%.o)

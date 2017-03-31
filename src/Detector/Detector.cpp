@@ -2,11 +2,14 @@
 
 Detector::Detector(std::string ConfigName)
 {
-	std::fopen ConfigFile(ConfigName.c_str());
+	std::ifstream ConfigFile(ConfigName.c_str());
+
 	std::string Line, Key;
+	std::stringstream ssL;
 	double Element;
 	EnergyEfficiency EnEff;
-	while (getline(ConfigFile, Line))
+
+	while (std::getline(ConfigFile, Line))
 	{
 		if (Line[0] == '#') continue;
 
@@ -23,35 +26,80 @@ Detector::Detector(std::string ConfigName)
 		else
 		{
 			ssL >> Key >> Element;
-			mapDetector[Key].push_ = Element;
+			mapDetector[Key] = Element;
 		}
 	 }
 }
 
-void ListKey()
+std::vector<std::string> Detector::ListKey()
 {
+	std::vector<std::string> List;
 	std::map<std::string, double>::iterator it;
 	for (it = mapDetector.begin(); it != mapDetector.end(); ++it)
-		std::cout << it->frist << std::endl;
+		List.push_back(it->first);
+	return List;
 }
 
-double GetElement(std::string Key)
+std::vector<std::string> Detector::ListChannel()
+{
+	std::vector<std::string> List;
+	std::map<std::string, std::vector<EnergyEfficiency> >::iterator it;
+	for (it = mapEfficiency.begin(); it != mapEfficiency.end(); ++it)
+		List.push_back(it->first);
+	return List;
+}
+
+double Detector::GetElement(std::string Key)
 {
 	return mapDetector[Key];
 }
 
-double Efficiency(std::string Channel, double Energy)
+double Detector::Efficiency(std::string Channel, double Energy)
 {
-	double diff = Energy;
-	std::vector<EnergyEfficiency>::iterator it, ip;
+	double diff = 10.0, sdiff = 10.0;
+	double EA = 0, EB = 0;
+	double fA, fB;
+
+
+	std::vector<EnergyEfficiency>::iterator it, iA, iB;
 	for (it = mapEfficiency[Channel].begin(); it != mapEfficiency[Channel].end(); ++it)
 	{
-		if (diff > (Energy - it->second.E))
+		if (Energy == it->E)
+			return it->f;
+		else if (Energy > it->E)
 		{
-			diff = Energy - it->second.E;
-			ip = it;
+			if (diff > (Energy - it->E))
+			{
+				diff = Energy - it->E;
+				EA = it->E;
+				fA = it->f;
+			}
+		}
+		else 
+		{
+			if (sdiff > (it->E - Energy))
+			{
+				sdiff = it->E - Energy;
+				EB = it->E;
+				fB = it->f;
+			}
 		}
 	}
 
-	return Energy*ip->second.f/sqrt(ip->second.E);
+	if (EA == 0)
+		return fB;
+	else if (EB == 0)
+		return fA;
+	else
+	{
+		double mFactor = (fB - fA)/(EB - EA);
+		double qFactor = fA - mFactor * EA;
+	
+		return Energy*mFactor+qFactor;
+	}
+}
+
+double Detector::EnergySigma(std::string Channel, double Energy)
+{
+	return Energy*(Energy*Efficiency(Channel, Energy))/sqrt(Energy);
 }

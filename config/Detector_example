@@ -18,6 +18,8 @@ Calibration	0.02
 #WChannel	GeV	factor
 WnEE		2.0	0.74
 WnEE		4.0	0.56
-WMUPI		1.0	0.98
-WMUPI		1.5	0.99
-WMUPI		2.0	0.99
+WMUPI		1.5	0.49
+WMUPI		2.5	0.89
+WMUPI		1.0	0.28
+WMUPI		3.0	0.99
+WMUPI		2.0	0.69

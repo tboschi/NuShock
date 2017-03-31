@@ -31,10 +31,8 @@ int main(int argc, char** argv)
 	double U_m = 1.0/sqrt(3.0);
 	double U_t = 1.0/sqrt(3.0);
 	
-	while(iarg != -1)
+	while((iarg = getopt_long(argc,argv, "f:s:e:m:t:h", longopts, &index)) != -1)	
 	{
-		iarg = getopt_long(argc,argv, "f:s:e:m:t:h", longopts, &index);
-
 		switch(iarg)
 		{
 			case 'f':
