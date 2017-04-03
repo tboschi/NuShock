@@ -5,18 +5,14 @@
 #include <getopt.h>
 
 #include "Tools.h"
-#include "DecayRates.h"
 
 int main(int argc, char** argv)
 {
+
 	const struct option longopts[] = 
 	{
-		{"output", 	required_argument, 	0, 'f'},
-		{"sterile", 	required_argument, 	0, 's'},
-		{"ue4", 	required_argument, 	0, 'e'},
-		{"um4", 	required_argument, 	0, 'm'},
-		{"ut4", 	required_argument, 	0, 't'},
-		{"help", 	no_argument,		0, 'h'},
+		{"output", 	required_argument, 	0, 'o'},
+		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
 	};
 
@@ -25,31 +21,20 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	std::ofstream OutFile;
-	double M_Sterile = 0.350;	//350 MeV
-	double U_e = 1.0/sqrt(3.0);	//All mixing enabled to be maximal
-	double U_m = 1.0/sqrt(3.0);
-	double U_t = 1.0/sqrt(3.0);
 	
-	while((iarg = getopt_long(argc,argv, "f:s:e:m:t:h", longopts, &index)) != -1)	
+//Initialize variables
+	
+	while((iarg = getopt_long(argc,argv, "o:h", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
-			case 'f':
+			case 'o':
 				OutFile.open(optarg);
 				if (!OutFile.is_open())
 				{
 					std::cout << "Wrong input!" << std::endl;
 					return 1;
 				}
-				break;
-			case 'e':
-				U_e = strtod(optarg,NULL);
-				break;
-			case 'm':
-				U_m = strtod(optarg,NULL);
-				break;
-			case 't':
-				U_t = strtod(optarg,NULL);
 				break;
 			case 'h':
 				std::cout << "Compute decay spectrum from 0 MeV to 500 MeV" << std::endl;
@@ -67,32 +52,33 @@ int main(int argc, char** argv)
 				std::cout << "\t\tPrint this message and exit" << std::endl;
 				return 1;
 			default:
-				break;
+				return 1;
 		}
-	
 	}
 
+
+
+	double M_Electron = Const::fMElectron;	//350 MeV
+	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
-	std::vector<std::string> vChannel = SuperGamma->ListChannels();
-
-	Out << "#1Mass";
-	for (int i = 0; i < vChannel.size(); ++i)
-		Out << i+2 << vChannel.at(i) << "\t";
-	Out << std::endl;
-	
-	for (M_Sterile = 0; M_Sterile < 0.500; M_Sterile += 0.0005)
+	std::cout << "ratio " << M_Electron/0.35 << std::endl;
+	std::cout << "0.350 -> " << Kine::ShrockLambda(0.5,0.0,M_Electron/0.35) << std::endl;
+	std::cout << "0.350 -> " << Kine::ShrockLambda(1.0,0.5,M_Electron/0.35) << std::endl;
+	std::cout << "0.350 -> " << Kine::I1_f(0.5,0,M_Electron/0.35,M_Electron/0.35) << std::endl;
+	std::cout << "0.350 -> " << Kine::I1_xyz(0,M_Electron/0.35,M_Electron/0.35) << std::endl;
+	Out << "#MS\tIntegral\n";
+	for (double t = 0; t < 0.5; t += 0.5/1000)
 	{
-		SuperGamma->SetMSterile(M_Sterile);
-		Out << M_Sterile << "\t";
-		for (int i = 0; i < vChannel.size(); ++i)
-			Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
-		Out << std::endl;
+		Out << t << "\t";
+		Out << Kine::I1_xyz(0, M_Electron/t, M_Electron/t) << std::endl;
 	}
+	//Create object from classes
+	//e.g.	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
 
-	delete SuperGamma;
+	//Main body
+
+	//Garbage collection
 
 	return 0;
 }
-	

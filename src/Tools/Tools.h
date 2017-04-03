@@ -40,7 +40,7 @@ namespace Kine
 	double I2_xyz(double X, double Y, double Z);
 	double I2_xy(double X, double Y);
 	double I3_xy(double X, double Y);
-	static double Sample = 100.0;
+	static const int Sample = 1000;
 }
 
 //Constants

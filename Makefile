@@ -17,9 +17,10 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Exclusion	\
+NEW =	Integral	\
+	Exclusion	\
 	DecayPlot	\
-	DUNE_FGT
+	#DUNE_FGT
 TGT :=  $(NEW:%=$(SRC_DIR)/Apps/%)
 
 #Dependencies of the Main

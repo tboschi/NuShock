@@ -30,7 +30,7 @@ double Kine::ShrockLambda(double X, double Y, double Z)
 
 double Kine::I1_f(double t, double X, double Y, double Z)	//To be integrated
 {
-	return (t-X*X-Y*Y)*(1+Z*Z-t)*sqrt(ShrockLambda(t, X*X, Y*Y))*sqrt(ShrockLambda(1, t, Z*Z)) / t;
+	return (t-X*X-Y*Y)*(1+Z*Z-t)*sqrt(ShrockLambda(t, X*X, Y*Y)*ShrockLambda(1, t, Z*Z)) / t;
 }
 
 double Kine::I1_xyz(double X, double Y, double Z)
@@ -45,11 +45,15 @@ double Kine::I1_xyz(double X, double Y, double Z)
 	}
 	double a, b;
 	double h = (B-A)/Sample;
-	double Integral = 0;	//3/8 Simpson's method for integration
+	double Integral = 0;	//Boole's method for integration
 	for (a = A; b < B; a = b)
 	{
 		b = a + h;
-		Integral += 0.125 * (I1_f(a, X, Y, Z) + 3*I1_f((a+2*b)/3.0, X, Y, Z) + 3*I1_f((2*a+b)/3.0, X, Y, Z) + I1_f(b, X, Y, Z));
+		Integral += h/90.0 * (7*I1_f(a, X, Y, Z) + 
+				      32*I1_f((a+3*b)/4.0, X, Y, Z) + 
+				      12*I1_f((a+b)/2.0, X, Y, Z) + 
+				      32*I1_f((a+3*b)/4.0, X, Y, Z) +
+				      7*I1_f(b, X, Y, Z));
 	}	
 	return 12.0 * Integral;
 }
@@ -76,11 +80,15 @@ double Kine::I2_xyz(double X, double Y, double Z)
 	}
 	double a, b;
 	double h = (B-A)/Sample;
-	double Integral = 0.0;	//3/8 Simpson's method for integration
+	double Integral = 0.0;	//Boole's method for integration
 	for (a = A; b < B; a = b)
 	{
 		b = a + h;
-		Integral += 0.125 * (I2_f(a, X, Y, Z) + 3*I2_f((a+2*b)/3.0, X, Y, Z) + 3*I2_f((2*a+b)/3.0, X, Y, Z) + I2_f(b, X, Y, Z));
+		Integral += h/90.0 * (7*I2_f(a, X, Y, Z) + 
+				      32*I2_f((a+3*b)/4.0, X, Y, Z) + 
+				      12*I2_f((a+b)/2.0, X, Y, Z) + 
+				      32*I2_f((a+3*b)/4.0, X, Y, Z) +
+				      7*I2_f(b, X, Y, Z));
 	}	
 	return 24.0*Y*Z * Integral;
 }
