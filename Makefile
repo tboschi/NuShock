@@ -17,10 +17,12 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Integral	\
+NEW =	Eps2Root	\
+	PionMuonFlux	\
+	Kine	\
 	Exclusion	\
 	DecayPlot	\
-	#DUNE_FGT
+	DUNE_FGT
 TGT :=  $(NEW:%=$(SRC_DIR)/Apps/%)
 
 #Dependencies of the Main

@@ -1,16 +1,31 @@
 #include <FluxDriver.h>
 
-FluxDriver::FluxDriver(std::string SourceName)
+FluxDriver::FluxDriver(std::string ConfigFlux)
 {
-	SourceFile = new TFile(SourceName.c_str(), "OPEN");
+	fxNuMuon = 0;
+	fxNuMuonBar = 0;
+	fxNuElectron = 0;
+	fxNuElectronBar = 0;
 
-	hTotalFlux = (TH1D*) SourceFile->Get("htotalflux");
-	hMuonPion = (TH1D*) SourceFile->Get("hmuonpiona");
-	hMuonKaon = (TH1D*) SourceFile->Get("hmuonkaon");
-	hElectronPion = (TH1D*) SourceFile->Get("helectronpion");
-	hElectronKaon = (TH1D*) SourceFile->Get("helectronkaon");
-	hElectronKaon3 = (TH1D*) SourceFile->Get("helectronkaon3");
-	hMuonKaonOther = (TH1D*) SourceFile->Get("hmuonkaonother");
+	std::string Line, Key, Element;
+	std::stringstream ssL;
+	
+	ConfigFile.open(FluxConfig.c_str())
+	while (std::getline(ConfigFile, Line))
+	{
+		if (Line[0] == '#') continue;
+
+		ssL.str("");
+		ssL.clear();
+		ssL << Line;
+
+		ssL >> Key >> Name;
+		if (Key.find("Muon_") != std::string::npos) fxNuMuon = new Flux(Name);
+		if (Key.find("MuonBar_") != std::string::npos) fxNuMuonBar = new Flux(Name);
+		if (Key.find("Electron_") != std::string::npos) fxNuElectron = new Flux(Name);
+		if (Key.find("ElectronBar_") != std::string::npos) fxNuElectronBar = new Flux(Name);
+	}
+	ConfigFile.close();
 }
 
 FluxDriver::~FluxDriver()
@@ -23,34 +38,36 @@ TH1D *FluxDriver::GetHist()
 	return sTotalFlux;
 }
 
-void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t)
+void FluxDriver::MakeSterileFlux(double M_Sterile, double M_Lepton, double U_x, double U_l)
 {
 	//Clone from original fluxes
-	sMuonPion = (TH1D*) hMuonPion->Clone();
-	sMuonKaon = (TH1D*) hMuonKaon->Clone();
-	sElectronPion = (TH1D*) hElectronPion->Clone();
-	sElectronKaon = (TH1D*) hElectronKaon->Clone();
-	sElectronKaon3 = (TH1D*) hElectronKaon3->Clone();
-	sMuonKaonOther = (TH1D*) hMuonKaonOther->Clone();
+	sPion = (TH1D*) hPion->Clone();
+	sKaon = (TH1D*) hKaon->Clone();
+	sKaon0 = (TH1D*) hKaon0->Clone();
+	sMuon = (TH1D*) hMuon->Clone();
 
 	//Scale accordingly
-	sMuonPion->Scale(U_m*U_m * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
-	sMuonKaon->Scale(U_m*U_m * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
-	sElectronPion->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile));
-	sElectronKaon->Scale(U_e*U_e * Kine::ShrockFactor(M_Kaon, M_Electron, M_Sterile));
-	sElectronKaon3->Scale(U_e*U_e);
-	sMuonKaonOther->Scale(U_m*U_m * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
+	sPion->Scale(U_x*U_x * Kine::ShrockFactor(M_Pion, M_Lepton, M_Sterile));
+	sKaon->Scale(U_x*U_x * Kine::ShrockFactor(M_Kaon, M_Lepton, M_Sterile));
+	sKaon0->Scale(U_x*U_x);
+	sMuon->Scale(U_x*U_x);		//Not correct
 
 	//Add fluxes to total
-	sTotalFlux->Add(sMuonPion);
-	sTotalFlux->Add(sMuonKaon);
-	sTotalFlux->Add(sElectronPion);
-	sTotalFlux->Add(sElectronKaon);
-	sTotalFlux->Add(sElectronKaon3);
-	sTotalFlux->Add(sMuonKaonOther);
+	sTotalFlux->Add(sPion);
+	sTotalFlux->Add(sKaon);
+	sTotalFlux->Add(sKaon0);
+	sTotalFlux->Add(sMuon);
 }
 
-//Sample energy and sets values to given pointers. Detector smearing must me implemented!!
+//Need to think about this
+//void FluxDriver::DetectorModel(TH1D * hHist, double Probabilty)
+//{
+//	for (int i = 1; i < sPion->GetNbinsX()+1; ++i)
+//		hHist->SetBinContent(i, sPion->GetBinContent(i)*Probability);
+//}
+
+//Sample energy and sets values to given pointers.
+/*
 double FluxDriver::SampleEnergy(Flux *StdFlux, Flux *HeavyFlux)
 {
 	double RanEnergy = sTotalFlux->GetRandom();
@@ -72,4 +89,5 @@ double FluxDriver::SampleEnergy(Flux *StdFlux, Flux *HeavyFlux)
 	HeavyFlux->SetMuonKaonOther(sMuonKaonOther->GetBinContent(sMuonKaonOther->FindBin(RanEnergy)));
 
 	return RanEnergy;
-}
+} 
+*/

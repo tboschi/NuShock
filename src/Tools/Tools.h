@@ -47,7 +47,8 @@ namespace Kine
 namespace Const
 {
 	//Conversion
-	static const double fM2GeV = 5.06e15;
+	static const double fM2GeV = 5.06e15;	//1GeV in 1/m
+	static const double fS2GeV = 1.52e24;	//1GeV in 1/s
 
 	//CKM entries
 	static const double fV_ud = 0.97417;

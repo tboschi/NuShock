@@ -56,7 +56,11 @@ class EventGenerator
 		double M_Sterile, E_Sterile;
 		double U_e, U_m, U_t;
 
-		FluxDriver *TheFlux;
+		FluxDriver *NuMuFlux;		//muon neutrino
+		FluxDriver *NuMu_TheFlux;	//muon antineutrino
+		FluxDriver *NuEFlux;		//electron neutrino
+		FluxDriver *NuE_Flux;		//electron antineutrino
+
 		Flux *SterileEnergy;
 		Flux *StandardEnergy;
 		Decay *TheGamma;
@@ -64,13 +68,7 @@ class EventGenerator
 
 		TFile *SourceFile;
 
-		TH1F *hTotalFlux, sTotalFlux;
-		TH1F *hMuonPion, *sMuonPion;
-		TH1F *hMuonKaon, *sMuonKaon;
-		TH1F *hElectronPion, *sElectronPion;
-		TH1F *hElectronKaon, *sElectronKaon;
-		TH1F *hElectronKaon3, *sElectronKaon3;
-		TH1F *hMuonKaonOther, *sMuonKaonOther;
+		TH1F *hTotalFlux;
 
 		const double M_Electron = Const::fMElectron;
 		const double M_Muon = Const::fMMuon;

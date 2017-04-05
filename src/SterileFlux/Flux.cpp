@@ -1,107 +1,77 @@
 #include "Flux.h"
 
-Flux::Flux(double Energy, double MuonPion, double MuonKaon, double ElectronPion, double ElectronKaon, double ElectronKaon3, double MuonKaonOther)
+Flux::Flux(TH1D* Total, TH1D* Pion, TH1D* Kaon, TH1D* Kaon0, TH1D* Muon)
 {
-	SetAll(Energy, MuonPion, MuonKaon, ElectronPion, ElectronKaon, ElectronKaon3, MuonKaonOther);
+	CloneTotal(Total);
+	ClonePion(Pion);
+	CloneKaon(Kaon);
+	CloneKaon0(Kaon0);
+	CloneMuon(Muon);
 }
 
-//Set functions
-void Flux::SetAll(double Energy, double MuonPion, double MuonKaon, double ElectronPion, double ElectronKaon, double ElectronKaon3, double MuonKaonOther)
-{ //Everything is set to zero by default
-	SetEnergy(Energy);
-	SetMuonPion(MuonPion);
-        SetMuonKaon(MuonKaon);
-        SetElectronPion(ElectronPion);
-        SetElectronKaon(ElectronKaon);
-        SetElectronKaon3(ElectronKaon3);
-        SetMuonKaonOther(MuonKaonOther);
+Flux::Flux(std::string HistFile)
+{
+	TFile* InFile = new TFile(HistFile, "READ");
+
+	CloneTotal((TH1D*) InFile->Get("htotal"));
+	CloneTotal((TH1D*) InFile->Get("hpion"));
+	CloneTotal((TH1D*) InFile->Get("hkaon"));
+	CloneTotal((TH1D*) InFile->Get("hkaon0"));
+	CloneTotal((TH1D*) InFile->Get("hmuon"));
+
+	InFile->Close();
 }
 
-void Flux::SetEnergy(double X)
+//Clone functions
+
+void Flux::CloneTotal(TH1D* X)	//Rescale each component
 {
-	fEnergy = X;
+	hTotal = (TH1D*) X->Clone();
 }
 
-void Flux::SetMuonPion(double X)
+void Flux::ClonePion(TH1D* X);
 {
-	fMuonPion = X;
+	hPion = (TH1D*) X->Clone();
 }
 
-void Flux::SetMuonKaon(double X)
+void Flux::CloneKaon(TH1D* X);
 {
-	fMuonKaon = X;
+	hKaon = (TH1D*) X->Clone();
 }
 
-void Flux::SetElectronPion(double X)
+void Flux::CloneKaon0(TH1D* X);
 {
-	fElectronPion = X;
+	hKaon0 = (TH1D*) X->Clone();
 }
 
-void Flux::SetElectronKaon(double X)
+void Flux::CloneMuon(TH1D* X);
 {
-	fElectronKaon = X;
-}
-
-void Flux::SetElectronKaon3(double X)
-{
-	fElectronKaon = X;
-}
-
-void Flux::SetMuonKaonOther(double X)
-{
-	fMuonKaonOther = X;
-}
-
-void Flux::SetTotalFlux(double X)	//Rescale each component
-{
-	double Ratio = X/GetTotalFlux();
-	SetMuonPion(GetMuonPion()*Ratio);
-	SetMuonKaon(GetMuonKaon()*Ratio);
-	SetElectronPion(GetElectronPion()*Ratio);
-	SetElectronKaon(GetElectronKaon()*Ratio);
-	SetElectronKaon3(GetElectronKaon3()*Ratio);
-	SetMuonKaonOther(GetMuonKaonOther()*Ratio);
+	hMuon = (TH1D*) X->Clone();
 }
 
 //Get functions
-double Flux::GetEnergy()
+
+TH1D* Flux::GetTotal()
 {
-	return fEnergy;
+	return hTotal;
 }
 
-double Flux::GetMuonPion()
+TH1D* Flux::GetPion()
 {
-	return fMuonPion;
+	return hPion;
 }
 
-double Flux::GetMuonKaon()
+TH1D* Flux::GetKaon()
 {
-	return fMuonKaon;
+	return hKaon;
 }
 
-double Flux::GetElectronPion()
+TH1D* Flux::GetKaon0()
 {
-	return fElectronPion;
+	return hKaon0;
 }
 
-double Flux::GetElectronKaon()
+TH1D* Flux::GetMuon()
 {
-	return fElectronKaon;
+	return hMuon;
 }
-
-double Flux::GetElectronKaon3()
-{
-	return fElectronKaon3;
-}
-
-double Flux::GetMuonKaonOther()
-{
-	return fMuonKaonOther;
-}
-
-double Flux::GetTotalFlux()
-{
-	return (GetMuonPion() + GetMuonKaon() + GetElectronPion() + GetElectronKaon() + GetElectronKaon3() + GetMuonKaonOther());
-}
-
-

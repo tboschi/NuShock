@@ -1,66 +1,44 @@
 /*
- * Flux class, container of various components
+ * Flux class, container of various components as root histogram
  * 
  * Author: Tommaso Boschi
  */
 
-#ifndef flux_H
-#define flux_H
+#ifndef FLUX_H
+#define FLUX_H
 
 #include <iostream>
-#include <fstream>
 
-//ROOT include
-#include "TH1.h"
-#include "TFile.h"
-#include "TTree.h"
-#include "TMath.h"
+#include "TH1D.H"
 
 class Flux
 {
 	public:
-		Flux(double Energy,
-		     double MuonPion = 0,
-		     double MuonKaon = 0,
-		     double ElectronPion = 0,
-		     double ElectronKaon = 0,
-		     double ElectronKaon3 = 0,
-		     double MuonKaonOther = 0);
+		Flux(TH1D* Total,
+		     TH1D* Pion, 
+		     TH1D* Kaon,
+		     TH1D* Kaon0,
+		     TH1D* Muon);
+		Flux(std::string HistFile);
 
-		void SetAll(double Energy,
-			    double MuonPion = 0,
-			    double MuonKaon = 0,
-			    double ElectronPion = 0,
-			    double ElectronKaon = 0,
-			    double ElectronKaon3 = 0,
-			    double MuonKaonOther = 0);
+		void CloneTotal(TH1D* Hist);
+		void ClonePion(TH1D* Hist);
+		void CloneKaon(TH1D* Hist);
+		void CloneKaon0(TH1D* Hist);
+		void CloneMuon(TH1D* Hist);
 
-		void SetEnergy(double X);
-		void SetMuonPion(double X);
-		void SetMuonKaon(double X);
-		void SetElectronPion(double X);
-		void SetElectronKaon(double X);
-		void SetElectronKaon3(double X);
-		void SetMuonKaonOther(double X);
-		void SetTotalFlux(double X);
-
-		double GetEnergy();
-		double GetMuonPion();
-		double GetMuonKaon();
-		double GetElectronPion();
-		double GetElectronKaon();
-		double GetElectronKaon3();
-		double GetMuonKaonOther();
-		double GetTotalFlux();
+		TH1D* GetTotal();
+		TH1D* GetPion();
+		TH1D* GetKaon();
+		TH1D* GetKaon0();
+		TH1D* GetMuon();
 
 	private:
-		double fEnergy;
-		double fMuonPion;
-		double fMuonKaon;
-		double fElectronPion;
-		double fElectronKaon;
-		double fElectronKaon3;
-		double fMuonKaonOther;
+		TH1D *hAll;
+		TH1D *hPion;
+		TH1D *hKaon;
+		TH1D *hKaon0;
+		TH1D *hMuon;
 };
 
 #endif

@@ -22,7 +22,7 @@
 class FluxDriver
 {
 	public:
-		FluxDriver(std::string ConfigFlux)
+		FluxDriver(std::string SourceName);	//Load from ROOT file
 		~FluxDriver();
 
 		TH1D *GetHist();
@@ -34,16 +34,13 @@ class FluxDriver
 	private:
 		TFile *SourceFile;
 
-		Flux* fxNuMuon;
-		Flux* fxNuMuonBar;
-		Flux* fxNuElectron;
-		Flux* fxNuElectronBar;
-
-		TH1D* hNuMuonSterile;
-		TH1D* hNuMuonBarSterile;
-		TH1D* hNuElectronSterile;
-		TH1D* hNuElectronBarSterile;
-		TH1D* hTotalSterile;
+		TH1D *hTotalFlux, *sTotalFlux;
+		TH1D *hMuonPion, *sMuonPion;
+		TH1D *hMuonKaon, *sMuonKaon;
+		TH1D *hElectronPion, *sElectronPion;
+		TH1D *hElectronKaon, *sElectronKaon;
+		TH1D *hElectronKaon3, *sElectronKaon3;
+		TH1D *hMuonKaonOther, *sMuonKaonOther;
 
 		double M_Sterile;
 		double U_e, U_m, U_t;
