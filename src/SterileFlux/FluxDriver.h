@@ -27,9 +27,13 @@ class FluxDriver
 
 		TH1D *GetHist();
 		void MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
-		double SampleEnergy(Flux *StdFlux = 0, Flux *HeavyFlux = 0);
+		double SampleEnergy();
 
-		void SetTotalFlux(double X);
+		TH1D* GetSterile();
+		TH1D* GetPion();
+		TH1D* GetKaon();
+		TH1D* GetKaon0();
+		TH1D* GetMuon();
 	
 	private:
 		TFile *SourceFile;
@@ -39,11 +43,11 @@ class FluxDriver
 		Flux* fxNuElectron;
 		Flux* fxNuElectronBar;
 
-		TH1D* hNuMuonSterile;
-		TH1D* hNuMuonBarSterile;
-		TH1D* hNuElectronSterile;
-		TH1D* hNuElectronBarSterile;
 		TH1D* hTotalSterile;
+		TH1D* hPionSterile;
+		TH1D* hKaonSterile;
+		TH1D* hKaon0Sterile;
+		TH1D* hMuonSterile;
 
 		double M_Sterile;
 		double U_e, U_m, U_t;

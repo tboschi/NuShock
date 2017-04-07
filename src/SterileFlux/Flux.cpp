@@ -22,9 +22,9 @@ Flux::Flux(std::string HistFile)
 	InFile->Close();
 }
 
-//Clone functions
+//Clone functions, so that an object from this class owns valid copies of the histograms
 
-void Flux::CloneTotal(TH1D* X)	//Rescale each component
+void Flux::CloneTotal(TH1D* X)
 {
 	hTotal = (TH1D*) X->Clone();
 }

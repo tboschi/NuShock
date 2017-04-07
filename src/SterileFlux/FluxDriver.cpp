@@ -30,64 +30,122 @@ FluxDriver::FluxDriver(std::string ConfigFlux)
 
 FluxDriver::~FluxDriver()
 {
-	SourceFile->Close();
+	delete fxNuMuon;
+	delete fxNuMuonBar;
+	delete fxNuElectron;
+	delete fxNuElectronBar;
 }
 
-TH1D *FluxDriver::GetHist()
+void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t)
 {
-	return sTotalFlux;
+	hTotalSterile->Reset("ICES");	//Reset before generating
+	hPionlSterile->Reset("ICES");
+	hKaonSterile->Reset("ICES"); 
+	hKaon0Sterile->Reset("ICES");
+	hMuonSterile->Reset("ICES"); 
+
+	if (!fxNuMuon)		//Model on nu mu flux
+	{
+		Flux sxFlux = *fxNuMuon;
+
+		sxFlux.GetPion()->Scale(U_m*U_m * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
+		hPionSterile->Add(sxFlux.GetPion());
+
+		sxFlux.GetKaon()->Scale(U_m*U_m * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
+		hKaonSterile->Add(sxFlux.GetKaon());
+
+		sxFlux.GetKaon0()->Scale(U_m*U_m);
+		hKaon0Sterile->Add(sxFlux.GetKaon0());
+
+		sxFlux.GetMuon()->Scale(U_m*U_m);
+		hMuonSterile->Add(sxFlux.GetMuon());
+	}
+
+	if (!fxNuMuonBar)	//Model on nu mu bar flux
+	{
+		Flux sxFlux = *fxNuMuonBar;
+
+		sxFlux.GetPion()->Scale(U_m*U_m * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
+		hPionSterile->Add(sxFlux.GetPion());
+
+		sxFlux.GetKaon()->Scale(U_m*U_m * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
+		hKaonSterile->Add(sxFlux.GetKaon());
+
+		sxFlux.GetKaon0()->Scale(U_m*U_m);
+		hKaon0Sterile->Add(sxFlux.GetKaon0());
+
+		sxFlux.GetMuon()->Scale(U_m*U_m);
+		hMuonSterile->Add(sxFlux.GetMuon());
+	}
+	
+	if (!fxNuElectron)	//Model on nu electron flux
+	{
+		Flux sxFlux = *fxNuElectron;
+
+		sxFlux.GetPion()->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
+		hPionSterile->Add(sxFlux.GetPion());
+
+		sxFlux.GetKaon()->Scale(U_e*U_e * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
+		hKaonSterile->Add(sxFlux.GetKaon());
+
+		sxFlux.GetKaon0()->Scale(U_e*U_e);
+		hKaon0Sterile->Add(sxFlux.GetKaon0());
+
+		sxFlux.GetMuon()->Scale(U_e*U_e);
+		hMuonSterile->Add(sxFlux.GetMuon());
+	}
+
+	if (!fxNuElectronBar)	//Model on nu electron bar flux
+	{
+		Flux sxFlux = *fxNuElectronBar;
+
+		sxFlux.GetPion()->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
+		hPionSterile->Add(sxFlux.GetPion());
+
+		sxFlux.GetKaon()->Scale(U_e*U_e * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
+		hKaonSterile->Add(sxFlux.GetKaon());
+
+		sxFlux.GetKaon0()->Scale(U_e*U_e);
+		hKaon0Sterile->Add(sxFlux.GetKaon0());
+
+		sxFlux.GetMuon()->Scale(U_e*U_e);
+		hMuonSterile->Add(sxFlux.GetMuon());
+	}
+
+	hTotalSterile->Add(hPionSterile);
+	hTotalSterile->Add(hKaonSterile);
+	hTotalSterile->Add(hKaon0Sterile);
+	hTotalSterile->Add(hMuonSterile);
 }
 
-void FluxDriver::MakeSterileFlux(double M_Sterile, double M_Lepton, double U_x, double U_l)
+double FluxDriver::SampleEnergy()		//Sample energy
 {
-	//Clone from original fluxes
-	sPion = (TH1D*) hPion->Clone();
-	sKaon = (TH1D*) hKaon->Clone();
-	sKaon0 = (TH1D*) hKaon0->Clone();
-	sMuon = (TH1D*) hMuon->Clone();
-
-	//Scale accordingly
-	sPion->Scale(U_x*U_x * Kine::ShrockFactor(M_Pion, M_Lepton, M_Sterile));
-	sKaon->Scale(U_x*U_x * Kine::ShrockFactor(M_Kaon, M_Lepton, M_Sterile));
-	sKaon0->Scale(U_x*U_x);
-	sMuon->Scale(U_x*U_x);		//Not correct
-
-	//Add fluxes to total
-	sTotalFlux->Add(sPion);
-	sTotalFlux->Add(sKaon);
-	sTotalFlux->Add(sKaon0);
-	sTotalFlux->Add(sMuon);
-}
-
-//Need to think about this
-//void FluxDriver::DetectorModel(TH1D * hHist, double Probabilty)
-//{
-//	for (int i = 1; i < sPion->GetNbinsX()+1; ++i)
-//		hHist->SetBinContent(i, sPion->GetBinContent(i)*Probability);
-//}
-
-//Sample energy and sets values to given pointers.
-/*
-double FluxDriver::SampleEnergy(Flux *StdFlux, Flux *HeavyFlux)
-{
-	double RanEnergy = sTotalFlux->GetRandom();
-
-	StdFlux->SetEnergy(RanEnergy);
-	StdFlux->SetMuonPion(hMuonPion->GetBinContent(hMuonPion->FindBin(RanEnergy)));
-	StdFlux->SetMuonKaon(hMuonKaon->GetBinContent(hMuonKaon->FindBin(RanEnergy)));
-	StdFlux->SetElectronPion(hElectronPion->GetBinContent(hElectronPion->FindBin(RanEnergy)));
-	StdFlux->SetElectronKaon(hElectronKaon->GetBinContent(hElectronKaon->FindBin(RanEnergy)));
-	StdFlux->SetElectronKaon3(hElectronKaon3->GetBinContent(hElectronKaon3->FindBin(RanEnergy)));
-	StdFlux->SetMuonKaonOther(hMuonKaonOther->GetBinContent(hMuonKaonOther->FindBin(RanEnergy)));
-
-	HeavyFlux->SetEnergy(RanEnergy);
-	HeavyFlux->SetMuonPion(sMuonPion->GetBinContent(sMuonPion->FindBin(RanEnergy)));
-	HeavyFlux->SetMuonKaon(sMuonKaon->GetBinContent(sMuonKaon->FindBin(RanEnergy)));
-	HeavyFlux->SetElectronPion(sElectronPion->GetBinContent(sElectronPion->FindBin(RanEnergy)));
-	HeavyFlux->SetElectronKaon(sElectronKaon->GetBinContent(sElectronKaon->FindBin(RanEnergy)));
-	HeavyFlux->SetElectronKaon3(sElectronKaon3->GetBinContent(sElectronKaon3->FindBin(RanEnergy)));
-	HeavyFlux->SetMuonKaonOther(sMuonKaonOther->GetBinContent(sMuonKaonOther->FindBin(RanEnergy)));
-
-	return RanEnergy;
+	return hTotalSterile->GetRandom();
 } 
-*/
+
+//Get individual histograms
+
+TH1D* FluxDriver::GetSterile()
+{
+	return hTotalSterile;
+} 
+
+TH1D* FluxDriver::GetPion()
+{
+	return hPionSterile;
+} 
+
+TH1D* FluxDriver::GetKaon()
+{
+	return hKaonSterile;
+} 
+
+TH1D* FluxDriver::GetKaon0()
+{
+	return hKaon0Sterile;
+} 
+
+TH1D* FluxDriver::GetMuon()
+{
+	return hMuonSterile;
+} 
