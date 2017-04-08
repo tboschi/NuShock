@@ -1,6 +1,6 @@
 /*
  * Event Generator for sterile neutrinos
- * Generates number of events given detector, flux and decay modes
+ * Generates number of events given detector, wanted energy and decay modes
  *
  * Author: Tommaso Boschi
  */
@@ -30,24 +30,22 @@
 class EventGenerator
 {
 	public:
-		EventGenerator(std::string SMConfig, std::string FluxConfig, std::string DetectorConfig);
-		~EventGenerator();
+		EventGenerator(std::string SMConfig, std::string DetectorConfig);	//Construct event generator
+		~EventGenerator();							//Input energy, output random events
 
-		double DrawEnergy();	//returns energy from distribution and also store components
-		double SetEnergy(double X);
-		void MakeFlux();
-		double Probability(std::string Channel, double ESterile);
-		double RandomDetectionEvent(std::string Channel);
-		double NumberOfDetected(std::string Channel);
-		double RandomEvent();
+		double Probability(std::string Channel = "ALL");
+		double Detectable(std::string Channel = "R");
+		double RandomDetectionEvent(std::string Channel = "R");
 		std::string RandomChannel(double Energy);
 
-		double GetMSterile();
+		double GetMass();
+		double GetEnergy();
 		double GetUe();
 		double GetUm();
 		double GetUt();
 
-		void SetMSterile(double X);
+		void SetMass(double X);
+		void SetEnergy(double X);
 		void SetUe(double X);
 		void SetUm(double X);
 		void SetUt(double X);
@@ -56,26 +54,17 @@ class EventGenerator
 		double M_Sterile, E_Sterile;
 		double U_e, U_m, U_t;
 
-		FluxDriver *NuMuFlux;		//muon neutrino
-		FluxDriver *NuMu_TheFlux;	//muon antineutrino
-		FluxDriver *NuEFlux;		//electron neutrino
-		FluxDriver *NuE_Flux;		//electron antineutrino
-
-		Flux *SterileEnergy;
-		Flux *StandardEnergy;
 		Decay *TheGamma;
 		Detector *TheBox;
 
 		TFile *SourceFile;
 
-		TH1F *hTotalFlux;
+		TRandom3 *GenMT;
 
 		const double M_Electron = Const::fMElectron;
 		const double M_Muon = Const::fMMuon;
 		const double M_Pion = Const::fMPion;
 		const double M_Kaon = Const::fMKaon;
-
-		TRandom3 *GenMT;
 };
 
 #endif

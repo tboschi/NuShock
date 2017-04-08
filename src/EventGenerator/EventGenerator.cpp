@@ -1,6 +1,6 @@
 #include "EventGenerator.h"
 
-EventGenerator::EventGenerator(std::string SMConfig, std::string FluxConfig, std::string DetectorConfig)
+EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig)
 {
 	std::string Line, Key, Name;
 	std::stringstream ssL;
@@ -16,109 +16,55 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string FluxConfig, std
 		ssL << Line;
 
 		ssL >> Key >> Element;
-		if (Key == "M_Sterile") SetMSterile(Element);
+		if (Key == "M_Sterile") SetMass(Element);
 		if (Key == "U_e") SetUe(Element);
 		if (Key == "U_m") SetUm(Element);
 		if (Key == "U_t") SetUt(Element);
 	}
 	ConfigFile.close();
 
-
 	TheBox = new Detector(DetectorConfig);
-	TheGamma = new Decay(GetMSterile(), GetUe(), GetUm(), GetUt());
-	hTotalFlux = new TH1D("htotalflux", "Sterile total flux", 100, 0, 20);
+	TheGamma = new Decay(GetMass(), GetUe(), GetUm(), GetUt());
 
-	StandardEnergy = new Flux(0);
-	SterileEnergy = new Flux(0);
-
-	GenMT = new TRandom3(0);	//19937 Mersenne Twister generator;
+	GenMT = new TRandom3(0);	//19937 Mersenne Twister generator
 }
 
 EventGenerator::~EventGenerator()
 {
-	delete TheFlux;
 	delete TheBox;
 	delete TheGamma;
-	delete StandardEnergy;
-	delete SterileEnergy;
 	delete GenMT;
 }
 
-double EventGenerator::DrawEnergy()	//returns energy from distribution and also store components
-{
-	return hTotalFlux->GetRandom();
-}
-
-double EventGenerator::SetEnergy(double X)
-{
-	E_Sterile = X;
-}
-
-void EventGenerator::MakeFlux()
-{
-	if (NuMuFlux != 0)
-	{
-		NuMuFlux->MakeSterileFlux(GetMSterile(), M_Muon, GetUm(), GetUm());
-		hTotalFlux->Add(NuMuFlux->GetHist());
-	}
-	if (NuMu_Flux != 0)
-	{
-		NuMu_Flux->MakeSterileFlux(GetMSterile(), M_Muon, GetUm(), GetUm());
-		hTotalFlux->Add(NuMuFlux->GetHist());
-	}
-	if (NuEFlux != 0)
-	{
-		NuEFlux->MakeSterileFlux(GetMSterile(), M_Electron, GetUe(), GetUm());
-		hTotalFlux->Add(NuMuFlux->GetHist());
-	}
-	if (NuE_Flux != 0)
-	{
-		NuE_Flux->MakeSterileFlux(GetMSterile(), M_Electron, GetUe(), GetUm());
-		hTotalFlux->Add(NuMuFlux->GetHist());
-	}
-}
-
-double EventGenerator::Probability(std::string Channel, double ESterile)
-{
+double EventGenerator::Probability(std::string Channel)		//of reaching the detectore and decaying inside
+{								//using given energy
 	double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
 	double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
 	double Ratio = TheGamma->Branch(Channel); 
 	double Total = TheGamma->Total();
-	double Lorentz = M_Sterile/sqrt(ESterile*ESterile - M_Sterile*M_Sterile);
+	double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
 	return exp(-Total * Length / Lorentz) * (1-exp(- Total * Lambda / Lorentz)) * Ratio;
 }
 
-int EventGenerator::Detectable(std::string Channel, double ESterile)
+bool EventGenerator::Detectable(std::string Channel)	//defaul is random
 {
-	double Num = GenMT->Rndm();
-	if (Num <= Probability(Channel, ESterile))
-		return 1;
-	else return 0;
+	if (Channel == "R")
+		return (GenMT->Rndm() <= Probability(RandomChannel()));		//Return bool according distribution of probability
+	else return (GenMT->Rndm() <= Probability(Channel));		//fixed channel
 }
 
-double EventGenerator::RandomDetectionEvent(std::string Channel)
+bool EventGenerator::RandomDetectionEvent(std::string Channel)	//Defaul is random channel
 {
-	double Energy = DrawEnergy();
-	return Energy*Detectable(Channel, Energy)*TheBox->Efficiency(Channel, Energy);
-}
-
-double EventGenerator::NumberOfDetected(std::string Channel)
-{
-	double TotNumber = 0;
-	for (int i = 1; i <= hTotalflux->GetNbinsX(); ++i)
+	if (Detectable(Channel))
 	{
-		double E = hTotalFlux->GetBinContent(i);
-		TotNumber += E*Probability(Channel, E)*TheBox->Efficiency(Channel, E);
+		if (Channel == "R")
+			return (GenMT->Rndm() <= TheBox->Efficiency(RandomChannel(), GetEnergy()));
+		else return (GenMT->Rndm() <= TheBox->Efficiency(Channel, GetEnergy()));
 	}
-	return TotNumber;
+	else return false;
 }
 
-double EventGenerator::RandomEvent()
-{
-	double Energy = DrawEnergy();
-}
-
-std::string EventGenerator::RandomChannel(double Energy)
+std::string EventGenerator::RandomChannel()
 {
 	double Num = GenMT->Rndm();
 	double Sum = 0;
@@ -140,9 +86,14 @@ std::string EventGenerator::RandomChannel(double Energy)
 }
 
 //Get functions
-double EventGenerator::GetMSterile()
+double EventGenerator::GetMass()
 {
 	return M_Sterile;
+}
+
+double EventGenerator::GetEnergy()
+{
+	return E_Sterile;
 }
 
 double EventGenerator::GetUe()
@@ -161,9 +112,14 @@ double EventGenerator::GetUt()
 }
 
 //Set functions
-void EventGenerator::SetMSterile(double X)
+void EventGenerator::SetMass(double X)
 {
 	M_Sterile = X;
+}
+
+double EventGenerator::SetEnergy(double X)
+{
+	E_Sterile = X;
 }
 
 void EventGenerator::SetUe(double X)
