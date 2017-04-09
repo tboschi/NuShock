@@ -11,13 +11,13 @@ Flux::Flux(TH1D* Total, TH1D* Pion, TH1D* Kaon, TH1D* Kaon0, TH1D* Muon)
 
 Flux::Flux(std::string HistFile)
 {
-	TFile* InFile = new TFile(HistFile, "READ");
+	TFile* InFile = new TFile(HistFile.c_str(), "READ");
 
 	CloneTotal((TH1D*) InFile->Get("htotal"));
-	CloneTotal((TH1D*) InFile->Get("hpion"));
-	CloneTotal((TH1D*) InFile->Get("hkaon"));
-	CloneTotal((TH1D*) InFile->Get("hkaon0"));
-	CloneTotal((TH1D*) InFile->Get("hmuon"));
+	ClonePion((TH1D*) InFile->Get("hpion"));
+	CloneKaon((TH1D*) InFile->Get("hkaon"));
+	CloneKaon0((TH1D*) InFile->Get("hkaon0"));
+	CloneMuon((TH1D*) InFile->Get("hmuon"));
 
 	InFile->Close();
 }
@@ -29,22 +29,22 @@ void Flux::CloneTotal(TH1D* X)
 	hTotal = (TH1D*) X->Clone();
 }
 
-void Flux::ClonePion(TH1D* X);
+void Flux::ClonePion(TH1D* X)
 {
 	hPion = (TH1D*) X->Clone();
 }
 
-void Flux::CloneKaon(TH1D* X);
+void Flux::CloneKaon(TH1D* X)
 {
 	hKaon = (TH1D*) X->Clone();
 }
 
-void Flux::CloneKaon0(TH1D* X);
+void Flux::CloneKaon0(TH1D* X)
 {
 	hKaon0 = (TH1D*) X->Clone();
 }
 
-void Flux::CloneMuon(TH1D* X);
+void Flux::CloneMuon(TH1D* X)
 {
 	hMuon = (TH1D*) X->Clone();
 }

@@ -61,6 +61,7 @@ int main(int argc, char** argv)
 	EventGenerator * EvGen = new EventGenerator(SMconfig, DetConfig);
 	FluxDriver * TheFlux = new FluxDriver(FluxConfig);
 
+	std::cout << EvGen->RandomChannel << std::endl;
 
 	//Garbage collection
 	delete EvGen;

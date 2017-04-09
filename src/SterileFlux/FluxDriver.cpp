@@ -1,16 +1,20 @@
 #include <FluxDriver.h>
 
-FluxDriver::FluxDriver(std::string ConfigFlux)
+FluxDriver::FluxDriver(std::string FluxConfig) : 
+	M_Electron(Const::fMElectron),
+	M_Muon(Const::fMMuon),
+	M_Pion(Const::fMPion),
+	M_Kaon(Const::fMKaon)
 {
 	fxNuMuon = 0;
 	fxNuMuonBar = 0;
 	fxNuElectron = 0;
 	fxNuElectronBar = 0;
 
-	std::string Line, Key, Element;
+	std::string Line, Key, Name;
 	std::stringstream ssL;
 	
-	ConfigFile.open(FluxConfig.c_str())
+	std::ifstream ConfigFile(FluxConfig.c_str());
 	while (std::getline(ConfigFile, Line))
 	{
 		if (Line[0] == '#') continue;
@@ -19,11 +23,13 @@ FluxDriver::FluxDriver(std::string ConfigFlux)
 		ssL.clear();
 		ssL << Line;
 
-		ssL >> Key >> Name;
-		if (Key.find("Muon_") != std::string::npos) fxNuMuon = new Flux(Name);
-		if (Key.find("MuonBar_") != std::string::npos) fxNuMuonBar = new Flux(Name);
-		if (Key.find("Electron_") != std::string::npos) fxNuElectron = new Flux(Name);
-		if (Key.find("ElectronBar_") != std::string::npos) fxNuElectronBar = new Flux(Name);
+		if (ssL >> Key >> Name)
+		{
+			if (Key.find("Muon_") != std::string::npos) fxNuMuon = new Flux(Name);
+			if (Key.find("MuonBar_") != std::string::npos) fxNuMuonBar = new Flux(Name);
+			if (Key.find("Electron_") != std::string::npos) fxNuElectron = new Flux(Name);
+			if (Key.find("ElectronBar_") != std::string::npos) fxNuElectronBar = new Flux(Name);
+		}
 	}
 	ConfigFile.close();
 }
@@ -39,7 +45,7 @@ FluxDriver::~FluxDriver()
 void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t)
 {
 	hTotalSterile->Reset("ICES");	//Reset before generating
-	hPionlSterile->Reset("ICES");
+	hPionSterile->Reset("ICES");
 	hKaonSterile->Reset("ICES"); 
 	hKaon0Sterile->Reset("ICES");
 	hMuonSterile->Reset("ICES"); 
@@ -82,10 +88,10 @@ void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, doubl
 	{
 		Flux sxFlux = *fxNuElectron;
 
-		sxFlux.GetPion()->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
+		sxFlux.GetPion()->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile));
 		hPionSterile->Add(sxFlux.GetPion());
 
-		sxFlux.GetKaon()->Scale(U_e*U_e * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
+		sxFlux.GetKaon()->Scale(U_e*U_e * Kine::ShrockFactor(M_Kaon, M_Electron, M_Sterile));
 		hKaonSterile->Add(sxFlux.GetKaon());
 
 		sxFlux.GetKaon0()->Scale(U_e*U_e);
@@ -99,10 +105,10 @@ void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, doubl
 	{
 		Flux sxFlux = *fxNuElectronBar;
 
-		sxFlux.GetPion()->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
+		sxFlux.GetPion()->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile));
 		hPionSterile->Add(sxFlux.GetPion());
 
-		sxFlux.GetKaon()->Scale(U_e*U_e * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile));
+		sxFlux.GetKaon()->Scale(U_e*U_e * Kine::ShrockFactor(M_Kaon, M_Electron, M_Sterile));
 		hKaonSterile->Add(sxFlux.GetKaon());
 
 		sxFlux.GetKaon0()->Scale(U_e*U_e);
@@ -122,6 +128,15 @@ double FluxDriver::SampleEnergy()		//Sample energy
 {
 	return hTotalSterile->GetRandom();
 } 
+
+void FluxDriver::SetBaseline(double Baseline)
+{
+	hTotalSterile->Scale(1e6/(Baseline*Baseline));
+	hPionSterile->Scale(1e6/(Baseline*Baseline));
+	hKaonSterile->Scale(1e6/(Baseline*Baseline));
+	hKaon0Sterile->Scale(1e6/(Baseline*Baseline));
+	hPionSterile->Scale(1e6/(Baseline*Baseline));
+}
 
 //Get individual histograms
 

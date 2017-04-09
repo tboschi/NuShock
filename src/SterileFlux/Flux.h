@@ -9,7 +9,8 @@
 
 #include <iostream>
 
-#include "TH1D.H"
+#include "TFile.h"
+#include "TH1D.h"
 
 class Flux
 {
@@ -34,7 +35,7 @@ class Flux
 		TH1D* GetMuon();
 
 	private:
-		TH1D *hAll;
+		TH1D *hTotal;
 		TH1D *hPion;
 		TH1D *hKaon;
 		TH1D *hKaon0;

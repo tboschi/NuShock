@@ -9,6 +9,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstring>
+#include <sstream>
 
 //ROOT include
 #include "TH1.h"
@@ -22,12 +24,13 @@
 class FluxDriver
 {
 	public:
-		FluxDriver(std::string ConfigFlux)
+		FluxDriver(std::string ConfigFlux);
 		~FluxDriver();
 
 		TH1D *GetHist();
 		void MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
 		double SampleEnergy();
+		void SetBaseline(double Baseline);
 
 		TH1D* GetSterile();
 		TH1D* GetPion();
@@ -49,12 +52,10 @@ class FluxDriver
 		TH1D* hKaon0Sterile;
 		TH1D* hMuonSterile;
 
-		double M_Sterile;
-		double U_e, U_m, U_t;
-		const double M_Electron = Const::fMElectron;
-		const double M_Muon = Const::fMMuon;
-		const double M_Pion = Const::fMPion;
-		const double M_Kaon = Const::fMKaon;
+		const double M_Electron;
+		const double M_Muon;
+		const double M_Pion;
+		const double M_Kaon;
 };
 
 #endif

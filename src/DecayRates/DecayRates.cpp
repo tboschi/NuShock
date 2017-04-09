@@ -138,7 +138,6 @@ double Decay::Branch(std::string Channel, double A, double B)
 {
 	SetEnhancement("ALL", A);
 	SetEnhancement(Channel, B);
-	double TotalGamma = Total();
 
 	double Result;
 	switch(mapChannel[Channel])
