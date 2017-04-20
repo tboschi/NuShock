@@ -2,7 +2,7 @@
 #
 #Name of detector
 #
-Baseline	100
+Baseline	50
 Length		6
 Weight		100
 POT		1e13

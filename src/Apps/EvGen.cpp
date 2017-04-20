@@ -4,7 +4,9 @@
 #include <cstring>
 #include <getopt.h>
 
-#include "headers.h"
+#include "EventGenerator.h"
+#include "FluxDriver.h"
+#include "DecayRates.h"
 
 void Usage(char* argv0);
 
@@ -24,11 +26,10 @@ int main(int argc, char** argv)
 	int iarg = 0;
 	opterr = 1;
 	
-	std::ofstream OutFile;
-	
 	//Initialize variables
 	std::string SMConfig, DetConfig;
 	std::string FluxConfig;
+	TFile *OutFile;
 	
 	while((iarg = getopt_long(argc,argv, "s:d:f:o:h", longopts, &index)) != -1)
 	{
@@ -44,7 +45,7 @@ int main(int argc, char** argv)
 				FluxConfig.assign(optarg);
 				break;
 			case 'o':
-				OutFile.open(optarg);
+				OutFile = new TFile(optarg, "RECREATE");
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -56,16 +57,45 @@ int main(int argc, char** argv)
 	}
 
 	//To have multiple output, handled by usage
-	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
+//	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	EventGenerator * EvGen = new EventGenerator(SMconfig, DetConfig);
-	FluxDriver * TheFlux = new FluxDriver(FluxConfig);
+	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 
-	std::cout << EvGen->RandomChannel << std::endl;
+	
+	//TheFlux->SetBaseline(500);
+	
+	EvGen->MakeStandardFlux();
+
+	OutFile->mkdir("Before");
+	OutFile->cd("Before");
+
+	EvGen->GetFluxDriverPtr()->GetTotalOriginal()->Write();
+	EvGen->GetFluxDriverPtr()->GetPionOriginal()->Write();
+	EvGen->GetFluxDriverPtr()->GetKaonOriginal()->Write();
+	EvGen->GetFluxDriverPtr()->GetKaon0Original()->Write();
+	EvGen->GetFluxDriverPtr()->GetMuonOriginal()->Write();
+
+	EvGen->MakeSterileFlux();
+
+	OutFile->mkdir("After");
+	OutFile->cd("After");
+
+	EvGen->GetFluxDriverPtr()->GetTotal()->Write();
+	EvGen->GetFluxDriverPtr()->GetPion()->Write();
+	EvGen->GetFluxDriverPtr()->GetKaon()->Write();
+	EvGen->GetFluxDriverPtr()->GetKaon0()->Write();
+	EvGen->GetFluxDriverPtr()->GetMuon()->Write();
+	/*
+	for (int i = 0; i < 100; ++i)
+	{
+		std::cout << "Energy " << EvGen->SampleEnergy() << "\t";
+		std::cout << EvGen->Probability("ALL") << std::endl;
+	}
+	*/
 
 	//Garbage collection
-	delete EvGen;
-	delete TheFlux;
+//	OutFile->Close();
+//	delete EvGen;
 
 	return 0;
 }

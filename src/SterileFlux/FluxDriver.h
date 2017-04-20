@@ -29,14 +29,21 @@ class FluxDriver
 
 		TH1D *GetHist();
 		void MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
+		void MakeStandardFlux();
 		double SampleEnergy();
 		void SetBaseline(double Baseline);
 
-		TH1D* GetSterile();
+		TH1D* GetTotal();
 		TH1D* GetPion();
 		TH1D* GetKaon();
 		TH1D* GetKaon0();
 		TH1D* GetMuon();
+
+		TH1D* GetTotalOriginal();
+		TH1D* GetPionOriginal();
+		TH1D* GetKaonOriginal();
+		TH1D* GetKaon0Original();
+		TH1D* GetMuonOriginal();
 	
 	private:
 		TFile *SourceFile;
@@ -52,10 +59,20 @@ class FluxDriver
 		TH1D* hKaon0Sterile;
 		TH1D* hMuonSterile;
 
+		TH1D* hTotalStandard;
+		TH1D* hPionStandard;
+		TH1D* hKaonStandard;
+		TH1D* hKaon0Standard;
+		TH1D* hMuonStandard;
+
 		const double M_Electron;
 		const double M_Muon;
 		const double M_Pion;
+		const double M_Pion0;
 		const double M_Kaon;
+		const double M_Kaon0;
+
+		bool Kine;
 };
 
 #endif

@@ -1,6 +1,10 @@
 #include "EventGenerator.h"
 
-EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig)
+EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig, std::string FluxConfig) : 
+	M_Electron(Const::fMElectron),
+	M_Muon(Const::fMMuon),
+	M_Pion(Const::fMPion),        	
+	M_Kaon(Const::fMKaon)
 {
 	std::string Line, Key, Name;
 	std::stringstream ssL;
@@ -25,6 +29,7 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig)
 
 	TheBox = new Detector(DetectorConfig);
 	TheGamma = new Decay(GetMass(), GetUe(), GetUm(), GetUt());
+	TheFlux = new FluxDriver(FluxConfig);
 
 	GenMT = new TRandom3(0);	//19937 Mersenne Twister generator
 }
@@ -33,7 +38,24 @@ EventGenerator::~EventGenerator()
 {
 	delete TheBox;
 	delete TheGamma;
+	delete TheFlux;
+
 	delete GenMT;
+}
+
+Detector* EventGenerator::GetDetectorPtr()
+{
+	return TheBox;
+}
+
+Decay* EventGenerator::GetDecayPtr()
+{
+	return TheGamma;
+}
+
+FluxDriver* EventGenerator::GetFluxDriverPtr()
+{
+	return TheFlux;
 }
 
 double EventGenerator::Probability(std::string Channel)		//of reaching the detectore and decaying inside
@@ -43,7 +65,7 @@ double EventGenerator::Probability(std::string Channel)		//of reaching the detec
 	double Ratio = TheGamma->Branch(Channel); 
 	double Total = TheGamma->Total();
 	double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
-	return exp(-Total * Length / Lorentz) * (1-exp(- Total * Lambda / Lorentz)) * Ratio;
+	return exp(-Total * Length * Lorentz) * (1-exp(- Total * Lambda * Lorentz)) * Ratio;
 }
 
 bool EventGenerator::Detectable(std::string Channel)	//defaul is random
@@ -68,21 +90,67 @@ std::string EventGenerator::RandomChannel()
 {
 	double Num = GenMT->Rndm();
 	double Sum = 0;
-	std::string Channel;
 	std::vector<std::string> vChan = TheGamma->ListChannels();
 
-	for (int i = 0; i < vChan.size(); ++i)
+	int i = 0;
+	for ( ; i < vChan.size(); ++i)
 	{
 		if (vChan.at(i) == "ALL") continue;
 
 		Sum += TheGamma->Branch(vChan.at(i));
 		if (Num <= Sum)
-		{
-			Channel = vChan.at(i);
 			break;
-		}
 	}
-	return Channel;
+	return vChan.at(i);
+}
+
+void EventGenerator::MakeSterileFlux()
+{
+	TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
+	TheFlux->MakeSterileFlux(GetMass(), GetUe(), GetUm(), GetUt());
+}
+
+void EventGenerator::MakeStandardFlux()
+{
+	TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
+	TheFlux->MakeStandardFlux();
+}
+
+//Real MC generation
+double EventGenerator::SampleEnergy()
+{
+	double Energy = TheFlux->SampleEnergy();
+	SetEnergy(Energy);
+	return Energy;
+}
+
+void EventGenerator::Decay2Body(TLorentzVector &D1, TLoretnzVector &D2)
+{
+	TLorentzVector N_vec(0, 0, GetMomentum(), GetEnergy());
+	std::vector<TLorentzVector> vDecay;
+
+	TGenPhaseSpace Event;
+	double Mass[2] = {D1.M(), D2.M()};
+	Event.SetDecay(N_vec, 2, Mass);
+
+	double Weight = Event.Generate();
+	D1 = Event.GetDecay(0);	
+	D2 = Event.GetDecay(1);	
+}
+
+void EventGenerator::Decay3Body(TLorentzVector &D1, TLoretnzVector &D2, TLoretnzVector &D3)
+{
+	TLorentzVector N_vec(0, 0, GetMomentum(), GetEnergy());
+	std::vector<TLorentzVector> vDecay;
+
+	TGenPhaseSpace Event;
+	double Mass[3] = {D1.M(), D2.M(), D2.M()};
+	Event.SetDecay(N_vec, 3, Mass);
+
+	double Weight = Event.Generate();
+	D1 = Event.GetDecay(0);	
+	D2 = Event.GetDecay(1);	
+	D3 = Event.GetDecay(2);	
 }
 
 //Get functions
@@ -94,6 +162,11 @@ double EventGenerator::GetMass()
 double EventGenerator::GetEnergy()
 {
 	return E_Sterile;
+}
+
+double EventGenerator::GetMomentum()
+{
+	return sqrt(GetEnergy()*GetEnergy()-GetMass()*GetMass());
 }
 
 double EventGenerator::GetUe()
@@ -117,7 +190,7 @@ void EventGenerator::SetMass(double X)
 	M_Sterile = X;
 }
 
-double EventGenerator::SetEnergy(double X)
+void EventGenerator::SetEnergy(double X)
 {
 	E_Sterile = X;
 }

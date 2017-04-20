@@ -1,20 +1,18 @@
 #include "DecayRates.h"
 
-Decay::Decay(double MSterile, double Ue, double Um, double Ut)	//Decay rates calculator
+Decay::Decay(double MSterile, double Ue, double Um, double Ut)	: //Decay rates calculator
+	M_Neutrino(0.0),
+	M_Electron(Const::fMElectron),
+	M_Muon(Const::fMMuon),
+	M_Pion(Const::fMPion),
+	M_Pion0(Const::fMPion0),
+	M_Kaon(Const::fMKaon),
+	M_Kaon0(Const::fMKaon0)
 {
 	SetMSterile(MSterile);
 	SetUe(Ue);
 	SetUm(Um);
 	SetUt(Ut);
-
-	//Mass initialisation
-	M_Neutrino = 0.0;
-	M_Electron = Const::fMElectron;
-	M_Muon = Const::fMMuon;
-	M_Pion = Const::fMPion;
-	M_Pion0 = Const::fMPion0;
-	M_Kaon = Const::fMKaon;
-	M_Kaon0 = Const::fMKaon0;
 
 	MapInit();
 	SetEnhancement();
@@ -203,8 +201,10 @@ void Decay::SetEnhancement(std::string Channel, double K)
 //total decay width
 double Decay::Total()
 {
-	return nnn() + nGAMMA() + nEE() + 2.0*nEMU() + nPI0() +
-	       2.0*EPI() + nMUMU() + 2.0*MUPI() + 2.0*EKA() + nKA0();
+	return nnn() + nGAMMA() + nEE() + nEMU() + nPI0() +
+	       EPI() + nMUMU() + MUPI() + EKA() + nKA0();
+//	return nnn() + nGAMMA() + nEE() + 2.0*nEMU() + nPI0() +
+//	       2.0*EPI() + nMUMU() + 2.0*MUPI() + 2.0*EKA() + nKA0();
 }
 
 

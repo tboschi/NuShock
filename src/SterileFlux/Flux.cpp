@@ -13,6 +13,7 @@ Flux::Flux(std::string HistFile)
 {
 	TFile* InFile = new TFile(HistFile.c_str(), "READ");
 
+
 	CloneTotal((TH1D*) InFile->Get("htotal"));
 	ClonePion((TH1D*) InFile->Get("hpion"));
 	CloneKaon((TH1D*) InFile->Get("hkaon"));
@@ -27,26 +28,31 @@ Flux::Flux(std::string HistFile)
 void Flux::CloneTotal(TH1D* X)
 {
 	hTotal = (TH1D*) X->Clone();
+	hTotal->SetDirectory(0);
 }
 
 void Flux::ClonePion(TH1D* X)
 {
 	hPion = (TH1D*) X->Clone();
+	hPion->SetDirectory(0);
 }
 
 void Flux::CloneKaon(TH1D* X)
 {
 	hKaon = (TH1D*) X->Clone();
+	hKaon->SetDirectory(0);
 }
 
 void Flux::CloneKaon0(TH1D* X)
 {
 	hKaon0 = (TH1D*) X->Clone();
+	hKaon0->SetDirectory(0);
 }
 
 void Flux::CloneMuon(TH1D* X)
 {
 	hMuon = (TH1D*) X->Clone();
+	hMuon->SetDirectory(0);
 }
 
 //Get functions

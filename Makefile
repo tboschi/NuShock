@@ -17,7 +17,9 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	EvGen	\
+NEW =	Eps2Root	\
+	EvGen	\
+	Kine
 #	PionMuonFlux	\
 	Kine	\
 	Exclusion	\

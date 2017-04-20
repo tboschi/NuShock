@@ -11,7 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <string>
+#include <cstring>
 #include <vector>
 
 //ROOT include
@@ -20,6 +20,7 @@
 #include "TTree.h"
 #include "TMath.h"
 #include "TRandom3.h"
+#include "TLorentzVector.h"
 
 #include "Tools.h"
 #include "FluxDriver.h"
@@ -30,13 +31,19 @@
 class EventGenerator
 {
 	public:
-		EventGenerator(std::string SMConfig, std::string DetectorConfig);	//Construct event generator
+		EventGenerator(std::string SMConfig, std::string DetectorConfig, std::string FluxConfig);	//Construct event generator
 		~EventGenerator();							//Input energy, output random events
 
+		Detector* GetDetectorPtr();
+		Decay* GetDecayPtr();
+		FluxDriver* GetFluxDriverPtr();
 		double Probability(std::string Channel = "ALL");
-		double Detectable(std::string Channel = "R");
-		double RandomDetectionEvent(std::string Channel = "R");
-		std::string RandomChannel(double Energy);
+		bool Detectable(std::string Channel = "R");
+		bool RandomDetectionEvent(std::string Channel = "R");
+		std::string RandomChannel();
+		void MakeSterileFlux();
+		void MakeStandardFlux();
+		double SampleEnergy();
 
 		double GetMass();
 		double GetEnergy();
@@ -56,15 +63,16 @@ class EventGenerator
 
 		Decay *TheGamma;
 		Detector *TheBox;
+		FluxDriver *TheFlux;
 
 		TFile *SourceFile;
 
 		TRandom3 *GenMT;
 
-		const double M_Electron = Const::fMElectron;
-		const double M_Muon = Const::fMMuon;
-		const double M_Pion = Const::fMPion;
-		const double M_Kaon = Const::fMKaon;
+		const double M_Electron;
+		const double M_Muon;
+		const double M_Pion;
+		const double M_Kaon;
 };
 
 #endif

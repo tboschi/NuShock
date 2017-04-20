@@ -115,6 +115,12 @@ int main(int argc, char** argv)
 		hMuon->Fill(Energy, FindFlux(Muon_X, Muon_Y, Energy));
 	}
 
+	hTotal->Scale(13*13*1e-20);
+	hPion->Scale(13*13*1e-20);
+	hKaon->Scale(13*13*1e-20);
+	hKaon0->Scale(13*13*1e-20);
+	hMuon->Scale(13*13*1e-20);
+
 	OutFile->Write();
 
 	return 0;
@@ -153,6 +159,7 @@ void Shift(std::vector<double>& TheX, std::vector<double>& TheY, int Ybot)
 	{
 		TheX.at(i) = aX + bX*TheX.at(i);
 		TheY.at(i) = pow(10, Ybot + aY + bY*TheY.at(i));
+		if (TheY.at(i) <= pow(10, Ybot)) TheY.at(i) = 0;
 	}
 }
 

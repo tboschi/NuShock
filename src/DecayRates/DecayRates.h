@@ -30,17 +30,17 @@
 enum ChannelName
 {
 	_undefined,
-	_ALL,
-	_nnn,
-	_nGAMMA,
-	_nEE,
-	_nEMU,
-	_nPI0,
-	_EPI,
-	_MUPI,
-	_nMUMU,
-	_EKA,
-	_nKA0
+	_ALL,		//
+	_nnn,		//3 body
+	_nGAMMA,	//2 body
+	_nEE,		//3 body
+	_nEMU,		//3 body
+	_nPI0,		//3 body
+	_EPI,		//2 body
+	_MUPI,		//2 body
+	_nMUMU,		//3 body
+	_EKA,		//2 body
+	_nKA0		//3 body
 };
 
 
@@ -85,13 +85,13 @@ class Decay
 		double U_e, U_m, U_t;
 
 		//Masses
-		double M_Neutrino;
-		double M_Electron;
-		double M_Muon;
-		double M_Pion;
-		double M_Pion0;
-		double M_Kaon;
-		double M_Kaon0;
+		const double M_Neutrino;
+		const double M_Electron;
+		const double M_Muon;
+		const double M_Pion;
+		const double M_Pion0;
+		const double M_Kaon;
+		const double M_Kaon0;
 
 		//Maps
 		std::map<std::string, ChannelName> mapChannel;
