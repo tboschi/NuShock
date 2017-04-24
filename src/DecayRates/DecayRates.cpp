@@ -2,6 +2,7 @@
 
 Decay::Decay(double MSterile, double Ue, double Um, double Ut)	: //Decay rates calculator
 	M_Neutrino(0.0),
+	M_Photon(0.0),
 	M_Electron(Const::fMElectron),
 	M_Muon(Const::fMMuon),
 	M_Pion(Const::fMPion),
@@ -16,6 +17,8 @@ Decay::Decay(double MSterile, double Ue, double Um, double Ut)	: //Decay rates c
 
 	MapInit();
 	SetEnhancement();
+	Event = new TGenPhaseSpace;
+	N_vec = new TLorentzVector;
 }
 
 //Initialisation of map
@@ -28,8 +31,8 @@ void Decay::MapInit()
 	mapChannel["nEMU"] = _nEMU;
 	mapChannel["nPI0"] = _nPI0;
 	mapChannel["EPI"] = _EPI;
-	mapChannel["MUPI"] = _MUPI;
 	mapChannel["nMUMU"] = _nMUMU;
+	mapChannel["MUPI"] = _MUPI;
 	mapChannel["EKA"] = _EKA;
 	mapChannel["nKA0"] = _nKA0;
 }
@@ -62,11 +65,11 @@ double Decay::Gamma(std::string Channel, double B)
 		case _EPI:
 			Result = EPI();
 			break;
-		case _MUPI:
-			Result = MUPI();
-			break;
 		case _nMUMU:
 			Result = nMUMU();
+			break;
+		case _MUPI:
+			Result = MUPI();
 			break;
 		case _EKA:
 			Result = EKA();
@@ -111,11 +114,11 @@ double Decay::Other(std::string Channel, double A)
 		case _EPI:
 			Result = Total()-EPI();
 			break;
-		case _MUPI:
-			Result = Total()-MUPI();
-			break;
 		case _nMUMU:
 			Result = Total()-nMUMU();
+			break;
+		case _MUPI:
+			Result = Total()-MUPI();
 			break;
 		case _EKA:
 			Result = Total()-EKA();
@@ -161,11 +164,11 @@ double Decay::Branch(std::string Channel, double A, double B)
 		case _EPI:
 			Result = EPI()/Total();
 			break;
-		case _MUPI:
-			Result = MUPI()/Total();
-			break;
 		case _nMUMU:
 			Result = nMUMU()/Total();
+			break;
+		case _MUPI:
+			Result = MUPI()/Total();
 			break;
 		case _EKA:
 			Result = EKA()/Total();
@@ -180,6 +183,87 @@ double Decay::Branch(std::string Channel, double A, double B)
 
 	SetEnhancement();
 	return Result;
+}
+
+int Decay::GetPhaseSpace(std::string Channel, double &Weight)	//Return number of products 
+{								//0 if decay not valid
+	SetEnhancement();
+
+	double Mass[3];
+	int Products;
+
+	switch(mapChannel[Channel])
+	{
+		case _nnn:
+			Mass[0] = M_Neutrino;
+			Mass[1] = M_Neutrino;
+			Mass[2] = M_Neutrino;
+			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
+			Weight = Event->Generate();
+			break;
+		case _nGAMMA:
+			Mass[0] = M_Neutrino;
+			Mass[1] = M_Photon;
+			Products = 2 * Event->SetDecay(*N_vec, 3, Mass);
+			Weight = Event->Generate();
+			break;
+		case _nEE:
+			Mass[0] = M_Neutrino;
+			Mass[1] = M_Electron;
+			Mass[2] = M_Electron;
+			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
+			Weight = Event->Generate();
+			break;
+		case _nEMU:
+			Mass[0] = M_Neutrino;
+			Mass[1] = M_Electron;
+			Mass[2] = M_Muon;
+			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
+			Weight = Event->Generate();
+			break;
+		case _nPI0:
+			Mass[0] = M_Neutrino;
+			Mass[1] = M_Pion0;
+			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
+			Weight = Event->Generate();
+			break;
+		case _EPI:
+			Mass[0] = M_Electron;
+			Mass[1] = M_Pion;
+			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
+			Weight = Event->Generate();
+			break;
+		case _nMUMU:
+			Mass[0] = M_Neutrino;
+			Mass[1] = M_Muon;
+			Mass[2] = M_Muon;
+			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
+			Weight = Event->Generate();
+			break;
+		case _MUPI:
+			Mass[0] = M_Muon;
+			Mass[1] = M_Pion;
+			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
+			Weight = Event->Generate();
+			break;
+		case _EKA:
+			Mass[0] = M_Electron;
+			Mass[1] = M_Kaon;
+			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
+			Weight = Event->Generate();
+			break;
+		case _nKA0:
+			Mass[0] = M_Neutrino;
+			Mass[1] = M_Kaon0;
+			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
+			Weight = Event->Generate();
+			break;
+		default:
+			Products = 0;
+			break;
+	}
+
+	return Products;
 }
 
 //Controller of decay enhancement
@@ -201,10 +285,8 @@ void Decay::SetEnhancement(std::string Channel, double K)
 //total decay width
 double Decay::Total()
 {
-	return nnn() + nGAMMA() + nEE() + nEMU() + nPI0() +
-	       EPI() + nMUMU() + MUPI() + EKA() + nKA0();
-//	return nnn() + nGAMMA() + nEE() + 2.0*nEMU() + nPI0() +
-//	       2.0*EPI() + nMUMU() + 2.0*MUPI() + 2.0*EKA() + nKA0();
+	return nnn() + nGAMMA() + nEE() + 2.0*nEMU() + nPI0() +
+	       2.0*EPI() + nMUMU() + 2.0*MUPI() + 2.0*EKA() + nKA0();
 }
 
 
@@ -224,7 +306,7 @@ double Decay::nGAMMA()
 {
 	double AemPi = genie::constants::kAem / genie::constants::kPi;
 
-	if (M_Sterile >= 3.0 * M_Neutrino)
+	if (M_Sterile >= M_Neutrino + M_Photon)
 	{
 		return mapEnhance["nGAMMA"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
 			(U_e*U_e + U_m*U_m + U_t*U_t) * (27.0/32.0 * AemPi) /
@@ -383,6 +465,16 @@ std::vector<std::string> Decay::ListChannels()
 }
 
 //Get functions
+TLorentzVector *Decay::GetNvec()
+{
+	return N_vec;
+}
+
+TLorentzVector *Decay::GetDecayProduct(int i)
+{
+	return Event->GetDecay(i);
+}
+
 double Decay::GetMSterile()
 {
 	return M_Sterile;
@@ -404,6 +496,11 @@ double Decay::GetUt()
 }
 
 //Set functions
+void Decay::SetNvec(TLorentzVector &X)
+{
+	*N_vec = X;
+}
+
 void Decay::SetMSterile(double X)
 {
 	M_Sterile = X;

@@ -1,6 +1,7 @@
 /*
  * Event Generator for sterile neutrinos
  * Generates number of events given detector, wanted energy and decay modes
+ * Developed as a super controller
  *
  * Author: Tommaso Boschi
  */
@@ -31,22 +32,27 @@
 class EventGenerator
 {
 	public:
-		EventGenerator(std::string SMConfig, std::string DetectorConfig, std::string FluxConfig);	//Construct event generator
-		~EventGenerator();							//Input energy, output random events
+		EventGenerator(std::string SMConfig, std::string DetectorConfig, std::string FluxConfig);
+		//~EventGenerator();
 
 		Detector* GetDetectorPtr();
 		Decay* GetDecayPtr();
 		FluxDriver* GetFluxDriverPtr();
+
+		std::string RandomChannel();
 		double Probability(std::string Channel = "ALL");
 		bool Detectable(std::string Channel = "R");
 		bool RandomDetectionEvent(std::string Channel = "R");
-		std::string RandomChannel();
+		int SimulateDecay(std::string Channel = "R");
+		TLorentzVector *GetDecayProduct(int i);
+
 		void MakeSterileFlux();
 		void MakeStandardFlux();
 		double SampleEnergy();
 
 		double GetMass();
 		double GetEnergy();
+		double GetMomentum();
 		double GetUe();
 		double GetUm();
 		double GetUt();
@@ -66,13 +72,7 @@ class EventGenerator
 		FluxDriver *TheFlux;
 
 		TFile *SourceFile;
-
 		TRandom3 *GenMT;
-
-		const double M_Electron;
-		const double M_Muon;
-		const double M_Pion;
-		const double M_Kaon;
 };
 
 #endif

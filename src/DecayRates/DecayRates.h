@@ -20,6 +20,8 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TMath.h"
+#include "TLorentzVector.h"
+#include "TGenPhaseSpace.h"
 
 //GENIE include
 //#include "GHepParticle.h"
@@ -37,8 +39,8 @@ enum ChannelName
 	_nEMU,		//3 body
 	_nPI0,		//3 body
 	_EPI,		//2 body
-	_MUPI,		//2 body
 	_nMUMU,		//3 body
+	_MUPI,		//2 body
 	_EKA,		//2 body
 	_nKA0		//3 body
 };
@@ -54,6 +56,8 @@ class Decay
 		double Gamma(std::string Channel, double B = 1.0);
 		double Other(std::string Channel, double A = 1.0);
 		double Branch(std::string Channel, double A = 1.0, double B = 1.0);
+		int GetPhaseSpace(std::string Channel, double &Weight);
+
 		void SetEnhancement(std::string Channel = "ALL", double K = 1.0);
 
 		double Total();
@@ -70,11 +74,15 @@ class Decay
 
 		//Set and Get
 		std::vector<std::string> ListChannels();
+
+		TLorentzVector *GetNvec();
+		TLorentzVector *GetDecayProduct(int i);
 		double GetMSterile();
 		double GetUe();
 		double GetUm();
 		double GetUt();
 
+		void SetNvec(TLorentzVector &X);
 		void SetMSterile(double X);
 		void SetUe(double X);
 		void SetUm(double X);
@@ -86,6 +94,7 @@ class Decay
 
 		//Masses
 		const double M_Neutrino;
+		const double M_Photon;
 		const double M_Electron;
 		const double M_Muon;
 		const double M_Pion;
@@ -96,6 +105,10 @@ class Decay
 		//Maps
 		std::map<std::string, ChannelName> mapChannel;
 		std::map<std::string, double> mapEnhance;
+
+		//Generate PhaseSpace
+		TGenPhaseSpace *Event;
+		TLorentzVector *N_vec;
 };
 
 #endif

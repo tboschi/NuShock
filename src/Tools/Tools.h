@@ -18,7 +18,6 @@
 
 //ROOT include
 #include "TMath.h"
-#include "TLorentzVector.h"
 
 //GENIE include
 #include "Conventions/Constants.h"
@@ -39,8 +38,6 @@ namespace Kine
 	double I2_xy(double X, double Y);
 	double I3_xy(double X, double Y);
 	static const int Sample = 1000;	//Sample for integration
-
-	TLorentzVector * Boost
 }
 
 //Constants

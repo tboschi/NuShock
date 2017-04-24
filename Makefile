@@ -17,10 +17,11 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Eps2Root	\
-	EvGen	\
-	Kine
-#	PionMuonFlux	\
+NEW =	EvGen	\
+	Eps2Root	\
+	#EvGen	\
+	Kine	\
+	PionMuonFlux	\
 	Kine	\
 	Exclusion	\
 	DecayPlot	\

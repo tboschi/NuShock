@@ -1,6 +1,6 @@
 #Detector configuration file
 #
-#Name of detector
+#Name of detector: Example
 #
 Baseline	50
 Length		6
