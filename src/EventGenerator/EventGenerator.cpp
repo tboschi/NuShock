@@ -32,6 +32,8 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 	TheFlux = new FluxDriver(FluxConfig);
 
 	GenMT = new TRandom3(0);	//19937 Mersenne Twister generator
+
+	SetChannel();			//Channel is initialised randomly
 }
 
 /*
@@ -80,45 +82,35 @@ std::string EventGenerator::RandomChannel()	//First step: define decay mode
 	return vChan.at(i);
 }
 
-double EventGenerator::Probability(std::string Channel)	//reaching the detector and decaying
+double EventGenerator::EventProbability()	//reaching the detector and decaying
 {							//using sampled energy
 	double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
 	double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
-	double Ratio = TheGamma->Branch(Channel); 
+	double Ratio = TheGamma->Branch(GetChannel()); 
 	double Total = TheGamma->Total();
 	double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
 	return exp(-Total * Length * Lorentz) * (1-exp(- Total * Lambda * Lorentz)) * Ratio;
 }
 
-bool EventGenerator::Detectable(std::string Channel)	//Second step: can I detect the decay?
+bool EventGenerator::EventInDetector()		//Second step: is the decay inside the detector?
 {
-	if (Channel == "R")
-		return (GenMT->Rndm() <= Probability(RandomChannel()));
-	else return (GenMT->Rndm() <= Probability(Channel));
+	return (GenMT->Rndm() <= EventProbability());
 }
 
-bool EventGenerator::RandomDetectionEvent(std::string Channel)	//Third step: do I have enough efficiency?
+bool EventGenerator::EventDetectable()	//Third step: is the detector able to detect it?
 {
-	if (Detectable(Channel))
-	{
-		if (Channel == "R")
-			return (GenMT->Rndm() <= TheBox->Efficiency(RandomChannel(), GetEnergy()));
-		else return (GenMT->Rndm() <= TheBox->Efficiency(Channel, GetEnergy()));
-	}
-	else return false;
+	return (GenMT->Rndm() <= TheBox->Efficiency(GetChannel(), GetEnergy()));
 }
 
-int EventGenerator::SimulateDecay(std::string Channel)	//Fourth step: simulate the phase space of the decay
+int EventGenerator::EventKinematics()	//Fourth step: simulate the phase space of the decay
 {
 	TLorentzVector N_vec(0, 0, GetMomentum(), GetEnergy());		//Heavy neutrino is along z-axis
 
 	double Weight;
 	int Return;
 	TheGamma->SetNvec(N_vec);
-	if (Channel == "R")
-		Return = TheGamma->GetPhaseSpace(RandomChannel(), Weight);
-	else Return = TheGamma->GetPhaseSpace(Channel, Weight);
-	return Return;
+
+	return TheGamma->PhaseSpace(GetChannel(), Weight);
 }
 
 TLorentzVector *EventGenerator::GetDecayProduct(int i)
@@ -148,6 +140,11 @@ double EventGenerator::SampleEnergy()	//Sample Energy according to PDF distribut
 
 
 //Get functions
+std::string EventGenerator::GetChannel()
+{
+	return sChannel;
+}
+
 double EventGenerator::GetMass()
 {
 	return M_Sterile;
@@ -179,6 +176,13 @@ double EventGenerator::GetUt()
 }
 
 //Set functions
+void EventGenerator::SetChannel(std::string Ch)
+{
+	if (Ch == "R")
+		sChannel.assign(RandomChannel());
+	else sChannel.assign(Ch); 
+}
+
 void EventGenerator::SetMass(double X)
 {
 	M_Sterile = X;

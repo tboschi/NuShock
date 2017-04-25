@@ -185,7 +185,7 @@ double Decay::Branch(std::string Channel, double A, double B)
 	return Result;
 }
 
-int Decay::GetPhaseSpace(std::string Channel, double &Weight)	//Return number of products 
+int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of products 
 {								//0 if decay not valid
 	SetEnhancement();
 

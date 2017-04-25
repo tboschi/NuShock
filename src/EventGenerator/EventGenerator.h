@@ -35,21 +35,26 @@ class EventGenerator
 		EventGenerator(std::string SMConfig, std::string DetectorConfig, std::string FluxConfig);
 		//~EventGenerator();
 
+		//For a finer handle...it shouldn't be necessary
 		Detector* GetDetectorPtr();
 		Decay* GetDecayPtr();
 		FluxDriver* GetFluxDriverPtr();
 
+		//MC stuff
 		std::string RandomChannel();
-		double Probability(std::string Channel = "ALL");
-		bool Detectable(std::string Channel = "R");
-		bool RandomDetectionEvent(std::string Channel = "R");
-		int SimulateDecay(std::string Channel = "R");
+		double EventProbability();
+		bool EventInDetector();
+		bool EventDetectable();
+		int EventKinematics();
 		TLorentzVector *GetDecayProduct(int i);
 
+		//Generate flux to be used as PDF
 		void MakeSterileFlux();
 		void MakeStandardFlux();
 		double SampleEnergy();
 
+		//Get function
+		std::string GetChannel();
 		double GetMass();
 		double GetEnergy();
 		double GetMomentum();
@@ -57,6 +62,8 @@ class EventGenerator
 		double GetUm();
 		double GetUt();
 
+		//Set function
+		void SetChannel(std::string Ch = "R");
 		void SetMass(double X);
 		void SetEnergy(double X);
 		void SetUe(double X);
@@ -64,6 +71,8 @@ class EventGenerator
 		void SetUt(double X);
 
 	private:
+		std::string sChannel;	//Channel is set globally in class
+
 		double M_Sterile, E_Sterile;
 		double U_e, U_m, U_t;
 

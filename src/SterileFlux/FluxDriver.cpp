@@ -84,7 +84,6 @@ void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, doubl
 	hKaon0Sterile->Reset("ICES");
 	hMuonSterile->Reset("ICES"); 
 
-
 	if (fxNuMuon)		//Model on nu mu flux
 	{
 		Flux sxFlux = *fxNuMuon;

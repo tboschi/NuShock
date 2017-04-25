@@ -56,7 +56,7 @@ class Decay
 		double Gamma(std::string Channel, double B = 1.0);
 		double Other(std::string Channel, double A = 1.0);
 		double Branch(std::string Channel, double A = 1.0, double B = 1.0);
-		int GetPhaseSpace(std::string Channel, double &Weight);
+		int PhaseSpace(std::string Channel, double &Weight);
 
 		void SetEnhancement(std::string Channel = "ALL", double K = 1.0);
 
