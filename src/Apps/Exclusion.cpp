@@ -77,20 +77,18 @@ int main(int argc, char** argv)
 	EvGen->SetChannel("MUPI");
 
 	EvGen->SetMass(0);
+	/*
 	EvGen->SetUe(0);
 	EvGen->SetUm(0);
 	EvGen->SetUt(0);
+	*/
 
-	std::cout << "D0" << std::endl;
 	for (double Mass = 0.05; Mass < 0.5; Mass += 0.05)	//increase mass
 	{
-	std::cout << "D1" << std::endl;
 		EvGen->SetMass(Mass);
 
-	std::cout << "D2" << std::endl;
 		for (double Uu = 1.0e-9; Uu < 1.0e-5; Uu += 1.0e-6)	//increase Uu linearly
 		{
-	std::cout << "D3" << std::endl;
 			if (UeFlag)
 				EvGen->SetUe(Uu);
 			if (UmFlag)
@@ -98,21 +96,18 @@ int main(int argc, char** argv)
 			if (UtFlag)
 				EvGen->SetUt(Uu);
 
-	std::cout << "D4" << std::endl;
 			EvGen->MakeStandardFlux();
 
-	std::cout << "D5" << std::endl;
 			int Nevent = 0;
 			
-	std::cout << "D6" << std::endl;
+			/*
 			for (int i = 0; i < 1000; ++i)	//Generate 1000 events
 			{
 				EvGen->SampleEnergy();	
 				if (EvGen->EventInDetector()) ++Nevent;
-			}
+			}*/
 
-	std::cout << "D7" << std::endl;
-			OutFile << Mass << "\t" << Uu << "\t" << Nevent << std::endl;
+			OutFile << Mass << "\t" << Uu << "\t" << EvGen->EventProbability() << std::endl;
 		}
 	}
 
