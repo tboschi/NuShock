@@ -77,29 +77,22 @@ std::string EventGenerator::RandomChannel()	//First step: define decay mode
 
 		Sum += TheGamma->Branch(vChan.at(i));
 		if (Num <= Sum)
+		{
+			++i;
 			break;
+		}
 	}
-	return vChan.at(i);
+	return vChan.at(--i);
 }
 
 double EventGenerator::EventProbability()	//reaching the detector and decaying
 {							//using sampled energy
 	double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
-	std::cout << "Length " << Length << std::endl;
 	double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
-	std::cout << "Lambda " << Lambda << std::endl;
 	double Ratio = TheGamma->Branch(GetChannel()); 
-	std::cout << "Ratio " << Ratio << std::endl;
 	double Total = TheGamma->Total();
-	std::cout << TheGamma->GetMass() << "\t" << TheGamma->GetUe() << "\t" << TheGamma->GetUm() << "\t" << TheGamma->GetUt() << std::endl;
-	std::cout << "Total " << Total << std::endl;
 	double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
-	std::cout << "Lorentz " << Lorentz << std::endl;
-	double Ret = exp(- Total * Length * Lorentz) * (1 - exp(- Total * Lambda * Lorentz)) * Ratio;
-	std::cout << "Ret " << Ret << std::endl;
-	return exp(- Total * Length * Lorentz) * 
-	       (1 - exp(- Total * Lambda * Lorentz)) * 
-	       Ratio;
+	return exp(- Total * Length * Lorentz) * (1 - exp(- Total * Lambda * Lorentz)) * Ratio;
 }
 
 bool EventGenerator::EventInDetector()		//Second step: is the decay inside the detector?
@@ -135,6 +128,7 @@ void EventGenerator::MakeSterileFlux()	//Generate the flux for heavy neutrinos
 	{
 		TheFlux->MakeSterileFlux(GetMass(), GetUe(), GetUm(), GetUt());
 		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
+		TheFlux->SetPOT(TheBox->GetElement("POT"));
 	}
 }
 
@@ -148,13 +142,15 @@ double EventGenerator::SampleEnergy()	//Sample Energy according to PDF distribut
 {
 	double Energy = 0.0;
 	while (Energy < GetMass())
-	{
-		Energy = TheFlux->SampleFlux();
-	}
+		Energy = TheFlux->SampleEnergy();
 
-	std::cout << "Energy " << Energy << std::endl;
 	SetEnergy(Energy);
 	return Energy;
+}
+
+double EventGenerator::FluxIntensity()	//Get the flux intensity at given energy
+{
+	return TheFlux->GetIntensity(GetEnergy());
 }
 
 //Get functions

@@ -81,13 +81,17 @@ int main(int argc, char** argv)
 	for (int i = 0; i < vChannel.size(); ++i)
 		Out << i+2 << vChannel.at(i) << "\t";
 	Out << std::endl;
+
 	
-	for (M_Sterile = 0; M_Sterile < 0.500; M_Sterile += 0.0005)
+	for (M_Sterile = 0; M_Sterile < 0.500; M_Sterile += 0.005)
 	{
-		SuperGamma->SetMSterile(M_Sterile);
-		Out << M_Sterile << "\t";
-		for (int i = 0; i < vChannel.size(); ++i)
-			Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
+		double Sum = 0;
+		SuperGamma->SetMass(M_Sterile);
+		for (int i = 1; i < vChannel.size(); ++i)
+		{
+			Sum += SuperGamma->Branch(vChannel.at(i));
+			Out << Sum << "\t";
+		}
 		Out << std::endl;
 	}
 
@@ -95,4 +99,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-	

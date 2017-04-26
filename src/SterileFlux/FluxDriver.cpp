@@ -189,6 +189,15 @@ void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, doubl
 	hTotalSterile->Add(hMuonSterile);
 }
 
+/*
+void FluxDriver::MakeSterilePDF(double Energy, double Prob)
+{
+	int Bin = hTotalSterile->FindBin(Energy);
+	double Entry = hTotalSterile->GetBinContent(Bin) * Prob;
+	hTotalSterile->SetBinContent(Bin, Entry);
+}
+*/
+
 void FluxDriver::MakeStandardFlux()
 {
 	hTotalStandard->Reset("ICES");	//Reset before generating
@@ -243,9 +252,14 @@ void FluxDriver::MakeStandardFlux()
 	hTotalStandard->Add(hMuonStandard);
 }
 
-double FluxDriver::SampleFlux()		//Sample PDF
+double FluxDriver::SampleEnergy()		//Sample PDF
 {
 	return hTotalSterile->GetRandom();
+} 
+
+double FluxDriver::GetIntensity(double Energy)	//Return flux intensity, given energy
+{
+	return hTotalSterile->GetBinContent(hTotalSterile->FindBin(Energy));
 } 
 
 void FluxDriver::SetBaseline(double Baseline)
@@ -261,6 +275,21 @@ void FluxDriver::SetBaseline(double Baseline)
 	hKaonStandard->Scale(1e4/(Baseline*Baseline));
 	hKaon0Standard->Scale(1e4/(Baseline*Baseline));
 	hPionStandard->Scale(1e4/(Baseline*Baseline));
+}
+
+void FluxDriver::SetPOT(double POT)
+{
+	hTotalSterile->Scale(POT);
+	hPionSterile->Scale(POT);
+	hKaonSterile->Scale(POT);
+	hKaon0Sterile->Scale(POT);
+	hPionSterile->Scale(POT);
+
+	hTotalStandard->Scale(POT);
+	hPionStandard->Scale(POT);
+	hKaonStandard->Scale(POT);
+	hKaon0Standard->Scale(POT);
+	hPionStandard->Scale(POT);
 }
 
 //Get individual histograms

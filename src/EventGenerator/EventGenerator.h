@@ -52,7 +52,7 @@ class EventGenerator
 		void MakeSterileFlux();
 		void MakeStandardFlux();
 		double SampleEnergy();
-
+		double FluxIntensity();
 
 		//Get function
 		bool IsChanged();

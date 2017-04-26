@@ -73,14 +73,11 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 //	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	std::cout << "M0" << std::endl;
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
-	std::cout << "M1" << std::endl;
 	
 	EvGen->SetChannel("EPI");
 
 	EvGen->SetMass(0);
-	
 	EvGen->SetUe(1e-10);
 	EvGen->SetUm(1e-10);
 	EvGen->SetUt(1e-10);
@@ -89,10 +86,9 @@ int main(int argc, char** argv)
 	{
 		EvGen->SetMass(Mass);
 
-		for (double logUu = -5.0; logUu < -0.0; logUu += 0.1)	//increase Uu linearly
+		for (double logUu2 = -9.0; logUu2 < -4.0; logUu2 += 0.1)	//increase Uu linearly
 		{
-			double Uu = pow(10.0, logUu);
-			std::cout << "Uu " << Uu << std::endl << std::endl;
+			double Uu = pow(10.0, 0.5*logUu2);
 			if (UeFlag)
 				EvGen->SetUe(Uu);
 			if (UmFlag)
@@ -102,19 +98,19 @@ int main(int argc, char** argv)
 
 			EvGen->MakeSterileFlux();
 
-			int Nevent = 0;
-			
-			/*
-			for (int i = 0; i < 1000; ++i)	//Generate 1000 events
+			double Nevent = 0;
+			for (double Energy = 0; Energy < 20; ++Energy)
 			{
-				EvGen->SampleEnergy();	
-				if (EvGen->EventInDetector()) ++Nevent;
-			}*/
-
-			EvGen->SampleEnergy();	
-			OutFile << Mass << "\t" << Uu << "\t";
-			OutFile	<< EvGen->EventProbability() << "\t";
-			OutFile << EvGen->GetDecayPtr()->Total() << std::endl;
+				//EvGen->SampleEnergy();
+				EvGen->SetEnergy(Energy);
+				Nevent = EvGen->FluxIntensity()*EvGen->EventProbability();
+				OutFile << Mass << "\t" << Uu << "\t";
+				OutFile << Energy << "\t";
+				OutFile	<< EvGen->FluxIntensity() << "\t";
+				OutFile	<< EvGen->EventProbability() << "\t";
+				OutFile << Nevent << std::endl;
+			}
+			
 		}
 	}
 

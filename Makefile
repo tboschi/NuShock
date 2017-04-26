@@ -18,13 +18,13 @@ include $(GENIE)/src/make/Make.include
 
 #Main executable to be compiled
 NEW =	Exclusion	\
+	DecayPlot	\
 	#EvGen	\
 	Eps2Root	\
 	EvGen	\
 	Kine	\
 	PionMuonFlux	\
 	Kine	\
-	DecayPlot	\
 	DUNE_FGT
 TGT :=  $(NEW:%=$(SRC_DIR)/Apps/%)
 

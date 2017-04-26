@@ -10,13 +10,9 @@ Decay::Decay(double MSterile, double Ue, double Um, double Ut)	: //Decay rates c
 	M_Kaon(Const::fMKaon),
 	M_Kaon0(Const::fMKaon0)
 {
-	std::cout << "D0" << std::endl;
 	SetMass(MSterile);
-	std::cout << "D1" << std::endl;
 	SetUe(Ue);
-	std::cout << "D2" << std::endl;
 	SetUm(Um);
-	std::cout << "D3" << std::endl;
 	SetUt(Ut);
 
 	MapInit();
@@ -289,8 +285,10 @@ void Decay::SetEnhancement(std::string Channel, double K)
 //total decay width
 double Decay::Total()
 {
-	return nnn() + nGAMMA() + nEE() + 2.0*nEMU() + nPI0() +
-	       2.0*EPI() + nMUMU() + 2.0*MUPI() + 2.0*EKA() + nKA0();
+	return nnn() + nGAMMA() + nEE() + nEMU() + nPI0() +
+	       EPI() + nMUMU() + MUPI() + EKA() + nKA0();
+	//return nnn() + nGAMMA() + nEE() + 2.0*nEMU() + nPI0() +
+	//       2.0*EPI() + nMUMU() + 2.0*MUPI() + 2.0*EKA() + nKA0();
 }
 
 
@@ -350,7 +348,7 @@ double Decay::nEMU()	//Valid for electron+antimuon and positron+muon
 		double dMm = M_Muon / M_Sterile;
 		double dMn = M_Neutrino / M_Sterile;
 
-		return mapEnhance["nEMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
+		return 2.0 * mapEnhance["nEMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
 			(U_e*U_e * Kine::I1_xyz(dMm, dMn, dMe) +
 			U_m*U_m * Kine::I1_xyz(dMe, dMn, dMm)) / 
 			(192.0 * genie::constants::kPi3);
@@ -381,7 +379,7 @@ double Decay::EPI()
 		double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
 		double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
 
-		return mapEnhance["EPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+		return 2.0 * mapEnhance["EPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
 		       U_e*U_e * 
 		       pow(Const::fV_ud, 2.0) * Const::fFPion2 * Kine::I1_xy(dMe2, dMp2) / 
 		       (16.0 * genie::constants::kPi);
@@ -419,7 +417,7 @@ double Decay::MUPI()
 		double dMm2 = M_Muon*M_Muon/M_Sterile/M_Sterile;
 		double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
 
-		return mapEnhance["MUPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+		return 2.0 * mapEnhance["MUPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
 		       U_m*U_m * 
 		       pow(Const::fV_ud, 2.0)*Const::fFPion2 * Kine::I1_xy(dMm2, dMp2) /
 		       (16.0 * genie::constants::kPi);
@@ -435,7 +433,7 @@ double Decay::EKA()
 		double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
 		double dMk2 = M_Kaon*M_Kaon/M_Sterile/M_Sterile;
 
-		return mapEnhance["EKA"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+		return 2.0 * mapEnhance["EKA"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
 		       U_e*U_e * 
 		       pow(Const::fV_us, 2.0) * Const::fFKaon2 * Kine::I1_xy(dMe2, dMk2) /
 		       (16.0 * genie::constants::kPi);
@@ -507,7 +505,6 @@ void Decay::SetNvec(TLorentzVector &X)
 
 void Decay::SetMass(double X)
 {
-	std::cout << "M " << X << std::endl;
 	M_Sterile = X;
 }
 
