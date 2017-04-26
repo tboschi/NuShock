@@ -53,7 +53,9 @@ class EventGenerator
 		void MakeStandardFlux();
 		double SampleEnergy();
 
+
 		//Get function
+		bool IsChanged();
 		std::string GetChannel();
 		double GetMass();
 		double GetEnergy();
@@ -75,6 +77,8 @@ class EventGenerator
 
 		double M_Sterile, E_Sterile;
 		double U_e, U_m, U_t;
+		double M_Sterile_prev, E_Sterile_prev;	//Previous declaration
+		double U_e_prev, U_m_prev, U_t_prev;
 
 		Decay *TheGamma;
 		Detector *TheBox;

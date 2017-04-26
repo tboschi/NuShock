@@ -48,12 +48,8 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 			if (Key.find("Kinematics") != std::string::npos)
 			{
 				if (Name.find("on") != std::string::npos)
-				{
-					std::cout << "Kine on" << std::endl;
 					Kine = true;
-				}
-				else { std::cout << "kine off" << std::endl;
-				       	Kine = false; }
+				else Kine = false;
 			}
 		}
 	}
@@ -77,7 +73,6 @@ FluxDriver::~FluxDriver()
 
 void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t)
 {
-
 	hTotalSterile->Reset("ICES");	//Reset before generating
 	hPionSterile->Reset("ICES");
 	hKaonSterile->Reset("ICES"); 
@@ -86,7 +81,7 @@ void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, doubl
 
 	if (fxNuMuon)		//Model on nu mu flux
 	{
-		Flux sxFlux = *fxNuMuon;
+		Flux sxFlux(*fxNuMuon);
 
 		//pi+ -> mu+ nu_mu
 		sxFlux.GetPion()->Scale(U_m*U_m * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
@@ -113,7 +108,7 @@ void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, doubl
 
 	if (fxNuMuonBar)	//Model on nu mu bar flux
 	{
-		Flux sxFlux = *fxNuMuonBar;
+		Flux sxFlux(*fxNuMuonBar);
 
 		//pi- -> mu- nu_mu_bar
 		sxFlux.GetPion()->Scale(U_m*U_m * Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
@@ -140,7 +135,7 @@ void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, doubl
 	
 	if (fxNuElectron)	//Model on nu electron flux
 	{
-		Flux sxFlux = *fxNuElectron;
+		Flux sxFlux(*fxNuElectron);
 
 		//pi+ -> e+ nu_e
 		sxFlux.GetPion()->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile));
@@ -165,7 +160,7 @@ void FluxDriver::MakeSterileFlux(double M_Sterile, double U_e, double U_m, doubl
 
 	if (fxNuElectronBar)	//Model on nu electron bar flux
 	{
-		Flux sxFlux = *fxNuElectronBar;
+		Flux sxFlux(*fxNuElectronBar);
 
 		//pi- -> e- nu_e_bar
 		sxFlux.GetPion()->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile));
@@ -248,7 +243,7 @@ void FluxDriver::MakeStandardFlux()
 	hTotalStandard->Add(hMuonStandard);
 }
 
-double FluxDriver::SampleEnergy()		//Sample energy
+double FluxDriver::SampleFlux()		//Sample PDF
 {
 	return hTotalSterile->GetRandom();
 } 
@@ -260,6 +255,12 @@ void FluxDriver::SetBaseline(double Baseline)
 	hKaonSterile->Scale(1e4/(Baseline*Baseline));
 	hKaon0Sterile->Scale(1e4/(Baseline*Baseline));
 	hPionSterile->Scale(1e4/(Baseline*Baseline));
+
+	hTotalStandard->Scale(1e4/(Baseline*Baseline));
+	hPionStandard->Scale(1e4/(Baseline*Baseline));
+	hKaonStandard->Scale(1e4/(Baseline*Baseline));
+	hKaon0Standard->Scale(1e4/(Baseline*Baseline));
+	hPionStandard->Scale(1e4/(Baseline*Baseline));
 }
 
 //Get individual histograms

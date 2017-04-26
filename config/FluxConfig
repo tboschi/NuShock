@@ -1,8 +1,8 @@
 #Flux configuration file
 #Define a file for each type of neutrino
 Muon_		data/NuMu_0.root
-#MuonBar_	data/NuMuBar_0.root
-#Electron_	data/NuE_0.root
+MuonBar_	data/NuMuBar_0.root
+Electron_	data/NuE_0.root
 #ElectronBar_	
 
 Kinematics	off

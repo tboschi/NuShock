@@ -49,7 +49,7 @@ enum ChannelName
 class Decay
 {
 	public:
-		Decay(double MSterile, double Ue, double Um, double Ut);	//Decay rates calculator
+		Decay(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);	//Decay rates calculator
 
 		void MapInit();
 		//Decay width with A, B, and K the enhancement factors
@@ -77,13 +77,13 @@ class Decay
 
 		TLorentzVector *GetNvec();
 		TLorentzVector *GetDecayProduct(int i);
-		double GetMSterile();
+		double GetMass();
 		double GetUe();
 		double GetUm();
 		double GetUt();
 
 		void SetNvec(TLorentzVector &X);
-		void SetMSterile(double X);
+		void SetMass(double X);
 		void SetUe(double X);
 		void SetUm(double X);
 		void SetUt(double X);

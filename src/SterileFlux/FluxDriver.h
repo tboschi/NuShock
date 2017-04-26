@@ -30,7 +30,7 @@ class FluxDriver
 		TH1D *GetHist();
 		void MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
 		void MakeStandardFlux();
-		double SampleEnergy();
+		double SampleFlux();
 		void SetBaseline(double Baseline);
 
 		TH1D* GetTotal();

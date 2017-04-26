@@ -10,9 +10,13 @@ Decay::Decay(double MSterile, double Ue, double Um, double Ut)	: //Decay rates c
 	M_Kaon(Const::fMKaon),
 	M_Kaon0(Const::fMKaon0)
 {
-	SetMSterile(MSterile);
+	std::cout << "D0" << std::endl;
+	SetMass(MSterile);
+	std::cout << "D1" << std::endl;
 	SetUe(Ue);
+	std::cout << "D2" << std::endl;
 	SetUm(Um);
+	std::cout << "D3" << std::endl;
 	SetUt(Ut);
 
 	MapInit();
@@ -475,7 +479,7 @@ TLorentzVector *Decay::GetDecayProduct(int i)
 	return Event->GetDecay(i);
 }
 
-double Decay::GetMSterile()
+double Decay::GetMass()
 {
 	return M_Sterile;
 }
@@ -501,8 +505,9 @@ void Decay::SetNvec(TLorentzVector &X)
 	*N_vec = X;
 }
 
-void Decay::SetMSterile(double X)
+void Decay::SetMass(double X)
 {
+	std::cout << "M " << X << std::endl;
 	M_Sterile = X;
 }
 

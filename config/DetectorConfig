@@ -2,7 +2,7 @@
 #
 #Name of detector: Example
 #
-Baseline	50
+Baseline	500
 Length		6
 Weight		100
 POT		1e13

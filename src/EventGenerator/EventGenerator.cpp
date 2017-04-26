@@ -6,6 +6,10 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 //	M_Pion(Const::fMPion),        	
 //	M_Kaon(Const::fMKaon)
 {
+	TheBox = new Detector(DetectorConfig);
+	TheGamma = new Decay();
+	TheFlux = new FluxDriver(FluxConfig);
+
 	std::string Line, Key, Name;
 	std::stringstream ssL;
 	double Element;
@@ -26,10 +30,6 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 		if (Key == "U_t") SetUt(Element);
 	}
 	ConfigFile.close();
-
-	TheBox = new Detector(DetectorConfig);
-	TheGamma = new Decay(GetMass(), GetUe(), GetUm(), GetUt());
-	TheFlux = new FluxDriver(FluxConfig);
 
 	GenMT = new TRandom3(0);	//19937 Mersenne Twister generator
 
@@ -85,11 +85,21 @@ std::string EventGenerator::RandomChannel()	//First step: define decay mode
 double EventGenerator::EventProbability()	//reaching the detector and decaying
 {							//using sampled energy
 	double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
+	std::cout << "Length " << Length << std::endl;
 	double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
+	std::cout << "Lambda " << Lambda << std::endl;
 	double Ratio = TheGamma->Branch(GetChannel()); 
+	std::cout << "Ratio " << Ratio << std::endl;
 	double Total = TheGamma->Total();
+	std::cout << TheGamma->GetMass() << "\t" << TheGamma->GetUe() << "\t" << TheGamma->GetUm() << "\t" << TheGamma->GetUt() << std::endl;
+	std::cout << "Total " << Total << std::endl;
 	double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
-	return exp(-Total * Length * Lorentz) * (1-exp(- Total * Lambda * Lorentz)) * Ratio;
+	std::cout << "Lorentz " << Lorentz << std::endl;
+	double Ret = exp(- Total * Length * Lorentz) * (1 - exp(- Total * Lambda * Lorentz)) * Ratio;
+	std::cout << "Ret " << Ret << std::endl;
+	return exp(- Total * Length * Lorentz) * 
+	       (1 - exp(- Total * Lambda * Lorentz)) * 
+	       Ratio;
 }
 
 bool EventGenerator::EventInDetector()		//Second step: is the decay inside the detector?
@@ -121,25 +131,42 @@ TLorentzVector *EventGenerator::GetDecayProduct(int i)
 //Flux as PDF for MC
 void EventGenerator::MakeSterileFlux()	//Generate the flux for heavy neutrinos
 {
-	TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
-	TheFlux->MakeSterileFlux(GetMass(), GetUe(), GetUm(), GetUt());
+	if (IsChanged())
+	{
+		TheFlux->MakeSterileFlux(GetMass(), GetUe(), GetUm(), GetUt());
+		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
+	}
 }
 
 void EventGenerator::MakeStandardFlux()	//Generate the flux of SM neutrinos, just for comparison
 {
-	TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
 	TheFlux->MakeStandardFlux();
+	TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
 }
 
 double EventGenerator::SampleEnergy()	//Sample Energy according to PDF distribution
 {
-	double Energy = TheFlux->SampleEnergy();
+	double Energy = 0.0;
+	while (Energy < GetMass())
+	{
+		Energy = TheFlux->SampleFlux();
+	}
+
+	std::cout << "Energy " << Energy << std::endl;
 	SetEnergy(Energy);
 	return Energy;
 }
 
-
 //Get functions
+
+bool EventGenerator::IsChanged()
+{
+	return ( M_Sterile != M_Sterile_prev || 
+		 U_e != U_e_prev ||
+		 U_m != U_m_prev ||
+		 U_t != U_t_prev );
+}
+
 std::string EventGenerator::GetChannel()
 {
 	return sChannel;
@@ -185,25 +212,34 @@ void EventGenerator::SetChannel(std::string Ch)
 
 void EventGenerator::SetMass(double X)
 {
+	M_Sterile_prev = M_Sterile;
 	M_Sterile = X;
+	TheGamma->SetMass(X);
 }
 
 void EventGenerator::SetEnergy(double X)
 {
+	E_Sterile_prev = E_Sterile;
 	E_Sterile = X;
 }
 
 void EventGenerator::SetUe(double X)
 {
+	U_e_prev = U_e;
 	U_e = X;
+	TheGamma->SetUe(X);
 }
 
 void EventGenerator::SetUm(double X)
 {
+	U_m_prev = U_m;
 	U_m = X;
+	TheGamma->SetUm(X);
 }
 
 void EventGenerator::SetUt(double X)
 {
+	U_t_prev = U_t;
 	U_t = X;
+	TheGamma->SetUt(X);
 }

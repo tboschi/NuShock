@@ -1,5 +1,6 @@
 #include "Flux.h"
 
+//ctor
 Flux::Flux(TH1D* Total, TH1D* Pion, TH1D* Kaon, TH1D* Kaon0, TH1D* Muon)
 {
 	CloneTotal(Total);
@@ -13,7 +14,6 @@ Flux::Flux(std::string HistFile)
 {
 	TFile* InFile = new TFile(HistFile.c_str(), "READ");
 
-
 	CloneTotal((TH1D*) InFile->Get("htotal"));
 	ClonePion((TH1D*) InFile->Get("hpion"));
 	CloneKaon((TH1D*) InFile->Get("hkaon"));
@@ -23,8 +23,28 @@ Flux::Flux(std::string HistFile)
 	InFile->Close();
 }
 
-//Clone functions, so that an object from this class owns valid copies of the histograms
+//copy ctor
+Flux::Flux(const Flux & f)
+{
+	CloneTotal(f.GetTotal());
+	ClonePion(f.GetPion());
+	CloneKaon(f.GetKaon());
+	CloneKaon0(f.GetKaon0());
+	CloneMuon(f.GetMuon());
+}
 
+//dector
+/*
+Flux::~Flux()
+{
+	delete hTotal;
+	delete hPion;
+	delete hKaon;
+	delete hKaon0;
+	delete hMuon;
+}*/
+
+//Clone functions, so that an object from this class owns valid copies of the histograms
 void Flux::CloneTotal(TH1D* X)
 {
 	hTotal = (TH1D*) X->Clone();
@@ -57,27 +77,27 @@ void Flux::CloneMuon(TH1D* X)
 
 //Get functions
 
-TH1D* Flux::GetTotal()
+TH1D* Flux::GetTotal() const
 {
 	return hTotal;
 }
 
-TH1D* Flux::GetPion()
+TH1D* Flux::GetPion() const
 {
 	return hPion;
 }
 
-TH1D* Flux::GetKaon()
+TH1D* Flux::GetKaon() const
 {
 	return hKaon;
 }
 
-TH1D* Flux::GetKaon0()
+TH1D* Flux::GetKaon0() const
 {
 	return hKaon0;
 }
 
-TH1D* Flux::GetMuon()
+TH1D* Flux::GetMuon() const
 {
 	return hMuon;
 }

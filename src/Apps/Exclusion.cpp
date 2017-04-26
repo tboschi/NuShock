@@ -6,6 +6,7 @@
 #include "EventGenerator.h"
 #include "FluxDriver.h"
 #include "DecayRates.h"
+#include "Detector.h"
 
 void Usage(char* argv0);
 
@@ -72,23 +73,26 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 //	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
+	std::cout << "M0" << std::endl;
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
+	std::cout << "M1" << std::endl;
 	
-	EvGen->SetChannel("MUPI");
+	EvGen->SetChannel("EPI");
 
 	EvGen->SetMass(0);
-	/*
-	EvGen->SetUe(0);
-	EvGen->SetUm(0);
-	EvGen->SetUt(0);
-	*/
-
+	
+	EvGen->SetUe(1e-10);
+	EvGen->SetUm(1e-10);
+	EvGen->SetUt(1e-10);
+	
 	for (double Mass = 0.05; Mass < 0.5; Mass += 0.05)	//increase mass
 	{
 		EvGen->SetMass(Mass);
 
-		for (double Uu = 1.0e-9; Uu < 1.0e-5; Uu += 1.0e-6)	//increase Uu linearly
+		for (double logUu = -5.0; logUu < -0.0; logUu += 0.1)	//increase Uu linearly
 		{
+			double Uu = pow(10.0, logUu);
+			std::cout << "Uu " << Uu << std::endl << std::endl;
 			if (UeFlag)
 				EvGen->SetUe(Uu);
 			if (UmFlag)
@@ -96,7 +100,7 @@ int main(int argc, char** argv)
 			if (UtFlag)
 				EvGen->SetUt(Uu);
 
-			EvGen->MakeStandardFlux();
+			EvGen->MakeSterileFlux();
 
 			int Nevent = 0;
 			
@@ -107,7 +111,10 @@ int main(int argc, char** argv)
 				if (EvGen->EventInDetector()) ++Nevent;
 			}*/
 
-			OutFile << Mass << "\t" << Uu << "\t" << EvGen->EventProbability() << std::endl;
+			EvGen->SampleEnergy();	
+			OutFile << Mass << "\t" << Uu << "\t";
+			OutFile	<< EvGen->EventProbability() << "\t";
+			OutFile << EvGen->GetDecayPtr()->Total() << std::endl;
 		}
 	}
 

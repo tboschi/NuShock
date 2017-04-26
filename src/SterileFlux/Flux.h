@@ -21,6 +21,7 @@ class Flux
 		     TH1D* Kaon0,
 		     TH1D* Muon);
 		Flux(std::string HistFile);
+		Flux(const Flux & f);	//copy ctor
 
 		void CloneTotal(TH1D* Hist);
 		void ClonePion(TH1D* Hist);
@@ -28,11 +29,11 @@ class Flux
 		void CloneKaon0(TH1D* Hist);
 		void CloneMuon(TH1D* Hist);
 
-		TH1D* GetTotal();
-		TH1D* GetPion();
-		TH1D* GetKaon();
-		TH1D* GetKaon0();
-		TH1D* GetMuon();
+		TH1D* GetTotal() const;
+		TH1D* GetPion() const;
+		TH1D* GetKaon() const;
+		TH1D* GetKaon0() const;
+		TH1D* GetMuon() const;
 
 	private:
 		TH1D *hTotal;
