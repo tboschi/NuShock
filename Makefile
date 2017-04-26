@@ -17,7 +17,8 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Exclusion	\
+NEW =	Probability	\
+	Exclusion	\
 	DecayPlot	\
 	#EvGen	\
 	Eps2Root	\

@@ -8,6 +8,8 @@
 #include "DecayRates.h"
 #include "Detector.h"
 
+#include "TH1D.h"
+
 void Usage(char* argv0);
 
 int main(int argc, char** argv)
@@ -29,13 +31,9 @@ int main(int argc, char** argv)
 	//Initialize variables
 	std::string SMConfig, DetConfig;
 	std::string FluxConfig;
-	std::ofstream OutFile;
-	//TFile *OutFile;
-	bool UeFlag = false;
-	bool UmFlag = false;
-	bool UtFlag = false;
+	TFile *OutFile;
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:o:EMTh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "s:d:f:o:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -49,17 +47,7 @@ int main(int argc, char** argv)
 				FluxConfig.assign(optarg);
 				break;
 			case 'o':
-				OutFile.open(optarg);
-				//OutFile = new TFile(optarg, "RECREATE");
-				break;
-			case 'E':
-				UeFlag = true;
-				break;
-			case 'M':
-				UmFlag = true;
-				break;
-			case 'T':
-				UtFlag = true;
+				OutFile = new TFile(optarg, "RECREATE");
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -73,40 +61,37 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 //	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
+	TH1D *Fake = new TH1D("fake", "Fake", 200, 0, 20);
+	TH1D *True = new TH1D("true", "True", 200, 0, 20);
+	TH1D *Prob = new TH1D("prob", "Prob", 200, 0, 20);
+	TH1D *Flux = new TH1D("flux", "Flux", 200, 0, 20);
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 	
-	EvGen->SetChannel("EPI");
+	EvGen->SetChannel("ALL");
+	EvGen->MakeSterileFlux();
 
-	EvGen->SetMass(0);
-	EvGen->SetUe(1e-10);
-	EvGen->SetUm(1e-10);
-	EvGen->SetUt(1e-10);
-	
-	for (double Mass = 0.01; Mass < 0.5; Mass += 0.01)	//increase mass
+	std::cout << "Mass " << EvGen->GetMass() << std::endl;
+	std::cout << "UUU " << EvGen->GetUe() << "\t" << EvGen->GetUm() << "\t" <<  EvGen->GetUt() << std::endl;
+	for (double Energy = 0.05; Energy < 20.0; Energy += 0.1)	//increase mass
 	{
-		EvGen->SetMass(Mass);
-
-		for (double logUu2 = -9.0; logUu2 < -4.0; logUu2 += 0.01)	//increase Uu linearly
+		EvGen->SetEnergy(Energy);
+		//std::cout << Energy << "\t" << EvGen->FluxIntensity() << "\t" << EvGen->EventProbability() << std::endl;
+		Flux->Fill(Energy, EvGen->FluxIntensity());
+		Prob->Fill(Energy, EvGen->EventProbability());
+		Fake->Fill(Energy, EvGen->FluxIntensity()*EvGen->EventProbability());
+		for (int i = 0; i < 1000000; ++i)
 		{
-			double Uu = pow(10.0, 0.5*logUu2);
-			if (UeFlag)
-				EvGen->SetUe(Uu);
-			if (UmFlag)
-				EvGen->SetUm(Uu);
-			if (UtFlag)
-				EvGen->SetUt(Uu);
-
-			EvGen->MakeSterileFlux();
-
-			double Nevent = 0;
-			OutFile << Mass << "\t" << Uu << "\t";
-			OutFile << EvGen->SampleEnergy() << "\t";
-			Nevent = EvGen->FluxIntensity()*EvGen->EventProbability();
-			OutFile	<< EvGen->FluxIntensity() << "\t";
-			OutFile	<< EvGen->EventProbability() << "\t";
-			OutFile << Nevent << std::endl;
+			if (EvGen->EventInDetector())
+				True->Fill(Energy);
 		}
 	}
+
+	OutFile->cd();
+	Prob->Write();
+	Flux->Write();
+	Fake->Write();
+	True->Write();
+	OutFile->Close();
 
 	return 0;
 }
@@ -124,8 +109,6 @@ void Usage(char* argv0)
 	std::cout << "\t\tFlux configuration file" << std::endl;
 	std::cout <<"\n  -o,  --output" << std::endl;
 	std::cout << "\t\tOutput file" << std::endl;
-	std::cout <<"\n  -E,  -M,  -T" << std::endl;
-	std::cout << "\t\tSelect which mixing element" << std::endl;
 	std::cout <<"\n  -h,  --help" << std::endl;
 	std::cout << "\t\tPrint this message and exit" << std::endl;
 }

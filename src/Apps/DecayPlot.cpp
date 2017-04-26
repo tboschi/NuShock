@@ -69,7 +69,6 @@ int main(int argc, char** argv)
 			default:
 				break;
 		}
-	
 	}
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;

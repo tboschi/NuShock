@@ -86,13 +86,18 @@ std::string EventGenerator::RandomChannel()	//First step: define decay mode
 }
 
 double EventGenerator::EventProbability()	//reaching the detector and decaying
-{							//using sampled energy
-	double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
-	double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
-	double Ratio = TheGamma->Branch(GetChannel()); 
-	double Total = TheGamma->Total();
-	double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
-	return exp(- Total * Length * Lorentz) * (1 - exp(- Total * Lambda * Lorentz)) * Ratio;
+{						//using sampled energy
+	if (GetEnergy() < GetMass())
+		return 0.0;
+	else
+	{
+		double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
+		double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
+		double Ratio = TheGamma->Branch(GetChannel()); 
+		double Total = TheGamma->Total();
+		double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
+		return exp(- Total * Length * Lorentz) * (1 - exp(- Total * Lambda * Lorentz)) * Ratio;
+	}
 }
 
 bool EventGenerator::EventInDetector()		//Second step: is the decay inside the detector?
