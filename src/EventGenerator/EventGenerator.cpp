@@ -64,6 +64,49 @@ FluxDriver* EventGenerator::GetFluxDriverPtr()
 
 
 //MC procedures to detection of event after sampling energy
+
+double EventGenerator::EventProbability()	//reaching the detector and decaying
+{						//using sampled energy
+	if (GetEnergy() < GetMass())
+		return 0.0;
+	else
+	{
+		double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
+		double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
+		double Ratio = TheGamma->Branch(GetChannel()); 
+		double Total = TheGamma->Total();
+		double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
+		return exp(- Total * Length * Lorentz) * (1 - exp(- Total * Lambda * Lorentz)) * Ratio;
+	}
+}
+
+double EventGenerator::EventEfficiency(double Efficiency)
+{
+	if (Efficiency < 0.0)
+		return TheBox->Efficiency(GetChannel(), GetEnergy());
+	else return Efficiency;
+}
+
+double EventGenerator::EventTotalNumber(double Efficiency)
+{
+	double A = TheFlux->GetStartRange();
+	double B = TheFlux->GetEndRange();
+	//double EnStep = 10*(B-A)/Kine::Sample;
+	double EnStep = 0.2;
+
+	double Total = 0;
+	for (double Energy = A; Energy < B; Energy += EnStep)
+	{
+		SetEnergy(Energy);
+		if (Efficiency < 0.0)
+			Total += FluxIntensity() * EventProbability();
+		else Total += FluxIntensity() * EventProbability() * EventEfficiency(Efficiency);
+	}
+	return Total;
+}
+
+//Random generator
+
 std::string EventGenerator::RandomChannel()	//First step: define decay mode
 {
 	double Num = GenMT->Rndm();
@@ -85,21 +128,6 @@ std::string EventGenerator::RandomChannel()	//First step: define decay mode
 	return vChan.at(--i);
 }
 
-double EventGenerator::EventProbability()	//reaching the detector and decaying
-{						//using sampled energy
-	if (GetEnergy() < GetMass())
-		return 0.0;
-	else
-	{
-		double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
-		double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
-		double Ratio = TheGamma->Branch(GetChannel()); 
-		double Total = TheGamma->Total();
-		double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
-		return exp(- Total * Length * Lorentz) * (1 - exp(- Total * Lambda * Lorentz)) * Ratio;
-	}
-}
-
 bool EventGenerator::EventInDetector()		//Second step: is the decay inside the detector?
 {
 	return (GenMT->Rndm() <= EventProbability());
@@ -107,9 +135,10 @@ bool EventGenerator::EventInDetector()		//Second step: is the decay inside the d
 
 bool EventGenerator::EventDetectable()	//Third step: is the detector able to detect it?
 {
-	return (GenMT->Rndm() <= TheBox->Efficiency(GetChannel(), GetEnergy()));
+	return (GenMT->Rndm() <= EventEfficiency());
 }
 
+//Kinematics
 int EventGenerator::EventKinematics()	//Fourth step: simulate the phase space of the decay
 {
 	TLorentzVector N_vec(0, 0, GetMomentum(), GetEnergy());		//Heavy neutrino is along z-axis
@@ -127,20 +156,34 @@ TLorentzVector *EventGenerator::GetDecayProduct(int i)
 }
 
 //Flux as PDF for MC
-void EventGenerator::MakeSterileFlux()	//Generate the flux for heavy neutrinos
+void EventGenerator::MakeSterileFlux(bool TotalPOT)	//Generate the flux for heavy neutrinos
 {
+	double BL = TheBox->GetElement("Baseline");
+	double W = TheBox->GetElement("Width");
+	double H = TheBox->GetElement("Height");
+	double P = TheBox->GetElement("POT");
 	if (IsChanged())
 	{
 		TheFlux->MakeSterileFlux(GetMass(), GetUe(), GetUm(), GetUt());
 		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
-		TheFlux->SetPOT(TheBox->GetElement("POT"));
+		if (TotalPOT)
+			TheFlux->SetPOT(TheBox->GetElement("POT"));
+		else TheFlux->SetPOT(TheBox->GetElement("POT/s"));
+		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1e4);
 	}
 }
 
-void EventGenerator::MakeStandardFlux()	//Generate the flux of SM neutrinos, just for comparison
+void EventGenerator::MakeStandardFlux(bool TotalPOT)	//Generate the flux of SM neutrinos, just for comparison
 {
-	TheFlux->MakeStandardFlux();
-	TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
+	if (IsChanged())
+	{
+		TheFlux->MakeStandardFlux();
+		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
+		if (TotalPOT)
+			TheFlux->SetPOT(TheBox->GetElement("POT/s"));
+		else TheFlux->SetPOT(TheBox->GetElement("POT/s"));
+		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*10000.0);
+	}
 }
 
 double EventGenerator::SampleEnergy()	//Sample Energy according to PDF distribution
@@ -157,6 +200,7 @@ double EventGenerator::FluxIntensity()	//Get the flux intensity at given energy
 {
 	return TheFlux->GetIntensity(GetEnergy());
 }
+
 
 //Get functions
 

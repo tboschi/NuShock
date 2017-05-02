@@ -22,6 +22,7 @@ class Flux
 		     TH1D* Muon);
 		Flux(std::string HistFile);
 		Flux(const Flux & f);	//copy ctor
+		~Flux();
 
 		void CloneTotal(TH1D* Hist);
 		void ClonePion(TH1D* Hist);

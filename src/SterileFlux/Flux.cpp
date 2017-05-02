@@ -33,8 +33,7 @@ Flux::Flux(const Flux & f)
 	CloneMuon(f.GetMuon());
 }
 
-//dector
-/*
+//detor
 Flux::~Flux()
 {
 	delete hTotal;
@@ -42,7 +41,7 @@ Flux::~Flux()
 	delete hKaon;
 	delete hKaon0;
 	delete hMuon;
-}*/
+}
 
 //Clone functions, so that an object from this class owns valid copies of the histograms
 void Flux::CloneTotal(TH1D* X)

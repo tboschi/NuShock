@@ -17,7 +17,7 @@ Detector::Detector(std::string ConfigName)
 		ssL.clear();
 		ssL << Line;
 
-		if (Line[0] == 'W')
+		if (Line[0] == '_')
 		{
 			ssL >> Key >> EnEff.E >> EnEff.f;
 			Key.erase(Key.begin());

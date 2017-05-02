@@ -115,11 +115,13 @@ int main(int argc, char** argv)
 		hMuon->Fill(Energy, FindFlux(Muon_X, Muon_Y, Energy));
 	}
 
-	hTotal->Scale(13*13*1e-20);
-	hPion->Scale(13*13*1e-20);
-	hKaon->Scale(13*13*1e-20);
-	hKaon0->Scale(13*13*1e-20);
-	hMuon->Scale(13*13*1e-20);
+	double Normalize = 1e-20 * 13000*13000 * 0.01*0.01 * 0.2; 	//nu/POT/100m/cm2/GeV @ 100m
+
+	hTotal->Scale(Normalize);
+	hPion->Scale(Normalize);
+	hKaon->Scale(Normalize);
+	hKaon0->Scale(Normalize);
+	hMuon->Scale(Normalize);
 
 	OutFile->Write();
 

@@ -41,16 +41,20 @@ class EventGenerator
 		FluxDriver* GetFluxDriverPtr();
 
 		//MC stuff
-		std::string RandomChannel();
 		double EventProbability();
+		double EventEfficiency(double Efficiency = -1.0);
+		double EventTotalNumber(double Efficiency = -1.0);
+		//Random generators
+		std::string RandomChannel();
 		bool EventInDetector();
 		bool EventDetectable();
+		//Kinematics
 		int EventKinematics();
 		TLorentzVector *GetDecayProduct(int i);
 
 		//Generate flux to be used as PDF
-		void MakeSterileFlux();
-		void MakeStandardFlux();
+		void MakeSterileFlux(bool TotalPOT = false);
+		void MakeStandardFlux(bool TotalPOT = false);
 		double SampleEnergy();
 		double FluxIntensity();
 

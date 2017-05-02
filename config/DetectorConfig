@@ -2,10 +2,13 @@
 #
 #Name of detector: Example
 #
-Baseline	500
+Baseline	574
 Length		6
+Width		4
+Height		4
 Weight		100
-POT		1e13
+POT/s		1e14
+POT		5e20
 Target		2212
 #
 #Resolution
@@ -16,10 +19,10 @@ Calibration	0.02
 #
 #Weighting factor per energy
 #WChannel	GeV	factor
-WnEE		2.0	0.74
-WnEE		4.0	0.56
-WMUPI		1.5	0.49
-WMUPI		2.5	0.89
-WMUPI		1.0	0.28
-WMUPI		3.0	0.99
-WMUPI		2.0	0.69
+_nEE		2.0	0.74
+_nEE		4.0	0.56
+_MUPI		1.5	0.49
+_MUPI		2.5	0.89
+_MUPI		1.0	0.28
+_MUPI		3.0	0.99
+_MUPI		2.0	0.69

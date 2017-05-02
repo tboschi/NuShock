@@ -72,19 +72,20 @@ int main(int argc, char** argv)
 
 	std::cout << "Mass " << EvGen->GetMass() << std::endl;
 	std::cout << "UUU " << EvGen->GetUe() << "\t" << EvGen->GetUm() << "\t" <<  EvGen->GetUt() << std::endl;
-	for (double Energy = 0.05; Energy < 20.0; Energy += 0.1)	//increase mass
+	for (double Energy = 0.05; Energy < 20.0; Energy += 0.5)	//increase mass
 	{
 		EvGen->SetEnergy(Energy);
-		//std::cout << Energy << "\t" << EvGen->FluxIntensity() << "\t" << EvGen->EventProbability() << std::endl;
+		std::cout << Energy << std::endl;
 		Flux->Fill(Energy, EvGen->FluxIntensity());
 		Prob->Fill(Energy, EvGen->EventProbability());
 		Fake->Fill(Energy, EvGen->FluxIntensity()*EvGen->EventProbability());
-		for (int i = 0; i < 1000000; ++i)
+		for (int i = 0; i < 2000; ++i)
 		{
-			if (EvGen->EventInDetector())
+			if (EvGen->EventInDetectorBoosted())
 				True->Fill(Energy);
 		}
 	}
+	Fake->Scale(2000);
 
 	OutFile->cd();
 	Prob->Write();

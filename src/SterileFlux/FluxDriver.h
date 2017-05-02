@@ -31,9 +31,13 @@ class FluxDriver
 		void MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
 		void MakeStandardFlux();
 		double SampleEnergy();
+
+		double GetStartRange();
+		double GetEndRange();
 		double GetIntensity(double Energy);
 		void SetBaseline(double Baseline);
 		void SetPOT(double POT);
+		void SetArea(double Area);
 
 		TH1D* GetTotal();
 		TH1D* GetPion();

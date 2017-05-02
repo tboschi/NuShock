@@ -8,6 +8,9 @@
 #include "DecayRates.h"
 #include "Detector.h"
 
+#include "TH2D.h"
+#include "TFile.h"
+
 void Usage(char* argv0);
 
 int main(int argc, char** argv)
@@ -17,6 +20,8 @@ int main(int argc, char** argv)
 		{"smconfig", 	required_argument, 	0, 's'},
 		{"detconfig", 	required_argument,	0, 'd'},
 		{"fluxconfig", 	required_argument,	0, 'f'},
+		{"channel", 	required_argument,	0, 'c'},
+		{"threshold", 	required_argument,	0, 't'},
 		{"output", 	required_argument,	0, 'o'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
@@ -29,13 +34,15 @@ int main(int argc, char** argv)
 	//Initialize variables
 	std::string SMConfig, DetConfig;
 	std::string FluxConfig;
-	std::ofstream OutFile;
-	//TFile *OutFile;
+	//std::ofstream OutFile;
+	TFile *OutFile;
+	std::string Channel = "ALL";
+	double Threshold = 3;
 	bool UeFlag = false;
 	bool UmFlag = false;
 	bool UtFlag = false;
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:o:EMTh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "s:d:f:c:t:o:EMTh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -48,9 +55,15 @@ int main(int argc, char** argv)
 			case 'f':
 				FluxConfig.assign(optarg);
 				break;
+			case 'c':
+				Channel.assign(optarg);
+				break;
+			case 't':
+				Threshold = strtod(optarg, NULL);
+				break;
 			case 'o':
-				OutFile.open(optarg);
-				//OutFile = new TFile(optarg, "RECREATE");
+				//OutFile.open(optarg);
+				OutFile = new TFile(optarg, "RECREATE");
 				break;
 			case 'E':
 				UeFlag = true;
@@ -70,25 +83,29 @@ int main(int argc, char** argv)
 		}
 	}
 
-	//To have multiple output, handled by usage
-//	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
+	TH2D * Contour = new TH2D ("contour", "Above threshold", 100, -2.0, 0.0, 100, -10.0, -4.0);
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 	
-	EvGen->SetChannel("EPI");
+	EvGen->SetChannel(Channel);
 
-	EvGen->SetMass(0);
-	EvGen->SetUe(1e-10);
-	EvGen->SetUm(1e-10);
-	EvGen->SetUt(1e-10);
+//	EvGen->SetMass(0);
+//	EvGen->SetUe(1e-10);
+//	EvGen->SetUm(1e-10);
+//	EvGen->SetUt(1e-10);
 	
-	for (double Mass = 0.01; Mass < 0.5; Mass += 0.01)	//increase mass
+	double Mass, Uu, Nevent;
+	for (double logMass = -2.0; logMass < 0.0; logMass += 0.02)	//increase mass log
+	//for (Mass = 0.01; Mass < 1.0; Mass += 0.01)	//increase mass linear
 	{
+		Mass = pow(10.0, logMass);
+		std::cout << "Mass " << Mass << std::endl;
 		EvGen->SetMass(Mass);
 
-		for (double logUu2 = -9.0; logUu2 < -4.0; logUu2 += 0.01)	//increase Uu linearly
+		//for (double logUu2 = -9.0; logUu2 < -4.0; logUu2 += 0.1)	//increase Uu linearly
+		for (double logUu2 = -10.0; logUu2 < -4.0; logUu2 += 0.06)	//increase Uu logarithmically
 		{
-			double Uu = pow(10.0, 0.5*logUu2);
+			Uu = pow(10.0, 0.5*logUu2);
 			if (UeFlag)
 				EvGen->SetUe(Uu);
 			if (UmFlag)
@@ -96,17 +113,17 @@ int main(int argc, char** argv)
 			if (UtFlag)
 				EvGen->SetUt(Uu);
 
-			EvGen->MakeSterileFlux();
+			EvGen->MakeSterileFlux(1);
 
-			double Nevent = 0;
-			OutFile << Mass << "\t" << Uu << "\t";
-			OutFile << EvGen->SampleEnergy() << "\t";
-			Nevent = EvGen->FluxIntensity()*EvGen->EventProbability();
-			OutFile	<< EvGen->FluxIntensity() << "\t";
-			OutFile	<< EvGen->EventProbability() << "\t";
-			OutFile << Nevent << std::endl;
+			Nevent = EvGen->EventTotalNumber();
+			if (Nevent > Threshold)
+				Contour->Fill(logMass, logUu2, Nevent);
 		}
 	}
+
+	OutFile->cd();
+	Contour->Write();
+	OutFile->Close();
 
 	return 0;
 }
@@ -124,6 +141,8 @@ void Usage(char* argv0)
 	std::cout << "\t\tFlux configuration file" << std::endl;
 	std::cout <<"\n  -o,  --output" << std::endl;
 	std::cout << "\t\tOutput file" << std::endl;
+	std::cout <<"\n  -c,  --channel" << std::endl;
+	std::cout << "\t\tDecay channel, defaul ALL" << std::endl;
 	std::cout <<"\n  -E,  -M,  -T" << std::endl;
 	std::cout << "\t\tSelect which mixing element" << std::endl;
 	std::cout <<"\n  -h,  --help" << std::endl;
