@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 //	EvGen->SetUt(1e-10);
 	
 	double Mass, Uu, Nevent;
-	for (double logMass = -2.0; logMass < 0.0; logMass += 0.02)	//increase mass log
+	for (double logMass = -2.0; logMass < -0.3; logMass += 0.02)	//increase mass log
 	//for (Mass = 0.01; Mass < 1.0; Mass += 0.01)	//increase mass linear
 	{
 		Mass = pow(10.0, logMass);

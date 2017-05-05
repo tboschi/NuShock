@@ -53,17 +53,17 @@ class EventGenerator
 		TLorentzVector *GetDecayProduct(int i);
 
 		//Generate flux to be used as PDF
-		void MakeSterileFlux(bool TotalPOT = false);
-		void MakeStandardFlux(bool TotalPOT = false);
+		void MakeSterileFlux(bool TotalPOT = true);
+		void MakeStandardFlux(bool TotalPOT = true);
 		double SampleEnergy();
 		double FluxIntensity();
 
 		//Get function
 		bool IsChanged();
 		std::string GetChannel();
-		double GetMass();
-		double GetEnergy();
-		double GetMomentum();
+		double GetMass(int Pow = 1);
+		double GetEnergy(int Pow = 1);
+		double GetMomentum(int Pow = 1);
 		double GetUe();
 		double GetUm();
 		double GetUt();

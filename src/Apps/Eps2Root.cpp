@@ -5,6 +5,8 @@
 #include <sstream>
 #include <getopt.h>
 
+#include "Tools.h"
+
 #include "TFile.h"
 #include "TH1.h"
 
@@ -115,7 +117,7 @@ int main(int argc, char** argv)
 		hMuon->Fill(Energy, FindFlux(Muon_X, Muon_Y, Energy));
 	}
 
-	double Normalize = 1e-20 * 13000*13000 * 0.01*0.01 * 0.2; 	//nu/POT/100m/cm2/GeV @ 100m
+	double Normalize = 1e-20 * 1.3e6*1.3e6 * 0.01*0.01; 	//nu/POT/100m/cm2/GeV @ 100m
 
 	hTotal->Scale(Normalize);
 	hPion->Scale(Normalize);

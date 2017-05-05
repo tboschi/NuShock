@@ -67,9 +67,8 @@ int main(int argc, char** argv)
 	std::string Base = "Mass";
 	std::string Name = Base;
 	std::stringstream ssL;
-	//for (double Mass = 0; Mass < 0.1; Mass += 0.01)
-	//{
-		double Mass = 0.03;
+	for (double Mass = 0; Mass < 0.1; Mass += 0.01)
+	{
 		ssL.str("");
 		ssL.clear();
 		ssL << Base << Mass;
@@ -84,7 +83,7 @@ int main(int argc, char** argv)
 		EvGen->GetFluxDriverPtr()->GetKaon()->Write();
 		EvGen->GetFluxDriverPtr()->GetKaon0()->Write();
 		EvGen->GetFluxDriverPtr()->GetMuon()->Write();
-	//}
+	}
 
 	OutFile->Close();
 

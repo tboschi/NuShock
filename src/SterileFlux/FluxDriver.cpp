@@ -8,11 +8,16 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 	M_Kaon(Const::fMKaon),
 	M_Kaon0(Const::fMKaon0)
 {
-	hTotalSterile = new TH1D("htotal", "Total flux", 100,0,20);
-        hPionSterile = new TH1D("hpion", "Pion flux", 100,0,20);
-        hKaonSterile = new TH1D("hkaon", "Kaon flux", 100,0,20);
-        hKaon0Sterile = new TH1D("hkaon0", "Kaon0 flux", 100,0,20);
-        hMuonSterile = new TH1D("hmuon", "Muon flux", 100,0,20);
+	//hTotalSterile = new TH1D("htotal", "Total flux", 100,0,20);
+        //hPionSterile = new TH1D("hpion", "Pion flux", 100,0,20);
+        //hKaonSterile = new TH1D("hkaon", "Kaon flux", 100,0,20);
+        //hKaon0Sterile = new TH1D("hkaon0", "Kaon0 flux", 100,0,20);
+        //hMuonSterile = new TH1D("hmuon", "Muon flux", 100,0,20);
+	hTotalSterile = new TH1D("htotal", "Total flux", 100,0,5);	//BNB
+        hPionSterile = new TH1D("hpion", "Pion flux", 100,0,5);	//BNB
+        hKaonSterile = new TH1D("hkaon", "Kaon flux", 100,0,5);	//BNB 
+        hKaon0Sterile = new TH1D("hkaon0", "Kaon0 flux", 100,0,5);	//BNB
+        hMuonSterile = new TH1D("hmuon", "Muon flux", 100,0,5);	//BNB
 
 	hTotalStandard = new TH1D("itotal", "Total flux", 100,0,20);
         hPionStandard = new TH1D("ipion", "Pion flux", 100,0,20);
@@ -318,22 +323,27 @@ double FluxDriver::GetEndRange()
 
 double FluxDriver::GetIntensity(double Energy)	//Return flux intensity, given energy
 {
-	return hTotalSterile->GetBinContent(hTotalSterile->FindBin(Energy));
+	return hTotalSterile->GetBinContent(hTotalSterile->FindBin(Energy+1e-6));	//1e-6 to prevent bin error
 } 
 
 void FluxDriver::SetBaseline(double Baseline)
 {
-	hTotalSterile->Scale(1e4/(Baseline*Baseline));
-	hPionSterile->Scale(1e4/(Baseline*Baseline));
-	hKaonSterile->Scale(1e4/(Baseline*Baseline));
-	hKaon0Sterile->Scale(1e4/(Baseline*Baseline));
-	hMuonSterile->Scale(1e4/(Baseline*Baseline));
+	//hTotalSterile->Scale(1.0/(Baseline*Baseline));
+	//hPionSterile->Scale(1.0/(Baseline*Baseline));
+	//hKaonSterile->Scale(1.0/(Baseline*Baseline));
+	//hKaon0Sterile->Scale(1.0/(Baseline*Baseline));
+	//hMuonSterile->Scale(1.0/(Baseline*Baseline));
+	hTotalSterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
+	hPionSterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
+	hKaonSterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
+	hKaon0Sterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
+	hMuonSterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
 
-	hTotalStandard->Scale(1e4/(Baseline*Baseline));
-	hPionStandard->Scale(1e4/(Baseline*Baseline));
-	hKaonStandard->Scale(1e4/(Baseline*Baseline));
-	hKaon0Standard->Scale(1e4/(Baseline*Baseline));
-	hMuonStandard->Scale(1e4/(Baseline*Baseline));
+	hTotalStandard->Scale(1.0/(Baseline*Baseline));
+	hPionStandard->Scale(1.0/(Baseline*Baseline));
+	hKaonStandard->Scale(1.0/(Baseline*Baseline));
+	hKaon0Standard->Scale(1.0/(Baseline*Baseline));
+	hMuonStandard->Scale(1.0/(Baseline*Baseline));
 }
 
 void FluxDriver::SetPOT(double POT)

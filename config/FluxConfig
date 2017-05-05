@@ -5,4 +5,4 @@ Muon_		data/NuMu_0.root
 #Electron_	data/NuE_0.root
 #ElectronBar_	
 
-Kinematics	on
+Kinematics	off

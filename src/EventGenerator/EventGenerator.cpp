@@ -75,8 +75,8 @@ double EventGenerator::EventProbability()	//reaching the detector and decaying
 		double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
 		double Ratio = TheGamma->Branch(GetChannel()); 
 		double Total = TheGamma->Total();
-		double Lorentz = GetMass()/sqrt(GetEnergy()*GetEnergy() - GetMass()*GetMass());
-		return exp(- Total * Length * Lorentz) * (1 - exp(- Total * Lambda * Lorentz)) * Ratio;
+		double Lorentz = sqrt(GetEnergy(2)/GetMass(2) - 1.0);
+		return exp(- Total * Length / Lorentz) * (1 - exp(- Total * Lambda / Lorentz)) * Ratio;
 	}
 }
 
@@ -92,7 +92,8 @@ double EventGenerator::EventTotalNumber(double Efficiency)
 	double A = TheFlux->GetStartRange();
 	double B = TheFlux->GetEndRange();
 	//double EnStep = 10*(B-A)/Kine::Sample;
-	double EnStep = 0.2;
+	//double EnStep = 0.2;
+	double EnStep = 0.05;	//BNB
 
 	double Total = 0;
 	for (double Energy = A; Energy < B; Energy += EnStep)
@@ -102,7 +103,8 @@ double EventGenerator::EventTotalNumber(double Efficiency)
 			Total += FluxIntensity() * EventProbability();
 		else Total += FluxIntensity() * EventProbability() * EventEfficiency(Efficiency);
 	}
-	return Total;
+	std::cout << Total*EnStep << std::endl;
+	return Total * EnStep;
 }
 
 //Random generator
@@ -158,10 +160,6 @@ TLorentzVector *EventGenerator::GetDecayProduct(int i)
 //Flux as PDF for MC
 void EventGenerator::MakeSterileFlux(bool TotalPOT)	//Generate the flux for heavy neutrinos
 {
-	double BL = TheBox->GetElement("Baseline");
-	double W = TheBox->GetElement("Width");
-	double H = TheBox->GetElement("Height");
-	double P = TheBox->GetElement("POT");
 	if (IsChanged())
 	{
 		TheFlux->MakeSterileFlux(GetMass(), GetUe(), GetUm(), GetUt());
@@ -217,19 +215,20 @@ std::string EventGenerator::GetChannel()
 	return sChannel;
 }
 
-double EventGenerator::GetMass()
+double EventGenerator::GetMass(int Pow)
 {
-	return M_Sterile;
+	return pow(M_Sterile, Pow);
 }
 
-double EventGenerator::GetEnergy()
+double EventGenerator::GetEnergy(int Pow)
 {
-	return E_Sterile;
+	return pow(E_Sterile, Pow);
 }
 
-double EventGenerator::GetMomentum()
+double EventGenerator::GetMomentum(int Pow)
 {
-	return sqrt(GetEnergy()*GetEnergy()-GetMass()*GetMass());
+	double P = sqrt(GetEnergy(2) - GetMass(2));
+	return pow(P, Pow);
 }
 
 double EventGenerator::GetUe()
