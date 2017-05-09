@@ -67,25 +67,34 @@ int main(int argc, char** argv)
 	std::string Base = "Mass";
 	std::string Name = Base;
 	std::stringstream ssL;
-	for (double Mass = 0; Mass < 0.1; Mass += 0.01)
-	{
-		ssL.str("");
-		ssL.clear();
-		ssL << Base << Mass;
-		OutFile->mkdir(ssL.str().c_str());
-		OutFile->cd(ssL.str().c_str());
+	//EvGen->SetUe(0);
+	//EvGen->SetUm(1);
+	//EvGen->SetUt(0);
+	//for (double Mass = 0; Mass < 0.2; Mass += 0.01)
+	//{
+		//ssL.str("");
+		//ssL.clear();
+		//ssL << Base << Mass;
+		//OutFile->mkdir(ssL.str().c_str());
+		//OutFile->cd(ssL.str().c_str());
 
-		EvGen->SetMass(Mass);
-		EvGen->MakeSterileFlux();
+		//EvGen->SetMass(Mass);
+		//EvGen->MakeSterileFlux();
 
-		EvGen->GetFluxDriverPtr()->GetTotal()->Write();
-		EvGen->GetFluxDriverPtr()->GetPion()->Write();
-		EvGen->GetFluxDriverPtr()->GetKaon()->Write();
-		EvGen->GetFluxDriverPtr()->GetKaon0()->Write();
-		EvGen->GetFluxDriverPtr()->GetMuon()->Write();
-	}
+		//EvGen->GetFluxDriverPtr()->GetTotal()->Write();
+		//EvGen->GetFluxDriverPtr()->GetPion()->Write();
+		//EvGen->GetFluxDriverPtr()->GetKaon()->Write();
+		//EvGen->GetFluxDriverPtr()->GetKaon0()->Write();
+		//EvGen->GetFluxDriverPtr()->GetMuon()->Write();
 
-	OutFile->Close();
+		for (double E = 0; E < 5.0; E+=0.05)
+		{
+			EvGen->SetEnergy(E);
+			std::cout << EvGen->EventProbability() << std::endl;
+		}
+	//}
+
+	//OutFile->Close();
 
 	return 0;
 }

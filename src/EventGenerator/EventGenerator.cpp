@@ -89,11 +89,12 @@ double EventGenerator::EventEfficiency(double Efficiency)
 
 double EventGenerator::EventTotalNumber(double Efficiency)
 {
-	double A = TheFlux->GetStartRange();
+	//double A = TheFlux->GetStartRange();
+	double A = 0.0;
 	double B = TheFlux->GetEndRange();
 	//double EnStep = 10*(B-A)/Kine::Sample;
-	//double EnStep = 0.2;
-	double EnStep = 0.05;	//BNB
+	double EnStep = 0.2;
+	//double EnStep = 0.05;	//BNB
 
 	double Total = 0;
 	for (double Energy = A; Energy < B; Energy += EnStep)
@@ -103,7 +104,6 @@ double EventGenerator::EventTotalNumber(double Efficiency)
 			Total += FluxIntensity() * EventProbability();
 		else Total += FluxIntensity() * EventProbability() * EventEfficiency(Efficiency);
 	}
-	std::cout << Total*EnStep << std::endl;
 	return Total * EnStep;
 }
 
@@ -167,7 +167,7 @@ void EventGenerator::MakeSterileFlux(bool TotalPOT)	//Generate the flux for heav
 		if (TotalPOT)
 			TheFlux->SetPOT(TheBox->GetElement("POT"));
 		else TheFlux->SetPOT(TheBox->GetElement("POT/s"));
-		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1e4);
+		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
 	}
 }
 
@@ -180,7 +180,7 @@ void EventGenerator::MakeStandardFlux(bool TotalPOT)	//Generate the flux of SM n
 		if (TotalPOT)
 			TheFlux->SetPOT(TheBox->GetElement("POT/s"));
 		else TheFlux->SetPOT(TheBox->GetElement("POT/s"));
-		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*10000.0);
+		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
 	}
 }
 

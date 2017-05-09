@@ -89,12 +89,13 @@ int main(int argc, char** argv)
 	
 	EvGen->SetChannel(Channel);
 
-//	EvGen->SetMass(0);
-//	EvGen->SetUe(1e-10);
-//	EvGen->SetUm(1e-10);
-//	EvGen->SetUt(1e-10);
+	EvGen->SetMass(0);
+	EvGen->SetUe(0);
+	EvGen->SetUm(0);
+	EvGen->SetUt(0);
 	
 	double Mass, Uu, Nevent;
+	
 	for (double logMass = -2.0; logMass < -0.3; logMass += 0.02)	//increase mass log
 	//for (Mass = 0.01; Mass < 1.0; Mass += 0.01)	//increase mass linear
 	{
@@ -112,12 +113,9 @@ int main(int argc, char** argv)
 				EvGen->SetUm(Uu);
 			if (UtFlag)
 				EvGen->SetUt(Uu);
-
 			EvGen->MakeSterileFlux(1);
-
 			Nevent = EvGen->EventTotalNumber();
-			if (Nevent > Threshold)
-				Contour->Fill(logMass, logUu2, Nevent);
+			Contour->Fill(logMass, logUu2, Nevent);
 		}
 	}
 

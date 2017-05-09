@@ -60,7 +60,7 @@ class Decay
 
 		void SetEnhancement(std::string Channel = "ALL", double K = 1.0);
 
-		double Total();
+		double Total(double A = 1.0);
 		double nnn();
 		double nGAMMA();
 		double nEE();

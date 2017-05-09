@@ -283,8 +283,10 @@ void Decay::SetEnhancement(std::string Channel, double K)
 
 //Very boring stuff
 //total decay width
-double Decay::Total()
+double Decay::Total(double A)
 {
+	SetEnhancement("ALL", A);
+
 	return nnn() + nGAMMA() + nEE() + nEMU() + nPI0() +
 	       EPI() + nMUMU() + MUPI() + EKA() + nKA0();
 	//return nnn() + nGAMMA() + nEE() + 2.0*nEMU() + nPI0() +
@@ -329,11 +331,11 @@ double Decay::nEE()
 		double Int1 = Kine::I1_xyz(dMn, dMe, dMe);
 		double Int2 = Kine::I2_xyz(dMn, dMe, dMe);
 		double KF_e = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
-		double KF_m = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
+		double KF_mt = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
 //		double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
 
 		return mapEnhance["nEE"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
-			(U_e*U_e * KF_e + (U_m*U_m + U_t*U_t) * KF_m) / 
+			(U_e*U_e * KF_e + (U_m*U_m + U_t*U_t) * KF_mt) / 
 			(96.0 * genie::constants::kPi3);
 	}
 	else return 0.0;
