@@ -34,8 +34,8 @@ int main(int argc, char** argv)
 	//Initialize variables
 	std::string SMConfig, DetConfig;
 	std::string FluxConfig;
-	//std::ofstream OutFile;
-	TFile *OutFile;
+	std::ofstream OutFile;
+	//TFile *OutFile;
 	std::string Channel = "ALL";
 	double Threshold = 3;
 	bool UeFlag = false;
@@ -62,8 +62,8 @@ int main(int argc, char** argv)
 				Threshold = strtod(optarg, NULL);
 				break;
 			case 'o':
-				//OutFile.open(optarg);
-				OutFile = new TFile(optarg, "RECREATE");
+				OutFile.open(optarg);
+				//OutFile = new TFile(optarg, "RECREATE");
 				break;
 			case 'E':
 				UeFlag = true;
@@ -84,7 +84,8 @@ int main(int argc, char** argv)
 	}
 
 
-	TH2D * Contour = new TH2D ("contour", "Above threshold", 100, -2.0, 0.0, 100, -10.0, -4.0);
+	//TH2D * logCont = new TH2D ("logcont", "Above threshold", 100, -2.0, 0.0, 100, -10.0, -4.0);
+	//TH2D * Contour = new TH2D ("contour", "Above threshold", 100, 0.01, 1.0, 100, 1.0e-10, 1.0e-4);
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 	
 	EvGen->SetChannel(Channel);
@@ -95,16 +96,17 @@ int main(int argc, char** argv)
 	EvGen->SetUt(0);
 	
 	double Mass, Uu, Nevent;
+	double contMass, contUu, contN;
 	
-	for (double logMass = -2.0; logMass < -0.3; logMass += 0.02)	//increase mass log
-	//for (Mass = 0.01; Mass < 1.0; Mass += 0.01)	//increase mass linear
+	for (double logMass = -2.0; logMass < 0.0; logMass += 0.02)	//increase mass log
+ 	//for (Mass = 0.01; Mass < 0.5; Mass += 0.01)	//increase mass linearly
 	{
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
 		EvGen->SetMass(Mass);
 
-		//for (double logUu2 = -9.0; logUu2 < -4.0; logUu2 += 0.1)	//increase Uu linearly
 		for (double logUu2 = -10.0; logUu2 < -4.0; logUu2 += 0.06)	//increase Uu logarithmically
+		//for (Uu = 1.0e-4; Uu < 1.0e-2; Uu += 1.0e-4)	//increase Uu linearly
 		{
 			Uu = pow(10.0, 0.5*logUu2);
 			if (UeFlag)
@@ -115,13 +117,20 @@ int main(int argc, char** argv)
 				EvGen->SetUt(Uu);
 			EvGen->MakeSterileFlux(1);
 			Nevent = EvGen->EventTotalNumber();
-			Contour->Fill(logMass, logUu2, Nevent);
+			//logCont->Fill(logMass, logUu2, Nevent);
+			if (Nevent > 1)
+			{
+				OutFile << Mass << "\t" << Uu*Uu << "\t" << Nevent << std::endl;
+				break;
+			}
+			//Contour->Fill(Mass, Uu*Uu, Nevent);
 		}
 	}
 
-	OutFile->cd();
-	Contour->Write();
-	OutFile->Close();
+	//OutFile->cd();
+	//logCont->Write();
+	//Contour->Write();
+	//OutFile->Close();
 
 	return 0;
 }

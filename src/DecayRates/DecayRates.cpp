@@ -356,7 +356,7 @@ double Decay::nEMU()	//Valid for electron+antimuon and positron+muon
 			(192.0 * genie::constants::kPi3);
 	}
 	else return 0.0;
-}
+}       
 
 //M_Sterile > M_Pion0
 double Decay::nPI0()

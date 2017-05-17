@@ -18,10 +18,10 @@ include $(GENIE)/src/make/Make.include
 
 #Main executable to be compiled
 NEW =	Exclusion	\
+	DecayPlot	\
 	#EvGen	\
 	#FakeElectron	\
 	#Eps2Root	\
-	#DecayPlot	\
 	Probability	\
 	EvGen	\
 	Kine	\

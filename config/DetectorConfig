@@ -7,8 +7,8 @@ Length		6
 Width		4
 Height		4
 Weight		100
-POT/s		1e14
-POT		5e20
+POT/s		0.5e14
+POT		10e21
 Target		2212
 #
 #Resolution

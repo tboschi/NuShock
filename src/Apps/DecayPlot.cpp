@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 {
 	const struct option longopts[] = 
 	{
-		{"output", 	required_argument, 	0, 'f'},
+		{"output", 	required_argument, 	0, 'o'},
 		{"sterile", 	required_argument, 	0, 's'},
 		{"ue4", 	required_argument, 	0, 'e'},
 		{"um4", 	required_argument, 	0, 'm'},
@@ -30,11 +30,11 @@ int main(int argc, char** argv)
 	double U_m = 1.0/sqrt(3.0);
 	double U_t = 1.0/sqrt(3.0);
 	
-	while((iarg = getopt_long(argc,argv, "f:s:e:m:t:h", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "o:s:e:m:t:h", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
-			case 'f':
+			case 'o':
 				OutFile.open(optarg);
 				if (!OutFile.is_open())
 				{
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
+	Decay * SuperGamma = new Decay(M_Sterile, 1.0/sqrt(3), 1.0/sqrt(3), 1.0/sqrt(3));
 	std::vector<std::string> vChannel = SuperGamma->ListChannels();
 
 	Out << "#1Mass";
@@ -81,16 +81,13 @@ int main(int argc, char** argv)
 		Out << i+2 << vChannel.at(i) << "\t";
 	Out << std::endl;
 
-	
-	for (M_Sterile = 0; M_Sterile < 0.500; M_Sterile += 0.005)
+	for (M_Sterile = 0; M_Sterile < 0.500; M_Sterile += 0.001)
 	{
-		double Sum = 0;
 		SuperGamma->SetMass(M_Sterile);
+		Out << M_Sterile << "\t";
+		Out  << SuperGamma->Total() << "\t";
 		for (int i = 1; i < vChannel.size(); ++i)
-		{
-			Sum += SuperGamma->Branch(vChannel.at(i));
-			Out << Sum << "\t";
-		}
+			Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
 		Out << std::endl;
 	}
 
