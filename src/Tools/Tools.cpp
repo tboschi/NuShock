@@ -13,7 +13,7 @@ double Kine::ShrockFactor(double M_Meson, double M_Lepton, double M_Sterile) //C
 
 double Kine::ShrockRho(double X, double Y)
 {
-	return ShrockFM(X, Y)*sqrt(ShrockLambda(1, X, Y));
+	return ShrockFM(X, Y)*sqrt(Lambda(1, X, Y));
 }
 
 double Kine::ShrockFM(double X, double Y)
@@ -21,7 +21,7 @@ double Kine::ShrockFM(double X, double Y)
 	return X+Y - (X-Y)*(X-Y);
 }
 
-double Kine::ShrockLambda(double X, double Y, double Z)
+double Kine::Lambda(double X, double Y, double Z)
 {
 	double Lambda = X*X + Y*Y + Z*Z - 2*(X*Y + X*Z + Y*Z);
 	if (Lambda < 0) return -Lambda;
@@ -30,7 +30,7 @@ double Kine::ShrockLambda(double X, double Y, double Z)
 
 double Kine::I1_f(double t, double X, double Y, double Z)	//To be integrated
 {
-	return (t-X*X-Y*Y)*(1+Z*Z-t)*sqrt(ShrockLambda(t, X*X, Y*Y)*ShrockLambda(1, t, Z*Z)) / t;
+	return (t-X*X-Y*Y)*(1+Z*Z-t)*sqrt(Lambda(t, X*X, Y*Y)*Lambda(1, t, Z*Z)) / t;
 }
 
 double Kine::I1_xyz(double X, double Y, double Z)
@@ -50,7 +50,7 @@ double Kine::I1_xyz(double X, double Y, double Z)
 	{
 		b = a + h;
 		Integral += h/90.0 * (7*I1_f(a, X, Y, Z) + 
-				      32*I1_f((a+3*b)/4.0, X, Y, Z) + 
+				      32*I1_f((3*a+b)/4.0, X, Y, Z) + 
 				      12*I1_f((a+b)/2.0, X, Y, Z) + 
 				      32*I1_f((a+3*b)/4.0, X, Y, Z) +
 				      7*I1_f(b, X, Y, Z));
@@ -60,12 +60,12 @@ double Kine::I1_xyz(double X, double Y, double Z)
 
 double Kine::I1_xy(double X, double Y)
 {
-	return ((1+X-Y)*(1+X) - 4*X) * sqrt(ShrockLambda(1.0, X, Y));
+	return ((1+X-Y)*(1+X) - 4*X) * sqrt(Lambda(1.0, X, Y));
 }
 
 double Kine::I2_f(double t, double X, double Y, double Z)	//To be integrated
 {
-	return (1+X*X-t)*sqrt(ShrockLambda(t, Y*Y, Z*Z))*sqrt(ShrockLambda(1.0, t, X*X)) / t;
+	return (1+X*X-t)*sqrt(Lambda(t, Y*Y, Z*Z))*sqrt(Lambda(1.0, t, X*X)) / t;
 }
 
 double Kine::I2_xyz(double X, double Y, double Z)
@@ -85,7 +85,7 @@ double Kine::I2_xyz(double X, double Y, double Z)
 	{
 		b = a + h;
 		Integral += h/90.0 * (7*I2_f(a, X, Y, Z) + 
-				      32*I2_f((a+3*b)/4.0, X, Y, Z) + 
+				      32*I2_f((3*a+b)/4.0, X, Y, Z) + 
 				      12*I2_f((a+b)/2.0, X, Y, Z) + 
 				      32*I2_f((a+3*b)/4.0, X, Y, Z) +
 				      7*I2_f(b, X, Y, Z));
@@ -95,10 +95,10 @@ double Kine::I2_xyz(double X, double Y, double Z)
 
 double Kine::I2_xy(double X, double Y)
 {
-	return ((1+X-Y)*(1+X+2*Y) - 4*X) * sqrt(ShrockLambda(1.0, X, Y));
+	return ((1+X-Y)*(1+X+2*Y) - 4*X) * sqrt(Lambda(1.0, X, Y));
 }
 
 double Kine::I3_xy(double X, double Y)
 {
-	return (1+2*Y)*(1-Y) * sqrt(ShrockLambda(1.0, X, Y));
+	return (1+2*Y)*(1-Y) * sqrt(Lambda(1.0, X, Y));
 }

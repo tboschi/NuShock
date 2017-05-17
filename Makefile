@@ -17,7 +17,8 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Exclusion	\
+NEW =	Width	\
+	#Exclusion	\
 	DecayPlot	\
 	#EvGen	\
 	#FakeElectron	\
@@ -33,6 +34,7 @@ TGT :=  $(NEW:%=$(SRC_DIR)/Apps/%)
 #Dependencies of the Main
 DEP =	Tools/Tools		\
 	DecayRates/DecayRates	\
+	DecayRates/3Body	\
 	SterileFlux/FluxDriver	\
 	SterileFlux/Flux		\
 	EventGenerator/EventGenerator	\

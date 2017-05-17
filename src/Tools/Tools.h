@@ -29,7 +29,7 @@ namespace Kine
 	double ShrockFactor(double M_Meson, double M_Lepton, double M_Sterile); 
 	double ShrockRho(double X, double Y);
 	double ShrockFM(double X, double Y);
-	double ShrockLambda(double X, double Y, double Z);
+	double Lambda(double X, double Y, double Z);
 	double I1_f(double t, double X, double Y, double Z);	//To be integrated
 	double I1_xyz(double X, double Y, double Z);
 	double I1_xy(double X, double Y);
@@ -78,9 +78,15 @@ namespace Const
 	static const double fMKaon0 = genie::PDGLibrary::Instance()->Find(311)->Mass();
 
 	//SM constant - PDG 2016
+	static const double fGF = 1.16637876e-5;	//From PDG
+	static const double fGF2 = fGF*fGF;		//From PDG
 	static const double fSin2W = 0.23129;		//Sin weinberg squared - MSbar scheme
 	static const double fFPion2 = pow(0.1302, 2.0);	//Decay constant squared of pion
 	static const double fFKaon2 = pow(0.1556, 2.0);	//Decay constant squared of kaon
+	static const double fLambda1e = 0.0297;		//Linear dependence of f+ in Ke3 (PDG)
+	static const double fLambda1m = 0.0296;		//Linear dependence of f+ in Km3 (PDG)
+	static const double fLambda0m = 0.0196;		//Linear dependence of f0 in Km3 (PDG)
+	static const double fVusFKaon = 0.2165;		//From 1607.00299
 }
 
 #endif
