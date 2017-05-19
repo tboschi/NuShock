@@ -6,4 +6,4 @@
 Electron_	data/NuE_0_fake.root
 #ElectronBar_	
 
-Kinematics	off
+Kinematics	data/Enhancement.root

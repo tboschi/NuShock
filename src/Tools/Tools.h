@@ -37,7 +37,7 @@ namespace Kine
 	double I2_xyz(double X, double Y, double Z);
 	double I2_xy(double X, double Y);
 	double I3_xy(double X, double Y);
-	static const int Sample = 1000;	//Sample for integration
+	static const int Sample = 10000;	//Sample for integration
 }
 
 //Constants
@@ -46,6 +46,9 @@ namespace Const
 	//Conversion
 	static const double fM2GeV = 5.06e15;	//1GeV in 1/m
 	static const double fS2GeV = 1.52e24;	//1GeV in 1/s
+	static const double fPi = 3.1415926536;	//1GeV in 1/s
+	static const double fPi2 = fPi*fPi;	//1GeV in 1/s
+	static const double fPi3 = fPi2*fPi;	//1GeV in 1/s
 
 	//CKM entries
 	static const double fV_ud = 0.97417;
@@ -78,7 +81,8 @@ namespace Const
 	static const double fMKaon0 = genie::PDGLibrary::Instance()->Find(311)->Mass();
 
 	//SM constant - PDG 2016
-	static const double fGF = 1.16637876e-5;	//From PDG
+	static const double fhBar = 6.5821189916e-25;	//Mev s, from PDG
+	static const double fGF = 1.16637876e-5;	//GeV-2, from PDG
 	static const double fGF2 = fGF*fGF;		//From PDG
 	static const double fSin2W = 0.23129;		//Sin weinberg squared - MSbar scheme
 	static const double fFPion2 = pow(0.1302, 2.0);	//Decay constant squared of pion

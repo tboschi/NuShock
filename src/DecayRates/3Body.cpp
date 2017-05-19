@@ -3,8 +3,8 @@
 ThreeBody::ThreeBody(std::string Parent, double MSterile, double Ue, double Um, double Ut)	: //ThreeBody rates calculator
 	M_Neutrino(0.0),
 	M_Photon(0.0),
-	//M_Electron(Const::fMElectron),
-	M_Electron(0.0),
+	M_Electron(Const::fMElectron),
+	//M_Electron(0.0),
 	M_Muon(Const::fMMuon),
 	M_Pion(Const::fMPion),
 	M_Pion0(Const::fMPion0),
@@ -14,17 +14,17 @@ ThreeBody::ThreeBody(std::string Parent, double MSterile, double Ue, double Um, 
 	fLambda1(Const::fLambda1m),
 	fLambda0(Const::fLambda0m)
 {
+	InitMap();
+	SetParent(Parent);
+
 	SetSterileMass(MSterile);
 	SetUe(Ue);
 	SetUm(Um);
 	SetUt(Ut);
 
-	SetParent(Parent);
-
 	IsElectron = false;
 	IsMuon = false;
 
-	InitMap();
 	InitConst();
 }
 
@@ -40,30 +40,52 @@ void ThreeBody::InitConst()
 {
 	switch(mapParent[GetParent()])
 	{
-		case _Muon:	//Will need to change this including heavy neutrino
+		case _Muon:	//Muon decays into nu_mu (c), nu_e (a,x), e(b,y)
 			M_Parent = M_Muon;
-			fA = M_Neutrino/M_Muon;
+
+			if (IsElectron && !IsMuon) //nu_e is the sterile
+			{
+				fA = M_Sterile/M_Muon;
+				fC = M_Neutrino/M_Muon;
+			}
+			if (!IsElectron && IsMuon) //nu_mu is the sterile
+			{
+				fA = M_Neutrino/M_Muon;
+				fC = M_Sterile/M_Muon;
+			}
+
 			fB = M_Electron/M_Muon;
-			fC = M_Neutrino/M_Muon;
+
 			break;
-		case _Kaon:	//Will need to change this including heavy neutrino
+
+		case _Kaon:	//Kaon decays into pi0 (c), lepton (a,x), neutrino (b,y)
 			M_Parent = M_Kaon;
+
 			if (IsElectron)
 				fA = M_Electron/M_Kaon;
 			else if (IsMuon)
 				fA = M_Muon/M_Kaon;
-			fB = M_Neutrino/M_Kaon;
+			else fA = 0.0;
+
+			fB = M_Sterile/M_Kaon;
 			fC = M_Pion0/M_Kaon;
+
 			break;
-		case _Kaon0:	//Will need to change this including heavy neutrino
+
+		case _Kaon0:	//Kaon0 decays into pi (c), lepton (a,x), neutrino (b,y)
+
 			M_Parent = M_Kaon0;
+
 			if (IsElectron)
 				fA = M_Electron/M_Kaon;
 			else if (IsMuon)
 				fA = M_Muon/M_Kaon;
-			fB = M_Neutrino/M_Kaon0;
-			fC = M_Pion0/M_Kaon0;
+			else fA = 0.0;
+
+			fB = M_Sterile/M_Kaon0;
+			fC = M_Pion/M_Kaon0;
 			break;
+
 		default:
 			M_Parent = 0.0;
 			fA = 0.0;
@@ -72,129 +94,163 @@ void ThreeBody::InitConst()
 			std::cout << "Unknown Parent particle!" << std::endl;
 			break;
 	}
-
-	if (!IsEnergyConserved())
-	{
-		M_Parent = 0.0;
-		fA = 0.0;
-		fB = 0.0;
-		fC = 0.0;
-		std::cout << "Warning! Respect the rules, check the masses." << std::endl;
-	}
 }
 
-double ThreeBody::ddGamma()	//double differential decay width (dG/dxdy)
+double ThreeBody::ddGamma()	//double differential decay width (dG/dExdEy)
 {
-	if (InLimX() && InLimY())
-		return M2() * GetParentMass() / (256 * genie::constants::kPi3);
+	if (IsEnergyConserved() && InLimX() && InLimY())
+		return M2() / (64.0 * Const::fPi3 * GetParentMass());
 	else return 0.0;
 }
 
-double ThreeBody::dGamma()	//differential decay width (dG/dx)
+double ThreeBody::dGamma()	//differential decay width (dG/dEx)
 {
-	if (InLimX())
-		return M2IntY() * GetParentMass() / (256 * genie::constants::kPi3);
+	if (IsEnergyConserved() && InLimX())
+		return M2IntY() / (64.0 * Const::fPi3 * GetParentMass());
+		//return M2IntY() * GetParentMass() / (256 * Const::fPi3);
 	else return 0.0;
 }
 
 double ThreeBody::Gamma()	//fully integrated decay width (G)
 {
-	double xmin, xmax;
-	double dx = xLim(xmin, xmax);
-	std::cout << "xmin " << xmin << " xmax " << xmax << std::endl;
+	if (IsEnergyConserved())
+		return M2IntXY() / (64.0 * Const::fPi3 * GetParentMass());
+	else return 0.0;
+}
 
-	double (ThreeBody::*pGamma)() = &ThreeBody::dGamma;
-	return Integrate(pGamma, xmin, xmax); 
+double ThreeBody::ddPhaseSpace()	//double differential phase space (dPS/dExdEy)
+{
+	if (IsEnergyConserved() && InLimX() && InLimY())
+		return 1.0;
+	else return 0.0;
+}
+
+double ThreeBody::dPhaseSpace()	//differential phase space (dPS/dEx)
+{
+	if (IsEnergyConserved() && InLimX())
+	{
+		double ymin, ymax;
+		return yLim(ymin, ymax) * GetParentMass() / 2.0;
+	}
+	else return 0.0;
+}
+
+double ThreeBody::PhaseSpace()	//fully integrated phase space (PS)
+{
+	if (IsEnergyConserved())
+	{
+		double xmin, xmax;
+		double dx = xLim(xmin, xmax);
+
+		double (ThreeBody::*pPS)() = &ThreeBody::dPhaseSpace;
+		return Integrate(pPS, xmin, xmax) * GetParentMass() / 2.0;
+	}
+	else return 0.0;
 }
 
 double ThreeBody::M2()		//Unpolarised amplitude
 {
-	double M2 = 0.0;
-	switch(mapParent[GetParent()])
+	if (IsEnergyConserved() && InLimX() && InLimY())
 	{
-		case _Muon:
-			M2 = M2Muon();
-			break;
-		case _Kaon:
-			M2 = M2Kaon();
-			break;
-		case _Kaon0:
-			M2 = M2Kaon0();
-			break;
-		default:
-			break;
-	}
+		double M2;
+		switch(mapParent[GetParent()])
+		{
+			case _Muon:
+				M2 = M2Muon();
+				break;
+			case _Kaon:
+				M2 = M2Kaon();
+				break;
+			case _Kaon0:
+				M2 = M2Kaon0();
+				break;
+			default:
+				M2 = 0.0;
+				break;
+		}
 
-	if (InLimX() && InLimY())
 		return M2;
+	}
 	else return 0.0;
 }
 
-double ThreeBody::M2IntY()	//Unpolarised amplitude, integrated over y
+double ThreeBody::M2IntY()	//Unpolarised amplitude, integrated over Ey
 {
-	double M2;
-	switch(mapParent[GetParent()])
+	if (IsEnergyConserved() && InLimX())
 	{
-		case _Muon:
-			M2 = M2MuonIntY();
-			break;
-		case _Kaon:
-			M2 = M2KaonIntY();
-			break;
-		case _Kaon0:
-			M2 = M2Kaon0IntY();
-			break;
-		default:
-			M2 = 0.0;
-			break;
-	}
+		double M2;
+		switch(mapParent[GetParent()])
+		{
+			case _Muon:
+				M2 = M2MuonIntY();
+				break;
+			case _Kaon:
+				M2 = M2KaonIntY();
+				break;
+			case _Kaon0:
+				M2 = M2Kaon0IntY();
+				break;
+			default:
+				M2 = 0.0;
+				break;
+		}
 
-	if (InLimX())
-		return M2;
+		return M2 * GetParentMass() / 2.0;
+	}
 	else return 0.0;
 }
 
-double ThreeBody::M2IntXY()	//Unpolarised amplitude, integrated over y and x
+double ThreeBody::M2IntXY()	//Unpolarised amplitude, integrated over Ex and Ey
 {
-	double xmin, xmax;
-	double dx = xLim(xmin, xmax);
+	if (IsEnergyConserved())
+	{
+		double xmin, xmax;
+		double dx = xLim(xmin, xmax);
 
-	double (ThreeBody::*pM2)() = &ThreeBody::M2IntY;
-	return Integrate(pM2, xmin, xmax);
+		double (ThreeBody::*pM2)() = &ThreeBody::M2IntY;
+		return Integrate(pM2, xmin, xmax) * GetParentMass() / 2.0;
+	}
+	else return 0.0;
 }
 
 //Unpolarised amplitudes here after
 double ThreeBody::M2Muon()	//Muon decay
 {
 	return 16 * Const::fGF2 * GetUu()*GetUu() *
-	       	pow(M_Muon, 4) * x() * (1 + a2() - b2() - c2() - x());
+	       	pow(M_Muon, 4) * x() * (1 + a(2) - b(2) - c(2) - x());
 }
 
 double ThreeBody::M2MuonIntY()	//Muon decay, integrated analytically over y
 {
 	double ymin, ymax;
-	double dy = yLim(ymin, ymax);
-	return dy * M2Muon();
+	return yLim(ymin, ymax) * M2Muon();
 }
 
 double ThreeBody::M2Kaon()	//Kaon decay
 {
-	double Zeta = fZeta()-1;
-
-	return 2 * Const::fGF2 * GetUu()*GetUu() *
-		pow(M_Kaon,4) * pow(GetDecayConst(),2) * fPlus()*fPlus() *
-		(1 - c2() +x()*y() - x() - y() + a2()*(1 + y()*Zeta) + b2()*(1 + x()*Zeta) -
-		 4*Zeta*Zeta*(a2() + b2()) * (1 + a2() - b2() - c2() - x() - y()));
+	return Const::fGF2 * GetUu()*GetUu() * pow(M_Kaon,4) * pow(GetDecayConst(),2) * 
+		( 4 * fPlus()*fPlus() * ( 1 + a(2) + b(2) - c(2) - x() - y() + x()*y() ) -
+	      	  pow(fPlus() - fMinus(), 2) * ( pow(a(2) - b(2),2) + (a(2)+b(2)) * (1 - c(2) - x() - y()) ) );
 }
 
 double ThreeBody::M2KaonIntY(double Y)	//Kaon decay primitive
 {
-	double Zeta = fZeta()-1;
+	double X = 1 - c(2) - x();
+	double AB = a(2)+b(2);
+	double A2B = pow(a(2)-b(2),2);
+	double L1 = GetLambda1();
+	double L0 = GetLambda0();
+	double fP = 1 - L1 * (X - Y) / c(2);
+	double fM = fMinus();
 
-	return 2 * Const::fGF2 * GetUu()*GetUu() *
-		pow(M_Kaon,4) * pow(GetDecayConst(),2) * fPlus()*fPlus() * Y *
-		(1 - c2() + x()*Y/2.0 - x() - Y/2.0 + a2()*(1 + Y*Zeta/2.0) + b2()*(1 + x()*Zeta) -
-		 4*Zeta*Zeta*(a2() + b2()) * (1 + a2() - b2() - c2() - x() - Y/2.0));
+	double Ret1 = 4 * fP*fP * Y * (X + AB - Y/2 + x()*Y/2) -
+		      8 * L1 / c(2) * (1 - L1*X/c(2)) * Y*Y/2 * (X + AB - Y/3 + x()*Y/3) - 
+		      8 * L1*L1 / c(4) * Y*Y*Y/3 * (X + AB - Y/4 + x()*Y/4);
+	double Ret2 = (fP-fM)*(fP-fM) * Y * (A2B + AB * (X-Y/2)) -
+		      2 * L1 / c(2) * (1 - L1*X/c(2) - fM) * Y*Y/2 * (A2B + AB * (X-Y/3)) -
+		      2 * L1*L1 / c(4) * Y*Y*Y/3 * (A2B + AB * (X-Y/4));
+
+	return Const::fGF2 * GetUu()*GetUu() * pow(M_Kaon,4) * pow(GetDecayConst(),2) * (Ret1 - Ret2);
 }
 
 double ThreeBody::M2KaonIntY()	//Kaon decay, itnegrated analytically over y
@@ -202,7 +258,10 @@ double ThreeBody::M2KaonIntY()	//Kaon decay, itnegrated analytically over y
 	double ymin, ymax;
 	double dy = yLim(ymin, ymax);
 
-	return M2KaonIntY(ymax) - M2KaonIntY(ymin);
+	double Ret = M2KaonIntY(ymax) - M2KaonIntY(ymin);
+	if (Ret > 0)
+		return Ret;
+	else return 0.0;
 }
 
 double ThreeBody::M2Kaon0()	//Kaon 0 decay
@@ -220,15 +279,18 @@ double ThreeBody::M2Kaon0IntY() //Kaon0 decay, integrated analytically over y
 	double ymin, ymax;
 	double dy = yLim(ymin, ymax);
 
-	return M2Kaon0IntY(ymax) - M2Kaon0IntY(ymin);
+	double Ret = M2Kaon0IntY(ymax) - M2Kaon0IntY(ymin);
+	if (Ret > 0)
+		return Ret;
+	else return 0.0;
 }
 
 double ThreeBody::yLim(double &Min, double &Max)	//y integration limits
 {
-	double X = 1 + a2() - x();
-	double A = (2 - x())*(X + b2() - c2());
-	double P = x2() - 4*a2();
-	double L = Kine::Lambda(X, b2(), c2());
+	double X = 1 + a(2) - x();
+	double A = (2 - x())*(X + b(2) - c(2));
+	double P = x(2) - 4*a(2);
+	double L = Kine::Lambda(X, b(2), c(2));
 
 	Min = (A - sqrt(P) * sqrt(L)) / (2*X);
 	Max = (A + sqrt(P) * sqrt(L)) / (2*X);
@@ -239,7 +301,7 @@ double ThreeBody::yLim(double &Min, double &Max)	//y integration limits
 double ThreeBody::xLim(double &Min, double &Max)	//x integration limits
 {
 	Min = 2*a();
-	Max = 1 + a2() - pow((b() + c()),2);
+	Max = 1 + a(2) - pow((b() + c()),2);
 
 	return Max-Min;
 }
@@ -273,6 +335,7 @@ double ThreeBody::Integrate(double (ThreeBody::*FF)(), double A, double B)
 		SetX(b);
 		Integral += 7*(this->*FF)();
 	}	
+
 	return Integral * h/90.0;
 }
 
@@ -293,77 +356,48 @@ bool ThreeBody::InLimY()
 //The most important question, after all
 bool ThreeBody::IsEnergyConserved()
 {
-	if (a()+b()+c() <= 1)
+	if (a()+b()+c() <= 1.0)
 		return true;
-	else false;
+	else return false;
 }
 
 //decay constants
 double ThreeBody::fPlus()
 {
-	return 1+(c2() + x() + y() - 1)*GetLambda1()/c2();
+	return 1 - GetLambda1() * (1 - c(2) - x() - y()) / c(2);
 }
 
 double ThreeBody::fMinus()
 {
-	return (GetLambda0()-GetLambda1())*(1-c2())/(c2());
+	return (GetLambda0()-GetLambda1()) * (1-c(2)) / c(2);
 }
-
-double ThreeBody::fZeta()
-{
-	return fMinus()/fPlus();
-}
-
 
 //variables
-double ThreeBody::a()	//mass ratio
+double ThreeBody::a(double p)	//mass ratio
 {
-	return fA;
+	return pow(fA,p);
 }
 
-double ThreeBody::b()	//mass ratio
+double ThreeBody::b(double p)	//mass ratio
 {
-	return fB;
+	return pow(fB,p);
 }
 
-double ThreeBody::c()	//mass ratio
+double ThreeBody::c(double p)	//mass ratio
 {
-	return fC;
+	return pow(fC,p);
 }
 
-double ThreeBody::a2()
+double ThreeBody::x(double p)	//energy over mass
 {
-	return a()*a();
+	double Ret = 2*GetEnergyX()/GetParentMass();
+	return pow(Ret,p);
 }
 
-double ThreeBody::b2()
+double ThreeBody::y(double p)	//energy over mass
 {
-	return b()*b();
-}
-
-double ThreeBody::c2()
-{
-	return c()*c();
-}
-
-double ThreeBody::x()	//energy over mass
-{
-	return 2*GetEnergyX()/GetParentMass();
-}
-
-double ThreeBody::y()	//energy over mass
-{
-	return 2*GetEnergyY()/GetParentMass();
-}
-
-double ThreeBody::x2()
-{
-	return x()*x();
-}
-
-double ThreeBody::y2()
-{
-	return y()*y();
+	double Ret = 2*GetEnergyY()/GetParentMass();
+	return pow(Ret,p);
 }
 
 //Channel mode
@@ -371,12 +405,14 @@ void ThreeBody::ElectronChannel()
 {
 	IsElectron = true;
 	IsMuon = false;
+	InitConst();
 }
 
 void ThreeBody::MuonChannel()
 {
 	IsElectron = false;
 	IsMuon = true;
+	InitConst();
 }
 
 //Getter
@@ -425,7 +461,7 @@ double ThreeBody::GetUu()
 	if (IsElectron)
 		return GetUe();
 	else if (IsMuon)
-		return GetUu();
+		return GetUm();
 	else return 1.0;
 }
 
@@ -473,6 +509,7 @@ void ThreeBody::SetY(double X)
 void ThreeBody::SetSterileMass(double X)
 {
 	M_Sterile = X;
+	InitConst();
 }
 
 void ThreeBody::SetUe(double X)

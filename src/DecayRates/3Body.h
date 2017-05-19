@@ -33,6 +33,9 @@ class ThreeBody
 		double ddGamma();
 		double dGamma();
 		double Gamma();
+		double ddPhaseSpace();
+		double dPhaseSpace();
+		double PhaseSpace();
 		double M2();
 		double M2IntY();
 		double M2IntXY();
@@ -56,18 +59,12 @@ class ThreeBody
 
 		double fPlus();
 		double fMinus();
-		double fZeta();
 		
-		double a();
-		double b();
-		double c();
-		double a2();
-		double b2();
-		double c2();
-		double x();
-		double y();
-		double x2();
-		double y2();
+		double a(double p = 1.0);
+		double b(double p = 1.0);
+		double c(double p = 1.0);
+		double x(double p = 1.0);
+		double y(double p = 1.0);
 
 		void ElectronChannel();
 		void MuonChannel();

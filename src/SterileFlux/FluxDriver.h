@@ -29,6 +29,8 @@ class FluxDriver
 
 		TH1D *GetHist();
 		void MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
+		void MakeMuonComponent(Flux &sxFlux, double M_Sterile, double U_e, double U_m, double U_t);
+		void MakeElecComponent(Flux &sxFlux, double M_Sterile, double U_e, double U_m, double U_t);
 		void MakeStandardFlux();
 		double SampleEnergy();
 
@@ -53,12 +55,24 @@ class FluxDriver
 	
 	private:
 		TFile *SourceFile;
+		TFile *KineFile;
+		bool Kine;
 
+		//Get fluxes from file
 		Flux* fxNuMuon;
 		Flux* fxNuMuonBar;
 		Flux* fxNuElectron;
 		Flux* fxNuElectronBar;
 
+		//Kinematic factors
+		TH1D *hMuonMuon; 
+		TH1D *hMuonElec;
+		TH1D *hKaonMuon;
+		TH1D *hKaonElec;
+		TH1D *hKaon0Muon;
+		TH1D *hKaon0Elec;
+
+		//Output fluxes
 		TH1D* hTotalSterile;
 		TH1D* hPionSterile;
 		TH1D* hKaonSterile;
@@ -77,8 +91,6 @@ class FluxDriver
 		const double M_Pion0;
 		const double M_Kaon;
 		const double M_Kaon0;
-
-		bool Kine;
 };
 
 #endif
