@@ -87,9 +87,8 @@ namespace Const
 	static const double fSin2W = 0.23129;		//Sin weinberg squared - MSbar scheme
 	static const double fFPion2 = pow(0.1302, 2.0);	//Decay constant squared of pion
 	static const double fFKaon2 = pow(0.1556, 2.0);	//Decay constant squared of kaon
-	static const double fLambda1e = 0.0297;		//Linear dependence of f+ in Ke3 (PDG)
-	static const double fLambda1m = 0.0296;		//Linear dependence of f+ in Km3 (PDG)
-	static const double fLambda0m = 0.0196;		//Linear dependence of f0 in Km3 (PDG)
+	static const double fLambdaPlus = 0.0297;		//Linear dependence of f+ in Ke3 (PDG)
+	static const double fLambdaZero = 0.0196;		//Linear dependence of f0 in Km3 (PDG)
 	static const double fVusFKaon = 0.2165;		//From 1607.00299
 }
 

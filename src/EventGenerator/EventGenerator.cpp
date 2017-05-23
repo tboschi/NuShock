@@ -164,9 +164,10 @@ void EventGenerator::MakeSterileFlux(bool TotalPOT)	//Generate the flux for heav
 	{
 		TheFlux->MakeSterileFlux(GetMass(), GetUe(), GetUm(), GetUt());
 		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
-		if (TotalPOT)
-			TheFlux->SetPOT(TheBox->GetElement("POT"));
-		else TheFlux->SetPOT(TheBox->GetElement("POT/s"));
+
+		double Y = TotalPOT ? 1.0e7 * TheBox->GetElement("Years") : 1.0;
+		TheFlux->SetPOT(Y * TheBox->GetElement("POT/s"));
+
 		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
 	}
 }
@@ -177,9 +178,10 @@ void EventGenerator::MakeStandardFlux(bool TotalPOT)	//Generate the flux of SM n
 	{
 		TheFlux->MakeStandardFlux();
 		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
-		if (TotalPOT)
-			TheFlux->SetPOT(TheBox->GetElement("POT/s"));
-		else TheFlux->SetPOT(TheBox->GetElement("POT/s"));
+
+		double Y = TotalPOT ? 1.0e7 * TheBox->GetElement("Years") : 1.0;
+		TheFlux->SetPOT(Y * TheBox->GetElement("POT/s"));
+
 		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
 	}
 }

@@ -65,6 +65,7 @@ class FluxDriver
 		Flux* fxNuElectronBar;
 
 		//Kinematic factors
+		TH1D *hTemp; 
 		TH1D *hMuonMuon; 
 		TH1D *hMuonElec;
 		TH1D *hKaonMuon;

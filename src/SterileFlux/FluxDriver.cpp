@@ -55,18 +55,34 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 				KineFile = new TFile(Name.c_str(), "OPEN");
 				Kine = true;
 
-				hMuonMuon  = (TH1D*) KineFile->Get("muonmuon");
-				hMuonElec  = (TH1D*) KineFile->Get("muonelec");
-				hKaonMuon  = (TH1D*) KineFile->Get("kaonmuon");
-				hKaonElec  = (TH1D*) KineFile->Get("kaonelec");
-				hKaon0Muon = (TH1D*) KineFile->Get("kaon0muon");
-				hKaon0Elec = (TH1D*) KineFile->Get("kaon0elec");
+				hTemp = (TH1D*) KineFile->Get("muonmuon");
+				hMuonMuon  = (TH1D*) hTemp->Clone();
+				hMuonMuon->SetDirectory(0);
+
+				hTemp = (TH1D*) KineFile->Get("muonelec");
+				hMuonElec  = (TH1D*) hTemp->Clone();
+				hMuonElec->SetDirectory(0);
+
+				hTemp = (TH1D*) KineFile->Get("kaonmuon");
+				hKaonMuon  = (TH1D*) hTemp->Clone();
+				hKaonMuon->SetDirectory(0);
+
+				hTemp = (TH1D*) KineFile->Get("kaonelec");
+				hKaonElec  = (TH1D*) hTemp->Clone();
+				hKaonElec->SetDirectory(0);
+				
+				hTemp = (TH1D*) KineFile->Get("kaon0muon");
+				hKaon0Muon = (TH1D*) hTemp->Clone();
+				hKaon0Muon->SetDirectory(0);
+				
+				hTemp = (TH1D*) KineFile->Get("kaon0elec");
+				hKaon0Elec = (TH1D*) hTemp->Clone();
+				hKaon0Elec->SetDirectory(0);
 
 				KineFile->Close();
 			}
 		}
 	}
-	std::cout << fxNuMuon << std::endl;
 	ConfigFile.close();
 
 }
@@ -133,7 +149,7 @@ void FluxDriver::MakeMuonComponent(Flux &sxFlux, double M_Sterile, double U_e, d
 	double KaonFactor = 63.44/(63.44+3.32) * U_m*U_m * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile);	//Two body
 	if (Kine)
 	{
-		double KM = hKaonMuon->GetBinContent(hKaonMuon->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+		double KM = hKaonMuon->GetBinContent(hKaonMuon->FindBin(M_Sterile+1e-9)+1);	//1e-9 to prevent bin error
 		KaonFactor += 3.32/(63.44+3.32) * U_m*U_m * KM;	//Three body
 	}
 	else if (M_Sterile < M_Kaon - M_Pion0 - M_Muon)

@@ -11,8 +11,8 @@ ThreeBody::ThreeBody(std::string Parent, double MSterile, double Ue, double Um, 
 	M_Kaon(Const::fMKaon),
 	M_Kaon0(Const::fMKaon0),
 	fKaon(Const::fVusFKaon),
-	fLambda1(Const::fLambda1m),
-	fLambda0(Const::fLambda0m)
+	fLambda1(Const::fLambdaPlus),
+	fLambda0(Const::fLambdaZero)
 {
 	InitMap();
 	SetParent(Parent);

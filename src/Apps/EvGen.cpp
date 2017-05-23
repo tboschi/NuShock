@@ -17,6 +17,7 @@ int main(int argc, char** argv)
 		{"smconfig", 	required_argument, 	0, 's'},
 		{"detconfig", 	required_argument,	0, 'd'},
 		{"fluxconfig", 	required_argument,	0, 'f'},
+		{"root", 	required_argument,	0, 'r'},
 		{"output", 	required_argument,	0, 'o'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
@@ -30,8 +31,9 @@ int main(int argc, char** argv)
 	std::string SMConfig, DetConfig;
 	std::string FluxConfig;
 	TFile *OutFile;
+	std::ofstream Out;
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:o:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "s:d:f:r:o:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -44,8 +46,11 @@ int main(int argc, char** argv)
 			case 'f':
 				FluxConfig.assign(optarg);
 				break;
-			case 'o':
+			case 'r':
 				OutFile = new TFile(optarg, "RECREATE");
+				break;
+			case 'o':
+				Out.open(optarg);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -67,34 +72,27 @@ int main(int argc, char** argv)
 	std::string Base = "Mass";
 	std::string Name = Base;
 	std::stringstream ssL;
-	//EvGen->SetUe(0);
-	//EvGen->SetUm(1);
-	//EvGen->SetUt(0);
-	//for (double Mass = 0; Mass < 0.2; Mass += 0.01)
-	//{
-		//ssL.str("");
-		//ssL.clear();
-		//ssL << Base << Mass;
-		//OutFile->mkdir(ssL.str().c_str());
-		//OutFile->cd(ssL.str().c_str());
+	for (double Mass = 0; Mass < 0.5; Mass += 0.002)
+	{
+		ssL.str("");
+		ssL.clear();
+		ssL << Base << Mass;
+		OutFile->mkdir(ssL.str().c_str());
+		OutFile->cd(ssL.str().c_str());
 
-		//EvGen->SetMass(Mass);
-		//EvGen->MakeSterileFlux();
+		EvGen->SetMass(Mass);
+		EvGen->MakeSterileFlux();
 
-		//EvGen->GetFluxDriverPtr()->GetTotal()->Write();
-		//EvGen->GetFluxDriverPtr()->GetPion()->Write();
-		//EvGen->GetFluxDriverPtr()->GetKaon()->Write();
-		//EvGen->GetFluxDriverPtr()->GetKaon0()->Write();
-		//EvGen->GetFluxDriverPtr()->GetMuon()->Write();
+		EvGen->GetFluxDriverPtr()->GetTotal()->Write();
+		Out << Mass << "\t";
+		Out << EvGen->GetFluxDriverPtr()->GetTotal()->Integral("WIDTH") << "\t";
+		Out << EvGen->GetFluxDriverPtr()->GetPion()->Integral("WIDTH") << "\t";
+		Out << EvGen->GetFluxDriverPtr()->GetKaon()->Integral("WIDTH") << "\t";
+		Out << EvGen->GetFluxDriverPtr()->GetKaon0()->Integral("WIDTH") << "\t";
+		Out << EvGen->GetFluxDriverPtr()->GetMuon()->Integral("WIDTH") << std::endl;
+	}
 
-		for (double E = 0; E < 5.0; E+=0.05)
-		{
-			EvGen->SetEnergy(E);
-			std::cout << EvGen->EventProbability() << std::endl;
-		}
-	//}
-
-	//OutFile->Close();
+	OutFile->Close();
 
 	return 0;
 }
@@ -113,6 +111,8 @@ void Usage(char* argv0)
 	std::cout << "\t\tFlux configuration file" << std::endl;
 	std::cout <<"\n  -o,  --output" << std::endl;
 	std::cout << "\t\tOutput file" << std::endl;
+	std::cout <<"\n  -r,  --root" << std::endl;
+	std::cout << "\t\tRoot output file" << std::endl;
 	std::cout <<"\n  -h,  --help" << std::endl;
 	std::cout << "\t\tPrint this message and exit" << std::endl;
 }
