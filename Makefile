@@ -18,9 +18,9 @@ include $(GENIE)/src/make/Make.include
 
 #Main executable to be compiled
 NEW =	Width	\
-	EvGen	\
-	Exclusion	\
-	#DecayPlot	\
+	DecayPlot	\
+	#EvGen	\
+	#Exclusion	\
 	#FakeElectron	\
 	#Eps2Root	\
 	Probability	\

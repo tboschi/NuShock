@@ -281,7 +281,7 @@ void Decay::SetEnhancement(std::string Channel, double K)
 	}
 }
 
-//Very boring stuff
+
 //total decay width
 double Decay::Total(double A)
 {

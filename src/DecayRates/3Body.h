@@ -20,6 +20,9 @@ enum Parent
 	_Muon,
 	_Kaon,
 	_Kaon0,
+	_nEE,
+	_nMUMU,
+	_nEMU
 };
 
 class ThreeBody

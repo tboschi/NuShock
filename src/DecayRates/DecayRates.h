@@ -60,6 +60,19 @@ class Decay
 
 		void SetEnhancement(std::string Channel = "ALL", double K = 1.0);
 
+		//M2
+		double yLim(double &Min, double &Max, double Ex);	//y integration limits
+		double xLim(double &Min, double &Max);
+		double M2_W(double x, double y, double a, double b, double c);
+		double M2_Z(double x, double y, double a, double b, double c);
+		double M2_WZ(double x, double y, double a, double b, double c);
+		double M2_nLL(double Ex, double Ey, double M_Lepton);
+		double M2_nEE(double Ex, double Ey);
+		double M2_nMUMU(double Ex, double Ey);
+		double M2_nEMU(double Ex, double Ey);
+		double ddGamma(double (Decay::*M2)(double, double), double Ex, double Ey);
+		double ddGamma(std::string Channel, double Ex, double Ey);
+
 		double Total(double A = 1.0);
 		double nnn();
 		double nGAMMA();

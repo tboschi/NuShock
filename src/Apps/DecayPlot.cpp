@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	std::ofstream OutFile;
-	double M_Sterile = 0.350;	//350 MeV
+	double M_Sterile = 0.200;	//350 MeV
 	double U_e = 1.0/sqrt(3.0);	//All mixing enabled to be maximal
 	double U_m = 1.0/sqrt(3.0);
 	double U_t = 1.0/sqrt(3.0);
@@ -73,14 +73,27 @@ int main(int argc, char** argv)
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Decay * SuperGamma = new Decay(M_Sterile, 1.0/sqrt(3), 1.0/sqrt(3), 1.0/sqrt(3));
-	std::vector<std::string> vChannel = SuperGamma->ListChannels();
+	//Decay * SuperGamma = new Decay(M_Sterile, 1.0/sqrt(3), 1.0/sqrt(3), 1.0/sqrt(3));
+	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
 
-	Out << "#1Mass";
-	for (int i = 0; i < vChannel.size(); ++i)
-		Out << i+2 << vChannel.at(i) << "\t";
-	Out << std::endl;
+	double xa, xb, dx;
+	dx = SuperGamma->xLim(xa, xb);
+	double MaxGamma = 0.0;
+	for (double x = xa; x < xb; x += dx/100)
+	{
+		double ya, yb, dy;
+		dy = SuperGamma->yLim(ya, yb, x);
+		for (double y = ya; y < yb; y += dy/100)
+		{
+			double GG = SuperGamma->ddGamma("nEMU", x, y);
+			if (GG > MaxGamma)
+				MaxGamma = GG;
+			Out << x << "\t" << y << "\t" << GG << std::endl; 
+		}
+	}
+	std::cout << "Max " << MaxGamma << std::endl;
 
+	/*
 	for (M_Sterile = 0; M_Sterile < 0.500; M_Sterile += 0.001)
 	{
 		SuperGamma->SetMass(M_Sterile);
@@ -90,8 +103,7 @@ int main(int argc, char** argv)
 			Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
 		Out << std::endl;
 	}
-
-	delete SuperGamma;
+	*/
 
 	return 0;
 }

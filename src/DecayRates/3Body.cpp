@@ -84,6 +84,37 @@ void ThreeBody::InitConst()
 
 			fB = M_Sterile/M_Kaon0;
 			fC = M_Pion/M_Kaon0;
+
+			break;
+
+		case _nEE:
+
+			M_Parent = M_Sterile;
+
+			fA = M_Electron/M_Sterile;
+			fB = M_Electron/M_Sterile;
+			fC = M_Neutrino/M_Sterile;
+
+			break;
+
+		case _nMUMU:
+
+			M_Parent = M_Sterile;
+
+			fA = M_Muon/M_Sterile;
+			fB = M_Muon/M_Sterile;
+			fC = M_Neutrino/M_Sterile;
+
+			break;
+
+		case _nEMU:
+
+			M_Parent = M_Sterile;
+
+			fA = M_Muon/M_Sterile;
+			fB = M_Electron/M_Sterile;
+			fC = M_Neutrino/M_Sterile;
+
 			break;
 
 		default:
@@ -164,6 +195,15 @@ double ThreeBody::M2()		//Unpolarised amplitude
 			case _Kaon0:
 				M2 = M2Kaon0();
 				break;
+			case _nEE:
+				M2 = M2nLL(); 
+				break;
+			case _nMUMU:
+				M2 = M2nLL(); 
+				break;
+			case _nEMU:
+				M2 = M2nEMU(); 
+				break;
 			default:
 				M2 = 0.0;
 				break;
@@ -214,7 +254,27 @@ double ThreeBody::M2IntXY()	//Unpolarised amplitude, integrated over Ex and Ey
 }
 
 //Unpolarised amplitudes here after
-double ThreeBody::M2Muon()	//Muon decay
+
+double Decay::M2_Z() //NC N to n l l, Z propagator
+{
+	double gV = -0.5 + 2 * Const::fSin2W;
+	double gA = -0.5;
+	return 16 * Const::fGF2 * pow(M_Sterile, 4) * 
+		(   pow((gV+gA), 2) * x() * (1 + a(2) - b(2) - c(2) - x())
+		  + pow((gV-gA), 2) * y() * (1 + b(2) - a(2) - c(2) - y())
+		  + (gV*gV - gA*gA) * a*b * (2 - x() - y()) );
+}
+
+double Decay::M2_WZ() //Interference term between Z and W propagator
+{
+	double gV = -0.5 + 2 * Const::fSin2W;
+	double gA = -0.5;
+	return  8.0 * Const::fGF2 * pow(M_Sterile, 4) * 
+	       ( - (gV + gA) * x() * (1 + a(2) - b(2) - c(2) - x())
+		 + (gV - gA) * a*b * (2 - x() - y()) );
+}
+
+double ThreeBody::M2Muon()	//Muon decay 	//W propagator
 {
 	return 16 * Const::fGF2 * GetUu()*GetUu() *
 	       	pow(M_Muon, 4) * x() * (1 + a(2) - b(2) - c(2) - x());
@@ -285,6 +345,53 @@ double ThreeBody::M2Kaon0IntY() //Kaon0 decay, integrated analytically over y
 	else return 0.0;
 }
 
+//Very boring stuff
+/*M2 of visible processes with non constant M2 
+ * x is for the antilepton, of mass a
+ * y is for the lepton, of mass b
+ * n is integrated out, with mass c
+ * this convention is taken for all M2
+ */
+
+double ThreeBody::M2nLL()
+{
+	return GetUe()*GetUe() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUm()*GetUm() * GetUt()*GetUt()) * M2_Z();
+}
+
+double ThreeBody::M2nEMU()
+{
+	fA = M_Electron/M_Sterile;
+	fB = M_Muon/M_Sterile;
+	double Muon = GetUm()*GetUm() * M2Muon();
+
+	fA = M_Muon/M_Sterile;
+	fB = M_Electron/M_Sterile;
+	double Elec = GetUe()*GetUe() * M2Muon();
+
+	return Muon + Elec;
+}
+
+//Maximum values of ddG for MC purposes
+double ThreeBody::MaxGamma()
+{
+	double Max = 0.0;
+
+	//Phasespace coordinates are already checked by ddGamma
+	for (double ix = 0.0; ix <= 2.0; ix += 2.0/Kine::Sample)
+	{
+		SetX(ix);
+		for (double iy = 0.0; iy <= 2.0; iy += 2.0/Kine::Sample)
+		{
+			double Gam = ddGamma();
+			if (Max < Gam)
+			       Max = Gamma;	
+		}
+	}
+
+	return Max;
+}
+
+//boundaries of phase space
 double ThreeBody::yLim(double &Min, double &Max)	//y integration limits
 {
 	double X = 1 + a(2) - x();
