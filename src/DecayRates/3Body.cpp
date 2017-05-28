@@ -34,10 +34,21 @@ void ThreeBody::InitMap()
 	mapParent["Muon"] = _Muon;
 	mapParent["Kaon"] = _Kaon;
 	mapParent["Kaon0"] = _Kaon0;
+	mapParent["nEE"] = _nEE;
+	mapParent["nMUMU"] = _nMUMU;
+	mapParent["nEMU"] = _nEMU;
+	mapParent["nMUE"] = _nMUE;
 }
 
 void ThreeBody::InitConst()
 {
+	M_Sterile_prev = M_Sterile;
+	M_Parent_prev = M_Parent;
+	U_e_prev = U_e;
+	U_m_prev = U_m;
+	U_t_prev = U_t;
+	fMax = -1.0;
+
 	switch(mapParent[GetParent()])
 	{
 		case _Muon:	//Muon decays into nu_mu (c), nu_e (a,x), e(b,y)
@@ -107,10 +118,19 @@ void ThreeBody::InitConst()
 
 			break;
 
-		case _nEMU:
+		case _nEMU:	//e+ mu-
 
 			M_Parent = M_Sterile;
 
+			fA = M_Electron/M_Sterile;
+			fB = M_Muon/M_Sterile;
+			fC = M_Neutrino/M_Sterile;
+
+			break;
+
+		case _nMUE:	//mu+ e- 
+
+			M_Parent = M_Sterile;
 			fA = M_Muon/M_Sterile;
 			fB = M_Electron/M_Sterile;
 			fC = M_Neutrino/M_Sterile;
@@ -118,6 +138,7 @@ void ThreeBody::InitConst()
 			break;
 
 		default:
+
 			M_Parent = 0.0;
 			fA = 0.0;
 			fB = 0.0;
@@ -196,13 +217,16 @@ double ThreeBody::M2()		//Unpolarised amplitude
 				M2 = M2Kaon0();
 				break;
 			case _nEE:
-				M2 = M2nLL(); 
+				M2 = M2nEE(); 
 				break;
 			case _nMUMU:
-				M2 = M2nLL(); 
+				M2 = M2nMUMU(); 
 				break;
 			case _nEMU:
 				M2 = M2nEMU(); 
+				break;
+			case _nMUE:
+				M2 = M2nMUE(); 
 				break;
 			default:
 				M2 = 0.0;
@@ -255,23 +279,23 @@ double ThreeBody::M2IntXY()	//Unpolarised amplitude, integrated over Ex and Ey
 
 //Unpolarised amplitudes here after
 
-double Decay::M2_Z() //NC N to n l l, Z propagator
+double ThreeBody::M2_Z() //NC N to n l l, Z propagator
 {
 	double gV = -0.5 + 2 * Const::fSin2W;
 	double gA = -0.5;
 	return 16 * Const::fGF2 * pow(M_Sterile, 4) * 
 		(   pow((gV+gA), 2) * x() * (1 + a(2) - b(2) - c(2) - x())
 		  + pow((gV-gA), 2) * y() * (1 + b(2) - a(2) - c(2) - y())
-		  + (gV*gV - gA*gA) * a*b * (2 - x() - y()) );
+		  + (gV*gV - gA*gA) * a()*b() * (2 - x() - y()) );
 }
 
-double Decay::M2_WZ() //Interference term between Z and W propagator
+double ThreeBody::M2_WZ() //Interference term between Z and W propagator
 {
 	double gV = -0.5 + 2 * Const::fSin2W;
 	double gA = -0.5;
 	return  8.0 * Const::fGF2 * pow(M_Sterile, 4) * 
 	       ( - (gV + gA) * x() * (1 + a(2) - b(2) - c(2) - x())
-		 + (gV - gA) * a*b * (2 - x() - y()) );
+		 + (gV - gA) * a()*b() * (2 - x() - y()) );
 }
 
 double ThreeBody::M2Muon()	//Muon decay 	//W propagator
@@ -353,42 +377,48 @@ double ThreeBody::M2Kaon0IntY() //Kaon0 decay, integrated analytically over y
  * this convention is taken for all M2
  */
 
-double ThreeBody::M2nLL()
+double ThreeBody::M2nEE()
 {
 	return GetUe()*GetUe() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUm()*GetUm() * GetUt()*GetUt()) * M2_Z();
 }
 
+double ThreeBody::M2nMUMU()
+{
+	return GetUm()*GetUm() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUe()*GetUe() * GetUt()*GetUt()) * M2_Z();
+}
+
 double ThreeBody::M2nEMU()
 {
-	fA = M_Electron/M_Sterile;
-	fB = M_Muon/M_Sterile;
-	double Muon = GetUm()*GetUm() * M2Muon();
+	return GetUm()*GetUm() * M2Muon();
+}
 
-	fA = M_Muon/M_Sterile;
-	fB = M_Electron/M_Sterile;
-	double Elec = GetUe()*GetUe() * M2Muon();
-
-	return Muon + Elec;
+double ThreeBody::M2nMUE()
+{
+	return GetUe()*GetUm() * M2Muon();
 }
 
 //Maximum values of ddG for MC purposes
 double ThreeBody::MaxGamma()
 {
-	double Max = 0.0;
-
-	//Phasespace coordinates are already checked by ddGamma
-	for (double ix = 0.0; ix <= 2.0; ix += 2.0/Kine::Sample)
+	if (IsChanged() || fMax < 0.0)
 	{
-		SetX(ix);
-		for (double iy = 0.0; iy <= 2.0; iy += 2.0/Kine::Sample)
+		fMax = 0.0;
+
+		//Phasespace coordinates are already checked by ddGamma
+		for (double ix = 0.0; ix <= 2.0; ix += 2.0/Kine::Loop)
 		{
-			double Gam = ddGamma();
-			if (Max < Gam)
-			       Max = Gamma;	
+			SetX(ix);
+			for (double iy = 0.0; iy <= 2.0; iy += 2.0/Kine::Loop)
+			{
+				SetY(iy);
+				double Gam = ddGamma();
+				if (fMax < Gam)
+				       fMax = Gam;	
+			}
 		}
 	}
 
-	return Max;
+	return fMax;
 }
 
 //boundaries of phase space
@@ -632,4 +662,13 @@ void ThreeBody::SetUm(double X)
 void ThreeBody::SetUt(double X)
 {
 	U_t = X;
+}
+
+bool ThreeBody::IsChanged()
+{
+	return ( M_Sterile != M_Sterile_prev || 
+		 M_Parent != M_Parent_prev || 
+		 U_e != U_e_prev ||
+		 U_m != U_m_prev ||
+		 U_t != U_t_prev );
 }

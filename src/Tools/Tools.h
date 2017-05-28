@@ -38,6 +38,7 @@ namespace Kine
 	double I2_xy(double X, double Y);
 	double I3_xy(double X, double Y);
 	static const int Sample = 10000;	//Sample for integration
+	static const int Loop = 1000;	//Sample for integration
 }
 
 //Constants

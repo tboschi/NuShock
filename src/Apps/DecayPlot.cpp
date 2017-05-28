@@ -5,7 +5,7 @@
 #include <getopt.h>
 
 #include "Tools.h"
-#include "DecayRates.h"
+#include "3Body.h"
 
 int main(int argc, char** argv)
 {
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	std::ofstream OutFile;
-	double M_Sterile = 0.200;	//350 MeV
+	double M_Sterile = 0.300;	//350 MeV
 	double U_e = 1.0/sqrt(3.0);	//All mixing enabled to be maximal
 	double U_m = 1.0/sqrt(3.0);
 	double U_t = 1.0/sqrt(3.0);
@@ -74,24 +74,23 @@ int main(int argc, char** argv)
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
 	//Decay * SuperGamma = new Decay(M_Sterile, 1.0/sqrt(3), 1.0/sqrt(3), 1.0/sqrt(3));
-	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
+	ThreeBody * SuperGamma = new ThreeBody("nEMU", M_Sterile, U_e, U_m, U_t);
 
 	double xa, xb, dx;
 	dx = SuperGamma->xLim(xa, xb);
-	double MaxGamma = 0.0;
+	double MaxGamma = SuperGamma->MaxGamma();
 	for (double x = xa; x < xb; x += dx/100)
 	{
+		SuperGamma->SetX(x);
 		double ya, yb, dy;
-		dy = SuperGamma->yLim(ya, yb, x);
+		dy = SuperGamma->yLim(ya, yb);
 		for (double y = ya; y < yb; y += dy/100)
 		{
-			double GG = SuperGamma->ddGamma("nEMU", x, y);
-			if (GG > MaxGamma)
-				MaxGamma = GG;
-			Out << x << "\t" << y << "\t" << GG << std::endl; 
+			SuperGamma->SetY(y);
+			double GG = SuperGamma->ddGamma();
+			Out << x << "\t" << y << "\t" << GG/MaxGamma << std::endl; 
 		}
 	}
-	std::cout << "Max " << MaxGamma << std::endl;
 
 	/*
 	for (M_Sterile = 0; M_Sterile < 0.500; M_Sterile += 0.001)

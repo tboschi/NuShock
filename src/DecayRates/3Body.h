@@ -22,7 +22,8 @@ enum Parent
 	_Kaon0,
 	_nEE,
 	_nMUMU,
-	_nEMU
+	_nEMU,
+	_nMUE
 };
 
 class ThreeBody
@@ -42,6 +43,8 @@ class ThreeBody
 		double M2();
 		double M2IntY();
 		double M2IntXY();
+		double M2_Z();
+		double M2_WZ();
 
 		double M2Muon();
 		double M2MuonIntY();
@@ -51,6 +54,11 @@ class ThreeBody
 		double M2Kaon0();
 		double M2Kaon0IntY(double Y);
 		double M2Kaon0IntY();
+		double M2nEE();
+		double M2nMUMU();
+		double M2nEMU();
+		double M2nMUE();
+		double MaxGamma();
 
 		double yLim(double &Min, double &Max);
 		double xLim(double &Min, double &Max);
@@ -94,10 +102,13 @@ class ThreeBody
 		void SetUe(double X);
 		void SetUm(double X);
 		void SetUt(double X);
+		bool IsChanged();
 
 	private:
 		double M_Sterile, M_Parent;
+		double M_Sterile_prev, M_Parent_prev;
 		double U_e, U_m, U_t;
+		double U_e_prev, U_m_prev, U_t_prev;
 
 		const double M_Neutrino;
 		const double M_Photon;
@@ -114,6 +125,7 @@ class ThreeBody
 
 		double fA, fB, fC;
 		double fEX, fEY;
+		double fMax;
 
 		std::map<std::string, Parent> mapParent;
 		std::string sParent;
