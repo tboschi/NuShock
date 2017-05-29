@@ -10,6 +10,8 @@ Decay::Decay(double MSterile, double Ue, double Um, double Ut)	: //Decay rates c
 	M_Kaon(Const::fMKaon),
 	M_Kaon0(Const::fMKaon0)
 {
+	TheSpace = new ThreeBody("");
+
 	SetMass(MSterile);
 	SetUe(Ue);
 	SetUm(Um);
@@ -29,6 +31,7 @@ void Decay::MapInit()
 	mapChannel["nGAMMA"] = _nGAMMA;
 	mapChannel["nEE"] = _nEE;
 	mapChannel["nEMU"] = _nEMU;
+	mapChannel["nMUE"] = _nMUE;
 	mapChannel["nPI0"] = _nPI0;
 	mapChannel["EPI"] = _EPI;
 	mapChannel["nMUMU"] = _nMUMU;
@@ -188,12 +191,14 @@ double Decay::Branch(std::string Channel, double A, double B)
 int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of products 
 {								//0 if decay not valid
 	SetEnhancement();
+	TheSpace->SetParent(Channel);
 
 	double Mass[3];
 	int Products;
 
 	switch(mapChannel[Channel])
 	{
+		/* Invisible channels
 		case _nnn:
 			Mass[0] = M_Neutrino;
 			Mass[1] = M_Neutrino;
@@ -201,63 +206,100 @@ int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of pr
 			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
 			Weight = Event->Generate();
 			break;
+			
 		case _nGAMMA:
 			Mass[0] = M_Neutrino;
 			Mass[1] = M_Photon;
 			Products = 2 * Event->SetDecay(*N_vec, 3, Mass);
 			Weight = Event->Generate();
 			break;
+		*/
 		case _nEE:
 			Mass[0] = M_Neutrino;
 			Mass[1] = M_Electron;
 			Mass[2] = M_Electron;
 			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
 			Weight = Event->Generate();
+
+			TheSpace->SetEnergyX(GetDecayProduct(1)->E());
+			TheSpace->SetEnergyY(GetDecayProduct(2)->E());
+			Weight = TheSpace->ddGamma()/TheSpace->MaxGamma();
+			
 			break;
-		case _nEMU:
+
+		case _nEMU:		//whata about n mu e?
 			Mass[0] = M_Neutrino;
 			Mass[1] = M_Electron;
 			Mass[2] = M_Muon;
 			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
 			Weight = Event->Generate();
+
+			TheSpace->SetEnergyX(GetDecayProduct(1)->E());
+			TheSpace->SetEnergyY(GetDecayProduct(2)->E());
+			Weight = TheSpace->ddGamma()/TheSpace->MaxGamma();
+
 			break;
+	
+		case _nMUE:		//whata about n mu e?
+			Mass[0] = M_Neutrino;
+			Mass[1] = M_Electron;
+			Mass[2] = M_Muon;
+			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
+			Weight = Event->Generate();
+
+			TheSpace->SetEnergyX(GetDecayProduct(2)->E());
+			TheSpace->SetEnergyY(GetDecayProduct(1)->E());
+			Weight = TheSpace->ddGamma()/TheSpace->MaxGamma();
+			
+			break;
+	
 		case _nPI0:
 			Mass[0] = M_Neutrino;
 			Mass[1] = M_Pion0;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
+
 		case _EPI:
 			Mass[0] = M_Electron;
 			Mass[1] = M_Pion;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
+
 		case _nMUMU:
 			Mass[0] = M_Neutrino;
 			Mass[1] = M_Muon;
 			Mass[2] = M_Muon;
 			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
 			Weight = Event->Generate();
+
+			TheSpace->SetEnergyX(GetDecayProduct(1)->E());
+			TheSpace->SetEnergyY(GetDecayProduct(2)->E());
+			Weight = TheSpace->ddGamma()/TheSpace->MaxGamma();
 			break;
+
 		case _MUPI:
 			Mass[0] = M_Muon;
 			Mass[1] = M_Pion;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
+
 		case _EKA:
 			Mass[0] = M_Electron;
 			Mass[1] = M_Kaon;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
+
 		case _nKA0:
 			Mass[0] = M_Neutrino;
 			Mass[1] = M_Kaon0;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
+
 		default:
 			Products = 0;
 			break;
@@ -287,7 +329,7 @@ double Decay::Total(double A)
 {
 	SetEnhancement("ALL", A);
 
-	return nnn() + nGAMMA() + nEE() + nEMU() + nPI0() +
+	return nnn() + nGAMMA() + nEE() + nEMU() + nMUE() + nPI0() +
 	       EPI() + nMUMU() + MUPI() + EKA() + nKA0();
 	//return nnn() + nGAMMA() + nEE() + 2.0*nEMU() + nPI0() +
 	//       2.0*EPI() + nMUMU() + 2.0*MUPI() + 2.0*EKA() + nKA0();
@@ -342,7 +384,7 @@ double Decay::nEE()
 }
 
 //M_Sterile > M_Muon
-double Decay::nEMU()	//Valid for electron+antimuon and positron+muon
+double Decay::nEMU()
 {
 	if (M_Sterile >= M_Electron + M_Muon)
 	{
@@ -350,13 +392,18 @@ double Decay::nEMU()	//Valid for electron+antimuon and positron+muon
 		double dMm = M_Muon / M_Sterile;
 		double dMn = M_Neutrino / M_Sterile;
 
-		return 2.0 * mapEnhance["nEMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
+		return mapEnhance["nEMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
 			(U_e*U_e * Kine::I1_xyz(dMm, dMn, dMe) +
 			U_m*U_m * Kine::I1_xyz(dMe, dMn, dMm)) / 
 			(192.0 * genie::constants::kPi3);
 	}
 	else return 0.0;
 }       
+
+double Decay::nMUE()	//its charge conjugate
+{
+	return nEMU() * mapEnhance["nMUE"]/mapEnhance["nEMU"];
+}
 
 //M_Sterile > M_Pion0
 double Decay::nPI0()
@@ -508,19 +555,23 @@ void Decay::SetNvec(TLorentzVector &X)
 void Decay::SetMass(double X)
 {
 	M_Sterile = X;
+	TheSpace->SetSterileMass(X);
 }
 
 void Decay::SetUe(double X)
 {
 	U_e = X;
+	TheSpace->SetUe(X);
 }
 
 void Decay::SetUm(double X)
 {
 	U_m = X;
+	TheSpace->SetUm(X);
 }
 
 void Decay::SetUt(double X)
 {
 	U_t = X;
+	TheSpace->SetUt(X);
 }

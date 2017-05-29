@@ -77,7 +77,6 @@ int main(int argc, char** argv)
 			case 'h':
 				Usage(argv[0]);
 				return 1;
-				return 1;
 			default:
 				break;
 		}

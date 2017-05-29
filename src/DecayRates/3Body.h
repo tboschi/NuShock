@@ -14,18 +14,6 @@
 
 #include "Tools.h"
 
-enum Parent
-{
-	_undefined,
-	_Muon,
-	_Kaon,
-	_Kaon0,
-	_nEE,
-	_nMUMU,
-	_nEMU,
-	_nMUE
-};
-
 class ThreeBody
 {
 	public:
@@ -127,7 +115,7 @@ class ThreeBody
 		double fEX, fEY;
 		double fMax;
 
-		std::map<std::string, Parent> mapParent;
+		std::map<std::string, ChannelName> mapParent;
 		std::string sParent;
 
 		bool IsElectron, IsMuon;

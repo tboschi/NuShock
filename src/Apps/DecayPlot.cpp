@@ -5,6 +5,7 @@
 #include <getopt.h>
 
 #include "Tools.h"
+#include "EventGenerator.h"
 #include "3Body.h"
 
 int main(int argc, char** argv)
@@ -99,7 +100,7 @@ int main(int argc, char** argv)
 		Out << M_Sterile << "\t";
 		Out  << SuperGamma->Total() << "\t";
 		for (int i = 1; i < vChannel.size(); ++i)
-			Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
+				Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
 		Out << std::endl;
 	}
 	*/

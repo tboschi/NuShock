@@ -17,7 +17,7 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Width	\
+NEW =	Simulation	\
 	DecayPlot	\
 	#EvGen	\
 	#Exclusion	\

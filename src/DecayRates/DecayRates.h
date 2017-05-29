@@ -16,34 +16,11 @@
 #include <cstring>
 
 //ROOT include
-#include "TH1.h"
-#include "TFile.h"
-#include "TTree.h"
-#include "TMath.h"
 #include "TLorentzVector.h"
 #include "TGenPhaseSpace.h"
 
-//GENIE include
-//#include "GHepParticle.h"
-//#include "Constants.h"
-
 #include "Tools.h"
-
-enum ChannelName
-{
-	_undefined,
-	_ALL,		//
-	_nnn,		//3 body
-	_nGAMMA,	//2 body
-	_nEE,		//3 body
-	_nEMU,		//3 body
-	_nPI0,		//3 body
-	_EPI,		//2 body
-	_nMUMU,		//3 body
-	_MUPI,		//2 body
-	_EKA,		//2 body
-	_nKA0		//3 body
-};
+#include "3Body.h"
 
 
 class Decay
@@ -78,6 +55,7 @@ class Decay
 		double nGAMMA();
 		double nEE();
 		double nEMU();
+		double nMUE();
 		double nPI0();
 		double EPI();
 		double MUPI();
@@ -122,6 +100,7 @@ class Decay
 		//Generate PhaseSpace
 		TGenPhaseSpace *Event;
 		TLorentzVector *N_vec;
+		ThreeBody *TheSpace;
 };
 
 #endif

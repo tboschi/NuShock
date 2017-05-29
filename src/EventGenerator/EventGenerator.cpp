@@ -143,19 +143,29 @@ bool EventGenerator::EventDetectable()	//Third step: is the detector able to det
 //Kinematics
 int EventGenerator::EventKinematics()	//Fourth step: simulate the phase space of the decay
 {
-	TLorentzVector N_vec(0, 0, GetMomentum(), GetEnergy());		//Heavy neutrino is along z-axis
+	TLorentzVector N_vec(0, 0, 0, GetMass());	//Rest frame fro the heavy neutrino
 
 	double Weight;
 	int Return;
 	TheGamma->SetNvec(N_vec);
 
-	return TheGamma->PhaseSpace(GetChannel(), Weight);
+	double Products = TheGamma->PhaseSpace(GetChannel(), Weight);
+	double random = GenMT->Rndm();
+	if (GenMT->Rndm() <= Weight)
+		return Products;
+	else return 0.0;
 }
 
 TLorentzVector *EventGenerator::GetDecayProduct(int i)
 {
-	return TheGamma->GetDecayProduct(i);
+	TLorentzVector * Vi = TheGamma->GetDecayProduct(i);
+
+	double beta = GetMomentum()/GetEnergy();
+	Vi->Boost(0,0,beta);	//boost along z axis
+
+	return Vi;
 }
+
 
 //Flux as PDF for MC
 void EventGenerator::MakeSterileFlux(bool TotalPOT)	//Generate the flux for heavy neutrinos

@@ -31,6 +31,7 @@ ThreeBody::ThreeBody(std::string Parent, double MSterile, double Ue, double Um, 
 //Initialisation of map
 void ThreeBody::InitMap()
 {
+	mapParent[""] = _undefined;
 	mapParent["Muon"] = _Muon;
 	mapParent["Kaon"] = _Kaon;
 	mapParent["Kaon0"] = _Kaon0;
@@ -47,7 +48,6 @@ void ThreeBody::InitConst()
 	U_e_prev = U_e;
 	U_m_prev = U_m;
 	U_t_prev = U_t;
-	fMax = -1.0;
 
 	switch(mapParent[GetParent()])
 	{
@@ -84,7 +84,6 @@ void ThreeBody::InitConst()
 			break;
 
 		case _Kaon0:	//Kaon0 decays into pi (c), lepton (a,x), neutrino (b,y)
-
 			M_Parent = M_Kaon0;
 
 			if (IsElectron)
@@ -99,7 +98,6 @@ void ThreeBody::InitConst()
 			break;
 
 		case _nEE:
-
 			M_Parent = M_Sterile;
 
 			fA = M_Electron/M_Sterile;
@@ -109,7 +107,6 @@ void ThreeBody::InitConst()
 			break;
 
 		case _nMUMU:
-
 			M_Parent = M_Sterile;
 
 			fA = M_Muon/M_Sterile;
@@ -119,7 +116,6 @@ void ThreeBody::InitConst()
 			break;
 
 		case _nEMU:	//e+ mu-
-
 			M_Parent = M_Sterile;
 
 			fA = M_Electron/M_Sterile;
@@ -129,7 +125,6 @@ void ThreeBody::InitConst()
 			break;
 
 		case _nMUE:	//mu+ e- 
-
 			M_Parent = M_Sterile;
 			fA = M_Muon/M_Sterile;
 			fB = M_Electron/M_Sterile;
@@ -138,12 +133,10 @@ void ThreeBody::InitConst()
 			break;
 
 		default:
-
 			M_Parent = 0.0;
 			fA = 0.0;
 			fB = 0.0;
 			fC = 0.0;
-			std::cout << "Unknown Parent particle!" << std::endl;
 			break;
 	}
 }
@@ -400,7 +393,10 @@ double ThreeBody::M2nMUE()
 //Maximum values of ddG for MC purposes
 double ThreeBody::MaxGamma()
 {
-	if (IsChanged() || fMax < 0.0)
+	double temx = x();
+	double temy = y();
+
+	if (IsChanged())
 	{
 		fMax = 0.0;
 
@@ -417,6 +413,9 @@ double ThreeBody::MaxGamma()
 			}
 		}
 	}
+
+	SetX(temx);
+	SetY(temy);
 
 	return fMax;
 }
@@ -621,6 +620,7 @@ double ThreeBody::GetLambda0()
 void ThreeBody::SetParent(std::string Name)
 {
 	sParent.assign(Name);
+	InitConst();
 }
 
 void ThreeBody::SetEnergyX(double X)

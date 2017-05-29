@@ -23,6 +23,27 @@
 #include "Conventions/Constants.h"
 #include "PDG/PDGLibrary.h"
 
+//Channel modes
+enum ChannelName
+{
+	_undefined,
+	_ALL,		//
+	_nnn,		//3 body
+	_nGAMMA,	//2 body
+	_nEE,		//3 body
+	_nEMU,		//3 body
+	_nMUE,		//3 body
+	_nPI0,		//3 body
+	_EPI,		//2 body
+	_nMUMU,		//3 body
+	_MUPI,		//2 body
+	_EKA,		//2 body
+	_nKA0,		//3 body
+	_Muon,		//3 body
+	_Kaon,		//3 body
+	_Kaon0		//3 body
+};
+
 //Kinematic functions
 namespace Kine
 {
