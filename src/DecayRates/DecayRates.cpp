@@ -62,6 +62,9 @@ double Decay::Gamma(std::string Channel, double B)
 		case _nEMU:
 			Result = nEMU();
 			break;
+		case _nMUE:
+			Result = nMUE();
+			break;
 		case _nPI0:
 			Result = nPI0();
 			break;
@@ -110,6 +113,9 @@ double Decay::Other(std::string Channel, double A)
 			break;
 		case _nEMU:
 			Result = Total()-nEMU();
+			break;
+		case _nMUE:
+			Result = Total()-nMUE();
 			break;
 		case _nPI0:
 			Result = Total()-nPI0();
@@ -160,6 +166,9 @@ double Decay::Branch(std::string Channel, double A, double B)
 			break;
 		case _nEMU:
 			Result = nEMU()/Total();
+			break;
+		case _nMUE:
+			Result = nMUE()/Total();
 			break;
 		case _nPI0:
 			Result = nPI0()/Total();
@@ -327,12 +336,15 @@ void Decay::SetEnhancement(std::string Channel, double K)
 //total decay width
 double Decay::Total(double A)
 {
-	SetEnhancement("ALL", A);
+	if (IsChanged())
+	{
+		SetEnhancement("ALL", A);
+		
+		fTotal =  nnn() + nGAMMA() + nEE() + nEMU() + nMUE() + nPI0() +
+		          EPI() + nMUMU() + MUPI() + EKA() + nKA0();
+	}
 
-	return nnn() + nGAMMA() + nEE() + nEMU() + nMUE() + nPI0() +
-	       EPI() + nMUMU() + MUPI() + EKA() + nKA0();
-	//return nnn() + nGAMMA() + nEE() + 2.0*nEMU() + nPI0() +
-	//       2.0*EPI() + nMUMU() + 2.0*MUPI() + 2.0*EKA() + nKA0();
+	return fTotal;
 }
 
 
@@ -341,22 +353,19 @@ double Decay::Total(double A)
 double Decay::nnn()
 {
 	if (M_Sterile >= 3.0 * M_Neutrino)
-	{
 		return mapEnhance["nnn"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
-			(U_e*U_e + U_m*U_m + U_t*U_t) / (96.0 * genie::constants::kPi3);
-	}
+		       (U_e*U_e + U_m*U_m + U_t*U_t) / (96.0 * genie::constants::kPi3);
 	else return 0.0;
 }
 
 double Decay::nGAMMA()
 {
-	double AemPi = genie::constants::kAem / genie::constants::kPi;
-
 	if (M_Sterile >= M_Neutrino + M_Photon)
 	{
+		double AemPi = genie::constants::kAem / genie::constants::kPi;
 		return mapEnhance["nGAMMA"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
-			(U_e*U_e + U_m*U_m + U_t*U_t) * (27.0/32.0 * AemPi) /
-			(192.0 * genie::constants::kPi3);
+		       (U_e*U_e + U_m*U_m + U_t*U_t) * (27.0/32.0 * AemPi) /
+		       (192.0 * genie::constants::kPi3);
 	}
 	else return 0.0;
 }
@@ -374,9 +383,9 @@ double Decay::nEE()
 		double Int2 = Kine::I2_xyz(dMn, dMe, dMe);
 		double KF_e = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
 		double KF_mt = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
-//		double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
+		//double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
 
-		return mapEnhance["nEE"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
+		return  mapEnhance["nEE"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
 			(U_e*U_e * KF_e + (U_m*U_m + U_t*U_t) * KF_mt) / 
 			(96.0 * genie::constants::kPi3);
 	}
@@ -397,7 +406,7 @@ double Decay::nEMU()
 			U_m*U_m * Kine::I1_xyz(dMe, dMn, dMm)) / 
 			(192.0 * genie::constants::kPi3);
 	}
-	else return 0.0;
+	return 0.0;
 }       
 
 double Decay::nMUE()	//its charge conjugate
@@ -417,7 +426,7 @@ double Decay::nPI0()
 			pow((1.0-dMp2), 2.0) * Const::fFPion2 / 
 			(64.0 * genie::constants::kPi);
 	}
-	else return 0.0;
+	return 0.0;
 }
 
 //M_Sterile > M_Pion
@@ -449,13 +458,13 @@ double Decay::nMUMU()
 		double Int2 = Kine::I2_xyz(dMn, dMm, dMm);
 		double KF_m = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
 		double KF_e = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
-//		double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
+		//double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
 
 		return mapEnhance["nMUMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
-		       (U_m*U_m * KF_m + (U_e*U_e + U_t*U_t) * KF_e) /
-		       (96.0 * genie::constants::kPi3);
+			 (U_m*U_m * KF_m + (U_e*U_e + U_t*U_t) * KF_e) /
+	       		 (96.0 * genie::constants::kPi3);
 	}
-	else return 0.0;
+	return 0.0;
 }
 
 //M_Sterile > M_Pion + M_Muon
@@ -467,11 +476,11 @@ double Decay::MUPI()
 		double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
 
 		return 2.0 * mapEnhance["MUPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
-		       U_m*U_m * 
-		       pow(Const::fV_ud, 2.0)*Const::fFPion2 * Kine::I1_xy(dMm2, dMp2) /
-		       (16.0 * genie::constants::kPi);
+		        U_m*U_m * 
+		        pow(Const::fV_ud, 2.0)*Const::fFPion2 * Kine::I1_xy(dMm2, dMp2) /
+		        (16.0 * genie::constants::kPi);
 	}
-	else return 0.0;
+	return 0.0;
 }
 
 //M_Sterile > M_Kaon + M_Electron
@@ -515,6 +524,20 @@ std::vector<std::string> Decay::ListChannels()
 	return vList;
 }
 
+bool Decay::IsChanged()
+{
+	bool Ret = ( M_Sterile != M_Sterile_prev || 
+		     U_e != U_e_prev ||
+    		     U_m != U_m_prev ||
+    		     U_t != U_t_prev );
+
+	M_Sterile_prev = M_Sterile;
+	U_e_prev = U_e;
+    	U_m_prev = U_m;
+    	U_t_prev = U_t;
+
+	return Ret;
+}
 //Get functions
 TLorentzVector *Decay::GetNvec()
 {

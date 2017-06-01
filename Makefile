@@ -17,12 +17,13 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Simulation	\
+NEW =	Compare		\
 	DecayPlot	\
-	#EvGen	\
-	#Exclusion	\
-	#FakeElectron	\
-	#Eps2Root	\
+	Exclusion	\
+	FakeElectron	\
+	#Simulation	\
+	EvGen	\
+	Eps2Root	\
 	Probability	\
 	EvGen	\
 	Kine	\

@@ -74,9 +74,12 @@ int main(int argc, char** argv)
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	//Decay * SuperGamma = new Decay(M_Sterile, 1.0/sqrt(3), 1.0/sqrt(3), 1.0/sqrt(3));
-	ThreeBody * SuperGamma = new ThreeBody("nEMU", M_Sterile, U_e, U_m, U_t);
+	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
 
+	std::vector<std::string> vChannel(SuperGamma->ListChannels());
+	
+	//ThreeBody * SuperGamma = new ThreeBody("ALL", M_Sterile, U_e, U_m, U_t);
+/*
 	double xa, xb, dx;
 	dx = SuperGamma->xLim(xa, xb);
 	double MaxGamma = SuperGamma->MaxGamma();
@@ -92,18 +95,23 @@ int main(int argc, char** argv)
 			Out << x << "\t" << y << "\t" << GG/MaxGamma << std::endl; 
 		}
 	}
+*/
+	
+	Out << "#Mass\t";
+	for (int i = 1; i < vChannel.size(); ++i)
+		Out << vChannel.at(i) << "\t";
+	Out << std::endl;
 
-	/*
 	for (M_Sterile = 0; M_Sterile < 0.500; M_Sterile += 0.001)
 	{
 		SuperGamma->SetMass(M_Sterile);
+
 		Out << M_Sterile << "\t";
-		Out  << SuperGamma->Total() << "\t";
-		for (int i = 1; i < vChannel.size(); ++i)
-				Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
+		//for (int i = 1; i < vChannel.size(); ++i)
+			Out << SuperGamma->Gamma("ALL") << "\t";
 		Out << std::endl;
 	}
-	*/
+	
 
 	return 0;
 }

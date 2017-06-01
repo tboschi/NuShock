@@ -3,17 +3,19 @@
 #Name of detector: Example
 #
 Baseline	574
-Length		6
+Length		7
 Width		4
 Height		4
 Weight		100
-POT/s		0.5e14
+POT/s		6.25e13
 Years		10
 Target		2212
 #
 #Resolution
 #
-Energy		0.06
+Energy		0.05
+Angle		0.002
+Position	0.0001
 Background	0.05
 Calibration	0.02
 #

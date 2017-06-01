@@ -28,18 +28,21 @@ class FluxDriver
 		~FluxDriver();
 
 		TH1D *GetHist();
-		void MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
+		bool MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
 		void MakeMuonComponent(Flux &sxFlux, double M_Sterile, double U_e, double U_m, double U_t);
 		void MakeElecComponent(Flux &sxFlux, double M_Sterile, double U_e, double U_m, double U_t);
-		void MakeStandardFlux();
+		//void MakeStandardFlux();
 		double SampleEnergy();
 
 		double GetStartRange();
 		double GetEndRange();
+		double GetBinNumber();
 		double GetIntensity(double Energy);
 		void SetBaseline(double Baseline);
 		void SetPOT(double POT);
 		void SetArea(double Area);
+
+		bool IsChanged(double M_Sterile, double U_e, double U_m, double U_t);
 
 		TH1D* GetTotal();
 		TH1D* GetPion();
@@ -54,6 +57,8 @@ class FluxDriver
 		TH1D* GetMuonOriginal();
 	
 	private:
+		double M_Sterile_prev, U_e_prev, U_m_prev, U_t_prev;
+
 		TFile *SourceFile;
 		TFile *KineFile;
 		bool Kine;

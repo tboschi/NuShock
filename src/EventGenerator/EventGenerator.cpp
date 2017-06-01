@@ -71,10 +71,10 @@ double EventGenerator::EventProbability()	//reaching the detector and decaying
 		return 0.0;
 	else
 	{
+		double Total = TheGamma->Total();
+		double Ratio = TheGamma->Branch(GetChannel()); 
 		double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
 		double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
-		double Ratio = TheGamma->Branch(GetChannel()); 
-		double Total = TheGamma->Total();
 		double Lorentz = sqrt(GetEnergy(2)/GetMass(2) - 1.0);
 		return exp(- Total * Length / Lorentz) * (1 - exp(- Total * Lambda / Lorentz)) * Ratio;
 	}
@@ -87,21 +87,25 @@ double EventGenerator::EventEfficiency(double Efficiency)
 	else return Efficiency;
 }
 
-double EventGenerator::EventTotalNumber(double Efficiency)
+//modifications:
+//hMod, hProb
+//even in .h file
+double EventGenerator::EventTotalNumber(TH1D* hMod, TH1D* hProb, double Efficiency)
 {
-	//double A = TheFlux->GetStartRange();
-	double A = 0.0;
+	double A = TheFlux->GetStartRange();
 	double B = TheFlux->GetEndRange();
-	//double EnStep = 10*(B-A)/Kine::Sample;
-	double EnStep = 0.2;
-	//double EnStep = 0.05;	//BNB
+	double EnStep = (B-A)/(TheFlux->GetBinNumber()-1);
 
 	double Total = 0;
 	for (double Energy = A; Energy < B; Energy += EnStep)
 	{
 		SetEnergy(Energy);
 		if (Efficiency < 0.0)
+		{
+			//hProb->Fill(Energy+1e-6, EventProbability());
+			//hMod->Fill(Energy+1e-6, FluxIntensity() * EventProbability());
 			Total += FluxIntensity() * EventProbability();
+		}
 		else Total += FluxIntensity() * EventProbability() * EventEfficiency(Efficiency);
 	}
 	return Total * EnStep;
@@ -150,38 +154,46 @@ int EventGenerator::EventKinematics()	//Fourth step: simulate the phase space of
 	TheGamma->SetNvec(N_vec);
 
 	double Products = TheGamma->PhaseSpace(GetChannel(), Weight);
-	double random = GenMT->Rndm();
 	if (GenMT->Rndm() <= Weight)
 		return Products;
 	else return 0.0;
 }
 
-TLorentzVector *EventGenerator::GetDecayProduct(int i)
+TLorentzVector *EventGenerator::GetDecayProduct(int i, bool Smear)
 {
 	TLorentzVector * Vi = TheGamma->GetDecayProduct(i);
 
 	double beta = GetMomentum()/GetEnergy();
 	Vi->Boost(0,0,beta);	//boost along z axis
 
+	if (Smear)
+		SmearVector(Vi);
+
 	return Vi;
 }
 
 
 //Flux as PDF for MC
+//modifications
+//baseline
+//pot
+//area
 void EventGenerator::MakeSterileFlux(bool TotalPOT)	//Generate the flux for heavy neutrinos
 {
-	if (IsChanged())
+	if (TheFlux->MakeSterileFlux(GetMass(), GetUe(), GetUm(), GetUt()))
 	{
-		TheFlux->MakeSterileFlux(GetMass(), GetUe(), GetUm(), GetUt());
 		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
+		//TheFlux->SetBaseline(1/1e4);
 
 		double Y = TotalPOT ? 1.0e7 * TheBox->GetElement("Years") : 1.0;
 		TheFlux->SetPOT(Y * TheBox->GetElement("POT/s"));
+		//TheFlux->SetPOT(1.0e21);
 
 		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
 	}
 }
 
+/*
 void EventGenerator::MakeStandardFlux(bool TotalPOT)	//Generate the flux of SM neutrinos, just for comparison
 {
 	if (IsChanged())
@@ -195,6 +207,7 @@ void EventGenerator::MakeStandardFlux(bool TotalPOT)	//Generate the flux of SM n
 		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
 	}
 }
+*/
 
 double EventGenerator::SampleEnergy()	//Sample Energy according to PDF distribution
 {
@@ -211,16 +224,30 @@ double EventGenerator::FluxIntensity()	//Get the flux intensity at given energy
 	return TheFlux->GetIntensity(GetEnergy());
 }
 
+//Statistics
+void EventGenerator::SmearVector(TLorentzVector* N)
+{
+	double iE = N->E();
+	double iP = N->P();
+	double iTheta = N->Theta();
+	double iPhi = N->Phi();
+
+	double SigmaE = sqrt(iE) * TheBox->GetElement("Energy");
+	double SigmaA = TheBox->GetElement("Angle");
+
+	double oE = GenMT->Gaus(iE, SigmaE);
+	double oP = sqrt(oE*oE - iE*iE + iP*iP);
+	double oTheta = GenMT->Gaus(iTheta, SigmaA);
+	double oPhi = GenMT->Gaus(iPhi, SigmaA);
+	
+	N->SetE(oE);
+	N->SetPx(oP * cos(oPhi) * sin(oTheta));
+	N->SetPy(oP * sin(oPhi) * sin(oTheta));
+	N->SetPz(oP * cos(oTheta));
+}
 
 //Get functions
 
-bool EventGenerator::IsChanged()
-{
-	return ( M_Sterile != M_Sterile_prev || 
-		 U_e != U_e_prev ||
-		 U_m != U_m_prev ||
-		 U_t != U_t_prev );
-}
 
 std::string EventGenerator::GetChannel()
 {
@@ -268,34 +295,29 @@ void EventGenerator::SetChannel(std::string Ch)
 
 void EventGenerator::SetMass(double X)
 {
-	M_Sterile_prev = M_Sterile;
 	M_Sterile = X;
 	TheGamma->SetMass(X);
 }
 
 void EventGenerator::SetEnergy(double X)
 {
-	E_Sterile_prev = E_Sterile;
 	E_Sterile = X;
 }
 
 void EventGenerator::SetUe(double X)
 {
-	U_e_prev = U_e;
 	U_e = X;
 	TheGamma->SetUe(X);
 }
 
 void EventGenerator::SetUm(double X)
 {
-	U_m_prev = U_m;
 	U_m = X;
 	TheGamma->SetUm(X);
 }
 
 void EventGenerator::SetUt(double X)
 {
-	U_t_prev = U_t;
 	U_t = X;
 	TheGamma->SetUt(X);
 }

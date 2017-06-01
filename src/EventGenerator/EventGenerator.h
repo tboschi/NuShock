@@ -43,14 +43,14 @@ class EventGenerator
 		//MC stuff
 		double EventProbability();
 		double EventEfficiency(double Efficiency = -1.0);
-		double EventTotalNumber(double Efficiency = -1.0);
+		double EventTotalNumber(TH1D* hMod = 0, TH1D* hProb = 0, double Efficiency = -1.0);
 		//Random generators
 		std::string RandomChannel();
 		bool EventInDetector();
 		bool EventDetectable();
 		//Kinematics
 		int EventKinematics();
-		TLorentzVector *GetDecayProduct(int i);
+		TLorentzVector *GetDecayProduct(int i, bool Smear = false);
 
 		//Generate flux to be used as PDF
 		void MakeSterileFlux(bool TotalPOT = true);
@@ -58,8 +58,10 @@ class EventGenerator
 		double SampleEnergy();
 		double FluxIntensity();
 
+		//Statistics
+		void SmearVector(TLorentzVector* N);
+
 		//Get function
-		bool IsChanged();
 		std::string GetChannel();
 		double GetMass(int Pow = 1);
 		double GetEnergy(int Pow = 1);
@@ -81,8 +83,6 @@ class EventGenerator
 
 		double M_Sterile, E_Sterile;
 		double U_e, U_m, U_t;
-		double M_Sterile_prev, E_Sterile_prev;	//Previous declaration
-		double U_e_prev, U_m_prev, U_t_prev;
 
 		Decay *TheGamma;
 		Detector *TheBox;

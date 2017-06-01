@@ -33,6 +33,13 @@ int main(int argc, char** argv)
 	std::ifstream InFile;
 	TFile *OutFile;
 	int Ybot = 6;
+
+
+	double mmu = Const::fMMuon;
+	double mpi = Const::fMKaon;
+	double mel = Const::fMElectron;
+	double ratio = mel*mel/(mmu*mmu) * (mpi*mpi-mel*mel)*(mpi*mpi-mel*mel)/((mpi*mpi-mmu*mmu)*(mpi*mpi-mmu*mmu));
+	std::cout << "Helicity " << ratio << std::endl;
 	
 	while((iarg = getopt_long(argc,argv, "i:o:y:h", longopts, &index)) != -1)
 	{
@@ -117,20 +124,20 @@ int main(int argc, char** argv)
 		hMuon->Fill(Energy, FindFlux(Muon_X, Muon_Y, Energy));
 	}
 
-	double Normalize = 1e-20 * 1.3e6*1.3e6 * 0.01*0.01; 	//nu/POT/100m/cm2/GeV @ 100m
+	double Normalize = 1e-20 * 1.3e6*1.3e6 * 0.01*0.01; 	//nu/POT/100m/cm2/GeV  @ 1m
 
 	//hTotal->Scale(Normalize);
 	hPion->Scale(Normalize);
 	hKaon->Scale(Normalize);
 	hKaon0->Scale(Normalize);
 	hMuon->Scale(Normalize);
-
+/*
 	double mmu = Const::fMMuon;
-	double mpi = Const::fMPion;
+	double mpi = Const::fMKaon;
 	double mel = Const::fMElectron;
 	double ratio = mel*mel/(mmu*mmu) * (mpi*mpi-mel*mel)*(mpi*mpi-mel*mel)/((mpi*mpi-mmu*mmu)*(mpi*mpi-mmu*mmu));
 	std::cout << "Helicity " << ratio << std::endl;
-	hPion->Scale(ratio);
+*/	hPion->Scale(ratio);
 
 	hTotal->Add(hPion);
 	hTotal->Add(hKaon);

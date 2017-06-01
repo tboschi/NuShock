@@ -68,6 +68,9 @@ class Decay
 
 		TLorentzVector *GetNvec();
 		TLorentzVector *GetDecayProduct(int i);
+
+		bool IsChanged();
+
 		double GetMass();
 		double GetUe();
 		double GetUm();
@@ -82,6 +85,11 @@ class Decay
 	private:
 		double M_Sterile;
 		double U_e, U_m, U_t;
+		double M_Sterile_prev;
+		double U_e_prev, U_m_prev, U_t_prev;
+
+		double fTotal;	//Total Gamma, to avoid recalculation
+//		double fnnn, fnGAMMA, fnEE, fnEMU, fnMUE, fnPI0, fEPI, fnMUMU, fMUPI, fEKA, fnKA0;
 
 		//Masses
 		const double M_Neutrino;

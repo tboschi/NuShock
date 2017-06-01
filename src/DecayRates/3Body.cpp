@@ -43,12 +43,6 @@ void ThreeBody::InitMap()
 
 void ThreeBody::InitConst()
 {
-	M_Sterile_prev = M_Sterile;
-	M_Parent_prev = M_Parent;
-	U_e_prev = U_e;
-	U_m_prev = U_m;
-	U_t_prev = U_t;
-
 	switch(mapParent[GetParent()])
 	{
 		case _Muon:	//Muon decays into nu_mu (c), nu_e (a,x), e(b,y)
@@ -671,4 +665,10 @@ bool ThreeBody::IsChanged()
 		 U_e != U_e_prev ||
 		 U_m != U_m_prev ||
 		 U_t != U_t_prev );
+
+	M_Sterile_prev = M_Sterile;
+	M_Parent_prev = M_Parent; 
+	U_e_prev = U_e;
+	U_m_prev = U_m;
+	U_t_prev = U_t;
 }

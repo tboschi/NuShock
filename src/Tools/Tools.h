@@ -58,7 +58,7 @@ namespace Kine
 	double I2_xyz(double X, double Y, double Z);
 	double I2_xy(double X, double Y);
 	double I3_xy(double X, double Y);
-	static const int Sample = 10000;	//Sample for integration
+	static const int Sample = 1000;	//Sample for integration
 	static const int Loop = 1000;	//Sample for integration
 }
 
@@ -71,6 +71,7 @@ namespace Const
 	static const double fPi = 3.1415926536;	//1GeV in 1/s
 	static const double fPi2 = fPi*fPi;	//1GeV in 1/s
 	static const double fPi3 = fPi2*fPi;	//1GeV in 1/s
+	static const double fDeg = 180.0/(2*fPi);	//Rad to Deg
 
 	//CKM entries
 	static const double fV_ud = 0.97417;

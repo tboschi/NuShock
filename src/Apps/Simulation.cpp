@@ -5,7 +5,9 @@
 #include <getopt.h>
 
 #include "TFile.h"
+#include "TH1.h"
 #include "TH2.h"
+#include "TTree.h"
 
 #include "Tools.h"
 #include "EventGenerator.h"
@@ -65,39 +67,62 @@ int main(int argc, char** argv)
 	}
 
 	//std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
-
-	OutFile->cd();
 	
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 
-	EvGen->SetChannel("nEE");
-	EvGen->SetEnergy(1);	//1GeV energy
+	EvGen->SetChannel(Channel);
+	EvGen->MakeSterileFlux(1);
 
-	TH2D *hDalitz = new TH2D("dalitz", "Dalitz", 200,0,0.2, 200,0,0.2);
-	TH1D *hEnergy = new TH1D("energy", "Energy", 200, 0, 1);
+	//TH2D *hDalitz = new TH2D("dalitz", "Dalitz", 200,0,0.2, 200,0,0.2);
+	TH1D *hEnergy = new TH1D("energy", "Energy", 500, 0, 20);
+	TH1D *hAngleS = new TH1D("angles", "Angle Separation", 500, -180, 180);
+	TH1D *hAngleN = new TH1D("anglen", "Angle N", 500, -180, 180);
+	TH1D *hAngle0 = new TH1D("angle0", "Angle p0", 500, -180, 180);
+	TH1D *hAngle1 = new TH1D("angle1", "Angle p1", 500, -180, 180);
+	TH1D *hIMassN = new TH1D("imassn", "Invariant Mass of N", 500, 0, 0.5);
+	TH1D *hIMass0 = new TH1D("imass0", "Invariant Mass of p0", 500, 0, 0.5);
+	TH1D *hIMass1 = new TH1D("imass1", "Invariant Mass of p1", 500, 0, 0.5);
 
 	int N = 0;
 	while (N < 100000)
 	{
+		EvGen->SampleEnergy();
+
 		double part = EvGen->EventKinematics();
 		if (part > 0)
 		{
-			TLorentzVector *p0 = EvGen->GetDecayProduct(0);
-			TLorentzVector *p1 = EvGen->GetDecayProduct(1);
-			TLorentzVector *p2 = EvGen->GetDecayProduct(2);
+			TLorentzVector *p0 = EvGen->GetDecayProduct(0, 1);
+			TLorentzVector *p1 = EvGen->GetDecayProduct(1, 1);
+			//TLorentzVector *p2 = EvGen->GetDecayProduct(2);
 
-			TLorentzVector m01 = *p0 + *p1;
+			TLorentzVector *m01 = new TLorentzVector(*p0 + *p1);
 			//TLorentzVector m12 = *p1 + *p2;
 
 			//hDalitz->Fill(m01.M2(), m12.M2());
-			hEnergy->Fill(p1->E());
+			hEnergy->Fill(m01->E());
+			hAngleS->Fill(Const::fDeg * p0->Angle(p1->Vect()) );	//track separation
+			hAngleN->Fill(Const::fDeg * m01->Theta() );	//along z-axis
+			hAngle0->Fill(Const::fDeg * p0->Theta() );	//along z-axis
+			hAngle1->Fill(Const::fDeg * p1->Theta() );	//along z-axis
+			hIMassN->Fill(m01->M());	//decaying mass
+			hIMass0->Fill(p0->M());		//p0 mass
+			hIMass1->Fill(p1->M());		//p1 mass
 		
 			++N;
 		}
 	}
 
-	//hDalitz->Write();
+	OutFile->cd();
+
+	//EvGen->GetFluxDriverPtr()->GetTotal()->Write();
 	hEnergy->Write();
+        hAngleS->Write();
+        hAngleN->Write();
+        hAngle0->Write();
+        hAngle1->Write();
+        hIMassN->Write();
+        hIMass0->Write();
+        hIMass1->Write();
 
 	return 0;
 }

@@ -8,6 +8,9 @@
 #include "FluxDriver.h"
 #include "DecayRates.h"
 
+#include "TFile.h"
+#include "TH1D.h"
+
 void Usage(char* argv0);
 
 int main(int argc, char** argv)
@@ -65,8 +68,13 @@ int main(int argc, char** argv)
 	//std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
+	EvGen->SetChannel("ALL");
 
-	
+	TH1D* hConv = new TH1D("convo", "convo", 100,0,20);
+	TH1D* hProb = new TH1D("proba", "proba", 100,0,20);
+	//TH1D* hConv = new TH1D("convo", "convo", 100,0,5);
+	//TH1D* hProb = new TH1D("proba", "proba", 100,0,5);
+
 	//TheFlux->SetBaseline(500);
 	
 	std::string Base = "Mass";
@@ -74,6 +82,8 @@ int main(int argc, char** argv)
 	std::stringstream ssL;
 	for (double Mass = 0; Mass < 0.5; Mass += 0.002)
 	{
+		hConv->Reset("ICES");
+		hProb->Reset("ICES");
 		ssL.str("");
 		ssL.clear();
 		ssL << Base << Mass;
@@ -81,16 +91,24 @@ int main(int argc, char** argv)
 		OutFile->cd(ssL.str().c_str());
 
 		EvGen->SetMass(Mass);
-		EvGen->MakeSterileFlux();
+		std::cout << Mass << "\t";
+		EvGen->MakeSterileFlux(0);	//REMEMBER!!!!
 
-		EvGen->GetFluxDriverPtr()->GetTotal()->Write();
-		Out << Mass << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetTotal()->Integral("WIDTH") << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetPion()->Integral("WIDTH") << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetKaon()->Integral("WIDTH") << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetKaon0()->Integral("WIDTH") << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetMuon()->Integral("WIDTH") << std::endl;
-		Out << EvGen->SampleEnergy() << std::endl;
+		EvGen->EventTotalNumber(hConv, hProb);
+		std::cout << std::endl;
+
+
+		//EvGen->GetFluxDriverPtr()->GetTotal()->Write();
+		//hProb->Write();
+		//hConv->Write();
+
+		//Out << Mass << "\t";
+		//Out << EvGen->GetFluxDriverPtr()->GetTotal()->Integral("WIDTH") << "\t";
+		//Out << EvGen->GetFluxDriverPtr()->GetPion()->Integral("WIDTH") << "\t";
+		//Out << EvGen->GetFluxDriverPtr()->GetKaon()->Integral("WIDTH") << "\t";
+		//Out << EvGen->GetFluxDriverPtr()->GetKaon0()->Integral("WIDTH") << "\t";
+		//Out << EvGen->GetFluxDriverPtr()->GetMuon()->Integral("WIDTH") << std::endl;
+		//Out << EvGen->SampleEnergy() << std::endl;
 	}
 
 	OutFile->Close();
