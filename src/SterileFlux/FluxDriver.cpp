@@ -193,7 +193,6 @@ void FluxDriver::MakeElecComponent(Flux &sxFlux, double M_Sterile, double U_e, d
 	//pi- -> e- nu_e_bar
 	sxFlux.GetPion()->Scale(U_e*U_e * Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile));
 	hPionSterile->Add(sxFlux.GetPion());
-	std::cout << Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile) << "\t";
 
 	//K- -> pi0 e- nu_e_bar
 	double KaonFactor = 1.582e-3/(1.582e-3+5.07) * U_e*U_e * Kine::ShrockFactor(M_Kaon, M_Electron, M_Sterile);	//Two body
@@ -205,7 +204,6 @@ void FluxDriver::MakeElecComponent(Flux &sxFlux, double M_Sterile, double U_e, d
 	else if (M_Sterile < M_Kaon - M_Pion0 - M_Electron)
 		KaonFactor += 5.07/(1.582e-3+5.07) * U_e*U_e;	//simple scaling
 	else KaonFactor += 0;	//simple scaling
-	std::cout << KaonFactor << "\t";
 	sxFlux.GetKaon()->Scale(KaonFactor);
 	hKaonSterile->Add(sxFlux.GetKaon());
 
@@ -214,37 +212,21 @@ void FluxDriver::MakeElecComponent(Flux &sxFlux, double M_Sterile, double U_e, d
 	{
 		double K0E = hKaon0Elec->GetBinContent(hKaon0Elec->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
 		sxFlux.GetKaon0()->Scale(U_e*U_e * K0E);
-	std::cout << K0E << "\t";
 	}
 	else if (M_Sterile < M_Kaon0 - M_Pion - M_Electron)
-	{
-	std::cout << 1 << "\t";
 		sxFlux.GetKaon0()->Scale(U_e*U_e);	//simple scaling
-	}
-	else
-	{
-	std::cout << 0 << "\t";
-		sxFlux.GetKaon0()->Scale(0);	//simple scaling
-	}
+	else sxFlux.GetKaon0()->Scale(0);	//simple scaling
 	hKaon0Sterile->Add(sxFlux.GetKaon0());
 
 	//mu -> nu_mu e nu_e
 	if (Kine)
 	{
 		double ME = hMuonElec->GetBinContent(hMuonElec->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
-	std::cout << ME << "\t";
 		sxFlux.GetMuon()->Scale(U_e*U_e * ME);
 	}
 	else if (M_Sterile < M_Muon - M_Electron)
-	{
-	std::cout << 1 << "\t";
 		sxFlux.GetMuon()->Scale(U_e*U_e);
-	}
-	else
-	{
-	std::cout << 0 << "\t";
-		sxFlux.GetMuon()->Scale(0);
-	}
+	else sxFlux.GetMuon()->Scale(0);
 	hMuonSterile->Add(sxFlux.GetMuon());
 }
 

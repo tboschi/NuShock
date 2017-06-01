@@ -17,7 +17,7 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Compare		\
+NEW =	Width		\
 	DecayPlot	\
 	Exclusion	\
 	FakeElectron	\

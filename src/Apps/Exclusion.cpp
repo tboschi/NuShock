@@ -106,7 +106,7 @@ int main(int argc, char** argv)
 		std::cout << "Mass " << Mass << std::endl;
 		EvGen->SetMass(Mass);
 
-		for (double logUu2 = -10.0; logUu2 < -0.0; logUu2 += 0.05)	//increase Uu logarithmically
+		for (double logUu2 = -15.0; logUu2 < -5.0; logUu2 += 0.05)	//increase Uu logarithmically
 		//for (Uu = 1.0e-4; Uu < 1.0e-2; Uu += 1.0e-4)	//increase Uu linearly
 		{
 			Uu = pow(10.0, 0.5*logUu2);
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 			if (Nevent > Threshold)
 			{
 				Out << Mass << "\t" << Uu*Uu << "\t" << Nevent << std::endl;
-				//break;
+				break;
 			}
 			//Contour->Fill(Mass, Uu*Uu, Nevent);
 		}

@@ -494,7 +494,7 @@ bool ThreeBody::IsEnergyConserved()
 //decay constants
 double ThreeBody::fPlus()
 {
-	return 1 - GetLambda1() * (1 - c(2) - x() - y()) / c(2);
+	return 1 - GetLambda1() * (1 + c(2) - x() - y()) / c(2);
 }
 
 double ThreeBody::fMinus()
