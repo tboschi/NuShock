@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstring>
 #include <getopt.h>
+#include <iomanip>
 
 #include "EventGenerator.h"
 #include "FluxDriver.h"
@@ -32,6 +33,8 @@ int main(int argc, char** argv)
 	std::string FluxConfig;
 	TFile *OutFile;
 	std::ofstream Out;
+
+	std::string base;
 	
 	while((iarg = getopt_long(argc,argv, "s:d:f:r:o:h", longopts, &index)) != -1)
 	{
@@ -50,7 +53,7 @@ int main(int argc, char** argv)
 				OutFile = new TFile(optarg, "RECREATE");
 				break;
 			case 'o':
-				Out.open(optarg);
+				base.assign(optarg);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -69,31 +72,39 @@ int main(int argc, char** argv)
 	
 	//TheFlux->SetBaseline(500);
 	
-	std::string Base = "Mass";
-	std::string Name = Base;
-	std::stringstream ssL;
-	for (double Mass = 0; Mass < 0.5; Mass += 0.002)
+
+	for (int j = 0; j < 500; ++j)
 	{
-		ssL.str("");
-		ssL.clear();
-		ssL << Base << Mass;
-		OutFile->mkdir(ssL.str().c_str());
-		OutFile->cd(ssL.str().c_str());
+		double Mass = j*0.001;
+		std::stringstream ssL;
+		ssL << base << std::setw(3) << std::setfill('0') << j;
+
+		std::cout << ssL.str() << std::endl;
+
+		Out.open(ssL.str().c_str());
 
 		EvGen->SetMass(Mass);
 		EvGen->MakeSterileFlux();
 
-		EvGen->GetFluxDriverPtr()->GetTotal()->Write();
-		Out << Mass << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetTotal()->Integral("WIDTH") << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetPion()->Integral("WIDTH") << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetKaon()->Integral("WIDTH") << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetKaon0()->Integral("WIDTH") << "\t";
-		Out << EvGen->GetFluxDriverPtr()->GetMuon()->Integral("WIDTH") << std::endl;
-		Out << EvGen->SampleEnergy() << std::endl;
+		double E;
+		for (int bin = 0; bin <= 100; ++bin)
+		{
+			E = bin*0.2;
+			Out << E << "\t";
+			if (EvGen->GetFluxDriverPtr()->GetTotal()->GetBinContent(bin) == 0)
+			       Out << 1e-20 << "\t";
+			else Out << EvGen->GetFluxDriverPtr()->GetTotal()->GetBinContent(bin) << "\t";
+			//Out << EvGen->GetFluxDriverPtr()->GetPion()->GetBinContent(bin) << "\t";
+			//Out << EvGen->GetFluxDriverPtr()->GetKaon()->GetBinContent(bin) << "\t";
+			//Out << EvGen->GetFluxDriverPtr()->GetKaon0()->GetBinContent(bin) << "\t";
+			//Out << EvGen->GetFluxDriverPtr()->GetMuon()->GetBinContent(bin) << std::endl;
+			Out << std::endl;
+		}
+
+		Out.close();
 	}
 
-	OutFile->Close();
+	//OutFile->Close();
 
 	return 0;
 }

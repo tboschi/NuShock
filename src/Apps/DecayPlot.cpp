@@ -107,8 +107,8 @@ int main(int argc, char** argv)
 		SuperGamma->SetMass(M_Sterile);
 
 		Out << M_Sterile << "\t";
-		//for (int i = 1; i < vChannel.size(); ++i)
-			Out << SuperGamma->Gamma("ALL") << "\t";
+		for (int i = 1; i < vChannel.size(); ++i)
+			Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
 		Out << std::endl;
 	}
 	

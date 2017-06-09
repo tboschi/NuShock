@@ -33,7 +33,7 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 
 	GenMT = new TRandom3(0);	//19937 Mersenne Twister generator
 
-	SetChannel();			//Channel is initialised randomly
+	SetChannel("ALL");			//Channel is initialised randomly
 }
 
 /*
@@ -97,9 +97,12 @@ double EventGenerator::EventTotalNumber(TH1D* hMod, TH1D* hProb, double Efficien
 	double EnStep = (B-A)/(TheFlux->GetBinNumber()-1);
 
 	double Total = 0;
+	int count = 0;
 	for (double Energy = A; Energy < B; Energy += EnStep)
 	{
 		SetEnergy(Energy);
+		if (EventProbability() <= 0.0) continue;	//speed up?
+
 		if (Efficiency < 0.0)
 		{
 			//hProb->Fill(Energy+1e-6, EventProbability());

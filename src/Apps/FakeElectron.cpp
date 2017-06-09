@@ -20,6 +20,7 @@ int main(int argc, char** argv)
 	const struct option longopts[] = 
 	{
 		{"input", 	required_argument, 	0, 'i'},
+		{"root", 	required_argument, 	0, 'r'},
 		{"output", 	required_argument, 	0, 'o'},
 		{"yaxis", 	required_argument, 	0, 'y'},
 		{"help", 	no_argument,	 	0, 'h'},
@@ -31,6 +32,7 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	std::ifstream InFile;
+	std::ofstream Out;
 	TFile *OutFile;
 	int Ybot = 6;
 
@@ -41,15 +43,18 @@ int main(int argc, char** argv)
 	double ratio = mel*mel/(mmu*mmu) * (mpi*mpi-mel*mel)*(mpi*mpi-mel*mel)/((mpi*mpi-mmu*mmu)*(mpi*mpi-mmu*mmu));
 	std::cout << "Helicity " << ratio << std::endl;
 	
-	while((iarg = getopt_long(argc,argv, "i:o:y:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "i:r:o:y:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
 			case 'i':
 				InFile.open(optarg);
 				break;
-			case 'o':
+			case 'r':
 				OutFile = new TFile(optarg, "RECREATE");
+				break;
+			case 'o':
+				Out.open(optarg);
 				break;
 			case 'y':
 				Ybot = strtod(optarg, NULL);
@@ -60,8 +65,10 @@ int main(int argc, char** argv)
 				std::cout << "Eps2Root [OPTIONS]" << std::endl;
 				std::cout <<"\n  -i,  --input" << std::endl;
 				std::cout << "\t\tInput file is a plain file" << std::endl;
-				std::cout <<"\n  -o,  --output" << std::endl;
+				std::cout <<"\n  -r,  --root" << std::endl;
 				std::cout << "\t\tOutput file is a ROOT file" << std::endl;
+				std::cout <<"\n  -o,  --output" << std::endl;
+				std::cout << "\t\tOutput file is a text file" << std::endl;
 				std::cout <<"\n  -y,  --yaxis" << std::endl;
 				std::cout << "\t\tDefine bottomline for y axix" << std::endl;
 				std::cout <<"\n  -h,  --help" << std::endl;
@@ -113,18 +120,24 @@ int main(int argc, char** argv)
 	TH1D* hKaon0 = new TH1D("hkaon0", "from kaon0", 100,0,20);
 	TH1D* hMuon = new TH1D("hmuon", "from muon", 100,0,20);
 	
+	//double Normalize = 1e-20 * 1.3e6*1.3e6 * 0.01*0.01; 	//nu/POT/100m/cm2/GeV  @ 1m
+	double Normalize = 1e-20 * 1.3e6*1.3e6 * 0.01*0.01 / (574*574); 	//nu/POT/100m/cm2/GeV @ 1m
 	double Energy;
 	for (int i = 0; i < 100; ++i)
 	{
 		Energy = i*0.2;
+		Out << Energy << "\t";
 		//hTotal->Fill(Energy, FindFlux(All_X, All_Y, Energy));
 		hPion->Fill(Energy, FindFlux(Pion_X, Pion_Y, Energy));
+		Out << FindFlux(Pion_X, Pion_Y, Energy)*Normalize*ratio << "\t";
 		hKaon->Fill(Energy, FindFlux(Kaon_X, Kaon_Y, Energy));
+		Out << FindFlux(Kaon_X, Kaon_Y, Energy)*Normalize << "\t";
 		hKaon0->Fill(Energy, FindFlux(Kaon0_X, Kaon0_Y, Energy));
+		Out << FindFlux(Kaon0_X, Kaon0_Y, Energy)*Normalize << "\t";
 		hMuon->Fill(Energy, FindFlux(Muon_X, Muon_Y, Energy));
+		Out << FindFlux(Muon_X, Muon_Y, Energy)*Normalize << std::endl;
 	}
 
-	double Normalize = 1e-20 * 1.3e6*1.3e6 * 0.01*0.01; 	//nu/POT/100m/cm2/GeV  @ 1m
 
 	//hTotal->Scale(Normalize);
 	hPion->Scale(Normalize);

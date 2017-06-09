@@ -68,12 +68,12 @@ int main(int argc, char** argv)
 		Out << t << "\t";
 		Out << Kine::ShrockFactor(Pion, Muon, t) << "\t";
 		Out << Kine::ShrockFactor(Kaon, Muon, t) << "\t";
-		Out << Kine::ShrockFactor(Kaon-Pion0, Muon, t) << "\t";
-		Out << Kine::ShrockFactor(Kaon0-Pion, Muon, t) << "\t";
+		//Out << Kine::ShrockFactor(Kaon-Pion0, Muon, t) << "\t";
+		//Out << Kine::ShrockFactor(Kaon0-Pion, Muon, t) << "\t";
 		Out << Kine::ShrockFactor(Pion, Elec, t) << "\t";
 		Out << Kine::ShrockFactor(Kaon, Elec, t) << "\t";
-		Out << Kine::ShrockFactor(Kaon-Pion0, Elec, t) << "\t";
-		Out << Kine::ShrockFactor(Kaon0-Pion, Elec, t) << "\t";
+		//Out << Kine::ShrockFactor(Kaon-Pion0, Elec, t) << "\t";
+		//Out << Kine::ShrockFactor(Kaon0-Pion, Elec, t) << "\t";
 		Out << std::endl;
 	}
 	//Create object from classes

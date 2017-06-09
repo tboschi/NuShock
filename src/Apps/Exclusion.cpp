@@ -84,7 +84,6 @@ int main(int argc, char** argv)
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-
 	//TH2D * logCont = new TH2D ("logcont", "Above threshold", 100, -2.0, 0.0, 100, -10.0, -4.0);
 	//TH2D * Contour = new TH2D ("contour", "Above threshold", 100, 0.01, 1.0, 100, 1.0e-10, 1.0e-4);
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
@@ -99,14 +98,14 @@ int main(int argc, char** argv)
 	double Mass, Uu, Nevent;
 	double contMass, contUu, contN;
 	
-	for (double logMass = -2.0; logMass < -0.3; logMass += 0.01)	//increase mass log
+	for (double logMass = -2.0; logMass < -0.2; logMass += 0.005)	//increase mass log
  	//for (Mass = 0.01; Mass < 0.5; Mass += 0.01)	//increase mass linearly
 	{
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
 		EvGen->SetMass(Mass);
 
-		for (double logUu2 = -15.0; logUu2 < -5.0; logUu2 += 0.05)	//increase Uu logarithmically
+		for (double logUu2 = -13.0; logUu2 < -5.0; logUu2 += 0.02)	//increase Uu logarithmically
 		//for (Uu = 1.0e-4; Uu < 1.0e-2; Uu += 1.0e-4)	//increase Uu linearly
 		{
 			Uu = pow(10.0, 0.5*logUu2);
@@ -120,12 +119,11 @@ int main(int argc, char** argv)
 			Nevent = EvGen->EventTotalNumber();
 			//logCont->Fill(logMass, logUu2, Nevent);
 			if (Nevent > Threshold)
-			{
-				Out << Mass << "\t" << Uu*Uu << "\t" << Nevent << std::endl;
 				break;
-			}
+			else Nevent = 1;
 			//Contour->Fill(Mass, Uu*Uu, Nevent);
 		}
+		Out << Mass << "\t" << Uu*Uu << "\t" << Nevent << std::endl;
 	}
 
 	//OutFile->cd();

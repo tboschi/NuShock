@@ -17,16 +17,16 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Width		\
+NEW =	Exclusion	\
+	Kine	\
 	DecayPlot	\
-	Exclusion	\
-	FakeElectron	\
-	#Simulation	\
+	Width		\
 	EvGen	\
-	Eps2Root	\
+	#Eps2Root	\
+	#FakeElectron	\
+	#Simulation	\
 	Probability	\
 	EvGen	\
-	Kine	\
 	PionMuonFlux	\
 	Kine	\
 	DUNE_FGT

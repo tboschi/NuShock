@@ -336,13 +336,11 @@ void Decay::SetEnhancement(std::string Channel, double K)
 //total decay width
 double Decay::Total(double A)
 {
-	if (IsChanged())
-	{
-		SetEnhancement("ALL", A);
-		
-		fTotal =  nnn() + nGAMMA() + nEE() + nEMU() + nMUE() + nPI0() +
-		          EPI() + nMUMU() + MUPI() + EKA() + nKA0();
-	}
+	SetEnhancement("ALL", A);
+
+	if (fTotal < 0 || IsChanged("Total"))
+		fTotal = nnn() + nGAMMA() + nEE() + nEMU() + nMUE() + 
+			nPI0() + EPI() + nMUMU() + MUPI() + EKA() + nKA0();
 
 	return fTotal;
 }
@@ -352,166 +350,222 @@ double Decay::Total(double A)
 //
 double Decay::nnn()
 {
-	if (M_Sterile >= 3.0 * M_Neutrino)
-		return mapEnhance["nnn"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
-		       (U_e*U_e + U_m*U_m + U_t*U_t) / (96.0 * genie::constants::kPi3);
-	else return 0.0;
+	if (fnnn < 0 || IsChanged("nnn"))
+	{
+		if (M_Sterile >= 3 * M_Neutrino)
+		{
+			fnnn = mapEnhance["nnn"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
+			       (U_e*U_e + U_m*U_m + U_t*U_t) / (96.0 * genie::constants::kPi3);
+		}
+		else fnnn = 0.0;
+	}
+
+	return fnnn;
 }
 
 double Decay::nGAMMA()
 {
-	if (M_Sterile >= M_Neutrino + M_Photon)
+	if (fnGAMMA < 0 || IsChanged("ngamma"))
 	{
-		double AemPi = genie::constants::kAem / genie::constants::kPi;
-		return mapEnhance["nGAMMA"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
-		       (U_e*U_e + U_m*U_m + U_t*U_t) * (27.0/32.0 * AemPi) /
-		       (192.0 * genie::constants::kPi3);
+		if (M_Sterile >= M_Neutrino + M_Photon)
+		{
+			double AemPi = genie::constants::kAem / genie::constants::kPi;
+			fnGAMMA = mapEnhance["nGAMMA"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
+			       (U_e*U_e + U_m*U_m + U_t*U_t) * (27.0/32.0 * AemPi) /
+			       (192.0 * genie::constants::kPi3);
+		}
+		else fnGAMMA = 0.0;
 	}
-	else return 0.0;
+
+	return fnGAMMA;
 }
 
 //M_Sterile > 2 M_Electron (always)
 double Decay::nEE()
 {
-	if (M_Sterile >= 2 * M_Electron)
+	if (fnEE < 0 || IsChanged("nee"))
 	{
-		double dMe = M_Electron / M_Sterile;
-		double dMn = M_Neutrino / M_Sterile;
-		double gL = -0.5 + Const::fSin2W;
-		double gR = Const::fSin2W;
-		double Int1 = Kine::I1_xyz(dMn, dMe, dMe);
-		double Int2 = Kine::I2_xyz(dMn, dMe, dMe);
-		double KF_e = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
-		double KF_mt = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
-		//double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
-
-		return  mapEnhance["nEE"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
-			(U_e*U_e * KF_e + (U_m*U_m + U_t*U_t) * KF_mt) / 
-			(96.0 * genie::constants::kPi3);
+		if (M_Sterile >= M_Neutrino + 2 * M_Electron)
+		{
+			double dMe = M_Electron / M_Sterile;
+			double dMn = M_Neutrino / M_Sterile;
+			double gL = -0.5 + Const::fSin2W;
+			double gR = Const::fSin2W;
+			double Int1 = Kine::I1_xyz(dMn, dMe, dMe);
+			double Int2 = Kine::I2_xyz(dMn, dMe, dMe);
+			double KF_e = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
+			double KF_mt = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
+			//double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
+	
+			fnEE = mapEnhance["nEE"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
+				(U_e*U_e * KF_e + (U_m*U_m + U_t*U_t) * KF_mt) / 
+				(96.0 * genie::constants::kPi3);
+		}
+		else fnEE = 0.0;
 	}
-	else return 0.0;
+
+	return fnEE;
 }
 
 //M_Sterile > M_Muon
-double Decay::nEMU()
+double Decay::nEMU()	//Anti is Elec
 {
-	if (M_Sterile >= M_Electron + M_Muon)
+	if (fnEMU < 0 || IsChanged("nemu"))
+		fnEMU = mapEnhance["nEMU"] * U_e*U_e * nLeptonW(M_Muon, M_Electron);
+
+	return fnEMU;
+}
+
+double Decay::nMUE()	//Anti is Muon
+{
+	if (fnMUE < 0 || IsChanged("nmue"))
+		fnMUE = mapEnhance["nMUE"] * U_m*U_m * nLeptonW(M_Electron, M_Muon);
+
+	return fnMUE;
+}
+
+double Decay::nLeptonW(double m1, double m2)	//it is doubled for the cc conjugate
+{
+	if (M_Sterile >= M_Neutrino + m1 + m2)
 	{
-		double dMe = M_Electron / M_Sterile;
-		double dMm = M_Muon / M_Sterile;
+		double dM1 = m1 / M_Sterile;
+		double dM2 = m2 / M_Sterile;
 		double dMn = M_Neutrino / M_Sterile;
 
-		return mapEnhance["nEMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
-			(U_e*U_e * Kine::I1_xyz(dMm, dMn, dMe) +
-			U_m*U_m * Kine::I1_xyz(dMe, dMn, dMm)) / 
+		return 2.0 * genie::constants::kGF2 * pow(M_Sterile, 5) * Kine::I1_xyz(dM1, dMn, dM2) /
 			(192.0 * genie::constants::kPi3);
 	}
 	return 0.0;
 }       
 
-double Decay::nMUE()	//its charge conjugate
-{
-	return nEMU() * mapEnhance["nMUE"]/mapEnhance["nEMU"];
-}
-
 //M_Sterile > M_Pion0
 double Decay::nPI0()
 {
-	if (M_Sterile >= M_Pion0)
+	if (fnPI0 < 0 || IsChanged("npi0"))
 	{
-		double dMp2 = M_Pion0*M_Pion0/M_Sterile/M_Sterile;
-
-		return mapEnhance["nPI0"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
-			(U_e*U_e + U_m*U_m + U_t*U_t) * 
-			pow((1.0-dMp2), 2.0) * Const::fFPion2 / 
-			(64.0 * genie::constants::kPi);
+		if (M_Sterile >= M_Neutrino + M_Pion0)
+		{
+			double dMp2 = M_Pion0*M_Pion0/M_Sterile/M_Sterile;
+	
+			fnPI0 = mapEnhance["nPI0"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+				(U_e*U_e + U_m*U_m + U_t*U_t) * 
+				pow((1.0-dMp2), 2.0) * Const::fFPion2 / 
+				(64.0 * genie::constants::kPi);
+		}
+		else fnPI0 = 0.0;
 	}
-	return 0.0;
+
+	return fnPI0;
 }
 
 //M_Sterile > M_Pion
 double Decay::EPI()
 {
-	if (M_Sterile >= M_Electron + M_Pion)
+	if (fEPI < 0 || IsChanged("epi"))
 	{
-		double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
-		double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
-
-		return 2.0 * mapEnhance["EPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
-		       U_e*U_e * 
-		       pow(Const::fV_ud, 2.0) * Const::fFPion2 * Kine::I1_xy(dMe2, dMp2) / 
-		       (16.0 * genie::constants::kPi);
+		if (M_Sterile >= M_Electron + M_Pion)
+		{
+			double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
+			double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
+	
+			fEPI = 2.0 * mapEnhance["EPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+			       U_e*U_e * 
+			       pow(Const::fV_ud, 2.0) * Const::fFPion2 * Kine::I1_xy(dMe2, dMp2) / 
+			       (16.0 * genie::constants::kPi);
+		}
+		else fEPI = 0.0;
 	}
-	else return 0.0;
+	
+	return fEPI;
 }
 
 //M_Sterile > 2 M_Muon
 double Decay::nMUMU()
 {
-	if (M_Sterile >= 2 * M_Muon)
+	if (fnMUMU < 0 || IsChanged("nmumu"))
 	{
-		double dMm = M_Muon / M_Sterile;
-		double dMn = M_Neutrino / M_Sterile;
-		double gL = -0.5 + Const::fSin2W;
-		double gR = Const::fSin2W;
-		double Int1 = Kine::I1_xyz(dMn, dMm, dMm);
-		double Int2 = Kine::I2_xyz(dMn, dMm, dMm);
-		double KF_m = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
-		double KF_e = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
-		//double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
-
-		return mapEnhance["nMUMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
-			 (U_m*U_m * KF_m + (U_e*U_e + U_t*U_t) * KF_e) /
-	       		 (96.0 * genie::constants::kPi3);
+		if (M_Sterile >= M_Neutrino + 2 * M_Muon)
+		{
+			double dMm = M_Muon / M_Sterile;
+			double dMn = M_Neutrino / M_Sterile;
+			double gL = -0.5 + Const::fSin2W;
+			double gR = Const::fSin2W;
+			double Int1 = Kine::I1_xyz(dMn, dMm, dMm);
+			double Int2 = Kine::I2_xyz(dMn, dMm, dMm);
+			double KF_m = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
+			double KF_e = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
+			//double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
+	
+			fnMUMU = mapEnhance["nMUMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
+				 (U_m*U_m * KF_m + (U_e*U_e + U_t*U_t) * KF_e) /
+		       		 (96.0 * genie::constants::kPi3);
+		}
+		else fnMUMU = 0.0;
 	}
-	return 0.0;
+
+	return fnMUMU;
 }
 
 //M_Sterile > M_Pion + M_Muon
 double Decay::MUPI()
 {
-	if (M_Sterile >= M_Muon + M_Pion)
+	if (fMUPI < 0 || IsChanged("mupi"))
 	{
-		double dMm2 = M_Muon*M_Muon/M_Sterile/M_Sterile;
-		double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
-
-		return 2.0 * mapEnhance["MUPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
-		        U_m*U_m * 
-		        pow(Const::fV_ud, 2.0)*Const::fFPion2 * Kine::I1_xy(dMm2, dMp2) /
-		        (16.0 * genie::constants::kPi);
+		if (M_Sterile >= M_Muon + M_Pion)
+		{
+			double dMm2 = M_Muon*M_Muon/M_Sterile/M_Sterile;
+			double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
+	
+			fMUPI = 2.0 * mapEnhance["MUPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+			        U_m*U_m * 
+			        pow(Const::fV_ud, 2.0)*Const::fFPion2 * Kine::I1_xy(dMm2, dMp2) /
+			        (16.0 * genie::constants::kPi);
+		}
+		else fMUPI = 0.0;
 	}
-	return 0.0;
+	
+	return fMUPI;
 }
 
 //M_Sterile > M_Kaon + M_Electron
 double Decay::EKA()
 {
-	if (M_Sterile >= M_Electron + M_Kaon)
+	if (fEKA < 0 || IsChanged("eka"))
 	{
-		double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
-		double dMk2 = M_Kaon*M_Kaon/M_Sterile/M_Sterile;
-
-		return 2.0 * mapEnhance["EKA"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
-		       U_e*U_e * 
-		       pow(Const::fV_us, 2.0) * Const::fFKaon2 * Kine::I1_xy(dMe2, dMk2) /
-		       (16.0 * genie::constants::kPi);
+		if (M_Sterile >= M_Electron + M_Kaon)
+		{
+			double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
+			double dMk2 = M_Kaon*M_Kaon/M_Sterile/M_Sterile;
+	
+			fEKA = 2.0 * mapEnhance["EKA"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+			       U_e*U_e * 
+			       pow(Const::fV_us, 2.0) * Const::fFKaon2 * Kine::I1_xy(dMe2, dMk2) /
+			       (16.0 * genie::constants::kPi);
+		}
+		else fEKA = 0.0;
 	}
-	else return 0.0;
+
+	return fEKA;
 }
 
 //M_Sterile > M_Kaon0
 double Decay::nKA0()
 {
-	if (M_Sterile >= M_Kaon0)
+	if (fnKA0 < 0 || IsChanged("nka0"))
 	{
-		double dMk2 = M_Kaon0*M_Kaon0/M_Sterile/M_Sterile;
-
-		return mapEnhance["nKA0"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
-			(U_e*U_e + U_m*U_m + U_t*U_t) * 
-			Const::fFKaon2 * pow((1.0-dMk2), 2.0) / 
-			(64.0 * genie::constants::kPi);
+		if (M_Sterile >= M_Neutrino + M_Kaon0)
+		{
+			double dMk2 = M_Kaon0*M_Kaon0/M_Sterile/M_Sterile;
+	
+			fnKA0 = mapEnhance["nKA0"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+				(U_e*U_e + U_m*U_m + U_t*U_t) * 
+				Const::fFKaon2 * pow((1.0-dMk2), 2.0) / 
+				(64.0 * genie::constants::kPi);
+		}
+		else fnKA0 = 0.0;
 	}
-	else return 0.0;
+
+	return fnKA0;
 }
 
 
@@ -524,7 +578,7 @@ std::vector<std::string> Decay::ListChannels()
 	return vList;
 }
 
-bool Decay::IsChanged()
+bool Decay::IsChanged(std::string Name)
 {
 	bool Ret = ( M_Sterile != M_Sterile_prev || 
 		     U_e != U_e_prev ||
@@ -535,6 +589,23 @@ bool Decay::IsChanged()
 	U_e_prev = U_e;
     	U_m_prev = U_m;
     	U_t_prev = U_t;
+
+	//Reset decay widths if changed
+	if (Ret)
+	{
+		fTotal	= -1.0;
+		fnnn	= -1.0;
+	        fnGAMMA	= -1.0;
+	        fnEE	= -1.0;
+	        fnEMU	= -1.0;
+	        fnMUE	= -1.0;
+	        fnPI0	= -1.0;
+	        fEPI	= -1.0;
+	        fnMUMU	= -1.0;
+	        fMUPI	= -1.0;
+	        fEKA	= -1.0;
+	        fnKA0	= -1.0;
+	}
 
 	return Ret;
 }

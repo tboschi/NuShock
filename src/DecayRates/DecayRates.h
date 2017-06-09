@@ -56,6 +56,7 @@ class Decay
 		double nEE();
 		double nEMU();
 		double nMUE();
+		double nLeptonW(double m1, double m2);
 		double nPI0();
 		double EPI();
 		double MUPI();
@@ -69,7 +70,7 @@ class Decay
 		TLorentzVector *GetNvec();
 		TLorentzVector *GetDecayProduct(int i);
 
-		bool IsChanged();
+		bool IsChanged(std::string Name);
 
 		double GetMass();
 		double GetUe();
@@ -89,7 +90,7 @@ class Decay
 		double U_e_prev, U_m_prev, U_t_prev;
 
 		double fTotal;	//Total Gamma, to avoid recalculation
-//		double fnnn, fnGAMMA, fnEE, fnEMU, fnMUE, fnPI0, fEPI, fnMUMU, fMUPI, fEKA, fnKA0;
+		double fnnn, fnGAMMA, fnEE, fnEMU, fnMUE, fnPI0, fEPI, fnMUMU, fMUPI, fEKA, fnKA0;
 
 		//Masses
 		const double M_Neutrino;

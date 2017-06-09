@@ -15,6 +15,7 @@ int main(int argc, char** argv)
 {
 	const struct option longopts[] = 
 	{
+		{"root", 	required_argument, 	0, 'r'},
 		{"output", 	required_argument, 	0, 'o'},
 		{"smconfig", 	required_argument, 	0, 's'},
 		{"muon", 	no_argument,	 	0, 'm'},
@@ -29,7 +30,7 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	std::ifstream ConfigFile;
-	//std::ofstream OutFile;
+	std::ofstream Out;
 	TFile *OutFile;
 	bool IsElectron = false;
 	bool IsMuon = false;
@@ -37,20 +38,24 @@ int main(int argc, char** argv)
 	bool KaonFlag = false;
 	bool Kaon0Flag = false;
 	
-	while((iarg = getopt_long(argc,argv, "o:s:EMmkKh", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "r:o:s:EMmkKh", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
-			case 'o':
+			case 'r':
 				OutFile = new TFile(optarg, "RECREATE");
-				//OutFile.open(optarg);
+				break;
+			case 'o':
+				Out.open(optarg);
 				break;
 			case 'h':
 				std::cout << "Compute decay width fro three body decay" << std::endl;
 				std::cout << "Usage : " << std::endl;
 				std::cout << "Width [OPTIONS]" << std::endl;
-				std::cout <<"\n  -o,  --output" << std::endl;
+				std::cout <<"\n  -r,  --root" << std::endl;
 				std::cout << "\t\tOutput file to save plot (ROOT)" << std::endl;
+				std::cout <<"\n  -o,  --output" << std::endl;
+				std::cout << "\t\tOutput file to save plot (text)" << std::endl;
 				std::cout <<"\n  -h,  --help" << std::endl;
 				std::cout << "\t\tPrint this message and exit" << std::endl;
 				return 1;
@@ -121,23 +126,31 @@ int main(int argc, char** argv)
 		std::cout << "Mass " << MS << std::endl;
 		Decay->SetSterileMass(MS);
 
+		Out << MS << "\t";
+
 		Decay->SetParent("Muon");
 		Decay->MuonChannel();
 		hMuonMuon->Fill(MS, Decay->Gamma()/gMM);
+		Out << Decay->Gamma()/gMM << "\t";
 		Decay->ElectronChannel();
 		hMuonElec->Fill(MS, Decay->Gamma()/gME);
+		Out << Decay->Gamma()/gME << "\t";
 
 		Decay->SetParent("Kaon");
 		Decay->MuonChannel();
 		hKaonMuon->Fill(MS, Decay->Gamma()/gKM);
+		Out << Decay->Gamma()/gKM << "\t";
 		Decay->ElectronChannel();
 		hKaonElec->Fill(MS, Decay->Gamma()/gKE);
+		Out << Decay->Gamma()/gKE << "\t";
 
 		Decay->SetParent("Kaon0");
 		Decay->MuonChannel();
 		hKaon0Muon->Fill(MS, Decay->Gamma()/gK0M);
+		Out << Decay->Gamma()/gK0M << "\t";
 		Decay->ElectronChannel();
 		hKaon0Elec->Fill(MS, Decay->Gamma()/gK0E);
+		Out << Decay->Gamma()/gK0E << std::endl;
 	}
 
 	hMuonMuon->Write();
