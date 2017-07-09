@@ -366,12 +366,12 @@ double ThreeBody::M2Kaon0IntY() //Kaon0 decay, integrated analytically over y
 
 double ThreeBody::M2nEE()
 {
-	return GetUe()*GetUe() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUm()*GetUm() * GetUt()*GetUt()) * M2_Z();
+	return GetUe()*GetUe() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUm()*GetUm() + GetUt()*GetUt()) * M2_Z();
 }
 
 double ThreeBody::M2nMUMU()
 {
-	return GetUm()*GetUm() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUe()*GetUe() * GetUt()*GetUt()) * M2_Z();
+	return GetUm()*GetUm() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUe()*GetUe() + GetUt()*GetUt()) * M2_Z();
 }
 
 double ThreeBody::M2nEMU()
@@ -395,10 +395,12 @@ double ThreeBody::MaxGamma()
 		fMax = 0.0;
 
 		//Phasespace coordinates are already checked by ddGamma
-		for (double ix = 0.0; ix <= 2.0; ix += 2.0/Kine::Loop)
+		//for (double ix = 0.0; ix <= 2.0; ix += 2.0/Kine::Loop)
+		for (double ix = 0.0; ix <= 2.0; ix += 2.0/100)
 		{
 			SetX(ix);
-			for (double iy = 0.0; iy <= 2.0; iy += 2.0/Kine::Loop)
+			//for (double iy = 0.0; iy <= 2.0; iy += 2.0/Kine::Loop)
+			for (double iy = 0.0; iy <= 2.0; iy += 2.0/100)
 			{
 				SetY(iy);
 				double Gam = ddGamma();
@@ -660,15 +662,17 @@ void ThreeBody::SetUt(double X)
 
 bool ThreeBody::IsChanged()
 {
-	return ( M_Sterile != M_Sterile_prev || 
-		 M_Parent != M_Parent_prev || 
-		 U_e != U_e_prev ||
-		 U_m != U_m_prev ||
-		 U_t != U_t_prev );
+	bool Ret = ( M_Sterile != M_Sterile_prev || 
+		     M_Parent != M_Parent_prev || 
+  		     U_e != U_e_prev ||
+  		     U_m != U_m_prev ||
+  		     U_t != U_t_prev );
 
 	M_Sterile_prev = M_Sterile;
 	M_Parent_prev = M_Parent; 
 	U_e_prev = U_e;
 	U_m_prev = U_m;
 	U_t_prev = U_t;
+
+	return Ret;
 }

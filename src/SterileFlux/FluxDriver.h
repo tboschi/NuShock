@@ -34,10 +34,11 @@ class FluxDriver
 		//void MakeStandardFlux();
 		double SampleEnergy();
 
+		double GetRange();
 		double GetStartRange();
 		double GetEndRange();
 		double GetBinNumber();
-		double GetIntensity(double Energy);
+		long double GetIntensity(double Energy);
 		void SetBaseline(double Baseline);
 		void SetPOT(double POT);
 		void SetArea(double Area);

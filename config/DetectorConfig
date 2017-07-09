@@ -2,22 +2,32 @@
 #
 #Name of detector: Example
 #
-Baseline	574
-Length		7
-Width		4
-Height		4
-Weight		100
+Baseline	570
+Length		4
+Width		3
+Height		3
+Fiducial	0.75
+#Weight		100
 POT/s		6.25e13
 Years		10
-Target		2212
+Target		Ar
 #
-#Resolution
+#Threshold in GeV
+#Resolution in absolut
 #
-Energy		0.05
+ThrHadron	0.15
+ResHadron	0.021
+ThrPion		0.008
+ResPion		0.15
+ThrGamma	0.010
+ResGamma	0.15
+ThrMuon		0.005
+ResMuon		0.06
+Energy		0.005
+Vertex		0.0001
+Momentum	0.05
 Angle		0.002
-Position	0.0001
-Background	0.05
-Calibration	0.02
+Bfield		0.4
 #
 #Weighting factor per energy
 #WChannel	GeV	factor

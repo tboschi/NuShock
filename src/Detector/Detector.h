@@ -16,12 +16,13 @@
 #include <sstream>
 
 //ROOT include
-//#include "TH1.h"
+#include "TRandom3.h"
 //#include "TFile.h"
 //#include "TTree.h"
 //#include "TMath.h"
 
 #include "Tools.h"
+#include "Particle.h"
 //#include "FluxDriver.h"
 //#include "Flux.h"
 //#include "DecayRates.h"
@@ -43,6 +44,17 @@ class Detector
 		double Efficiency(std::string Channel, double Energy);
 		double EnergySigma(std::string Channel, double Energy);
 
+		double GausSmearing(TRandom3 *RanGen, double Mean, double Sigma);
+
+		bool IsDetectable(Particle *P);	
+		void SignalSmearing(TRandom3 *RanGen, Particle *P);
+		double TrackLength(Particle *P);
+		double EnergyLoss(double Beta, double Mass);
+		bool IsInside(Particle *P);
+		bool IsInside(TVector3 &P);
+		double GetXsize();
+		double GetYsize();
+		double GetZsize();
 	private:
 		std::map<std::string, double> mapDetector;
 		std::map<std::string, std::vector<EnergyEfficiency> > mapEfficiency;

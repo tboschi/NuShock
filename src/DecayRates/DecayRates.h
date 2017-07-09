@@ -68,7 +68,7 @@ class Decay
 		std::vector<std::string> ListChannels();
 
 		TLorentzVector *GetNvec();
-		TLorentzVector *GetDecayProduct(int i);
+		TLorentzVector *GetDecayProduct(int i, int &ID);
 
 		bool IsChanged(std::string Name);
 
@@ -84,6 +84,8 @@ class Decay
 		void SetUt(double X);
 
 	private:
+		int PdgCode[3];
+
 		double M_Sterile;
 		double U_e, U_m, U_t;
 		double M_Sterile_prev;

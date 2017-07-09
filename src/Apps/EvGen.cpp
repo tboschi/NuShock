@@ -69,37 +69,47 @@ int main(int argc, char** argv)
 
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 
-	
-	//TheFlux->SetBaseline(500);
+	EvGen->SetChannel("nEE");
 	
 
-	for (int j = 0; j < 500; ++j)
+	for (int j = 0; j < 20; ++j)
 	{
-		double Mass = j*0.001;
+		//double Mass = j*0.001;
+		double Mass = 0.09+j*0.001;
 		std::stringstream ssL;
 		ssL << base << std::setw(3) << std::setfill('0') << j;
 
-		std::cout << ssL.str() << std::endl;
+		std::cout << Mass << "\t" << ssL.str() << std::endl;
 
 		Out.open(ssL.str().c_str());
 
 		EvGen->SetMass(Mass);
+		EvGen->SetUe(sqrt(1e-13));
 		EvGen->MakeSterileFlux();
+		EvGen->MakeInDetector();
 
 		double E;
 		for (int bin = 0; bin <= 100; ++bin)
 		{
 			E = bin*0.2;
 			Out << E << "\t";
-			if (EvGen->GetFluxDriverPtr()->GetTotal()->GetBinContent(bin) == 0)
-			       Out << 1e-20 << "\t";
-			else Out << EvGen->GetFluxDriverPtr()->GetTotal()->GetBinContent(bin) << "\t";
+			EvGen->SetEnergy(E);
+			Out << EvGen->FluxIntensity() << "\t";
+			Out << EvGen->EventProbability() << "\t";
+			Out << EvGen->FluxIntensity()*EvGen->EventProbability() << "\t";
+			Out << EvGen->InDetector->GetBinContent(bin) << "\t";
+			//if (EvGen->GetFluxDriverPtr()->GetTotal()->GetBinContent(bin) == 0)
+			//if (EvGen->InDetector->GetBinContent(bin) == 0)
+			//       Out << 1e-20 << "\t";
+			//else Out << EvGen->GetFluxDriverPtr()->GetTotal()->GetBinContent(bin) << "\t";
+			//else Out << EvGen->InDetector->GetBinContent(bin) << "\t";
 			//Out << EvGen->GetFluxDriverPtr()->GetPion()->GetBinContent(bin) << "\t";
 			//Out << EvGen->GetFluxDriverPtr()->GetKaon()->GetBinContent(bin) << "\t";
 			//Out << EvGen->GetFluxDriverPtr()->GetKaon0()->GetBinContent(bin) << "\t";
 			//Out << EvGen->GetFluxDriverPtr()->GetMuon()->GetBinContent(bin) << std::endl;
 			Out << std::endl;
 		}
+		EvGen->InDetector->Delete();
 
 		Out.close();
 	}

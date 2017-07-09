@@ -18,13 +18,13 @@ include $(GENIE)/src/make/Make.include
 
 #Main executable to be compiled
 NEW =	Exclusion	\
-	Kine	\
+	EvGen	\
+	#Simulation	\
+	#Kine	\
 	DecayPlot	\
 	Width		\
-	EvGen	\
 	#Eps2Root	\
 	#FakeElectron	\
-	#Simulation	\
 	Probability	\
 	EvGen	\
 	PionMuonFlux	\
@@ -39,7 +39,8 @@ DEP =	Tools/Tools		\
 	SterileFlux/FluxDriver	\
 	SterileFlux/Flux		\
 	EventGenerator/EventGenerator	\
-	Detector/Detector
+	Detector/Detector	\
+	Cut/Particle
 
 INC_DIR := $(patsubst %,-I$(SRC_DIR)/%,$(subst /, ,$(DEP)))
 DEP :=  $(DEP:%=$(SRC_DIR)/%.o)

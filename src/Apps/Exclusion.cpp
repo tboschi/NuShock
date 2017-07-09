@@ -98,14 +98,15 @@ int main(int argc, char** argv)
 	double Mass, Uu, Nevent;
 	double contMass, contUu, contN;
 	
-	for (double logMass = -2.0; logMass < -0.2; logMass += 0.005)	//increase mass log
- 	//for (Mass = 0.01; Mass < 0.5; Mass += 0.01)	//increase mass linearly
+	for (double logMass = -2.0; logMass < -0.3; logMass += 0.0034)	//increase mass log
+	//for (double logMass = -1.61; logMass < -1.51; logMass += 0.001)	//increase mass log
+ 	//for (Mass = 0.0249; Mass < 0.0251; Mass += 0.01)	//increase mass linearly
 	{
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
 		EvGen->SetMass(Mass);
 
-		for (double logUu2 = -13.0; logUu2 < -5.0; logUu2 += 0.02)	//increase Uu logarithmically
+		for (double logUu2 = -12.0; logUu2 < -2.0; logUu2 += 0.02)	//increase Uu logarithmically
 		//for (Uu = 1.0e-4; Uu < 1.0e-2; Uu += 1.0e-4)	//increase Uu linearly
 		{
 			Uu = pow(10.0, 0.5*logUu2);
@@ -115,7 +116,7 @@ int main(int argc, char** argv)
 				EvGen->SetUm(Uu);
 			if (UtFlag)
 				EvGen->SetUt(Uu);
-			EvGen->MakeSterileFlux(1);
+			EvGen->MakeSterileFlux(1);	//totalpot BNB = 0
 			Nevent = EvGen->EventTotalNumber();
 			//logCont->Fill(logMass, logUu2, Nevent);
 			if (Nevent > Threshold)

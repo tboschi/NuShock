@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 	TH1D* hKaon0 = new TH1D("hkaon0", "from kaon0", 100,0,20);
 	TH1D* hMuon = new TH1D("hmuon", "from muon", 100,0,20);
 	
-	double Normalize = 1e-20 * 1.3e6*1.3e6 * 0.01*0.01 / (574*574); 	//nu/POT/100m/cm2/GeV @ 1m
+	double Normalize = 1e-20 * 1.3e6*1.3e6 * 0.01*0.01 / (574*574); 	//nu/POT/cm2/GeV @ 1m
 
 	double Energy;
 	for (int i = 0; i < 100; ++i)

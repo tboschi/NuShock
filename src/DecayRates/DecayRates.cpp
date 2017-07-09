@@ -224,47 +224,58 @@ int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of pr
 			break;
 		*/
 		case _nEE:
-			Mass[0] = M_Neutrino;
+			Mass[0] = M_Electron;
 			Mass[1] = M_Electron;
-			Mass[2] = M_Electron;
+			Mass[2] = M_Neutrino;
+			PdgCode[0] = 11;
+			PdgCode[1] = 11;
+			PdgCode[2] = 12;
 			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
 			Weight = Event->Generate();
 
-			TheSpace->SetEnergyX(GetDecayProduct(1)->E());
-			TheSpace->SetEnergyY(GetDecayProduct(2)->E());
+			TheSpace->SetEnergyX(Event->GetDecay(0)->E());
+			TheSpace->SetEnergyY(Event->GetDecay(1)->E());
 			Weight = TheSpace->ddGamma()/TheSpace->MaxGamma();
 			
 			break;
 
 		case _nEMU:		//whata about n mu e?
-			Mass[0] = M_Neutrino;
-			Mass[1] = M_Electron;
-			Mass[2] = M_Muon;
+			Mass[0] = M_Electron;
+			Mass[1] = M_Muon;
+			Mass[2] = M_Neutrino;
+			PdgCode[0] = 11;
+			PdgCode[1] = 13;
+			PdgCode[2] = 12;
 			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
 			Weight = Event->Generate();
 
-			TheSpace->SetEnergyX(GetDecayProduct(1)->E());
-			TheSpace->SetEnergyY(GetDecayProduct(2)->E());
+			TheSpace->SetEnergyX(Event->GetDecay(0)->E());
+			TheSpace->SetEnergyY(Event->GetDecay(1)->E());
 			Weight = TheSpace->ddGamma()/TheSpace->MaxGamma();
 
 			break;
 	
 		case _nMUE:		//whata about n mu e?
-			Mass[0] = M_Neutrino;
+			Mass[0] = M_Muon;
 			Mass[1] = M_Electron;
-			Mass[2] = M_Muon;
+			Mass[2] = M_Neutrino;
+			PdgCode[0] = 13;
+			PdgCode[1] = 11;
+			PdgCode[2] = 12;
 			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
 			Weight = Event->Generate();
 
-			TheSpace->SetEnergyX(GetDecayProduct(2)->E());
-			TheSpace->SetEnergyY(GetDecayProduct(1)->E());
+			TheSpace->SetEnergyX(Event->GetDecay(0)->E());
+			TheSpace->SetEnergyY(Event->GetDecay(1)->E());
 			Weight = TheSpace->ddGamma()/TheSpace->MaxGamma();
 			
 			break;
 	
 		case _nPI0:
-			Mass[0] = M_Neutrino;
-			Mass[1] = M_Pion0;
+			Mass[0] = M_Pion0;
+			Mass[1] = M_Neutrino;		//Invisible particle
+			PdgCode[0] = 12;
+			PdgCode[1] = 111;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
@@ -272,25 +283,32 @@ int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of pr
 		case _EPI:
 			Mass[0] = M_Electron;
 			Mass[1] = M_Pion;
+			PdgCode[0] = 11;
+			PdgCode[1] = 211;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
 
 		case _nMUMU:
-			Mass[0] = M_Neutrino;
+			Mass[0] = M_Muon;
 			Mass[1] = M_Muon;
-			Mass[2] = M_Muon;
+			Mass[2] = M_Neutrino;
+			PdgCode[0] = 13;
+			PdgCode[1] = 13;
+			PdgCode[2] = 211;
 			Products = 3 * Event->SetDecay(*N_vec, 3, Mass);
 			Weight = Event->Generate();
 
-			TheSpace->SetEnergyX(GetDecayProduct(1)->E());
-			TheSpace->SetEnergyY(GetDecayProduct(2)->E());
+			TheSpace->SetEnergyX(Event->GetDecay(0)->E());
+			TheSpace->SetEnergyY(Event->GetDecay(1)->E());
 			Weight = TheSpace->ddGamma()/TheSpace->MaxGamma();
 			break;
 
 		case _MUPI:
 			Mass[0] = M_Muon;
 			Mass[1] = M_Pion;
+			PdgCode[0] = 13;
+			PdgCode[1] = 211;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
@@ -298,6 +316,8 @@ int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of pr
 		case _EKA:
 			Mass[0] = M_Electron;
 			Mass[1] = M_Kaon;
+			PdgCode[0] = 11;
+			PdgCode[1] = 321;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
@@ -305,6 +325,8 @@ int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of pr
 		case _nKA0:
 			Mass[0] = M_Neutrino;
 			Mass[1] = M_Kaon0;
+			PdgCode[0] = 12;
+			PdgCode[1] = 130;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
@@ -615,8 +637,9 @@ TLorentzVector *Decay::GetNvec()
 	return N_vec;
 }
 
-TLorentzVector *Decay::GetDecayProduct(int i)
+TLorentzVector *Decay::GetDecayProduct(int i, int &ID)
 {
+	ID = PdgCode[i];
 	return Event->GetDecay(i);
 }
 

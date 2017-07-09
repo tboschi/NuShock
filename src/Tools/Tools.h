@@ -58,6 +58,9 @@ namespace Kine
 	double I2_xyz(double X, double Y, double Z);
 	double I2_xy(double X, double Y);
 	double I3_xy(double X, double Y);
+
+	double Bethe(double Beta, double Mass, double Density, double I, int Z, int A);		//GeV/m
+
 	static const int Sample = 1000;	//Sample for integration
 	static const int Loop = 1000;	//Sample for integration
 }
@@ -102,6 +105,8 @@ namespace Const
 	static const double fMPion0 = genie::PDGLibrary::Instance()->Find(111)->Mass();
 	static const double fMKaon = genie::PDGLibrary::Instance()->Find(321)->Mass();
 	static const double fMKaon0 = genie::PDGLibrary::Instance()->Find(311)->Mass();
+	static const double fMProton = genie::PDGLibrary::Instance()->Find(2212)->Mass();
+	static const double fMNeutron = genie::PDGLibrary::Instance()->Find(2211)->Mass();
 
 	//SM constant - PDG 2016
 	static const double fhBar = 6.5821189916e-25;	//Mev s, from PDG

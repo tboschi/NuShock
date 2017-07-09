@@ -14,6 +14,7 @@
 #include <sstream>
 #include <cstring>
 #include <vector>
+#include <cmath>
 
 //ROOT include
 #include "TH1.h"
@@ -28,6 +29,7 @@
 #include "Flux.h"
 #include "DecayRates.h"
 #include "Detector.h"
+#include "Particle.h"
 
 class EventGenerator
 {
@@ -41,9 +43,9 @@ class EventGenerator
 		FluxDriver* GetFluxDriverPtr();
 
 		//MC stuff
-		double EventProbability();
+		long double EventProbability();
 		double EventEfficiency(double Efficiency = -1.0);
-		double EventTotalNumber(TH1D* hMod = 0, TH1D* hProb = 0, double Efficiency = -1.0);
+		double EventTotalNumber(double Efficiency = -1.0);
 		//Random generators
 		std::string RandomChannel();
 		bool EventInDetector();
@@ -54,17 +56,20 @@ class EventGenerator
 
 		//Generate flux to be used as PDF
 		void MakeSterileFlux(bool TotalPOT = true);
-		void MakeStandardFlux(bool TotalPOT = true);
-		double SampleEnergy();
-		double FluxIntensity();
+		void MakeInDetector(double Efficiency = -1.0);
+		//void MakeStandardFlux(bool TotalPOT = true);
+		double SampleEnergy(bool Set = true);
+		double SampleInDetector(bool Set = true);
+		long double FluxIntensity();
 
 		//Statistics
-		void SmearVector(TLorentzVector* N);
+		void SmearVector(TLorentzVector* N, int Pdg);
 
 		//Get function
 		std::string GetChannel();
 		double GetMass(int Pow = 1);
 		double GetEnergy(int Pow = 1);
+		double GetEnergyKin(int Pow = 1);
 		double GetMomentum(int Pow = 1);
 		double GetUe();
 		double GetUm();
@@ -74,9 +79,13 @@ class EventGenerator
 		void SetChannel(std::string Ch = "R");
 		void SetMass(double X);
 		void SetEnergy(double X);
+		void SetEnergyKin(double X);
 		void SetUe(double X);
 		void SetUm(double X);
 		void SetUt(double X);
+
+
+		TH1D *InDetector;
 
 	private:
 		std::string sChannel;	//Channel is set globally in class

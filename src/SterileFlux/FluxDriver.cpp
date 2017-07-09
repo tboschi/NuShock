@@ -13,6 +13,7 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
         hKaonSterile = new TH1D("hkaon", "Kaon flux", 100,0,20);
         hKaon0Sterile = new TH1D("hkaon0", "Kaon0 flux", 100,0,20);
         hMuonSterile = new TH1D("hmuon", "Muon flux", 100,0,20);
+	
 	//hTotalSterile = new TH1D("htotal", "Total flux", 100,0,5);	//BNB
         //hPionSterile = new TH1D("hpion", "Pion flux", 100,0,5);	//BNB
         //hKaonSterile = new TH1D("hkaon", "Kaon flux", 100,0,5);	//BNB 
@@ -300,6 +301,11 @@ double FluxDriver::SampleEnergy()		//Sample PDF
 	return hTotalSterile->GetRandom();
 } 
 
+double FluxDriver::GetRange()
+{
+	return hTotalSterile->GetBinCenter(GetBinNumber()) - hTotalSterile->GetBinCenter(0);
+}
+
 double FluxDriver::GetStartRange()
 {
 	return hTotalSterile->GetBinCenter(1);
@@ -315,29 +321,35 @@ double FluxDriver::GetBinNumber()
 	return hTotalSterile->GetNbinsX();
 }
 
-double FluxDriver::GetIntensity(double Energy)	//Return flux intensity, given energy
+long double FluxDriver::GetIntensity(double Energy)	//Return flux intensity, given energy, simple linear interpolation
 {
-	return hTotalSterile->GetBinContent(hTotalSterile->FindBin(Energy+1e-6));	//1e-6 to prevent bin error
+	int Bin = hTotalSterile->FindBin(Energy);
+	double f1 = hTotalSterile->GetBinContent(Bin);
+	double E1 = hTotalSterile->GetBinCenter(Bin);
+	double f2;
+	double E2;
+	if (Energy < hTotalSterile->GetBinCenter(Bin))
+	{
+		f2 = hTotalSterile->GetBinContent(Bin-1);
+		E2 = hTotalSterile->GetBinCenter(Bin-1);
+	}
+	else
+	{
+		f2 = hTotalSterile->GetBinContent(Bin+1);
+		E2 = hTotalSterile->GetBinCenter(Bin+1);
+	}
+
+	return (Energy-E1)*(f2-f1)/(E2-E1) + f1;
+	//return hTotalSterile->GetBinContent(hTotalSterile->FindBin(Energy));	//1e-6 to prevent bin error
 } 
 
 void FluxDriver::SetBaseline(double Baseline)
 {
-	//hTotalSterile->Scale(1.0/(Baseline*Baseline));
-	//hPionSterile->Scale(1.0/(Baseline*Baseline));
-	//hKaonSterile->Scale(1.0/(Baseline*Baseline));
-	//hKaon0Sterile->Scale(1.0/(Baseline*Baseline));
-	//hMuonSterile->Scale(1.0/(Baseline*Baseline));
-	hTotalSterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
-	hPionSterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
-	hKaonSterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
-	hKaon0Sterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
-	hMuonSterile->Scale(541.0*541.0/(Baseline*Baseline));	//BNB
-
-	hTotalStandard->Scale(1.0/(Baseline*Baseline));
-	hPionStandard->Scale(1.0/(Baseline*Baseline));
-	hKaonStandard->Scale(1.0/(Baseline*Baseline));
-	hKaon0Standard->Scale(1.0/(Baseline*Baseline));
-	hMuonStandard->Scale(1.0/(Baseline*Baseline));
+	hTotalSterile->Scale(1.0/(Baseline*Baseline));
+	hPionSterile->Scale(1.0/(Baseline*Baseline));
+	hKaonSterile->Scale(1.0/(Baseline*Baseline));
+	hKaon0Sterile->Scale(1.0/(Baseline*Baseline));
+	hMuonSterile->Scale(1.0/(Baseline*Baseline));
 }
 
 void FluxDriver::SetPOT(double POT)
@@ -348,11 +360,11 @@ void FluxDriver::SetPOT(double POT)
 	hKaon0Sterile->Scale(POT);
 	hMuonSterile->Scale(POT);
 
-	hTotalStandard->Scale(POT);
-	hPionStandard->Scale(POT);
-	hKaonStandard->Scale(POT);
-	hKaon0Standard->Scale(POT);
-	hMuonStandard->Scale(POT);
+	//hTotalStandard->Scale(POT);
+	//hPionStandard->Scale(POT);
+	//hKaonStandard->Scale(POT);
+	//hKaon0Standard->Scale(POT);
+	//hMuonStandard->Scale(POT);
 }
 
 void FluxDriver::SetArea(double Area)
@@ -363,11 +375,11 @@ void FluxDriver::SetArea(double Area)
 	hKaon0Sterile->Scale(Area);
 	hMuonSterile->Scale(Area);
 
-	hTotalStandard->Scale(Area);
-	hPionStandard->Scale(Area);
-	hKaonStandard->Scale(Area);
-	hKaon0Standard->Scale(Area);
-	hMuonStandard->Scale(Area);
+	//hTotalStandard->Scale(Area);
+	//hPionStandard->Scale(Area);
+	//hKaonStandard->Scale(Area);
+	//hKaon0Standard->Scale(Area);
+	//hMuonStandard->Scale(Area);
 }
 
 
