@@ -1,5 +1,5 @@
 /*
- * Cut analysis
+ * Background analysis
  * Author: Tommaso Boschi
  */
 
@@ -32,7 +32,7 @@
 #include "PDG/PDGCodes.h"
 #include "Utils/CmdLnArgParser.h"
 
-class Cut
+class Background
 {
 	public:
 
@@ -48,38 +48,18 @@ class Cut
 		const double M_Kaon0;
 
 		//Maps
-		std::map<std::string, ChannelName> mapCut;
+		std::map<std::string, ChannelName> mapChan;
 		std::map<std::string, int> mapCount;
 		std::vector<Particle*> vParticle;
 		std::vector<Particle*>::iterator iP;
 
 		TRandom3 *GenMT;
+		TTree *Data;
 
-};
-
-class Particle
-{
-	public:
-		Particle(genie::gHepParticle *Candidate);
-		Particle(int Pdg, TLorentzVector *P4);
-
-		int Pdg();
-		TLorentzVector GetP4();
-		double E();
-		double Px();
-		double Py();
-		double Pz();
-		double P();
-		double Theta();
-		double Phi();
-
-		void SetVector(TLorentzVector Vector);
-		void SetPdg(int PdgCode);
-
-	private:
-		TLorentzVector P4;
-		TVector3 Pos;
-		int iPdg;
+		unsigned int ID;
+		double EnergyA, MomentA, TransvA, ThetaA, PhiA, MassA;
+		double EnergyB, MomentB, TransvB, ThetaB, PhiB, MassB;
+		double Energy0, Moment0, Transv0, Theta0, Phi0, Mass0;
 };
 
 #endif

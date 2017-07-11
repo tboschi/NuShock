@@ -1,5 +1,5 @@
 /*
- * Cut analysis
+ * Background analysis
  * Author: Tommaso Boschi
  */
 
@@ -28,9 +28,10 @@ class Particle
 {
 	public:
 		Particle(genie::GHepParticle *Candidate, double PosX, double PosY, double PosZ);
-		Particle(int PdgCode, TLorentzVector *Vector, double PosX, double PosY, double PosZ);
+		Particle(int PdgCode, double Charge, TLorentzVector *Vector, double PosX, double PosY, double PosZ);
 
 		int Pdg();
+		double Charge();
 		TLorentzVector GetP4();
 		TVector3 Position();
 		double X();
@@ -48,6 +49,7 @@ class Particle
 
 		void SetP4(TLorentzVector &V);
 		void SetPdg(int PdgCode);
+		void SetCharge(double Charge);
 		void SetE(double E);
 		void SetMass(double M);
 		void SetTheta(double Ang);
@@ -62,6 +64,7 @@ class Particle
 		TLorentzVector P4;
 		TVector3 Pos;
 		int iPdg;
+		double dCharge;
 };
 
 #endif

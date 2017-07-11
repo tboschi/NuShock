@@ -5,16 +5,18 @@ Particle::Particle(genie::GHepParticle *Candidate, double PosX, double PosY, dou
 {
 	SetP4(*(Candidate->P4()));
 	SetPdg(abs(Candidate->Pdg()));
+	SetCharge(Candidate->Charge());
 	SetX(PosX);
 	SetY(PosY);
 	SetZ(PosZ);
 }
 
 //manual ctor
-Particle::Particle(int PdgCode, TLorentzVector *Vector, double PosX, double PosY, double PosZ)
+Particle::Particle(int PdgCode, double Charge, TLorentzVector *Vector, double PosX, double PosY, double PosZ)
 {
 	SetP4(*Vector);
 	SetPdg(abs(PdgCode));
+	SetCharge(Charge);
 	SetX(PosX);
 	SetY(PosY);
 	SetZ(PosZ);
@@ -25,12 +27,18 @@ Particle::Particle(const Particle &P)
 {
 	SetP4(P.GetP4());
 	SetPdg(abs(P.Pdg()));
+	SetCharge(P.Charge);
 	SetPosition(P.Position());
 }
 
 int Particle::Pdg()
 {
 	return iPdg;
+}
+
+double Particle::Charge()
+{
+	return dCharge;
 }
 
 TLorentzVector Particle::GetP4()
@@ -56,6 +64,11 @@ double Particle::Ekin()
 double Particle::P()
 {
 	return P4.P();
+}
+
+double Particle::Pt()
+{
+	return P4.Pt();
 }
 
 double Particle::Px()

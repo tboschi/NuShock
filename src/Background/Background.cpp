@@ -1,7 +1,7 @@
-#include "Cut.h"
+#include "Background.h"
 
 
-Cut::Cut(std::string EventDB, std::string DetectorConfig, int Nevt)	: //Decay rates calculator
+Background::Background(std::string EventDB, std::string DetectorConfig, int Nevt)	: //Decay rates calculator
 	M_Neutrino(0.0),
 	M_Photon(0.0),
 	M_Electron(Const::fMElectron),
@@ -24,89 +24,114 @@ Cut::Cut(std::string EventDB, std::string DetectorConfig, int Nevt)	: //Decay ra
  	Gtree->SetBranchAddress("gmcrec", &Gmcrec);
  	// Get the nbr of evts to analyse (-n argument)
  	//NEV = (gOptNEvt > 0) ? TMath::Min(gOptNEvt, Gtree->GetEntries()) : (int)Gtree->GetEntries();
- 	NEV = Gtree->GetEntries();
+ 	NEvt = Gtree->GetEntries();
 
 	TheBox = new Detector(DetectorConfig);
 
 	GenMT = new TRandom3;
 
-	Alpha = 0.05;
+	Data = new TTree("Data", "All data from GENIE");
+
+	Data->Branch("ID", &ID, "iID/i");	//global event ID
+
+	//Particle A
+	Data->Branch("E_A", &EnergyA, "fEnergyA/D");
+	Data->Branch("P_A", &MomentA, "fMomentA/D");
+	Data->Branch("T_A", &TransvA, "fTransvA/D");
+	Data->Branch("TheA", &ThetaA, "fThetaA/D");
+	Data->Branch("PhiA", &PhiA, "fPhiA/D");
+	Data->Branch("M_A", &MassA, "fMassA/D");
+
+	//Particle B
+	Data->Branch("E_B", &EnergyB, "fEnergyB/D");
+	Data->Branch("P_B", &MomentB, "fMomentB/D");
+	Data->Branch("T_B", &TransvB, "fTransvB/D");
+	Data->Branch("TheB", &ThetaB, "fThetaB/D");
+	Data->Branch("PhiB", &PhiB, "fPhiB/D");
+	Data->Branch("M_B", &MassB, "fMassB/D");
+
+	//Particle 0 = A + B
+	Data->Branch("E_0", &Energy0, "fEnergy0/D");
+	Data->Branch("P_0", &Moment0, "fMoment0/D");
+	Data->Branch("T_0", &Transv0, "fTransv0/D");
+	Data->Branch("The0", &Theta0, "fTh0ta0/D");
+	Data->Branch("Phi0", &Phi0, "fPhi0/D");
+	Data->Branch("M_0", &Mass0, "fMass0/D");
 }
 
 //Initialisation of map
-void Cut::MapInit()
+void Background::MapInit()
 {
-	mapCut["ALL"] = _ALL;
-	mapCut["nnn"] = _nnn;
-	mapCut["nGAMMA"] = _nGAMMA;
-	mapCut["nEE"] = _nEE;
-	mapCut["nEMU"] = _nEMU;
-	mapCut["nMUE"] = _nMUE;
-	mapCut["nPI0"] = _nPI0;
-	mapCut["EPI"] = _EPI;
-	mapCut["nMUMU"] = _nMUMU;
-	mapCut["MUPI"] = _MUPI;
-	mapCut["EKA"] = _EKA;
-	mapCut["nKA0"] = _nKA0;
+	mapChan["ALL"] = _ALL;
+	mapChan["nnn"] = _nnn;
+	mapChan["nGAMMA"] = _nGAMMA;
+	mapChan["nEE"] = _nEE;
+	mapChan["nEMU"] = _nEMU;
+	mapChan["nMUE"] = _nMUE;
+	mapChan["nPI0"] = _nPI0;
+	mapChan["EPI"] = _EPI;
+	mapChan["nMUMU"] = _nMUMU;
+	mapChan["MUPI"] = _MUPI;
+	mapChan["EKA"] = _EKA;
+	mapChan["nKA0"] = _nKA0;
 }
 
-void Cut::Loop(std::string Channel)
+void Background::Loop(std::string Channel)
 {
-	for (unsigned int i = 0; i < NEV; ++i)
+	for (unsigned int i = 0; i < NEvt; ++i)
 	{
 		Gtree->GetEntry(i);
 		EventRecord & Gevent = *(Gmcrec->event);
 		GHepParticle * neu = Gevent.Probe();
 
-		TLorentzVector & neu4vec = *(neu->P4());
-		double total_xs = (XS_graph == 0) ? 1 : XS_graph->Eval(neu->E());
-		hinProbe->Fill(neu4vec.E());
+		//TLorentzVector & neu4vec = *(neu->P4());
+		//double total_xs = (XS_graph == 0) ? 1 : XS_graph->Eval(neu->E());
+		//hinProbe->Fill(neu4vec.E());
 
 		GHepParticle * p = 0;
 		TIter event_iter(&Gevent);
 
+		double PosX = GenMT->Uniform(TheBox->GetXsize());
+		double PosY = GenMT->Uniform(TheBox->GetYsize());
+		double PosZ = GenMT->Uniform(TheBox->GetZsize());
+	
 		vParticle.clear();	//reset particle array at each loop
 		mapCount.clear();	//reset particle counting at every event
-		while((Cd = dynamic_cast<genie::GHepParticle *>(event_iter.Next())))	//loop on all particles
+		while((CdHep = dynamic_cast<genie::GHepParticle *>(event_iter.Next())))	//loop on all particles
 		{									//inside the event
-			double PosX = GenMT->Uniform(TheBox->GetXsize());
-			double PosY = GenMT->Uniform(TheBox->GetYsize());
-			double PosZ = GenMT->Uniform(TheBox->GetZsize());
-	
-			if (Cd->Status() == 1)
+			if (CdHep->Status() == 1)
 			{
-				if (Cd->Pdg() == 211 ||		//special treatments for pi0
-				    Cd->Pdg() == -211)
+				if (CdHep->Pdg() == 211 ||		//special treatments for pi0
+				    CdHep->Pdg() == -211)
 				{
 					Particle *PhotonA, *PhotonB;
-					Pi0Decay(CreateParticle(Cd->P4(), Cd->Pdg(), PosX, PosY, PosZ), PhotonA, PhotonB);
+					Pi0Decay(CreateParticle(CdHep, PosX, PosY, PosZ), PhotonA, PhotonB);
 					vParticle.push_back(PhotonA);
 					vParticle.push_back(PhotonB);
 				}
-				else if (Cd->Pdg() < 1000000000 && 	//not nucleus
-				         Cd->Pdg() > -1000000000 && 	//not nucleus
-				         Cd->Pdg() != 2112)		//not neutron
-					vParticle.push_back(CreateParticle(Cd->P4(), Cd->Pdg(), PosX, PosY, PosZ));		//Everything detectable
+				else if (CdHep->Pdg() < 1000000000 && 	//no nucleus
+				         CdHep->Pdg() > -1000000000) 	//no nucleus
+					vParticle.push_back(CreateParticle(CdHep, PosX, PosY, PosZ));		//Everything detectable
 			}			//sould contains muons, electron, pions, protons
 		}
 
 		Purify(Channel);
-		Identify(Channel);
+		Identify(Channel, i);
 
 		//Ready for output
 	}
 }
 
-Particle* Cut::CreateParticle(TLorentzVector *N, int Pdg, double PosX, double PosY, double PosZ)
+Particle* Background::CreateParticle(GHepParticle *Hep, double PosX, double PosY, double PosZ)
 {
-	Particle *P = new Particle(Pdg, N, PosX, PosY, PosZ);
+	Particle *P = new Particle(Hep->Pdg(), Hep->Charge(), Hep->P4(), PosX, PosY, PosZ);
 
 	TheBox->SignalSmearing(GenMT, P);
 
 	return P;
 }
 
-int Cut::Count(std::string PartName, int N)
+int Background::Count(std::string PartName, int N)
 {
 	if (N < 0)
 		mapCount[PartName] = 0;
@@ -116,17 +141,15 @@ int Cut::Count(std::string PartName, int N)
 }
 
 /***** Purification of events, will also add background contribution ********/
-void Cut::Purify(std::string Channel)
+void Background::Purify(std::string Channel)
 {
 	for (iP = vParticle.begin(); iP != vParticle.end(); )
 	{
-		if ((*iP)->E() < TheBox->GetElement("ThrHadron"))	//hadron (proton) activity
-		{
-			if ((*iP)->PdgCode == 2212 ||
-			    (*iP)->PdgCode == 22222222 )
-			Count("Hadron", 1);	//count the protons // will need reliable efficiencies
-		}
-		else switch(GetChannel())
+		//if(PurifyHadron(*iP))	//check if hadron first, if so I can remove it
+		//	iP = vParticle.erase(iP);
+
+		//else switch(mapChan[Channel])
+		switch(mapChan[Channel])
 		{
 			/*
 			case _ALL:
@@ -183,13 +206,28 @@ void Cut::Purify(std::string Channel)
 			case _nKA0:
 				Result = nKA0();
 			*/
+			default:
+				++iP;
 				break;
 		}
 	}
 }
 
+bool Background::PurifyHadron(Particle *iP)	//here everything not selected by cut
+{
+	if (iP->E() > TheBox->GetElement("ThrHadron"))	//hadron (proton) activity
+	{
+		if (iP->PdgCode() == 311)	//Count kaons
+			Count("Kaon", 1);
+		else if (iP->Charge() != 0 && iP->PdgCode() > 100)		//I can see charged hadrons
+			Count("Hadron", 1);	//count the protons // will need reliable efficiencies
+		else Count("Uknown", 1);
+	}
+	else Count("UnderThr", 1);
+}
+
 /*
-bool Cut::PurifynEE(Particle *iP)
+bool Background::PurifynEE(Particle *iP)
 {
 	bool Ret = true;
 
@@ -204,7 +242,7 @@ bool Cut::PurifynEE(Particle *iP)
 	return Ret;
 }
 
-bool Cut::PurifynEMU(Particle *iP)
+bool Background::PurifynEMU(Particle *iP)
 {
 	bool Ret = true;
 
@@ -225,7 +263,7 @@ bool Cut::PurifynEMU(Particle *iP)
 	return Ret;
 }
 
-bool Cut::PurifynPI0(Particle *iP)
+bool Background::PurifynPI0(Particle *iP)
 {
 	bool Ret = true;
 
@@ -252,7 +290,7 @@ bool Cut::PurifynPI0(Particle *iP)
 	return Ret;
 }
 
-bool Cut::PurifyEPI(Particle *iP)	//Possible background is photon?
+bool Background::PurifyEPI(Particle *iP)	//Possible background is photon?
 {
 	bool Ret = true;
 
@@ -281,7 +319,7 @@ bool Cut::PurifyEPI(Particle *iP)	//Possible background is photon?
 	return Ret;
 }
 
-bool Cut::PurifynMUMU(Particle *iP)
+bool Background::PurifynMUMU(Particle *iP)
 {
 	bool Ret = true;
 
@@ -306,11 +344,11 @@ bool Cut::PurifynMUMU(Particle *iP)
 	return Ret;
 }
 */
-bool Cut::PurifyMUPI(Particle *iP)	//need to add smearing
+bool Background::PurifyMUPI(Particle *iP)	//need to add smearing
 {
 	bool Ret = true;
 
-	if (iP->PdgCode == 13)		//Muon
+	if (iP->PdgCode() == 13)		//Muon
 	{
 		if (iP->E() < TheBox->GetElement("ThrMuon"));	//can't detect
 			Ret = false;
@@ -325,7 +363,7 @@ bool Cut::PurifyMUPI(Particle *iP)	//need to add smearing
 			else Count("Muon", 1);	//is really a muon
 		}
 	}
-	else if (iP->PdgCode == 211)	//Pion+
+	else if (iP->PdgCode() == 211)	//Pion+
 	{
 		if (iP->E() < TheBox->GetElement("ThrPion"));	//can't detect
 			Ret = false;
@@ -339,75 +377,55 @@ bool Cut::PurifyMUPI(Particle *iP)	//need to add smearing
 			}
 			else Count("Pion", 1);	//is really a pion
 	}
-	else Ret = false;
+	else 	//check if is charged hadron
+	{
+		PurifyHadron(iP);
+		Ret = false;
+	}
 
 	return Ret;
 }
 
 /***** Idenfitication of events, by counting the tracks ********/
-bool Cut::Identify(std::string Channel)
+bool Background::Identify(std::string Channel, int NEvt)
 {
-	bool Ret = true;
-
-	std::map<std::string, int>::iterator im = mapCount.begin();
-
-	while (Ret || im != mapCount.end())
+	switch(mapChan[Channel])
 	{
-		if (im->first != "Hadron")	//keep hadrons	
-			switch(GetChannel())
-			{
-				/*
-				case _ALL:
-					break;
-				case _nnn:
-					break;
-				case _nGAMMA:
-					break;
-				*/
-				case _nEE:
-					if (!IdentifynEE(im->first, im->second))
-						Ret = false;
-					break;
-				case _nEMU:
-					if (!IdentifynEMU(im->first, im->second))
-						Ret = false;
-					break;
-				case _nMUE:
-					if (!IdentifynEMU(im->first, im->second))
-						Ret = false;
-					else ++iP;
-					break;
-				case _nPI0:
-					if (!IdentifynPI0(im->first, im->second))
-						Ret = false;
-					break;
-				case _EPI:
-					if (!IdentifyEPI(im->first, im->second))
-						Ret = false;
-					else ++iP;
-					break;
-				case _nMUMU:
-					if (!IdentifynMUMU(im->first, im->second))
-						Ret = false;
-					break;
-				case _MUPI:
-					if (!IdentifyMUPI(im->first, im->second))
-						Ret = false;
-					break;
-				/*
-				case _EKA:
-					break;
-				case _nKA0:
-					break;
-				*/
-			}
-
-			++im;	//increment pointer
-		}
-	}	
+		/*
+		case _ALL:
+			break;
+		case _nnn:
+			break;
+		case _nGAMMA:
+			break;
+		*/
+		case _nEE:
+			return IdentifynEE();
+		case _nEMU:
+			return IdentifynEMU();
+		case _nMUE:
+			return IdentifynMUE();
+		case _nPI0:
+			return IdentifynPI0();
+		case _EPI:
+			return IdentifyEPI();
+		case _nMUMU:
+			return IdentifynMUMU();
+		case _MUPI:
+			if (IdentifyMUPI())
+				LoadTree(NEvt, 13, 211);	//Load the mu and the pi
+			break;
+		/*
+		case _EKA:
+			break;
+		case _nKA0:
+			break;
+		*/
+	}
 }
+
 /*
-bool Cut::IdentifynEE(Particle *iP)
+bool Background::IdentifynEE()
 {
 	bool Ret = true;
 
@@ -435,7 +453,7 @@ bool Cut::IdentifynEE(Particle *iP)
 	return Ret;
 }
 
-bool Cut::IdentifynEMU(Particle *iP)
+bool Background::IdentifynEMU()
 {
 	bool Ret = true;
 
@@ -459,7 +477,7 @@ bool Cut::IdentifynEMU(Particle *iP)
 	return Ret;
 }
 
-bool Cut::IdentifynPI0(Particle *iP)
+bool Background::IdentifynPI0()
 {
 	bool Ret = true;
 
@@ -480,7 +498,7 @@ bool Cut::IdentifynPI0(Particle *iP)
 	return Ret;
 }
 
-bool Cut::IdentifyEPI(Particle *iP)	//Possible background is photon?
+bool Background::IdentifyEPI()	//Possible background is photon?
 {
 	bool Ret = true;
 
@@ -501,58 +519,108 @@ bool Cut::IdentifyEPI(Particle *iP)	//Possible background is photon?
 	return Ret;
 }
 
-bool Cut::IdentifynMUMU(Particle *iP)
+bool Background::IdentifynMUMU()
 {
-	bool Ret = true;
+	bool IsOther = false, IsMuon = false;
 
 	std::map<std::string, int>::iterator im = mapCount.begin();
 	for ( ; im != mapCount.end(); ++im)
 	{
-		if (im->second == 1)
+		if (im->first == "Muon")	//Look for 2 muon
 		{
-			if (im->first == "Muon")
-				Ret *= true;
-			else if (im->first == "Pion")
-				Ret *= true;
-			else false;
+			if (im->second == 2)
+				IsMuon = true;
+			else IsMuon = false;
 		}
-		else Ret = false;
+		else if (im->first == "Nuclear")	//what should I do?
+		{
+		}
+		else 
+		{
+			if (im->second > 0)
+				IsOther += true;
+		}
 	}
 
-	return Ret;
+	return !IsOther * IsMuon; 	//0 others, 1 pi, 2 mu
 }
 */
-bool Cut::IdentifyMUPI(std::string PartName, int Num)	//need to add smearing
+bool Background::IdentifyMUPI()	//need to add smearing
 {
-	bool Ret = true;
-	bool IsMuon, IsPion;
+	bool IsOther = false, IsMuon = false, IsPion = false;
 
 	std::map<std::string, int>::iterator im = mapCount.begin();
 	for ( ; im != mapCount.end(); ++im)
 	{
-		if (im->second == 1)
+		if (im->first == "Muon")	//Look for 1 muon
 		{
-			if (im->first == "Muon") 	//1 Muon : OK
+			if (im->second == 1)
 				IsMuon = true;
-			else if (im->first == "Pion")	//1 Pion : OK
-				IsPion = true;
-			else Ret = false;		//1 other : X
+			else IsMuon = false;
 		}
-		else if (im->second == 0)
+		else if (im->first == "Pion")	//Look for 1 pion
 		{
-			if (im->first != "Muon" && im->first != "Pion") //0 other : OK
-				Ret = true;
-			else false;			//0 Muon or 0 Pion : X
+			if (im->second == 1)
+				IsPion = true;
+			else IsPion = false;
 		}
-		else Ret = false;
+		else if (im->first == "Nuclear")	//what should I do?
+		{
+		}
+		else 
+		{
+			if (im->second > 0)
+				IsOther += true;
+		}
 	}
 
-	return Ret*IsMuon*IsPion;
+	return !IsOther * IsMuon * IsPion; 	//0 others, 1 pi, 1 mu
+}
+
+void Background::LoadTree(int idEvent, int pdgA, int pdgB)
+{
+	ID = idEvent; 
+
+	TLorentzVector InA, InB;
+	for (iP = vParticle.begin(); iP != vParticle.end(); ++iP)
+	{
+		if (iP->PdgCode() == pdgA)
+		{
+			EnergyA = iP->E();
+			MomentA = iP->P();
+			TransvA = iP->Pt();
+			ThetaA = iP->Theta();
+			PhiA = iP->Phi();
+			MassA = iP->M();
+			InA = iP->GetP4();
+		}
+		else if (iP->PdgCode() == pdgB)
+		{
+			EnergyB = iP->E();
+			MomentB = iP->P();
+			TransvB = iP->Pt();
+			ThetaB = iP->Theta();
+			PhiB = iP->Phi();
+			MassB = iP->M();
+			InB = iP->GetP4();
+		}
+	}
+
+	TLorentzVector Reco = InA+InB;
+
+	Energy0 = Reco.E();
+        Moment0 = Reco.P();
+        Transv0 = Reco.Pt();
+        Theta0 = Reco.Theta(
+        Phi0 = Reco.Phi();
+        Mass0 = Reco.M();
+
+	Data->Fill();
 }
 
 
 //Treat pi0 decay into 2 photons
-void Cut::Pi0Decay(Particle *Pi0, Particle *PA, Paticle *PB)
+void Background::Pi0Decay(Particle *Pi0, Particle *PA, Paticle *PB)
 {
 	TLorentzVector GammaA(0, 0, M_Pion0/2.0, M_Pion0/2.0); 
 	TLorentzVector GammaA(0, 0, -M_Pion0/2.0, M_Pion0/2.0); 
