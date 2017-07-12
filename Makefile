@@ -19,6 +19,7 @@ include $(GENIE)/src/make/Make.include
 #Main executable to be compiled
 NEW =	Exclusion	\
 	EvGen	\
+	GenBack	\
 	#Simulation	\
 	#Kine	\
 	DecayPlot	\
@@ -36,11 +37,12 @@ TGT :=  $(NEW:%=$(SRC_DIR)/Apps/%)
 DEP =	Tools/Tools		\
 	DecayRates/DecayRates	\
 	DecayRates/3Body	\
-	SterileFlux/FluxDriver	\
 	SterileFlux/Flux		\
+	SterileFlux/FluxDriver	\
 	EventGenerator/EventGenerator	\
 	Detector/Detector	\
-	Cut/Particle
+	Particle/Particle	\
+	Background/Background
 
 INC_DIR := $(patsubst %,-I$(SRC_DIR)/%,$(subst /, ,$(DEP)))
 DEP :=  $(DEP:%=$(SRC_DIR)/%.o)

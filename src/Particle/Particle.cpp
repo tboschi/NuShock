@@ -5,16 +5,16 @@ Particle::Particle(genie::GHepParticle *Candidate, double PosX, double PosY, dou
 {
 	SetP4(*(Candidate->P4()));
 	SetPdg(abs(Candidate->Pdg()));
-	SetCharge(Candidate->Charge());
+	SetCharge(Candidate->Charge()/3);	//genie use e/3 charge
 	SetX(PosX);
 	SetY(PosY);
 	SetZ(PosZ);
 }
 
 //manual ctor
-Particle::Particle(int PdgCode, double Charge, TLorentzVector *Vector, double PosX, double PosY, double PosZ)
+Particle::Particle(int PdgCode, double Charge, TLorentzVector &Vector, double PosX, double PosY, double PosZ)
 {
-	SetP4(*Vector);
+	SetP4(Vector);
 	SetPdg(abs(PdgCode));
 	SetCharge(Charge);
 	SetX(PosX);
@@ -22,103 +22,117 @@ Particle::Particle(int PdgCode, double Charge, TLorentzVector *Vector, double Po
 	SetZ(PosZ);
 }
 
+Particle::Particle(int PdgCode, double Charge, TLorentzVector &Vector, TVector3 &Position)
+{
+	SetP4(Vector);
+	SetPdg(abs(PdgCode));
+	SetCharge(Charge);
+	SetPosition(Position);
+}
+
 //copy ctor
 Particle::Particle(const Particle &P)
 {
-	SetP4(P.GetP4());
+	SetP4(P.Px(), P.Py(), P.Pz(), P.E());
 	SetPdg(abs(P.Pdg()));
-	SetCharge(P.Charge);
-	SetPosition(P.Position());
+	SetCharge(P.Charge());
+	SetPosition(P.X(), P.Y(), P.Z());
 }
 
-int Particle::Pdg()
+int Particle::Pdg() const
 {
 	return iPdg;
 }
 
-double Particle::Charge()
+int Particle::Charge() const
 {
-	return dCharge;
+	return iCharge;
 }
 
-TLorentzVector Particle::GetP4()
+TLorentzVector Particle::GetP4() const
 {
 	return P4;
 }
 
-double Particle::M()
+double Particle::M() const
 {
 	return P4.M();
 }
 
-double Particle::E()
+double Particle::E() const
 {
 	return P4.E();
 }
 
-double Particle::Ekin()
+double Particle::Ekin() const
 {
 	return P4.E() - P4.M();
 }
 
-double Particle::P()
+double Particle::P() const
 {
 	return P4.P();
 }
 
-double Particle::Pt()
+double Particle::Pt() const
 {
 	return P4.Pt();
 }
 
-double Particle::Px()
+double Particle::Px() const
 {
 	return P4.Px();
 }
 
-double Particle::Py()
+double Particle::Py() const
 {
 	return P4.Py();
 }
 
-double Particle::Pz()
+double Particle::Pz() const
 {
 	return P4.Pz();
 }
 
-double Particle::Theta()
+double Particle::Theta() const
 {
 	return P4.Theta();
 }
 
-double Particle::Phi()
+double Particle::Phi() const
 {
 	return P4.Phi();
 }
 
-TVector3 Particle::Position()
+TVector3 Particle::Position() const
 {
 	return Pos;
 }
 
-double Particle::X()
+double Particle::X() const
 {
 	return Pos.X();
 }
 
-double Particle::Y()
+double Particle::Y() const
 {
 	return Pos.Y();
 }
 
-double Particle::Z()
+double Particle::Z() const
 {
 	return Pos.Z();
 }
 
+////////
 void Particle::SetPdg(int X)
 {
 	iPdg = X;
+}
+
+void Particle::SetCharge(int X)
+{
+	iCharge = X;
 }
 
 void Particle::SetP4(TLorentzVector &V)
@@ -127,6 +141,14 @@ void Particle::SetP4(TLorentzVector &V)
 	P4.SetPx(V.Px());
 	P4.SetPy(V.Py());
 	P4.SetPz(V.Pz());
+}
+
+void Particle::SetP4(double Px, double Py, double Pz, double E)
+{
+	P4.SetE(E);
+	P4.SetPx(Px);
+	P4.SetPy(Py);
+	P4.SetPz(Pz);
 }
 
 void Particle::SetE(double E)

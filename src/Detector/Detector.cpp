@@ -104,11 +104,12 @@ double Detector::Efficiency(std::string Channel, double Energy)
 }
 
 //detector effect and smearing
-
+/*
 double Detector::GausSmearing(TRandom3 *RanGen, double Mean, double Sigma)
 {
 	return RanGen->Gaus(Mean, Sigma);
 }
+*/
 
 bool Detector::IsDetectable(Particle *P)	//Threshold check
 {
@@ -125,7 +126,7 @@ bool Detector::IsDetectable(Particle *P)	//Threshold check
 	}
 	else if (P->Pdg() == 2212)	//proton
 	{
-		if (P->Ekin() > GetElement("ThrNuclear"))
+		if (P->Ekin() > GetElement("ThrHadron"))
 			Ret = true;
 	}
 	else if (P->Pdg() == 22)	//photon
@@ -143,27 +144,22 @@ void Detector::SignalSmearing(TRandom3 *RanGen, Particle *P)
 	double iTheta = P->Theta();
 	double iPhi = P->Phi();
 
-	double SigmaEz;
 	double SigmaA = GetElement("ResAngle");
 	double SigmaZt = GetElement("Vertex");			//2 is for fiducial volume of 35%
 
 	double Length = TrackLength(P);
-	switch(P->Pdg())
-	{
-		case 14:
-			SigmaEz = sqrt(iE) * GetElement("ResMuon");
-			break;
-		case 211:
-			SigmaEz = sqrt(iE) * GetElement("ResPion");
-			break;
-		case 2212:
-			SigmaEz = sqrt(iE) * GetElement("ResNuclear");
-			break;
-		default:
-			break;
-	}
+	double Resolution;
+	if (P->Pdg() == 11 && P->Pdg() == 22)
+		Resolution = GetElement("ResGamma");
+	else if (P->Pdg() == 13)
+		Resolution = GetElement("ResMuon");
+	else if (P->Pdg() == 211)
+		Resolution = GetElement("ResPion");
+	else if (P->Charge() != 0)
+		Resolution = GetElement("ResHadron");
+	else Resolution = 0;
+	double SigmaEz = sqrt(iE) * Resolution;
 	//double SigmaP = sqrt(1.5) * TheBox->GetElement("Vertex") * 8.0*iP*iP * 2.0 / (TheBox->GetElement("Bfield") * pow(TheBox->GetElement("Length"),2));
-
 	double SigmaE = sqrt(pow(SigmaEz,2)*pow(GetElement("Length"),2) + pow(SigmaZt,2)*iE);
 
 	P->SetE(RanGen->Gaus(iE, SigmaE));
@@ -199,6 +195,13 @@ double Detector::TrackLength(Particle *P)	//This should not change *P
 	//P->SetPosition(Proj);
 
 	return Length;
+}
+
+double Detector::InteractionLength()
+{
+	if (GetElement("Target") == 1)	//Argon
+		return Kine::RadiationLength(18, 40);
+	else return 0.0;
 }
 
 double Detector::EnergyLoss(double Beta, double Mass)

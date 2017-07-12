@@ -274,8 +274,8 @@ int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of pr
 		case _nPI0:
 			Mass[0] = M_Pion0;
 			Mass[1] = M_Neutrino;		//Invisible particle
-			PdgCode[0] = 12;
-			PdgCode[1] = 111;
+			PdgCode[0] = 111;
+			PdgCode[1] = 12;
 			Products = 2 * Event->SetDecay(*N_vec, 2, Mass);
 			Weight = Event->Generate();
 			break;
@@ -376,8 +376,8 @@ double Decay::nnn()
 	{
 		if (M_Sterile >= 3 * M_Neutrino)
 		{
-			fnnn = mapEnhance["nnn"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
-			       (U_e*U_e + U_m*U_m + U_t*U_t) / (96.0 * genie::constants::kPi3);
+			fnnn = mapEnhance["nnn"] * Const::fGF2 * pow(M_Sterile, 5) * 
+			       (U_e*U_e + U_m*U_m + U_t*U_t) / (96.0 * Const::fPi3);
 		}
 		else fnnn = 0.0;
 	}
@@ -391,10 +391,10 @@ double Decay::nGAMMA()
 	{
 		if (M_Sterile >= M_Neutrino + M_Photon)
 		{
-			double AemPi = genie::constants::kAem / genie::constants::kPi;
-			fnGAMMA = mapEnhance["nGAMMA"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
+			double AemPi = Const::fAem / Const::fPi;
+			fnGAMMA = mapEnhance["nGAMMA"] * Const::fGF2 * pow(M_Sterile, 5) *
 			       (U_e*U_e + U_m*U_m + U_t*U_t) * (27.0/32.0 * AemPi) /
-			       (192.0 * genie::constants::kPi3);
+			       (192.0 * Const::fPi3);
 		}
 		else fnGAMMA = 0.0;
 	}
@@ -419,9 +419,9 @@ double Decay::nEE()
 			double KF_mt = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
 			//double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
 	
-			fnEE = mapEnhance["nEE"] * genie::constants::kGF2 * pow(M_Sterile, 5) * 
+			fnEE = mapEnhance["nEE"] * Const::fGF2 * pow(M_Sterile, 5) * 
 				(U_e*U_e * KF_e + (U_m*U_m + U_t*U_t) * KF_mt) / 
-				(96.0 * genie::constants::kPi3);
+				(96.0 * Const::fPi3);
 		}
 		else fnEE = 0.0;
 	}
@@ -454,8 +454,8 @@ double Decay::nLeptonW(double m1, double m2)	//it is doubled for the cc conjugat
 		double dM2 = m2 / M_Sterile;
 		double dMn = M_Neutrino / M_Sterile;
 
-		return 2.0 * genie::constants::kGF2 * pow(M_Sterile, 5) * Kine::I1_xyz(dM1, dMn, dM2) /
-			(192.0 * genie::constants::kPi3);
+		return 2.0 * Const::fGF2 * pow(M_Sterile, 5) * Kine::I1_xyz(dM1, dMn, dM2) /
+			(192.0 * Const::fPi3);
 	}
 	return 0.0;
 }       
@@ -469,10 +469,10 @@ double Decay::nPI0()
 		{
 			double dMp2 = M_Pion0*M_Pion0/M_Sterile/M_Sterile;
 	
-			fnPI0 = mapEnhance["nPI0"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+			fnPI0 = mapEnhance["nPI0"] * Const::fGF2 * pow(M_Sterile, 3) *
 				(U_e*U_e + U_m*U_m + U_t*U_t) * 
 				pow((1.0-dMp2), 2.0) * Const::fFPion2 / 
-				(64.0 * genie::constants::kPi);
+				(64.0 * Const::fPi);
 		}
 		else fnPI0 = 0.0;
 	}
@@ -490,10 +490,10 @@ double Decay::EPI()
 			double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
 			double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
 	
-			fEPI = 2.0 * mapEnhance["EPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+			fEPI = 2.0 * mapEnhance["EPI"] * Const::fGF2 * pow(M_Sterile, 3) *
 			       U_e*U_e * 
 			       pow(Const::fV_ud, 2.0) * Const::fFPion2 * Kine::I1_xy(dMe2, dMp2) / 
-			       (16.0 * genie::constants::kPi);
+			       (16.0 * Const::fPi);
 		}
 		else fEPI = 0.0;
 	}
@@ -518,9 +518,9 @@ double Decay::nMUMU()
 			double KF_e = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
 			//double KF_t = (gL*gR) * I2_xyz(dMn, dMe, dMe) + (gL*gL + gR*gR)*I1_xyz(dMn, dMe, dMe);
 	
-			fnMUMU = mapEnhance["nMUMU"] * genie::constants::kGF2 * pow(M_Sterile, 5) *
+			fnMUMU = mapEnhance["nMUMU"] * Const::fGF2 * pow(M_Sterile, 5) *
 				 (U_m*U_m * KF_m + (U_e*U_e + U_t*U_t) * KF_e) /
-		       		 (96.0 * genie::constants::kPi3);
+		       		 (96.0 * Const::fPi3);
 		}
 		else fnMUMU = 0.0;
 	}
@@ -538,10 +538,10 @@ double Decay::MUPI()
 			double dMm2 = M_Muon*M_Muon/M_Sterile/M_Sterile;
 			double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
 	
-			fMUPI = 2.0 * mapEnhance["MUPI"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+			fMUPI = 2.0 * mapEnhance["MUPI"] * Const::fGF2 * pow(M_Sterile, 3) *
 			        U_m*U_m * 
 			        pow(Const::fV_ud, 2.0)*Const::fFPion2 * Kine::I1_xy(dMm2, dMp2) /
-			        (16.0 * genie::constants::kPi);
+			        (16.0 * Const::fPi);
 		}
 		else fMUPI = 0.0;
 	}
@@ -559,10 +559,10 @@ double Decay::EKA()
 			double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
 			double dMk2 = M_Kaon*M_Kaon/M_Sterile/M_Sterile;
 	
-			fEKA = 2.0 * mapEnhance["EKA"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+			fEKA = 2.0 * mapEnhance["EKA"] * Const::fGF2 * pow(M_Sterile, 3) *
 			       U_e*U_e * 
 			       pow(Const::fV_us, 2.0) * Const::fFKaon2 * Kine::I1_xy(dMe2, dMk2) /
-			       (16.0 * genie::constants::kPi);
+			       (16.0 * Const::fPi);
 		}
 		else fEKA = 0.0;
 	}
@@ -579,10 +579,10 @@ double Decay::nKA0()
 		{
 			double dMk2 = M_Kaon0*M_Kaon0/M_Sterile/M_Sterile;
 	
-			fnKA0 = mapEnhance["nKA0"] * genie::constants::kGF2 * pow(M_Sterile, 3) *
+			fnKA0 = mapEnhance["nKA0"] * Const::fGF2 * pow(M_Sterile, 3) *
 				(U_e*U_e + U_m*U_m + U_t*U_t) * 
 				Const::fFKaon2 * pow((1.0-dMk2), 2.0) / 
-				(64.0 * genie::constants::kPi);
+				(64.0 * Const::fPi);
 		}
 		else fnKA0 = 0.0;
 	}

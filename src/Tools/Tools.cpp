@@ -114,3 +114,19 @@ double Kine::Bethe(double Beta, double Mass, double Density, double I, int Z, in
 	double LogArg = 2 * Const::fMElectron * Beta2 * Gamma2 * Wmax / (I*I); 
 	return 0.1 * Density * (K * Z) / (A * Beta2) * (0.5 * log (LogArg) - Beta2);
 }
+
+double Kine::RadiationLength(int Z, int A)
+{
+	double K = 716.408;
+	double L0 = log(184.15 * pow(Z, -1.0/3.0));
+	double L1 = log(1194 * pow(Z, -2.0/3.0));
+
+	return 1.0 / (K/A * (Z*Z*(L0 - Radiation(Z)) + Z*L1));
+}
+
+double Kine::Radiation(int Z)
+{
+	double a = Const::fAem * Z;
+	
+	return a*a * ( 1.0/(1+a*a) + 0.20206 - 0.0369*a*a + 0.0083*pow(a,4) - 0.002*pow(a,6));
+}

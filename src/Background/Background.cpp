@@ -1,7 +1,6 @@
 #include "Background.h"
 
-
-Background::Background(std::string EventDB, std::string DetectorConfig, int Nevt)	: //Decay rates calculator
+Background::Background(std::string EventDB, std::string DetectorConfig)	: //Decay rates calculator
 	M_Neutrino(0.0),
 	M_Photon(0.0),
 	M_Electron(Const::fMElectron),
@@ -11,28 +10,49 @@ Background::Background(std::string EventDB, std::string DetectorConfig, int Nevt
 	M_Kaon(Const::fMKaon),
 	M_Kaon0(Const::fMKaon0)
 {
+	std::cout << "H0" << std::endl;
 	//GetCommandLineArgs (argc, argv);	//Useful?
-	TTree *Gtree = 0;
-	genie::NtpMCTreeHeader *Gthdr = 0;
- 	TFile InFile(Channel.c_str(), "READ");
- 	Gtree = dynamic_cast<TTree*>           (InFile.Get("gtree"));
- 	Gthdr = dynamic_cast<NtpMCTreeHeader*> (InFile.Get("header"));
- 	if(!Gtree)
-	       return 1;
+	std::cout << "H1" << std::endl;
+	//genie::NtpMCTreeHeader *Gthdr = 0;
+ 	InFile = new TFile(EventDB.c_str(), "READ");
+	InFile->cd();
+	std::cout << "H2" << std::endl;
+	genie::NtpMCTreeHeader *thdr = 0;
+ 	Genie = dynamic_cast<TTree*> (InFile->Get("gtree"));
+	thdr = dynamic_cast<genie::NtpMCTreeHeader *> (InFile->Get("header"));
+	std::cout << "H3" << std::endl;
+ 	if(!Genie)
+		std::cout << "No tree found in genie file" << std::endl;
+	std::cout << Genie->GetEntries() << std::endl;
+	std::cout << "H4" << std::endl;
 
-	genie::NtpMCEventRecord *Gmcrec = 0;
- 	Gtree->SetBranchAddress("gmcrec", &Gmcrec);
+	std::cout << "H5" << std::endl;
+	//gEvRec = 0;
+ 	//Genie->SetBranchAddress("gmcrec", &gEvRec);
+	//std::cout << "mcrec " << gEvRec << std::endl;
+ 	//Genie->SetBranchStatus("*", 0);
+ 	//Genie->SetBranchStatus("gmcrec", 1);
+	std::cout << "H6" << std::endl;
  	// Get the nbr of evts to analyse (-n argument)
  	//NEV = (gOptNEvt > 0) ? TMath::Min(gOptNEvt, Gtree->GetEntries()) : (int)Gtree->GetEntries();
- 	NEvt = Gtree->GetEntries();
+	std::cout << "H7" << std::endl;
+	std::cout << Genie << std::endl;
+ 	NEvt = Genie->GetEntries();
+	std::cout << "H8" << NEvt<< std::endl;
 
 	TheBox = new Detector(DetectorConfig);
+	std::cout << "H9" << std::endl;
 
 	GenMT = new TRandom3;
+	std::cout << "H10" << std::endl;
 
+	/*
 	Data = new TTree("Data", "All data from GENIE");
+	std::cout << "H11" << std::endl;
 
 	Data->Branch("ID", &ID, "iID/i");	//global event ID
+	std::cout << "H12" << std::endl;
+	Data->Branch("NH", &Hadron, "iHadron/i");	//global event ID
 
 	//Particle A
 	Data->Branch("E_A", &EnergyA, "fEnergyA/D");
@@ -57,6 +77,8 @@ Background::Background(std::string EventDB, std::string DetectorConfig, int Nevt
 	Data->Branch("The0", &Theta0, "fTh0ta0/D");
 	Data->Branch("Phi0", &Phi0, "fPhi0/D");
 	Data->Branch("M_0", &Mass0, "fMass0/D");
+	std::cout << "H13" << std::endl;
+	*/
 }
 
 //Initialisation of map
@@ -76,569 +98,445 @@ void Background::MapInit()
 	mapChan["nKA0"] = _nKA0;
 }
 
-void Background::Loop(std::string Channel)
+TTree *Background::GetTree()
 {
-	for (unsigned int i = 0; i < NEvt; ++i)
+	//return Data;
+}
+
+//Load tree
+void Background::LoadTree()
+{
+	if (ParticleA == 0 || ParticleB == 0)
+		std::cout << "You lost a particle!" << std::endl;
+	else 
 	{
-		Gtree->GetEntry(i);
-		EventRecord & Gevent = *(Gmcrec->event);
-		GHepParticle * neu = Gevent.Probe();
-
-		//TLorentzVector & neu4vec = *(neu->P4());
-		//double total_xs = (XS_graph == 0) ? 1 : XS_graph->Eval(neu->E());
-		//hinProbe->Fill(neu4vec.E());
-
-		GHepParticle * p = 0;
-		TIter event_iter(&Gevent);
-
-		double PosX = GenMT->Uniform(TheBox->GetXsize());
-		double PosY = GenMT->Uniform(TheBox->GetYsize());
-		double PosZ = GenMT->Uniform(TheBox->GetZsize());
+		EnergyA = ParticleA->E();
+		MomentA = ParticleA->P();
+		TransvA = ParticleA->Pt();
+		ThetaA = ParticleA->Theta();
+		PhiA = ParticleA->Phi();
+		MassA = ParticleA->M();
 	
-		vParticle.clear();	//reset particle array at each loop
-		mapCount.clear();	//reset particle counting at every event
-		while((CdHep = dynamic_cast<genie::GHepParticle *>(event_iter.Next())))	//loop on all particles
-		{									//inside the event
-			if (CdHep->Status() == 1)
-			{
-				if (CdHep->Pdg() == 211 ||		//special treatments for pi0
-				    CdHep->Pdg() == -211)
-				{
-					Particle *PhotonA, *PhotonB;
-					Pi0Decay(CreateParticle(CdHep, PosX, PosY, PosZ), PhotonA, PhotonB);
-					vParticle.push_back(PhotonA);
-					vParticle.push_back(PhotonB);
-				}
-				else if (CdHep->Pdg() < 1000000000 && 	//no nucleus
-				         CdHep->Pdg() > -1000000000) 	//no nucleus
-					vParticle.push_back(CreateParticle(CdHep, PosX, PosY, PosZ));		//Everything detectable
-			}			//sould contains muons, electron, pions, protons
-		}
+		EnergyB = ParticleB->E();
+		MomentB = ParticleB->P();
+		TransvB = ParticleB->Pt();
+		ThetaB = ParticleB->Theta();
+		PhiB = ParticleB->Phi();
+		MassB = ParticleB->M();
 
-		Purify(Channel);
-		Identify(Channel, i);
+		TLorentzVector Reco = ParticleA->GetP4() + ParticleB->GetP4();
+	
+		Energy0 = Reco.E();
+	        Moment0 = Reco.P();
+	        Transv0 = Reco.Pt();
+	        Theta0 = Reco.Theta();
+	        Phi0 = Reco.Phi();
+	        Mass0 = Reco.M();
 
-		//Ready for output
+		//Data->Fill();
 	}
 }
 
-Particle* Background::CreateParticle(GHepParticle *Hep, double PosX, double PosY, double PosZ)
+
+void Background::Loop(std::string Channel)
 {
-	Particle *P = new Particle(Hep->Pdg(), Hep->Charge(), Hep->P4(), PosX, PosY, PosZ);
+	std::cout << Genie << std::endl;
+	std::cout << Genie->GetEntries() << std::endl;
+	std::cout << "o0" << std::endl;
+	genie::NtpMCEventRecord * gEvRec = 0;
+	std::cout << Genie->GetEntries() << std::endl;
+	std::cout << "o1" << std::endl;
+ 	Genie->SetBranchAddress("gmcrec", &gEvRec);
+	std::cout << "o2" << std::endl;
+	std::cout << "NEvt " << NEvt << std::endl;
+	std::cout << "o3" << std::endl;
+	for (ID = 1; ID < NEvt; ++ID)
+	{
+		std::cout << "L0" << std::endl;
+		std::cout << "GetEntry " << Genie->GetEntry(ID) << std::endl;;	//get event from ID
+		std::cout << "L1" << std::endl;
+
+		/*
+		//random position for event
+		double PosX = GenMT->Uniform(TheBox->GetXsize());
+		double PosY = GenMT->Uniform(TheBox->GetYsize());
+		double PosZ = GenMT->Uniform(TheBox->GetZsize());
+		std::cout << "L2" << std::endl;
+
+		vParticle.clear();	//reset particle array at each loop
+		std::cout << "L3" << std::endl;
+
+		genie::EventRecord & gEvent = *(gEvRec->event);
+		std::cout << "L4" << std::endl;
+		genie::GHepParticle * neu = gEvent.Probe();	//get probe
+		std::cout << "L5" << std::endl;
+		genie::GHepParticle * Hep = 0;	//particle pointer for loop in event
+		std::cout << "L6" << std::endl;
+		TIter EvIter(&gEvent);		//iterate inside the same event, skip the probe
+		std::cout << "L7" << std::endl;
+
+		while((Hep = dynamic_cast<genie::GHepParticle *>(EvIter.Next())))	//loop on all particles
+		{									//inside the event
+			std::cout << "W0" << std::endl;
+			if (Hep->Status() == 1)
+			{
+			std::cout << "W1" << std::endl;
+				if (abs(Hep->Pdg()) == 111)		//special treatments for pi0
+				{					//almost 100% into 2y
+			std::cout << "W2" << std::endl;
+					Particle *PhotonA, *PhotonB;
+					Pi0Decay(CreateParticle(Hep, PosX, PosY, PosZ), PhotonA, PhotonB);	
+					vParticle.push_back(PhotonA);
+					vParticle.push_back(PhotonB);
+				}
+				else if (abs(Hep->Pdg()) < 1e9)	//no nucleus
+					vParticle.push_back(CreateParticle(Hep, PosX, PosY, PosZ));		//Everything detectable
+			std::cout << "W3" << std::endl;
+			}			//sould contains muons, electron, pions, protons, kaons and other strange and charmed kaons
+		}
+		*/
+		//Run through the collected particles
+		std::cout << "L8" << std::endl;
+		//CountParticles(Channel);
+		std::cout << "L9" << std::endl;
+		//Identify(Channel);
+		std::cout << "L10" << std::endl;
+	}
+}
+
+Particle* Background::CreateParticle(genie::GHepParticle *Hep, double PosX, double PosY, double PosZ)
+{
+	TVector3 Pos(PosX, PosY, PosZ);
+	TLorentzVector P4(*Hep->P4());
+	Particle *P = new Particle(Hep->Pdg(), Hep->Charge(), P4, Pos);
 
 	TheBox->SignalSmearing(GenMT, P);
 
 	return P;
 }
 
+
 int Background::Count(std::string PartName, int N)
 {
 	if (N < 0)
-		mapCount[PartName] = 0;
-	else mapCount[PartName] += N;
+		pCount[PartName] = 0;
+	else pCount[PartName] += N;
 
-	return mapCount[PartName];
+	return pCount[PartName];
 }
+
+void Background::ListCount()
+{
+	std::map<std::string, int>::iterator im = pCount.begin();
+	for ( ; im != pCount.end(); ++im)
+	{
+		std::cout << im->first << ": " << im->second << "\t";
+	}
+	std::cout << std::endl;
+}
+
+
+/***** Identification of single particles and counting *****/
+bool Background::CountParticles(std::string Channel)	//need to add smearing
+{
+	ParticleA = 0, ParticleB = 0;
+
+	for (iP = vParticle.begin(); iP != vParticle.end(); ++iP)
+	{
+		if ((*iP)->Pdg() == 13)		//Muon
+		{
+			if ((*iP)->Ekin() > TheBox->GetElement("ThrMuon"))	//can see it, else gnorri
+			{
+				if (TheBox->TrackLength(*iP) < 0.50 && GenMT->Rndm() > 0.5)	//likely a pion, 50:50 chance can be misidentified
+				{
+					(*iP)->SetPdg(211);
+					(*iP)->SetMass(M_Pion);
+					--iP;			//must recheck
+				}
+				else		//quite a muon!
+				{
+					Count("Muon");
+					switch (mapChan[Channel])
+					{
+						case _nEMU:
+							ParticleB = *iP;
+							break;
+						case _nMUE:
+							ParticleB = *iP;
+							break;
+						case _nMUMU:
+							!ParticleA ? ParticleA = *iP : ParticleB = *iP;	//Fill first PA, then PB
+							break;
+						case _MUPI:
+							ParticleA = *iP;
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		}
+		else if ((*iP)->Pdg() == 211)	//Pion+
+		{
+			if ((*iP)->Ekin() > TheBox->GetElement("ThrPion"));	//can't detect
+			{
+				if (TheBox->TrackLength(*iP) > 0.50 && GenMT->Rndm() > 0.5)	//likely a muon, 50:50 chance can be misidentified
+				{
+					(*iP)->SetPdg(13);
+					(*iP)->SetMass(M_Muon);
+					--iP;			//must recheck
+				}
+				else 		//quite a pion!
+				{
+					Count("Pion");
+					switch (mapChan[Channel])
+					{
+						case _EPI:
+							ParticleB = *iP;
+							break;
+						case _MUPI:
+							ParticleB = *iP;
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		}
+		else if ((*iP)->Pdg() == 11)	//Electron
+		{
+			if ((*iP)->Ekin() > TheBox->GetElement("ThrGamma"));	//quite an electron!
+			{
+				Count("Electron");
+				switch (mapChan[Channel])
+				{
+					case _nEE:
+						!ParticleA ? ParticleA = *iP : ParticleB = *iP;	//Fill first PA, then PB
+						break;
+					case _nEMU:
+						ParticleA = *iP;
+						break;
+					case _nMUE:
+						ParticleA = *iP;
+						break;
+					case _EPI:
+						ParticleB = *iP;
+						break;
+					default:
+						break;
+				}
+			}
+		}
+		else if ((*iP)->Pdg() == 22)	//Photons
+		{
+			if ((*iP)->Ekin() > 2*M_Electron)	//pair production can occur
+			{
+				if (GammaDecay() < 0.03)	//this photon could be an electron!
+				{
+					(*iP)->SetPdg(11);
+					(*iP)->SetMass(M_Electron);
+					--iP;			//must recheck
+				}
+				else
+				{
+					Count("Photon");
+					switch (mapChan[Channel])
+					{
+						case _nPI0:
+							!ParticleA ? ParticleA = *iP : ParticleB = *iP;	//Fill first PA, then PB
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		}
+		else IdentifyHadron(*iP);
+	}
+}
+
 
 /***** Purification of events, will also add background contribution ********/
-void Background::Purify(std::string Channel)
-{
-	for (iP = vParticle.begin(); iP != vParticle.end(); )
-	{
-		//if(PurifyHadron(*iP))	//check if hadron first, if so I can remove it
-		//	iP = vParticle.erase(iP);
-
-		//else switch(mapChan[Channel])
-		switch(mapChan[Channel])
-		{
-			/*
-			case _ALL:
-				Result = Total();
-				break;
-			case _nnn:
-				Result = nnn();
-				break;
-			case _nGAMMA:
-				Result = nGAMMA();
-				break;
-			*/
-			case _nEE:
-				if (!PurifynEE(*iP))
-					iP = vParticle.erase(iP);
-				else ++iP;
-				break;
-			case _nEMU:
-				if (!PurifynEMU(*iP))
-					iP = vParticle.erase(iP);
-				else ++iP;
-				break;
-			case _nMUE:
-				if (!PurifynEMU(*iP))
-					iP = vParticle.erase(iP);
-				else ++iP;
-				break;
-			case _nPI0:
-				if (!PurifynPI0(*iP))
-					iP = vParticle.erase(iP);
-				else ++iP;
-				break;
-			case _EPI:
-				Result = EPI();
-				if (!PurifyEPI(*iP))
-					iP = vParticle.erase(iP);
-				else ++iP;
-				break;
-			case _nMUMU:
-				Result = nMUMU();
-				if (!PurifynMUMU(*iP))
-					iP = vParticle.erase(iP);
-				else ++iP;
-				break;
-			case _MUPI:
-				if (!PurifyMUPI(*iP))
-					iP = vParticle.erase(iP);
-				else ++iP;
-				break;
-			/*
-			case _EKA:
-				Result = EKA();
-				break;
-			case _nKA0:
-				Result = nKA0();
-			*/
-			default:
-				++iP;
-				break;
-		}
-	}
-}
-
-bool Background::PurifyHadron(Particle *iP)	//here everything not selected by cut
-{
-	if (iP->E() > TheBox->GetElement("ThrHadron"))	//hadron (proton) activity
-	{
-		if (iP->PdgCode() == 311)	//Count kaons
-			Count("Kaon", 1);
-		else if (iP->Charge() != 0 && iP->PdgCode() > 100)		//I can see charged hadrons
-			Count("Hadron", 1);	//count the protons // will need reliable efficiencies
-		else Count("Uknown", 1);
-	}
-	else Count("UnderThr", 1);
-}
-
-/*
-bool Background::PurifynEE(Particle *iP)
-{
-	bool Ret = true;
-
-	if (iP->PdgCode == 11)		//Muon
-	{
-		if (GenMT->Rndm() < Alpha)
-			Ret = false;
-		else Count("Electron", 1);
-	}
-	else Ret = false;
-
-	return Ret;
-}
-
-bool Background::PurifynEMU(Particle *iP)
-{
-	bool Ret = true;
-
-	if (iP->PdgCode == 11)		//Electron
-	{
-		if (GenMT->Rndm() < Alpha)
-			Ret = false;
-		else Count("Electron", 1);
-	}
-	else if (iP->PdgCode == 13)	//Muon
-	{
-		if (GenMT->Rndm() < Alpha)
-			Ret = false;
-		else Count("Muon", 1);
-	}
-	else Ret = false;
-
-	return Ret;
-}
-
-bool Background::PurifynPI0(Particle *iP)
-{
-	bool Ret = true;
-
-	if (iP->PdgCode == 11)		//Electron
-	{
-		if (GenMT->Rndm() < Alpha)
-			Ret = false;
-		else Count("Electron", 1);
-	}
-	else if (iP->PdgCode == 111)	//Pion0
-	{
-		if (GenMT->Rndm() < Alpha)
-			Ret = false;
-		else Count("Pion0", 1);
-	}
-	else if (iP->PdgCode == 22)	//Photon
-	{
-		if (GenMT->Rndm() < Alpha)
-			Ret = false;
-		else Count("Photon", 1);
-	}
-	else Ret = false;
-
-	return Ret;
-}
-
-bool Background::PurifyEPI(Particle *iP)	//Possible background is photon?
-{
-	bool Ret = true;
-
-	if (iP->PdgCode == 11)		//Electron
-	{
-		if (GenMT->Rndm() < Alpha)
-			Ret = false;
-		else Count("Electron", 1);
-	}
-	else if (iP->PdgCode == 211)	//Pion+
-	{
-		if (GenMT->Rndm() < Alpha)
-			Ret = false;
-		else Count("Pion", 1);
-	}
-	else if (iP->PdgCode == 111) 	//Pion0 to be misidentified
-	{
-		Particle *PhotonA = new Particle();
-		Particle *PhotonB = new Particle();
-		if (GenMT->Rndm() < Alpha)
-			Ret = false;
-		else Count("Photon", 1);
-	}
-	else Ret = false;
-
-	return Ret;
-}
-
-bool Background::PurifynMUMU(Particle *iP)
-{
-	bool Ret = true;
-
-	if (iP->PdgCode == 13)		//Muon
-	{
-		if (GenMT->Rndm() < TheBox->GetElement("ThrMuon"));	//can't detect
-			Ret = false;
-		else Count("Muon", 1);
-	}
-	else if (iP->PdgCode == 211)	//Pion+
-	{
-		if (iP->E() < TheBox->GetElement("ThrPion"))
-		       Ret = false;
-		else if (TheBox->TrackLength(iP) > 0.50)	//track length is muon-like
-		{
-			iP->SetPdg(13);
-			Count("Muon", 1);	//thus I count a muon
-		}
-	}
-	else Ret = false;
-
-	return Ret;
-}
-*/
-bool Background::PurifyMUPI(Particle *iP)	//need to add smearing
-{
-	bool Ret = true;
-
-	if (iP->PdgCode() == 13)		//Muon
-	{
-		if (iP->E() < TheBox->GetElement("ThrMuon"));	//can't detect
-			Ret = false;
-		else
-		{
-			if (TheBox->TrackLength(iP) < 0.50)
-			{
-				iP->SetPdg(211);
-				iP->SetMass(M_Pion);
-				Count("Pion", 1);
-			}
-			else Count("Muon", 1);	//is really a muon
-		}
-	}
-	else if (iP->PdgCode() == 211)	//Pion+
-	{
-		if (iP->E() < TheBox->GetElement("ThrPion"));	//can't detect
-			Ret = false;
-		else
-		{
-			if (TheBox->TrackLength(iP) > 0.50)	//track length is muon-like
-			{
-				iP->SetPdg(13);
-				iP->SetMass(M_Muon);
-				Count("Muon", 1);
-			}
-			else Count("Pion", 1);	//is really a pion
-	}
-	else 	//check if is charged hadron
-	{
-		PurifyHadron(iP);
-		Ret = false;
-	}
-
-	return Ret;
-}
-
-/***** Idenfitication of events, by counting the tracks ********/
-bool Background::Identify(std::string Channel, int NEvt)
+//if event matach cut, then tree is filled
+bool Background::Identify(std::string Channel)
 {
 	switch(mapChan[Channel])
 	{
 		/*
 		case _ALL:
+			Result = Total();
 			break;
 		case _nnn:
+			Result = nnn();
 			break;
 		case _nGAMMA:
+			Result = nGAMMA();
 			break;
 		*/
 		case _nEE:
-			return IdentifynEE();
+			if (IdentifynEE())
+				LoadTree();
+			break;
 		case _nEMU:
-			return IdentifynEMU();
+			if (IdentifynEMU())
+				LoadTree();
+			break;
 		case _nMUE:
-			return IdentifynMUE();
+			if (IdentifynEMU())
+				LoadTree();
+			break;
 		case _nPI0:
-			return IdentifynPI0();
+			if (IdentifynPI0())
+				LoadTree();
+			break;
 		case _EPI:
-			return IdentifyEPI();
+			if (IdentifyEPI())
+				LoadTree();
+			break;
 		case _nMUMU:
-			return IdentifynMUMU();
+			if (IdentifynMUMU())
+				LoadTree();
+			break;
 		case _MUPI:
 			if (IdentifyMUPI())
-				LoadTree(NEvt, 13, 211);	//Load the mu and the pi
+				LoadTree();
 			break;
 		/*
 		case _EKA:
+			Result = EKA();
 			break;
 		case _nKA0:
-			break;
+			Result = nKA0();
 		*/
+		default:
+			++iP;
+			break;
 	}
 }
 
-/*
-bool Background::IdentifynEE()
+/***** Not interesting hadrons, mesons are counted as kaon and charm, baryons as a whole *****/
+void Background::IdentifyHadron(Particle *iP)	//here everything not selected by cut
 {
-	bool Ret = true;
-
-	std::map<std::string, int>::iterator im = mapCount.begin();
-	for ( ; im != mapCount.end(); ++im)
+	if (iP->Ekin() > TheBox->GetElement("ThrHadron"))	//hadron (proton) activity
 	{
-		if (im->first == "Hadron")	//keep hadrons
-			continue;
-
-		if (im->second == 2)		//Looking for this: 2 e
-		{
-			if (im->first != "Electron")
-				Ret = false;
-			//else is true
-		}
-		else if (im->second == 0)
-		{
-			if (im->first == "Electron")
-				Ret = false;
-			//else is true
-		}
-		else Ret = false;
+		if (iP->Pdg() == 130 || (iP->Pdg() > 300 && iP->Pdg() < 400))
+			Count("Kaon");
+		else if (iP->Pdg() > 400 && iP->Pdg() < 500)
+			Count("Charm");
+		else if (iP->Charge() != 0 && iP->Pdg() > 1000)		//I can see charged hadrons
+			Count("Hadron");					//light, strange and charmed baryons
 	}
-
-	return Ret;
 }
 
-bool Background::IdentifynEMU()
+/***** single channel check for pcount map, exact number needed *****/
+bool Background::IdentifynEE()	//need to add smearing
 {
-	bool Ret = true;
-
-	std::map<std::string, int>::iterator im = mapCount.begin();
-	for ( ; im != mapCount.end(); ++im)
-	{
-		if (im->first == "Hadron")	//keep hadrons
-			continue;
-
-		if (im->second == 1)
-		{
-			if (im->first == "Muon")
-				Ret *= true;
-			else if (im->first == "Pion")
-				Ret *= true;
-			else false;
-		}
-		else Ret = false;
-	}
-
-	return Ret;
+	if (pCount["Electron"]	== 2	&&
+	    pCount["Photon"]	== 0	&& 
+	    pCount["Muon"]	== 0	&& 
+	    pCount["Pion"]	== 0	&& 
+	    pCount["Kaon"]	== 0	&& 
+	    pCount["Charm"]	== 0	  )
+		return true;
+	else return false;
 }
 
-bool Background::IdentifynPI0()
+bool Background::IdentifynEMU()	//need to add smearing
 {
-	bool Ret = true;
-
-	std::map<std::string, int>::iterator im = mapCount.begin();
-	for ( ; im != mapCount.end(); ++im)
-	{
-		if (im->second == 1)
-		{
-			if (im->first == "Muon")
-				Ret *= true;
-			else if (im->first == "Pion")
-				Ret *= true;
-			else false;
-		}
-		else Ret = false;
-	}
-
-	return Ret;
+	if (pCount["Electron"]	== 1	&&
+	    pCount["Photon"]	== 0	&& 
+	    pCount["Muon"]	== 1	&& 
+	    pCount["Pion"]	== 0	&& 
+	    pCount["Kaon"]	== 0	&& 
+	    pCount["Charm"]	== 0	  )
+		return true;
+	else return false;
 }
 
-bool Background::IdentifyEPI()	//Possible background is photon?
+bool Background::IdentifynPI0()	//need to add smearing
 {
-	bool Ret = true;
-
-	std::map<std::string, int>::iterator im = mapCount.begin();
-	for ( ; im != mapCount.end(); ++im)
-	{
-		if (im->second == 1)
-		{
-			if (im->first == "Muon")
-				Ret *= true;
-			else if (im->first == "Pion")
-				Ret *= true;
-			else false;
-		}
-		else Ret = false;
-	}
-
-	return Ret;
+	if (pCount["Electron"]	== 0	&&
+	    pCount["Photon"]	== 2	&& 
+	    pCount["Muon"]	== 0	&& 
+	    pCount["Pion"]	== 0	&& 
+	    pCount["Kaon"]	== 0	&& 
+	    pCount["Charm"]	== 0	  )
+		return true;
+	else return false;
 }
 
-bool Background::IdentifynMUMU()
+bool Background::IdentifyEPI()	//need to add smearing
 {
-	bool IsOther = false, IsMuon = false;
-
-	std::map<std::string, int>::iterator im = mapCount.begin();
-	for ( ; im != mapCount.end(); ++im)
-	{
-		if (im->first == "Muon")	//Look for 2 muon
-		{
-			if (im->second == 2)
-				IsMuon = true;
-			else IsMuon = false;
-		}
-		else if (im->first == "Nuclear")	//what should I do?
-		{
-		}
-		else 
-		{
-			if (im->second > 0)
-				IsOther += true;
-		}
-	}
-
-	return !IsOther * IsMuon; 	//0 others, 1 pi, 2 mu
+	if (pCount["Electron"]	== 1	&&
+	    pCount["Photon"]	== 0	&& 
+	    pCount["Muon"]	== 0	&& 
+	    pCount["Pion"]	== 1	&& 
+	    pCount["Kaon"]	== 0	&& 
+	    pCount["Charm"]	== 0	  )
+		return true;
+	else return false;
 }
-*/
+
+bool Background::IdentifynMUMU()	//need to add smearing
+{
+	if (pCount["Electron"]	== 0	&&
+	    pCount["Photon"]	== 0	&& 
+	    pCount["Muon"]	== 2	&& 
+	    pCount["Pion"]	== 0	&& 
+	    pCount["Kaon"]	== 0	&& 
+	    pCount["Charm"]	== 0	  )
+		return true;
+	else return false;
+}
+
 bool Background::IdentifyMUPI()	//need to add smearing
 {
-	bool IsOther = false, IsMuon = false, IsPion = false;
-
-	std::map<std::string, int>::iterator im = mapCount.begin();
-	for ( ; im != mapCount.end(); ++im)
-	{
-		if (im->first == "Muon")	//Look for 1 muon
-		{
-			if (im->second == 1)
-				IsMuon = true;
-			else IsMuon = false;
-		}
-		else if (im->first == "Pion")	//Look for 1 pion
-		{
-			if (im->second == 1)
-				IsPion = true;
-			else IsPion = false;
-		}
-		else if (im->first == "Nuclear")	//what should I do?
-		{
-		}
-		else 
-		{
-			if (im->second > 0)
-				IsOther += true;
-		}
-	}
-
-	return !IsOther * IsMuon * IsPion; 	//0 others, 1 pi, 1 mu
+	if (pCount["Electron"]	== 0	&&
+	    pCount["Photon"]	== 0	&& 
+	    pCount["Muon"]	== 1	&& 
+	    pCount["Pion"]	== 1	&& 
+	    pCount["Kaon"]	== 0	&& 
+	    pCount["Charm"]	== 0	  )
+		return true;
+	else return false;
 }
+	
 
-void Background::LoadTree(int idEvent, int pdgA, int pdgB)
+
+//Distance travelled by photons before conversion
+double Background::GammaDecay()
 {
-	ID = idEvent; 
-
-	TLorentzVector InA, InB;
-	for (iP = vParticle.begin(); iP != vParticle.end(); ++iP)
-	{
-		if (iP->PdgCode() == pdgA)
-		{
-			EnergyA = iP->E();
-			MomentA = iP->P();
-			TransvA = iP->Pt();
-			ThetaA = iP->Theta();
-			PhiA = iP->Phi();
-			MassA = iP->M();
-			InA = iP->GetP4();
-		}
-		else if (iP->PdgCode() == pdgB)
-		{
-			EnergyB = iP->E();
-			MomentB = iP->P();
-			TransvB = iP->Pt();
-			ThetaB = iP->Theta();
-			PhiB = iP->Phi();
-			MassB = iP->M();
-			InB = iP->GetP4();
-		}
-	}
-
-	TLorentzVector Reco = InA+InB;
-
-	Energy0 = Reco.E();
-        Moment0 = Reco.P();
-        Transv0 = Reco.Pt();
-        Theta0 = Reco.Theta(
-        Phi0 = Reco.Phi();
-        Mass0 = Reco.M();
-
-	Data->Fill();
+	double Path = 9.0/7.0 * TheBox->InteractionLength();
+	return GenMT->Exp(Path);	//in cm
 }
-
-
+	
 //Treat pi0 decay into 2 photons
-void Background::Pi0Decay(Particle *Pi0, Particle *PA, Paticle *PB)
+void Background::Pi0Decay(Particle *Pi0, Particle *PA, Particle *PB)
 {
+	//in rest frame
 	TLorentzVector GammaA(0, 0, M_Pion0/2.0, M_Pion0/2.0); 
-	TLorentzVector GammaA(0, 0, -M_Pion0/2.0, M_Pion0/2.0); 
+	TLorentzVector GammaB(0, 0, -M_Pion0/2.0, M_Pion0/2.0); 
 
-	TVector3 vBoost(Pi0->GetP4()->BoostVector());
+	TVector3 vBoost(Pi0->GetP4().BoostVector());
 	double Theta = GenMT->Uniform(-Const::fPi, Const::fPi);
 	double Phi = GenMT->Uniform(-Const::fPi, Const::fPi);
 
-	GammaA->SetTheta(Theta);
-	GammaB->SetTheta(Const::fPi + Theta);
-	GammaA->SetPhi(Phi);
-	GammaB->SetPhi(Phi);
+	double Tau = 1.0 / (8.52e-17 * Pi0->GetP4().Beta() * Pi0->GetP4().Gamma());	//should be the relativistic tau
+	double Travel = GenMT->Exp(Tau);
+	TVector3 Move(Pi0->GetP4().Vect().Unit());	//direction of motion
+	Move *= Travel;
+	Move += Pi0->Position();
+
+	GammaA.SetTheta(Theta);
+	GammaB.SetTheta(Const::fPi + Theta);
+	GammaA.SetPhi(Phi);
+	GammaB.SetPhi(Phi);
 
 	GammaA.Boost(vBoost);
 	GammaB.Boost(vBoost);
 
-	PA = new Particle(22, GammaA, PosX, PosY, PosZ);	//here are the photons
-	PB = new Particle(22, GammaB, PosX, PosY, PosZ);	//position should be different
+	PA = new Particle(22, 0, GammaA, Move);	//here are the photons
+	PB = new Particle(22, 0, GammaB, Move);	//position should be different
 
 	delete Pi0;
 }

@@ -193,7 +193,10 @@ void EventGenerator::SmearVector(TLorentzVector* N, int Pdg)
 	double PosX = GenMT->Uniform(TheBox->GetXsize());
 	double PosY = GenMT->Uniform(TheBox->GetYsize());
 	double PosZ = GenMT->Uniform(TheBox->GetZsize());
-	Particle *P = new Particle(Pdg, N, PosX, PosY, PosZ);
+	TVector3 Pos(PosX, PosY, PosZ);
+	TLorentzVector P4(*N);
+
+	Particle *P = new Particle(Pdg, 1, P4, Pos);	//mainly chardeg particles
 
 	TheBox->SignalSmearing(GenMT, P);
 	N->SetE(P->E());

@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 	double U_m = 1.0/sqrt(3.0);
 	double U_t = 1.0/sqrt(3.0);
 	
-	while((iarg = getopt_long(argc,argv, "1:2h", longopts, &index)) != -1);
+	while((iarg = getopt_long(argc,argv, "1:2h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -41,15 +41,7 @@ int main(int argc, char** argv)
 				//do something
 				break;
 			case 'h':
-				std::cout << "Description" << std::endl;
-				std::cout << "Usage : " << std::endl;
-				std::cout << "name [OPTIONS]" << std::endl;
-				std::cout <<"\n  -1,  --option1" << std::endl;
-				std::cout << "\t\tDescription" << std::endl;
-				std::cout <<"\n  -2,  --option2" << std::endl;
-				std::cout << "\t\tDescription" << std::endl;
-				std::cout <<"\n  -h,  --help" << std::endl;
-				std::cout << "\t\tPrint this message and exit" << std::endl;
+				Usage(argv[0]);
 				return 1;
 			default:
 				break;
@@ -70,3 +62,15 @@ int main(int argc, char** argv)
 	return 0;
 }
 	
+void Usage(char *Name)
+{
+	std::cout << "Description" << std::endl;
+	std::cout << "Usage : " << std::endl;
+	std::cout << Name << " [OPTIONS]" << std::endl;
+	std::cout <<"\n  -1,  --option1" << std::endl;
+	std::cout << "\t\tDescription" << std::endl;
+	std::cout <<"\n  -2,  --option2" << std::endl;
+	std::cout << "\t\tDescription" << std::endl;
+	std::cout <<"\n  -h,  --help" << std::endl;
+	std::cout << "\t\tPrint this message and exit" << std::endl;
+}

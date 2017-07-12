@@ -44,11 +44,10 @@ class Detector
 		double Efficiency(std::string Channel, double Energy);
 		double EnergySigma(std::string Channel, double Energy);
 
-		double GausSmearing(TRandom3 *RanGen, double Mean, double Sigma);
-
 		bool IsDetectable(Particle *P);	
 		void SignalSmearing(TRandom3 *RanGen, Particle *P);
 		double TrackLength(Particle *P);
+		double InteractionLength();
 		double EnergyLoss(double Beta, double Mass);
 		bool IsInside(Particle *P);
 		bool IsInside(TVector3 &P);

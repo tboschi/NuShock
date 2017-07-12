@@ -60,6 +60,8 @@ namespace Kine
 	double I3_xy(double X, double Y);
 
 	double Bethe(double Beta, double Mass, double Density, double I, int Z, int A);		//GeV/m
+	double RadiationLength(int Z, int A);
+	double Radiation(int Z);
 
 	static const int Sample = 1000;	//Sample for integration
 	static const int Loop = 1000;	//Sample for integration
@@ -68,6 +70,9 @@ namespace Kine
 //Constants
 namespace Const
 {
+	static const double fhBar = 6.5821189916e-25;	//GeV s, from PDG
+	static const double fAem = 1.0/137.035999074;	// from PDG
+
 	//Conversion
 	static const double fM2GeV = 5.06e15;	//1GeV in 1/m
 	static const double fS2GeV = 1.52e24;	//1GeV in 1/s
@@ -109,7 +114,6 @@ namespace Const
 	static const double fMNeutron = genie::PDGLibrary::Instance()->Find(2211)->Mass();
 
 	//SM constant - PDG 2016
-	static const double fhBar = 6.5821189916e-25;	//Mev s, from PDG
 	static const double fGF = 1.16637876e-5;	//GeV-2, from PDG
 	static const double fGF2 = fGF*fGF;		//From PDG
 	static const double fSin2W = 0.23129;		//Sin weinberg squared - MSbar scheme

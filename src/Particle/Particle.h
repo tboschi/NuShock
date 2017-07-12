@@ -28,28 +28,32 @@ class Particle
 {
 	public:
 		Particle(genie::GHepParticle *Candidate, double PosX, double PosY, double PosZ);
-		Particle(int PdgCode, double Charge, TLorentzVector *Vector, double PosX, double PosY, double PosZ);
+		Particle(int PdgCode, double Charge, TLorentzVector &Vector, double PosX, double PosY, double PosZ);
+		Particle(int PdgCode, double Charge, TLorentzVector &Vector, TVector3 &Position);
+		Particle(const Particle &P);
 
-		int Pdg();
-		double Charge();
-		TLorentzVector GetP4();
-		TVector3 Position();
-		double X();
-		double Y();
-		double Z();
-		double M();
-		double E();
-		double Ekin();
-		double Px();
-		double Py();
-		double Pz();
-		double P();
-		double Theta();
-		double Phi();
+		int Pdg() const;
+		int Charge() const;
+		TLorentzVector GetP4() const;
+		TVector3 Position() const;
+		double X() const;
+		double Y() const;
+		double Z() const;
+		double M() const;
+		double E() const;
+		double Ekin() const;
+		double Px() const;
+		double Py() const;
+		double Pz() const;
+		double P() const;
+		double Pt() const;
+		double Theta() const;
+		double Phi() const;
 
 		void SetP4(TLorentzVector &V);
+		void SetP4(double Px, double Py, double Pz, double E);
 		void SetPdg(int PdgCode);
-		void SetCharge(double Charge);
+		void SetCharge(int Charge);
 		void SetE(double E);
 		void SetMass(double M);
 		void SetTheta(double Ang);
@@ -63,8 +67,7 @@ class Particle
 	private:
 		TLorentzVector P4;
 		TVector3 Pos;
-		int iPdg;
-		double dCharge;
+		int iPdg, iCharge;
 };
 
 #endif
