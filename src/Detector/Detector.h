@@ -44,16 +44,23 @@ class Detector
 		double Efficiency(std::string Channel, double Energy);
 		double EnergySigma(std::string Channel, double Energy);
 
-		bool IsDetectable(Particle *P);	
 		void SignalSmearing(TRandom3 *RanGen, Particle *P);
 		double TrackLength(Particle *P);
 		double InteractionLength();
 		double EnergyLoss(double Beta, double Mass);
+		bool IsDetectable(Particle *P);	
+		bool IsDetectable(int Pdg, int Charge, double Ekin);	
 		bool IsInside(Particle *P);
 		bool IsInside(TVector3 &P);
 		double GetXsize();
+		double GetXstart();
+		double GetXend();
 		double GetYsize();
+		double GetYstart();
+		double GetYend();
 		double GetZsize();
+		double GetZstart();
+		double GetZend();
 	private:
 		std::map<std::string, double> mapDetector;
 		std::map<std::string, std::vector<EnergyEfficiency> > mapEfficiency;

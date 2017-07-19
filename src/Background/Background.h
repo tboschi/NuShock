@@ -36,19 +36,23 @@
 class Background
 {
 	public:
-		Background(std::string EventDB, std::string DetectorConfig);
-		void MapInit();
+		//Background(std::string EventDB, std::string DetectorConfig, std::string OutFile, std::string Channel);
+		Background(std::string EventDB, std::string DetectorConfig, std::string Channel);
+		~Background();
+		void InitTree();
+		void InitMap();
 		TTree *GetTree();
 		void LoadTree();
 
-		void Loop(std::string Channel);
+		std::string GetChannel();
+		void Loop(unsigned int Save);
 		Particle* CreateParticle(genie::GHepParticle *Hep, double PosX, double PosY, double PosZ);
 
 		int Count(std::string PartName, int N = 1);
 		void ListCount();
-		bool CountParticles(std::string Channel);
+		bool CountParticles();
 
-		bool Identify(std::string Channel);
+		bool Identify();
 		void IdentifyHadron(Particle *iP);
 		bool IdentifynEE();
 		bool IdentifynEMU();
@@ -58,15 +62,16 @@ class Background
 		bool IdentifyMUPI();
 
 		double GammaDecay();
-		void Pi0Decay(Particle *Pi0, Particle *PA, Particle *PB);
+		void Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB);
 
 	private:
 		int NEvt;
 		TRandom3 *GenMT;
 		TTree *Genie, *Data;
-		TFile *InFile;
-		//genie::NtpMCEventRecord *gEvRec;
+		TFile *InFile, *OutFile;
+		genie::NtpMCEventRecord *gEvRec;
 		Detector *TheBox;
+		std::string TheChan;
 
 		Particle *ParticleA, *ParticleB;
 
@@ -76,7 +81,7 @@ class Background
 		std::vector<Particle*> vParticle;
 		std::vector<Particle*>::iterator iP;
 
-		unsigned int ID, Hadron;
+		unsigned int ID, Global, Hadron;
 		double EnergyA, MomentA, TransvA, ThetaA, PhiA, MassA;
 		double EnergyB, MomentB, TransvB, ThetaB, PhiB, MassB;
 		double Energy0, Moment0, Transv0, Theta0, Phi0, Mass0;

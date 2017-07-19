@@ -9,6 +9,7 @@ Particle::Particle(genie::GHepParticle *Candidate, double PosX, double PosY, dou
 	SetX(PosX);
 	SetY(PosY);
 	SetZ(PosZ);
+	SetTrack(-1);
 }
 
 //manual ctor
@@ -20,6 +21,7 @@ Particle::Particle(int PdgCode, double Charge, TLorentzVector &Vector, double Po
 	SetX(PosX);
 	SetY(PosY);
 	SetZ(PosZ);
+	SetTrack(-1);
 }
 
 Particle::Particle(int PdgCode, double Charge, TLorentzVector &Vector, TVector3 &Position)
@@ -28,6 +30,7 @@ Particle::Particle(int PdgCode, double Charge, TLorentzVector &Vector, TVector3 
 	SetPdg(abs(PdgCode));
 	SetCharge(Charge);
 	SetPosition(Position);
+	SetTrack(-1);
 }
 
 //copy ctor
@@ -37,6 +40,7 @@ Particle::Particle(const Particle &P)
 	SetPdg(abs(P.Pdg()));
 	SetCharge(P.Charge());
 	SetPosition(P.X(), P.Y(), P.Z());
+	SetTrack(-1);
 }
 
 int Particle::Pdg() const
@@ -124,6 +128,11 @@ double Particle::Z() const
 	return Pos.Z();
 }
 
+double Particle::Track() const
+{
+	return dTrack;
+}
+
 ////////
 void Particle::SetPdg(int X)
 {
@@ -153,13 +162,17 @@ void Particle::SetP4(double Px, double Py, double Pz, double E)
 
 void Particle::SetE(double E)
 {
-	P4.SetRho(E*E - P4.M2());
-	P4.SetE(E);
+	if (P() > 0.0)
+	{
+		P4.SetRho(E*E - P4.M2());
+		P4.SetE(E);
+	}
+	else P4.SetE(E);
 }
 
 void Particle::SetMass(double M)
 {
-	P4.SetRho(P4.E()*P4.E() - M*M);
+	P4.SetRho(sqrt(P4.E()*P4.E() - M*M));
 }
 
 void Particle::SetTheta(double Ang)
@@ -201,3 +214,7 @@ void Particle::SetZ(double X)
 	Pos.SetZ(X);
 }
 
+void Particle::SetTrack(double X)
+{
+	dTrack = X;
+}

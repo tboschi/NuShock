@@ -111,45 +111,20 @@ double Detector::GausSmearing(TRandom3 *RanGen, double Mean, double Sigma)
 }
 */
 
-bool Detector::IsDetectable(Particle *P)	//Threshold check
-{
-	bool Ret = false;
-	if (P->Pdg() == 14)	//muon
-	{
-		if (P->Ekin() > GetElement("ThrMuon"))
-			Ret = true;
-	}
-	else if (P->Pdg() == 211)	//pion
-	{
-		if (P->Ekin() > GetElement("ThrPion"))
-			Ret = true;
-	}
-	else if (P->Pdg() == 2212)	//proton
-	{
-		if (P->Ekin() > GetElement("ThrHadron"))
-			Ret = true;
-	}
-	else if (P->Pdg() == 22)	//photon
-	{
-		if (P->Ekin() > GetElement("ThrGamma"))
-			Ret = true;
-	}
-
-	return Ret;
-}
 
 void Detector::SignalSmearing(TRandom3 *RanGen, Particle *P)
 {
-	double iE = P->E();
+	double iM = P->M();
+	double iEkin = P->Ekin();
 	double iTheta = P->Theta();
 	double iPhi = P->Phi();
 
 	double SigmaA = GetElement("ResAngle");
-	double SigmaZt = GetElement("Vertex");			//2 is for fiducial volume of 35%
+	double SigmaZt = GetElement("Vertex");
 
 	double Length = TrackLength(P);
 	double Resolution;
-	if (P->Pdg() == 11 && P->Pdg() == 22)
+	if (P->Pdg() == 11 || P->Pdg() == 22)
 		Resolution = GetElement("ResGamma");
 	else if (P->Pdg() == 13)
 		Resolution = GetElement("ResMuon");
@@ -158,43 +133,54 @@ void Detector::SignalSmearing(TRandom3 *RanGen, Particle *P)
 	else if (P->Charge() != 0)
 		Resolution = GetElement("ResHadron");
 	else Resolution = 0;
-	double SigmaEz = sqrt(iE) * Resolution;
+	double SigmaEz = sqrt(iEkin) * Resolution;
 	//double SigmaP = sqrt(1.5) * TheBox->GetElement("Vertex") * 8.0*iP*iP * 2.0 / (TheBox->GetElement("Bfield") * pow(TheBox->GetElement("Length"),2));
-	double SigmaE = sqrt(pow(SigmaEz,2)*pow(GetElement("Length"),2) + pow(SigmaZt,2)*iE);
+	double SigmaE = sqrt(pow(SigmaEz,2)*pow(Length,2) + pow(SigmaZt,2)*pow(iEkin, 2)	);
 
-	P->SetE(RanGen->Gaus(iE, SigmaE));
-	P->SetTheta(RanGen->Gaus(iTheta, SigmaA));
-	P->SetPhi(RanGen->Gaus(iPhi, SigmaA));
-	P->SetX(RanGen->Gaus(P->X(), SigmaZt));
-	P->SetY(RanGen->Gaus(P->Y(), SigmaZt));
-	P->SetZ(RanGen->Gaus(P->Z(), SigmaZt));
+	if (IsDetectable(P))
+	{
+		P->SetE(iM + RanGen->Gaus(iEkin, SigmaE));
+
+		P->SetTheta(RanGen->Gaus(iTheta, SigmaA));
+		P->SetPhi(RanGen->Gaus(iPhi, SigmaA));
+
+		P->SetX(RanGen->Gaus(P->X(), SigmaZt));
+		P->SetY(RanGen->Gaus(P->Y(), SigmaZt));
+		P->SetZ(RanGen->Gaus(P->Z(), SigmaZt));
+	}
 }
 
 double Detector::TrackLength(Particle *P)	//This should not change *P
 {
-	double dx = 0.01;	//1 cm
-	TVector3 Step(P->Position());
-	TVector3 Proj(P->Position());
-	Step.SetMag(dx);	//move in centimeter
-	
-	double Length = 0.0;
-	double dE = P->E();
-	double iM = P->M();
-
-	double Beta;
-	while (IsInside(Proj) && IsDetectable(P))
+	if (P->Track() < 0.0)
 	{
-		Beta = sqrt(1-iM*iM/dE/dE);
-		dE -= dx * EnergyLoss(Beta, iM);
+		double dx = 0.01;	//1 cm
+		TVector3 Step(P->Position());
+		TVector3 Proj(P->Position());
+		Step.SetMag(dx);	//move in centimeter
+		
+		double Length = 0.0;
+		double dE = P->E();
+		double iM = P->M();
 
-		Proj += Step;
-		Length += dx;
+		double Beta;
+		while (IsInside(Proj) && IsDetectable(P->Pdg(), P->Charge(), dE-iM))
+		{
+			Beta = sqrt(1-iM*iM/dE/dE);
+			dE -= dx * EnergyLoss(Beta, iM);
+	
+			Proj += Step;
+			Length += dx;
+		}
+	
+		//*Where = Proj;
+		//P->SetPosition(Proj);
+	
+		P->SetTrack(Length);
+		return Length;
 	}
-
-	//*Where = Proj;
-	//P->SetPosition(Proj);
-
-	return Length;
+	else
+		return P->Track();
 }
 
 double Detector::InteractionLength()
@@ -207,7 +193,14 @@ double Detector::InteractionLength()
 double Detector::EnergyLoss(double Beta, double Mass)
 {
 	if (GetElement("Target") == 1)
-		return Kine::Bethe(Beta, Mass, 1.3945, 188.0, 18, 40);	//LAr, code 1
+	{
+		if (Mass > 10*Const::fMElectron) 
+		{
+			double Ret = Kine::Bethe(Beta, Mass, 1.3945, 188.0, 18, 40);	//LAr, code 1
+			return Ret;
+		}
+		else return Mass/sqrt(1-Beta*Beta)/InteractionLength();
+	}
 	else return 0.0;
 }
 
@@ -227,6 +220,72 @@ std::string Detector::ParticleID(TLorentzVector *Track)
 }
 */
 
+bool Detector::IsDetectable(Particle *P)	//Threshold check
+{
+	bool Ret = false;
+
+	if (P->Pdg() == 11)
+	{
+		if (P->Ekin() > GetElement("ThrGamma"))
+			Ret = true;
+	}
+	else if (P->Pdg() == 22)	//photon
+	{
+		if (P->Ekin() > 2*Const::fMElectron)
+			Ret = true;
+	}
+	else if (P->Pdg() == 13)	//muon
+	{
+		if (P->Ekin() > GetElement("ThrMuon"))
+			Ret = true;
+	}
+	else if (P->Pdg() == 211)	//pion
+	{
+		if (P->Ekin() > GetElement("ThrPion"))
+			Ret = true;
+	}
+	else if (P->Charge() != 0)	//proton
+	{
+		if (P->Ekin() > GetElement("ThrHadron"))
+			Ret = true;
+	}
+
+	return Ret;
+}
+
+bool Detector::IsDetectable(int Pdg, int Charge, double Ekin)	//Threshold check
+{
+	bool Ret = false;
+
+	if (Pdg == 11)	//photon
+	{
+		if (Ekin > GetElement("ThrGamma"))
+			Ret = true;
+	}
+	else if (Pdg == 22)	//photon
+	{
+		if (Ekin > 2*Const::fMElectron)
+			Ret = true;
+	}
+	else if (Pdg == 13)	//muon
+	{
+		if (Ekin > GetElement("ThrMuon"))
+			Ret = true;
+	}
+	else if (Pdg == 211)	//pion
+	{
+		if (Ekin > GetElement("ThrPion"))
+			Ret = true;
+	}
+	else if (Charge != 0)	//proton
+	{
+		if (Ekin > GetElement("ThrHadron"))
+			Ret = true;
+	}
+
+	return Ret;
+}
+
 bool Detector::IsInside(Particle *P)
 {
 	if (P->X() < GetXsize() &&
@@ -238,6 +297,7 @@ bool Detector::IsInside(Particle *P)
 
 bool Detector::IsInside(TVector3 &P)
 {
+	bool Ret;
 	if (P.X() < GetXsize() &&
 	    P.Y() < GetYsize() &&
 	    P.Z() < GetZsize())
@@ -247,15 +307,51 @@ bool Detector::IsInside(TVector3 &P)
 
 double Detector::GetXsize()
 {
-	return GetElement("Fiducial") > 0.0 ? GetElement("Width")*GetElement("Fiducial") : GetElement("Width");
+	double F = GetElement("Fiducial");
+	return F > 0.0 ? F *GetElement("Width") : GetElement("Width");
+}
+
+double Detector::GetXstart()
+{
+	double F = GetElement("Fiducial");
+	return F > 0.0 ? 0.5*GetElement("Width")*(1-F) : 0.0;
+}
+
+double Detector::GetXend()
+{
+	return GetXsize() + GetXstart();
 }
 
 double Detector::GetYsize()
 {
-	return GetElement("Fiducial") > 0.0 ? GetElement("Heigth")*GetElement("Fiducial") : GetElement("Heigth");
+	double F = GetElement("Fiducial");
+	return F > 0.0 ? F * GetElement("Height") : GetElement("Height");
+}
+
+double Detector::GetYstart()
+{
+	double F = GetElement("Fiducial");
+	return F > 0.0 ? 0.5*GetElement("Height")*(1-F) : 0.0;
+}
+
+double Detector::GetYend()
+{
+	return GetYsize() + GetYstart();
 }
 
 double Detector::GetZsize()
 {
-	return GetElement("Fiducial") > 0.0 ? GetElement("Length")*GetElement("Fiducial") : GetElement("Length");
+	double F = GetElement("Fiducial");
+	return F > 0.0 ? F * GetElement("Length") : GetElement("Length");
+}
+
+double Detector::GetZstart()
+{
+	double F = GetElement("Fiducial");
+	return F > 0.0 ? 0.5*GetElement("Length")*(1-F) : 0.0;
+}
+
+double Detector::GetZend()
+{
+	return GetZsize() + GetZstart();
 }

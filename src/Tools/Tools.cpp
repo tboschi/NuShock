@@ -110,8 +110,8 @@ double Kine::Bethe(double Beta, double Mass, double Density, double I, int Z, in
 	double Gamma = 1.0/sqrt(1-Beta2);
 	double Gamma2 = Gamma*Gamma;
 	double e2M = Const::fMElectron / Mass;
-	double Wmax = (2 * Const::fMElectron * Beta2 * Gamma2) / (1 + 2*Gamma*e2M + e2M*e2M);
-	double LogArg = 2 * Const::fMElectron * Beta2 * Gamma2 * Wmax / (I*I); 
+	double Wmax = (2000 * Const::fMElectron * Beta2 * Gamma2) / (1 + 2*Gamma*e2M + e2M*e2M);
+	double LogArg = 2000 * Const::fMElectron * Beta2 * Gamma2 * Wmax / (1e-12*I*I); 	//Everything in MeV
 	return 0.1 * Density * (K * Z) / (A * Beta2) * (0.5 * log (LogArg) - Beta2);
 }
 

@@ -49,6 +49,7 @@ class Particle
 		double Pt() const;
 		double Theta() const;
 		double Phi() const;
+		double Track() const;
 
 		void SetP4(TLorentzVector &V);
 		void SetP4(double Px, double Py, double Pz, double E);
@@ -63,11 +64,13 @@ class Particle
 		void SetX(double X);
 		void SetY(double X);
 		void SetZ(double X);
+		void SetTrack(double X);
 
 	private:
 		TLorentzVector P4;
 		TVector3 Pos;
 		int iPdg, iCharge;
+		double dTrack;
 };
 
 #endif

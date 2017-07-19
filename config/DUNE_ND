@@ -6,23 +6,14 @@ Baseline	570
 Length		4
 Width		3
 Height		3
-Fiducial	0.90
+Fiducial	0.75
 #Weight		100
 POT/s		6.25e13
 Years		10
-Target		1
+#Target		2212
 #
-#Threshold in GeV
-#Resolution in absolut
+#Resolution
 #
-ThrHadron	0.021
-ResHadron	0.15
-ThrPion		0.008
-ResPion		0.15
-ThrGamma	0.010
-ResGamma	0.15
-ThrMuon		0.005
-ResMuon		0.06
 Energy		0.005
 Vertex		0.0001
 Momentum	0.05
