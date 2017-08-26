@@ -22,6 +22,7 @@ int main(int argc, char** argv)
 		{"fluxconfig", 	required_argument,	0, 'f'},
 		{"channel", 	required_argument,	0, 'c'},
 		{"threshold", 	required_argument,	0, 't'},
+		{"efficiency", 	no_argument,		0, 'W'},
 		{"output", 	required_argument,	0, 'o'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
@@ -33,16 +34,16 @@ int main(int argc, char** argv)
 	
 	//Initialize variables
 	std::string SMConfig, DetConfig;
-	std::string FluxConfig;
+	std::string FluxConfig, EffFile;
 	std::ofstream OutFile;
 	//TFile *OutFile;
 	std::string Channel = "ALL";
-	double Threshold = 3;
 	bool UeFlag = false;
 	bool UmFlag = false;
 	bool UtFlag = false;
+	bool Efficiency = false;
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:c:t:o:EMTh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "s:d:f:c:t:o:WEMTh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -58,12 +59,12 @@ int main(int argc, char** argv)
 			case 'c':
 				Channel.assign(optarg);
 				break;
-			case 't':
-				Threshold = strtod(optarg, NULL);
-				break;
 			case 'o':
 				OutFile.open(optarg);
 				//OutFile = new TFile(optarg, "RECREATE");
+				break;
+			case 'W':
+				Efficiency = true;
 				break;
 			case 'E':
 				UeFlag = true;
@@ -95,7 +96,7 @@ int main(int argc, char** argv)
 	EvGen->SetUm(0);
 	EvGen->SetUt(0);
 	
-	double Mass, Uu, Nevent;
+	double Mass, Uu;
 	double contMass, contUu, contN;
 	
 	for (double logMass = -2.0; logMass < -0.3; logMass += 0.0034)	//increase mass log
@@ -106,7 +107,7 @@ int main(int argc, char** argv)
 		std::cout << "Mass " << Mass << std::endl;
 		EvGen->SetMass(Mass);
 
-		for (double logUu2 = -12.0; logUu2 < -2.0; logUu2 += 0.02)	//increase Uu logarithmically
+		for (double logUu2 = -10.0; logUu2 < -0.0; logUu2 += 0.02)	//increase Uu logarithmically
 		//for (Uu = 1.0e-4; Uu < 1.0e-2; Uu += 1.0e-4)	//increase Uu linearly
 		{
 			Uu = pow(10.0, 0.5*logUu2);
@@ -117,14 +118,13 @@ int main(int argc, char** argv)
 			if (UtFlag)
 				EvGen->SetUt(Uu);
 			EvGen->MakeSterileFlux(1);	//totalpot BNB = 0
-			Nevent = EvGen->EventTotalNumber();
-			//logCont->Fill(logMass, logUu2, Nevent);
-			if (Nevent > Threshold)
-				break;
-			else Nevent = 1;
-			//Contour->Fill(Mass, Uu*Uu, Nevent);
+			EvGen->EventTotalNumber(Efficiency);
+
+			Out << Mass << "\t" << Uu*Uu << "\t";
+			Out << EvGen->GetSignal() << "\t"; 
+			Out << EvGen->GetBackground() << "\t"; 
+			Out << EvGen->GetReducedChi2() << std::endl;
 		}
-		Out << Mass << "\t" << Uu*Uu << "\t" << Nevent << std::endl;
 	}
 
 	//OutFile->cd();

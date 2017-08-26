@@ -9,6 +9,7 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 	TheBox = new Detector(DetectorConfig);
 	TheGamma = new Decay();
 	TheFlux = new FluxDriver(FluxConfig);	//I have decided this is kinetic energy
+	InDetector = 0;
 
 	std::string Line, Key, Name;
 	std::stringstream ssL;
@@ -73,50 +74,58 @@ long double EventGenerator::EventProbability()	//reaching the detector and decay
 	{
 		double Total = TheGamma->Total();
 		double Ratio = TheGamma->Branch(GetChannel()); 
-		double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
-		double Lambda = Const::fM2GeV * TheBox->GetElement("Length");
+		double Length = Const::fM2GeV * (TheBox->GetElement("Baseline") + TheBox->GetZstart());
+		double Lambda = Const::fM2GeV * TheBox->GetZsize();
 		long double Lorentz = sqrt(GetEnergy(2)/GetMass(2) - 1.0);	//betagamma, to invert
 		return exp(- Total * Length / Lorentz) * (1 - exp(- Total * Lambda / Lorentz)) * Ratio;
 	}
 }
 
-double EventGenerator::EventEfficiency(double Efficiency)
+double EventGenerator::EventEfficiency()
 {
-	if (Efficiency < 0.0)
-		return TheBox->Efficiency(GetChannel(), GetEnergy());
-	else return Efficiency;
+	return TheBox->Efficiency(GetChannel(), GetEnergy(), GetMass());
 }
 
 //modifications:
 //hMod, hProb
 //even in .h file
-double EventGenerator::EventTotalNumber(double Efficiency)
+void EventGenerator::EventTotalNumber(bool Efficiency)
 {
 	double Range = TheFlux->GetRange();
 	//double A = TheFlux->GetStartRange();
 	//double B = TheFlux->GetEndRange();
-	double EnStep = Range/500.0;
+	//double EnStep = Range/500.0;
+	double EnStep = Range/100.0;
 
-	long double Total = 0.0L;
-	long double Add;
-	int count = 0;
+	long double Signal = 0.0L;
+	long double Background = 0.0L; 
+	long double ChiSquared = 0.0L; 
+	long double Sgn, Bkg, Chi2;
 	for (double EnKin = 0.0; EnKin < Range; EnKin += EnStep)
 	{
-		++count;
 		SetEnergyKin(EnKin);
 	//	if (EventProbability() <= 0.0) continue;	//speed up?
 
-		Add = FluxIntensity() * EventProbability();
-		if (Efficiency >= 0.0)
-			Add *= EventEfficiency(Efficiency);
+		Sgn = EnStep * FluxIntensity() * EventProbability();
+		if (Efficiency)
+		{
+			Sgn *= EventEfficiency();
+			Bkg = BackgroundIntensity();
+			Chi2 = Sgn*Sgn / Bkg;		//X2 = Sum (S^2 / B)
+		}
 
-		//std::cout << "M " << GetMass() << "\t" << Energy << "\t" << Add << std::endl;
+		//std::cout << "M " << GetMass() << "\t" << Energy << "\t" << Sgn << std::endl;
 		//std::cout << GetMass() << "\t" << GetEnergy() << "\t" << FluxIntensity() << "\t" << EventProbability() << std::endl;
 
-		Total += Add;
+		Signal += Sgn;
+		Background += Background;
+		ChiSquared += Chi2;
 	}
 
-	return Total * EnStep;
+	SetSignalNumber(Signal);
+	SetBackgroundNumber(Background);
+	SetReducedChi2(Chi2 / 99.0);	//not so quite correct
+	//return Signal * EnStep;
 }
 
 //Random generator
@@ -158,7 +167,6 @@ int EventGenerator::EventKinematics()	//Fourth step: simulate the phase space of
 	TLorentzVector N_vec(0, 0, 0, GetMass());	//Rest frame for the heavy neutrino
 
 	double Weight;
-	int Return;
 	TheGamma->SetNvec(N_vec);
 
 	double Products = TheGamma->PhaseSpace(GetChannel(), Weight);
@@ -167,10 +175,11 @@ int EventGenerator::EventKinematics()	//Fourth step: simulate the phase space of
 	else return 0.0;
 }
 
-TLorentzVector *EventGenerator::GetDecayProduct(int i, bool Smear)
+Particle *EventGenerator::GetDecayProduct(int i, bool Smear)
 {
 	int pdg;
 	TLorentzVector * Vi = TheGamma->GetDecayProduct(i, pdg);
+	//Particle * Pi = TheGamma->GetDecayProduct(pdg, i);
 
 	double BetaZ = GetMomentum()/GetEnergy();
 	double Radius = sqrt(pow(TheBox->GetElement("Width"),2) + pow(TheBox->GetElement("Height"),2));
@@ -182,30 +191,18 @@ TLorentzVector *EventGenerator::GetDecayProduct(int i, bool Smear)
 
 	Vi->Boost(Parent);	//boost along z axis
 
-	if (Smear)
-		SmearVector(Vi, pdg);
-
-	return Vi;
-}
-
-void EventGenerator::SmearVector(TLorentzVector* N, int Pdg)
-{
 	double PosX = GenMT->Uniform(TheBox->GetXsize());
 	double PosY = GenMT->Uniform(TheBox->GetYsize());
 	double PosZ = GenMT->Uniform(TheBox->GetZsize());
 	TVector3 Pos(PosX, PosY, PosZ);
-	TLorentzVector P4(*N);
+	Particle *P = new Particle(pdg, *Vi, Pos);	//mainly charged particles
 
-	Particle *P = new Particle(Pdg, 1, P4, Pos);	//mainly chardeg particles
+	if (Smear)
+		TheBox->SignalSmearing(GenMT, P);
 
-	TheBox->SignalSmearing(GenMT, P);
-	N->SetE(P->E());
-	N->SetPx(P->Px());
-	N->SetPy(P->Py());
-	N->SetPz(P->Pz());
-
-	delete P;
+	return P;
 }
+
 
 
 //Flux as PDF for MC
@@ -228,32 +225,34 @@ void EventGenerator::MakeSterileFlux(bool TotalPOT)	//Generate the flux for heav
 	}
 }
 
-void EventGenerator::MakeInDetector(double Efficiency)
+void EventGenerator::MakeInDetector(bool Efficiency)
 {
-	//delete InDetector;
-	//InDetector = NULL;
+	delete InDetector;
+	InDetector = 0;
 
 	double A = TheFlux->GetStartRange();
 	double B = TheFlux->GetEndRange();
-	double EnStep = (B-A)/(TheFlux->GetBinNumber()-1);
+	double Range = TheFlux->GetRange();
+	//double EnStep = (B-A)/(TheFlux->GetBinNumber()-1);
+	double EnStep = Range/500.0;
 
 	InDetector = new TH1D("InDetector", "Neutrinos in detector", TheFlux->GetBinNumber(), A, B);
 
-	double Add;
-	for (double Energy = A; Energy < B; Energy += EnStep)
+	long double Add;
+	for (double EnKin = 0.0; EnKin < Range; EnKin += EnStep)
+	//for (double Energy = A; Energy < B; Energy += EnStep)
 	{
-		SetEnergy(Energy);
+		//SetEnergy(Energy);
+		SetEnergyKin(EnKin);
 		//if (EventProbability() <= 0.0) continue;	//speed up?
 
 		Add = FluxIntensity() * EventProbability();
-		if (Efficiency >= 0.0)
-			Add *= EventEfficiency(Efficiency);
+		if (Efficiency)
+			Add *= EventEfficiency();
 
-		////std::cout << Energy << "\t" << FluxIntensity() << "\t" << EventProbability() << std::endl;
-                  //
-		//InDetector->Fill(Energy+1e-6, Add);
-	}         //
-}                 //
+		InDetector->Fill(EnKin+1e-6, Add);
+	}
+}
 
 /*
 void EventGenerator::MakeStandardFlux(bool TotalPOT)	//Generate the flux of SM neutrinos, just for comparison
@@ -273,31 +272,30 @@ void EventGenerator::MakeStandardFlux(bool TotalPOT)	//Generate the flux of SM n
 
 double EventGenerator::SampleEnergy(bool Set)	//Sample Energy according to PDF distribution
 {
-	double Energy = -1.0;
-	while (Energy - 1.0e-6 < GetMass())
-		Energy = TheFlux->SampleEnergy();
-
+	double Energy = TheFlux->SampleEnergy();
 	if (Set)
-		SetEnergy(Energy);
+		SetEnergyKin(Energy);
 
-	return Energy;
+	return Energy + GetMass();
 }
 
 double EventGenerator::SampleInDetector(bool Set)
 {
-	double Energy = -1.0;
-	while (Energy - 1.0e-6 < GetMass())
-		Energy = InDetector->GetRandom();
-
+	double Energy = InDetector->GetRandom();
 	if (Set)
-		SetEnergy(Energy);
+		SetEnergyKin(Energy);
 
-	return Energy;
+	return Energy + GetMass();
 }
 
 long double EventGenerator::FluxIntensity()	//Get the flux intensity at given energy
 {
 	return TheFlux->GetIntensity(GetEnergyKin());
+}
+
+long double EventGenerator::BackgroundIntensity()	//Get the background intensity at given energy
+{
+	return TheBox->Background(GetChannel(), GetEnergy());
 }
 
 //Get functions
@@ -343,6 +341,22 @@ double EventGenerator::GetUt()
 	return U_t;
 }
 
+long double EventGenerator::GetSignal()
+{
+	return lSignal;
+}
+
+long double EventGenerator::GetBackground()
+{
+	return lBackground;
+}
+
+long double EventGenerator::GetReducedChi2()
+{
+	return lRedChi2;
+}
+
+
 //Set functions
 void EventGenerator::SetChannel(std::string Ch)
 {
@@ -383,4 +397,19 @@ void EventGenerator::SetUt(double X)
 {
 	U_t = X;
 	TheGamma->SetUt(X);
+}
+
+void EventGenerator::SetSignalNumber(long double X)
+{
+	lSignal = X;
+}
+
+void EventGenerator::SetBackgroundNumber(long double X)
+{
+	lBackground = X;
+}
+
+void EventGenerator::SetReducedChi2(long double X)
+{
+	lRedChi2 = X;
 }

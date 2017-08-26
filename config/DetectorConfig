@@ -15,8 +15,9 @@ Target		1
 #Threshold in GeV
 #Resolution in absolut
 #
-ThrHadron	0.021
-ResHadron	0.15
+ThrHadron	0.020
+ResHadron	0.50
+SysHadron	0.01
 ThrPion		0.008
 ResPion		0.15
 ThrGamma	0.010

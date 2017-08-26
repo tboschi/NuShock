@@ -14,10 +14,13 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 //ROOT include
 #include "TRandom3.h"
-//#include "TFile.h"
+#include "TFile.h"
+#include "TH1.h"
+#include "TH2.h"
 //#include "TTree.h"
 //#include "TMath.h"
 
@@ -41,13 +44,16 @@ class Detector
 		std::vector<std::string> ListKey();
 		std::vector<std::string> ListChannel();
 		double GetElement(std::string Key);
-		double Efficiency(std::string Channel, double Energy);
+		//double Efficiency(std::string Channel, double Energy);
+		double Efficiency(std::string Channel, double Energy, double Mass);
+		double Background(std::string Channel, double Energy);
 		double EnergySigma(std::string Channel, double Energy);
 
+		double EnergySigma(Particle *P);
 		void SignalSmearing(TRandom3 *RanGen, Particle *P);
-		double TrackLength(Particle *P);
-		double InteractionLength();
-		double EnergyLoss(double Beta, double Mass);
+		double TrackLength(TRandom3 *RanGen, Particle *P);
+		double InteractionLength(int Target);
+		double EnergyLoss(int Target, double Beta, double Mass);
 		bool IsDetectable(Particle *P);	
 		bool IsDetectable(int Pdg, int Charge, double Ekin);	
 		bool IsInside(Particle *P);
@@ -62,8 +68,13 @@ class Detector
 		double GetZstart();
 		double GetZend();
 	private:
+
+		TFile *EffFile;
+		TH1D *hTemp, *hEfficiency;
+		bool Eff;
+
 		std::map<std::string, double> mapDetector;
-		std::map<std::string, std::vector<EnergyEfficiency> > mapEfficiency;
+		std::map<std::string, std::string> mapEfficiency;
 };
 
 #endif

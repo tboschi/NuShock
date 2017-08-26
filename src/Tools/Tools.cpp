@@ -112,19 +112,19 @@ double Kine::Bethe(double Beta, double Mass, double Density, double I, int Z, in
 	double e2M = Const::fMElectron / Mass;
 	double Wmax = (2000 * Const::fMElectron * Beta2 * Gamma2) / (1 + 2*Gamma*e2M + e2M*e2M);
 	double LogArg = 2000 * Const::fMElectron * Beta2 * Gamma2 * Wmax / (1e-12*I*I); 	//Everything in MeV
-	return 0.1 * Density * (K * Z) / (A * Beta2) * (0.5 * log (LogArg) - Beta2);
+	return 0.1 * Density * (K * Z) / (A * Beta2) * (0.5 * log (LogArg) - Beta2);	//stopping power in GeV/m (0.1*)
 }
 
-double Kine::RadiationLength(int Z, int A)
+double Kine::RadiationLength(double Density, int Z, int A)
 {
 	double K = 716.408;
 	double L0 = log(184.15 * pow(Z, -1.0/3.0));
 	double L1 = log(1194 * pow(Z, -2.0/3.0));
 
-	return 1.0 / (K/A * (Z*Z*(L0 - Radiation(Z)) + Z*L1));
+	return 0.01 * Density * K*A / (Z*Z*(L0 - Rad(Z)) + Z*L1);		//in m (0.01*)
 }
 
-double Kine::Radiation(int Z)
+double Kine::Rad(int Z)
 {
 	double a = Const::fAem * Z;
 	

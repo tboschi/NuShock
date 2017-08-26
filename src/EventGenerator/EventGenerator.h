@@ -44,23 +44,24 @@ class EventGenerator
 
 		//MC stuff
 		long double EventProbability();
-		double EventEfficiency(double Efficiency = -1.0);
-		double EventTotalNumber(double Efficiency = -1.0);
+		double EventEfficiency();
+		void EventTotalNumber(bool Efficiency = false);
 		//Random generators
 		std::string RandomChannel();
 		bool EventInDetector();
 		bool EventDetectable();
 		//Kinematics
 		int EventKinematics();
-		TLorentzVector *GetDecayProduct(int i, bool Smear = false);
+		Particle *GetDecayProduct(int i, bool Smear = false);
 
 		//Generate flux to be used as PDF
 		void MakeSterileFlux(bool TotalPOT = true);
-		void MakeInDetector(double Efficiency = -1.0);
+		void MakeInDetector(bool Efficiency = false);
 		//void MakeStandardFlux(bool TotalPOT = true);
 		double SampleEnergy(bool Set = true);
 		double SampleInDetector(bool Set = true);
 		long double FluxIntensity();
+		long double BackgroundIntensity();	//Get the background intensity at given energy
 
 		//Statistics
 		void SmearVector(TLorentzVector* N, int Pdg);
@@ -75,6 +76,10 @@ class EventGenerator
 		double GetUm();
 		double GetUt();
 
+		long double GetSignal();
+		long double GetBackground();
+		long double GetReducedChi2();
+
 		//Set function
 		void SetChannel(std::string Ch = "R");
 		void SetMass(double X);
@@ -84,8 +89,9 @@ class EventGenerator
 		void SetUm(double X);
 		void SetUt(double X);
 
-
-		TH1D *InDetector;
+		void SetSignalNumber(long double X);
+		void SetBackgroundNumber(long double X);
+		void SetReducedChi2(long double X);
 
 	private:
 		std::string sChannel;	//Channel is set globally in class
@@ -93,12 +99,17 @@ class EventGenerator
 		double M_Sterile, E_Sterile;
 		double U_e, U_m, U_t;
 
+		long double lSignal, lBackground, lRedChi2;
+
 		Decay *TheGamma;
 		Detector *TheBox;
 		FluxDriver *TheFlux;
 
 		TFile *SourceFile;
 		TRandom3 *GenMT;
+
+		TH1D *InDetector;
+
 };
 
 #endif

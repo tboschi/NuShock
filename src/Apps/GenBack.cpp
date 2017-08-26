@@ -54,6 +54,18 @@ int main(int argc, char** argv)
 				break;
 			case 'c':
 				Channel.assign(optarg);
+				if (Channel !=  "nGAMMA" &&
+				    Channel !=  "nEE" &&
+				    Channel !=  "nEMU" &&
+				    Channel !=  "nMUE" &&
+				    Channel !=  "nPI0" &&
+				    Channel !=  "EPI" &&
+				    Channel !=  "nMUMU" &&
+				    Channel !=  "MUPI")
+				{
+					std::cerr << "Channel unknown!" << std::endl;
+					return 1;
+				}
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -69,11 +81,11 @@ int main(int argc, char** argv)
 
 	TTree *Event = new TTree("Event", "Event");
 	//Background *Bkg = new Background(InFile, DetConfig, RootFile, Channel);
-	Background *Bkg = new Background(InFile, DetConfig, Channel);
+	Background *Bkg = new Background(Out, InFile, DetConfig, Channel);
 
 	RootFile->cd();
 	Bkg->InitTree();
-	int NumWrite = 100;
+	int NumWrite = 10;
 	for (unsigned int i = 0; i < NumWrite; ++i)	//save at least 100 times
 	{
 		Bkg->Loop(NumWrite);	//loop over the events...

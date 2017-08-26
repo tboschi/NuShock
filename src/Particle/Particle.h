@@ -14,27 +14,27 @@
 
 #include "TLorentzVector.h"
 #include "TVector3.h"
+#include "TParticlePDG.h"
 
-#include "EVGCore/EventRecord.h"
 #include "GHEP/GHepParticle.h"
-#include "Ntuple/NtpMCFormat.h"
-#include "Ntuple/NtpMCTreeHeader.h"
-#include "Ntuple/NtpMCEventRecord.h"
-#include "Messenger/Messenger.h"
 #include "PDG/PDGCodes.h"
-#include "Utils/CmdLnArgParser.h"
+#include "PDG/PDGLibrary.h"
 
 class Particle
 {
 	public:
 		Particle(genie::GHepParticle *Candidate, double PosX, double PosY, double PosZ);
-		Particle(int PdgCode, double Charge, TLorentzVector &Vector, double PosX, double PosY, double PosZ);
-		Particle(int PdgCode, double Charge, TLorentzVector &Vector, TVector3 &Position);
+		Particle(int PdgCode, TLorentzVector &Vector, double PosX, double PosY, double PosZ);
+		Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position);
 		Particle(const Particle &P);
 
 		int Pdg() const;
 		int Charge() const;
+		double Tau() const;	//lifetime at rest
+		double LabTau() const;		//lifetime in lab
+		double LabSpace() const;		//space travelled in lab before decay
 		TLorentzVector GetP4() const;
+		TVector3 Direction() const;
 		TVector3 Position() const;
 		double X() const;
 		double Y() const;
@@ -49,14 +49,17 @@ class Particle
 		double Pt() const;
 		double Theta() const;
 		double Phi() const;
-		double Track() const;
+		double TrackIn() const;
+		double TrackOut() const;
+		double TrackTot() const;
 
 		void SetP4(TLorentzVector &V);
 		void SetP4(double Px, double Py, double Pz, double E);
-		void SetPdg(int PdgCode);
-		void SetCharge(int Charge);
-		void SetE(double E);
-		void SetMass(double M);
+		void SetPdg(int X);
+		void SetTau();
+		void SetEnergy(double dE);
+		void SetMass(double dM);
+		void SetMomentum(double dE, double dM);
 		void SetTheta(double Ang);
 		void SetPhi(double Ang);
 		void SetPosition(TVector3 &V);
@@ -64,13 +67,14 @@ class Particle
 		void SetX(double X);
 		void SetY(double X);
 		void SetZ(double X);
-		void SetTrack(double X);
+		void SetTrackIn(double X);
+		void SetTrackOut(double X);
 
 	private:
 		TLorentzVector P4;
 		TVector3 Pos;
-		int iPdg, iCharge;
-		double dTrack;
+		int iPdg;
+		double dTrackIn, dTrackOut, dTau;
 };
 
 #endif

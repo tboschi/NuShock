@@ -18,10 +18,12 @@ include $(GENIE)/src/make/Make.include
 
 #Main executable to be compiled
 NEW =	Exclusion	\
-	EvGen	\
 	GenBack	\
-	#Simulation	\
+	Simulation	\
+	MakeEfficiency	\
+	Plotter
 	#Kine	\
+	EvGen	\
 	DecayPlot	\
 	Width		\
 	#Eps2Root	\
@@ -41,6 +43,7 @@ DEP =	Tools/Tools		\
 	SterileFlux/FluxDriver	\
 	EventGenerator/EventGenerator	\
 	Detector/Detector	\
+	Detector/Efficiency	\
 	Particle/Particle	\
 	Background/Background
 

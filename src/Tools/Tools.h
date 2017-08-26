@@ -60,8 +60,8 @@ namespace Kine
 	double I3_xy(double X, double Y);
 
 	double Bethe(double Beta, double Mass, double Density, double I, int Z, int A);		//GeV/m
-	double RadiationLength(int Z, int A);
-	double Radiation(int Z);
+	double RadiationLength(double Density, int Z, int A);
+	double Rad(int Z);
 
 	static const int Sample = 1000;	//Sample for integration
 	static const int Loop = 1000;	//Sample for integration
@@ -70,6 +70,7 @@ namespace Kine
 //Constants
 namespace Const
 {
+	static const double fC = 299792458;		//m/s
 	static const double fhBar = 6.5821189916e-25;	//GeV s, from PDG
 	static const double fAem = 1.0/137.035999074;	// from PDG
 
@@ -79,7 +80,7 @@ namespace Const
 	static const double fPi = 3.1415926536;	//1GeV in 1/s
 	static const double fPi2 = fPi*fPi;	//1GeV in 1/s
 	static const double fPi3 = fPi2*fPi;	//1GeV in 1/s
-	static const double fDeg = 180.0/(2*fPi);	//Rad to Deg
+	static const double fDeg = 180.0/fPi;	//Rad to Deg
 
 	//CKM entries
 	static const double fV_ud = 0.97417;

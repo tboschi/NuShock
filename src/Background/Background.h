@@ -37,7 +37,7 @@ class Background
 {
 	public:
 		//Background(std::string EventDB, std::string DetectorConfig, std::string OutFile, std::string Channel);
-		Background(std::string EventDB, std::string DetectorConfig, std::string Channel);
+		Background(std::ostream &OutStream, std::string EventDB, std::string DetectorConfig, std::string Channel);
 		~Background();
 		void InitTree();
 		void InitMap();
@@ -46,14 +46,18 @@ class Background
 
 		std::string GetChannel();
 		void Loop(unsigned int Save);
-		Particle* CreateParticle(genie::GHepParticle *Hep, double PosX, double PosY, double PosZ);
+		Particle* CreateParticle(genie::GHepParticle *Hep, TVector3 *Pos);
 
 		int Count(std::string PartName, int N = 1);
 		void ListCount();
+		bool MuonOrPion(Particle *P);
+		bool IsPhoton(Particle *P);
+		bool IseePair(Particle *P, Particle *Main);
 		bool CountParticles();
 
 		bool Identify();
 		void IdentifyHadron(Particle *iP);
+		bool IdentifynGAMMA();
 		bool IdentifynEE();
 		bool IdentifynEMU();
 		bool IdentifynPI0();
@@ -65,6 +69,8 @@ class Background
 		void Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB);
 
 	private:
+		std::ostream &Out;
+
 		int NEvt;
 		TRandom3 *GenMT;
 		TTree *Genie, *Data;
@@ -73,6 +79,7 @@ class Background
 		Detector *TheBox;
 		std::string TheChan;
 
+		TVector3 *Vertex;
 		Particle *ParticleA, *ParticleB;
 
 		//Maps
@@ -82,8 +89,9 @@ class Background
 		std::vector<Particle*>::iterator iP;
 
 		unsigned int ID, Global, Hadron;
-		double EnergyA, MomentA, TransvA, ThetaA, PhiA, MassA;
-		double EnergyB, MomentB, TransvB, ThetaB, PhiB, MassB;
+		double EnergyA, MomentA, TransvA, ThetaA, PhiA, MassA, LengthA, LengthoA;
+		double EnergyB, MomentB, TransvB, ThetaB, PhiB, MassB, LengthB, LengthoB;
+		double Angle;
 		double Energy0, Moment0, Transv0, Theta0, Phi0, Mass0;
 
 		//Masses

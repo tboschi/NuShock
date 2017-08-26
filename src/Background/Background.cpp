@@ -1,7 +1,7 @@
 #include "Background.h"
 
 //Background::Background(std::string EventDB, std::string DetectorConfig, std::string RootFile, std::string Channel)	: //Decay rates calculator
-Background::Background(std::string EventDB, std::string DetectorConfig, std::string Channel)	: //Decay rates calculator
+Background::Background(std::ostream &OutStream, std::string EventDB, std::string DetectorConfig, std::string Channel)	: //Decay rates calculator
 	M_Neutrino(0.0),
 	M_Photon(0.0),
 	M_Electron(Const::fMElectron),
@@ -10,21 +10,24 @@ Background::Background(std::string EventDB, std::string DetectorConfig, std::str
 	M_Pion0(Const::fMPion0),
 	M_Kaon(Const::fMKaon),
 	M_Kaon0(Const::fMKaon0),
-	Global(0)
+	Global(0),
+	Out(OutStream)
 {
  	InFile = new TFile(EventDB.c_str(), "READ");	//Don't close it until the end
 	InFile->cd();
  	Genie = dynamic_cast<TTree*> (InFile->Get("gtree"));
 	genie::NtpMCTreeHeader *thdr = dynamic_cast<genie::NtpMCTreeHeader*> (InFile->Get("header"));
  	if(!Genie)
-		std::cout << "No tree found in genie file" << std::endl;
+		std::cerr << "No tree found in genie file" << std::endl;
  	NEvt = Genie->GetEntries();
+ 	//NEvt = 1e4;
 	gEvRec = 0;
  	Genie->SetBranchAddress("gmcrec", &gEvRec);	//fetch event
 
 	TheBox = new Detector(DetectorConfig);
 
 	GenMT = new TRandom3;
+	Vertex = new TVector3();
 
 	TheChan.assign(Channel);
 
@@ -65,6 +68,8 @@ void Background::InitTree()
 	Data->Branch("TheA", &ThetaA, "fThetaA/D");
 	Data->Branch("PhiA", &PhiA, "fPhiA/D");
 	Data->Branch("M_A", &MassA, "fMassA/D");
+	Data->Branch("L_A", &LengthA, "fLengthA/D");
+	Data->Branch("Lo_A", &LengthoA, "fLengthoA/D");
 
 	//Particle B
 	Data->Branch("E_B", &EnergyB, "fEnergyB/D");
@@ -73,6 +78,10 @@ void Background::InitTree()
 	Data->Branch("TheB", &ThetaB, "fThetaB/D");
 	Data->Branch("PhiB", &PhiB, "fPhiB/D");
 	Data->Branch("M_B", &MassB, "fMassB/D");
+	Data->Branch("L_B", &LengthB, "fLengthB/D");
+	Data->Branch("Lo_B", &LengthoB, "fLengthoB/D");
+
+	Data->Branch("Angle", &Angle, "fAngle/D");
 
 	//Particle 0 = A + B
 	Data->Branch("E_0", &Energy0, "fEnergy0/D");
@@ -114,7 +123,7 @@ std::string Background::GetChannel()
 void Background::LoadTree()
 {
 	if (ParticleA == 0 || ParticleB == 0)
-		std::cout << "You lost a particle!" << std::endl;
+		std::cerr << "You lost a particle there!" << std::endl;
 	else 
 	{
 		Hadron = pCount["Hadron"];
@@ -125,6 +134,8 @@ void Background::LoadTree()
 		ThetaA = ParticleA->Theta();
 		PhiA = ParticleA->Phi();
 		MassA = ParticleA->M();
+		LengthA = ParticleA->TrackIn();
+		LengthoA = ParticleA->TrackOut();
 	
 		EnergyB = ParticleB->E();
 		MomentB = ParticleB->P();
@@ -132,6 +143,10 @@ void Background::LoadTree()
 		ThetaB = ParticleB->Theta();
 		PhiB = ParticleB->Phi();
 		MassB = ParticleB->M();
+		LengthB = ParticleB->TrackIn();
+		LengthoB = ParticleB->TrackOut();
+
+		Angle = ParticleA->Direction().Angle(ParticleB->Direction());
 
 		TLorentzVector Reco = ParticleA->GetP4() + ParticleB->GetP4();
 	
@@ -152,13 +167,8 @@ void Background::Loop(unsigned int Save)
 	unsigned int Span = NEvt/Save;
 	for (ID = Global; ID < Global+Span && ID < NEvt; ++ID)
 	{
-		std::cout << "Entry " << ID << std::endl;
+		Out << "Entry " << ID << std::endl;
 		Genie->GetEntry(ID);	//get event from ID
-		
-		//random position for event
-		double PosX = GenMT->Uniform(TheBox->GetXsize());
-		double PosY = GenMT->Uniform(TheBox->GetYsize());
-		double PosZ = GenMT->Uniform(TheBox->GetZsize());
 
 		for (iP = vParticle.begin() ; iP != vParticle.end(); ++iP)
 			delete (*iP);
@@ -170,7 +180,13 @@ void Background::Loop(unsigned int Save)
 		genie::GHepParticle * Hep = 0;	//particle pointer for loop in event
 		TIter EvIter(&gEvent);		//iterate inside the same event, skip the probe
 
-		std::cout << "Analysing " << gEvent.GetEntries() << " particles" << std::endl;
+		//random position for event
+		double PosX = GenMT->Uniform(TheBox->GetXstart(), TheBox->GetXend());
+		double PosY = GenMT->Uniform(TheBox->GetYstart(), TheBox->GetYend());
+		double PosZ = GenMT->Uniform(TheBox->GetZstart(), TheBox->GetZend());
+		Vertex->SetXYZ(PosX, PosY, PosZ);
+
+		Out << "Event contains " << gEvent.GetEntries() << " particles" << std::endl;
 		while((Hep = dynamic_cast<genie::GHepParticle *>(EvIter.Next())))	//loop on all particles
 		{									//inside the event
 			if (Hep->Status() == 1)
@@ -178,13 +194,14 @@ void Background::Loop(unsigned int Save)
 				if (abs(Hep->Pdg()) == 111)		//special treatments for pi0
 				{					//almost 100% into 2y
 					Particle *PhotonA, *PhotonB;
-					Pi0Decay(CreateParticle(Hep, PosX, PosY, PosZ), PhotonA, PhotonB);	//passing reference to pointers
+					Pi0Decay(CreateParticle(Hep, Vertex), PhotonA, PhotonB);	//passing reference to pointers
 					vParticle.push_back(PhotonA);
 					vParticle.push_back(PhotonB);
 				}
 				else if (abs(Hep->Pdg()) < 1e9)	//no nucleus
-					vParticle.push_back(CreateParticle(Hep, PosX, PosY, PosZ));		//Everything detectable
+					vParticle.push_back(CreateParticle(Hep, Vertex));		//Everything detectable
 			}			//sould contains muons, electron, pions, protons, kaons and other strange and charmed kaons
+
 		}
 		
 		//Run through the collected particles
@@ -192,18 +209,18 @@ void Background::Loop(unsigned int Save)
 		ListCount();
 		Identify();
 
-		std::cout << std::endl;
+		Out << std::endl;
 	}
 
 	//Data->Write();
 	Global = ID;	//ID should be +1 
 }
 
-Particle* Background::CreateParticle(genie::GHepParticle *Hep, double PosX, double PosY, double PosZ)
+Particle* Background::CreateParticle(genie::GHepParticle *Hep, TVector3* Pos)
 {
-	TVector3 Pos(PosX, PosY, PosZ);
+	TVector3 RefPos(Pos->X(),Pos->Y(),Pos->Z());
 	TLorentzVector P4(*Hep->P4());
-	Particle *P = new Particle(Hep->Pdg(), Hep->Charge(), P4, Pos);
+	Particle *P = new Particle(Hep->Pdg(), P4, RefPos);
 
 	if (P->Charge() != 0)
 		TheBox->SignalSmearing(GenMT, P);
@@ -214,7 +231,7 @@ Particle* Background::CreateParticle(genie::GHepParticle *Hep, double PosX, doub
 
 int Background::Count(std::string PartName, int N)
 {
-	if (N < 0)
+	if (N < -111)
 		pCount[PartName] = 0;
 	else pCount[PartName] += N;
 
@@ -224,38 +241,93 @@ int Background::Count(std::string PartName, int N)
 void Background::ListCount()
 {
 	if (pCount.size() == 0)
-		std::cout << "No interesting particles " << std::endl;
+		Out << "No interesting particles " << std::endl;
 	else
 	{
 		std::map<std::string, int>::iterator im = pCount.begin();
 		for ( ; im != pCount.end(); ++im)
 		{
-			std::cout << im->first << ": " << im->second << "\t";
+			Out << im->first << ": " << im->second << "\t";
 		}
-		std::cout << std::endl;
+		Out << std::endl;
 	}
 }
 
+//Need to recalculate this factors..
+bool Background::MuonOrPion(Particle *P)	//T if muon, F if pion
+{
+	if (P->TrackIn() < 1.0)
+	{
+	       if (GenMT->Rndm() < 0.3906445328)
+		       return true;	
+	       else return false;
+	}
+	else if (P->TrackIn() > 1.0 && P->TrackIn() < 2.0)
+	{
+	       if (GenMT->Rndm() < 0.549552089)
+		       return true;	
+	       else return false;
+	}
+	else if (P->TrackIn() > 2.0 && P->TrackIn() < 3.0)
+	{
+	       if (GenMT->Rndm() < 0.6748498302)
+		       return true;	
+	       else return false;
+	}
+	else if (P->TrackIn() > 3.0 && P->TrackIn() < 4.0)
+	{
+	       if (GenMT->Rndm() < 0.7482980534)
+		       return true;	
+	       else return false;
+	}
+	else if (P->TrackIn() > 4.0)
+	{
+	       if (GenMT->Rndm() < 0.7192982456)
+		       return true;	
+	       else return false;
+	}
+}
+
+bool Background::IsPhoton(Particle *P)	//T if photon, F can be electron
+{
+	TVector3 Travel = (P->Position() - *Vertex);
+	if (P->TrackIn() > 0.0 || Travel.Mag() > 0.03)	//displacement of 3cm
+		return true;
+	else return false;
+}
+
+bool Background::IseePair(Particle *P, Particle *Main)	//T if pair, F single electron
+{
+    	if (P->Direction().Angle(Main->Direction()) < 3.0/Const::fDeg)	//can't distinguish electrons 3deg close
+		return true;
+	else
+		return false;
+}
 
 /***** Identification of single particles and counting *****/
 bool Background::CountParticles()	//need to add smearing
 {
 	ParticleA = 0, ParticleB = 0;
+	std::vector<Particle*> vElectron, vPhoton;
+	std::vector<Particle*>::iterator ie;
 
-	int i = 0;
-	for (iP = vParticle.begin(); iP != vParticle.end(); ++iP, ++i)
+	Out << "Particles selected: " << vParticle.size() << std::endl;
+
+	int p = 0;
+	for (iP = vParticle.begin(); iP != vParticle.end(); ++iP, ++p)
 	{
-		if (TheBox->IsDetectable(*iP))
+		if (TheBox->IsDetectable(*iP) && TheBox->IsInside(*iP))
 		{
 			if ((*iP)->Pdg() == 13)		//Muon
 			{
-				if (TheBox->TrackLength(*iP) < 0.50 && GenMT->Rndm() > 0.5)	//likely a pion, 50:50 chance can be misidentified
+				if (!MuonOrPion(*iP))
 				{
 					(*iP)->SetPdg(211);
 					(*iP)->SetMass(M_Pion);
-					--iP;			//must recheck
+					--iP;			//must recheck (for thr for instance)
+					--p;
 				}
-				else		//quite a muon!
+				else 
 				{
 					Count("Muon");
 					switch (mapChan[GetChannel()])
@@ -279,13 +351,14 @@ bool Background::CountParticles()	//need to add smearing
 			}
 			else if ((*iP)->Pdg() == 211)	//Pion+
 			{
-				if (TheBox->TrackLength(*iP) > 0.50 && GenMT->Rndm() > 0.5)	//likely a muon, 50:50 chance can be misidentified
+				if (MuonOrPion(*iP))
 				{
 					(*iP)->SetPdg(13);
 					(*iP)->SetMass(M_Muon);
-					--iP;			//must recheck
+					--iP;			//must recheck (for thr for instance)
+					--p;
 				}
-				else 		//quite a pion!
+				else 
 				{
 					Count("Pion");
 					switch (mapChan[GetChannel()])
@@ -303,38 +376,72 @@ bool Background::CountParticles()	//need to add smearing
 			}
 			else if ((*iP)->Pdg() == 11)	//Electron
 			{
-				Count("Electron");
-				switch (mapChan[GetChannel()])
+				bool TrueElectron = true;
+				for (ie = vElectron.begin(); ie != vElectron.end(); )
 				{
-					case _nEE:
-						!ParticleA ? ParticleA = *iP : ParticleB = *iP;	//Fill first PA, then PB
+					if (IseePair(*iP, *ie))
+					{
+						TVector3 Dir((*iP)->Px() + (*ie)->Px(),
+							     (*iP)->Py() + (*ie)->Py(),
+							     (*iP)->Pz() + (*ie)->Pz());
+						TLorentzVector GammaReco(Dir, (*iP)->E() + (*ie)->E());
+						(*iP)->SetPdg(22);	//could be a photon close to vertex
+						(*iP)->SetP4(GammaReco);
+						(*iP)->SetMass(0);
+						(*iP)->SetTrackIn(abs((*iP)->TrackIn())+abs((*ie)->TrackIn()));
+
+						--iP;			//must recheck (for thr for instance)
+						--p;
+						ie = vElectron.erase(ie);
+						TrueElectron = false;
+						Count("Electron", -1);
 						break;
-					case _nEMU:
-						ParticleA = *iP;
-						break;
-					case _nMUE:
-						ParticleA = *iP;
-						break;
-					case _EPI:
-						ParticleA = *iP;
-						break;
-					default:
-						break;
+					}
+					else ++ie;
+				}
+
+				if (TrueElectron && GenMT->Rndm() < TheBox->GetElement("ElecEfficiency"))
+				{
+					Count("Electron");
+					vElectron.push_back(*iP);
+					switch (mapChan[GetChannel()])
+					{
+						case _nEE:
+							!ParticleA ? ParticleA = *iP : ParticleB = *iP;	//Fill first PA, then PB
+							break;
+						case _nEMU:
+							ParticleA = *iP;
+							break;
+						case _nMUE:
+							ParticleA = *iP;
+							break;
+						case _EPI:
+							ParticleA = *iP;
+							break;
+						default:
+							break;
+					}
 				}
 			}
 			else if ((*iP)->Pdg() == 22)	//Photons
 			{
-				if (GammaDecay() < 0.03)	//this photon could be an electron!
-				{
+				if(!IsPhoton(*iP) || GenMT->Rndm() < TheBox->GetElement("GammaRejection"))
+				{		//conversion before 3cm 
 					(*iP)->SetPdg(11);
 					(*iP)->SetMass(M_Electron);
-					--iP;			//must recheck
+					TheBox->TrackLength(GenMT, *iP);
+					--iP;			//must recheck (for thr for instance)
+					--p;
 				}
 				else
 				{
 					Count("Photon");
 					switch (mapChan[GetChannel()])
 					{
+						case _nGAMMA:
+							ParticleA = *iP;
+							ParticleB = *iP;
+							break;
 						case _nPI0:
 							!ParticleA ? ParticleA = *iP : ParticleB = *iP;	//Fill first PA, then PB
 							break;
@@ -362,10 +469,11 @@ bool Background::Identify()
 		case _nnn:
 			Result = nnn();
 			break;
-		case _nGAMMA:
-			Result = nGAMMA();
-			break;
 		*/
+		case _nGAMMA:
+			if (IdentifynGAMMA())	//A = e, B = e
+				LoadTree();
+			break;
 		case _nEE:
 			if (IdentifynEE())	//A = e, B = e
 				LoadTree();
@@ -402,7 +510,6 @@ bool Background::Identify()
 			Result = nKA0();
 		*/
 		default:
-			++iP;
 			break;
 	}
 }
@@ -419,6 +526,18 @@ void Background::IdentifyHadron(Particle *iP)	//here everything not selected by 
 }
 
 /***** single channel check for pcount map, exact number needed *****/
+bool Background::IdentifynGAMMA()	//need to add smearing
+{
+	if (pCount["Electron"]	== 0	&&
+	    pCount["Photon"]	== 1	&& 
+	    pCount["Muon"]	== 0	&& 
+	    pCount["Pion"]	== 0	&& 
+	    pCount["Kaon"]	== 0	&& 
+	    pCount["Charm"]	== 0	  )
+		return true;
+	else return false;
+}
+
 bool Background::IdentifynEE()	//need to add smearing
 {
 	if (pCount["Electron"]	== 2	&&
@@ -491,31 +610,29 @@ bool Background::IdentifyMUPI()	//need to add smearing
 	else return false;
 }
 	
-
-
-//Distance travelled by photons before conversion
-double Background::GammaDecay()
-{
-	double Path = 9.0/7.0 * TheBox->InteractionLength();
-	return GenMT->Exp(Path);	//in cm
-}
-	
 //Treat pi0 decay into 2 photons
-void Background::Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB)
+void Background::Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB)	//will travle length O(10nm)
 {
 	//in rest frame
 	TLorentzVector GammaA(0, 0, M_Pion0/2.0, M_Pion0/2.0); 
 	TLorentzVector GammaB(0, 0, -M_Pion0/2.0, M_Pion0/2.0); 
 
 	TVector3 vBoost(Pi0->GetP4().BoostVector());
+	TVector3 Start(Pi0->Position());		//starting point is vertex
 	double Theta = GenMT->Uniform(-Const::fPi, Const::fPi);
 	double Phi = GenMT->Uniform(-Const::fPi, Const::fPi);
 
-	double Tau = 1.0 / (8.52e-17 * Pi0->GetP4().Beta() * Pi0->GetP4().Gamma());	//should be the relativistic tau
-	double Travel = GenMT->Exp(Tau);
-	TVector3 Move(Pi0->GetP4().Vect().Unit());	//direction of motion
-	Move *= Travel;
-	Move += Pi0->Position();
+	/*
+	//double dx = TheBox->GetElement("Vertex");	//1 mm
+	double dx = 1e-9;	//1 mm
+	double Move = 0.0;
+	Out << "before while " << dx/(Const::fC * Pi0->LabSpace()) <<  std::endl;
+	while (GenMT->Rndm() < exp(-dx/(Const::fC * Pi0->LabSpace())))	//check every 1mm if particle has decayed
+		Move += dx;
+	Start *= (Start.Mag() + Move) / Start.Mag();
+	Out << "after while " << Start.Mag() << std::endl;
+	Out << "after while " << Move << std::endl;
+	*/
 
 	GammaA.SetTheta(Theta);
 	GammaB.SetTheta(Const::fPi + Theta);
@@ -525,8 +642,26 @@ void Background::Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB)
 	GammaA.Boost(vBoost);
 	GammaB.Boost(vBoost);
 
-	PA = new Particle(22, 0, GammaA, Move);	//here are the photons
-	PB = new Particle(22, 0, GammaB, Move);	//position should be different
+	TVector3 MoveA(GammaA.Vect().Unit());
+	TVector3 MoveB(GammaB.Vect().Unit());
+	MoveA *= GammaDecay();
+	MoveB *= GammaDecay();
+	MoveA += Start;
+	MoveB += Start;
+
+	PA = new Particle(22, GammaA, MoveA);	//here are the photons
+	PB = new Particle(22, GammaB, MoveB);	//position should be different
 
 	delete Pi0;
+}
+
+//Distance travelled by photons before conversion
+double Background::GammaDecay()
+{
+	double Path = 9.0/7.0 * TheBox->InteractionLength(1);
+	double dx = 0.001;	//1 mm
+	double Length = 0.0;
+	while (GenMT->Rndm() < exp(-dx/Path))	//check every 1mm if particle has decayed
+		Length += dx;
+	return Length;	//in cm
 }

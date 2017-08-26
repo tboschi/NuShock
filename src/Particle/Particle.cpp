@@ -3,34 +3,43 @@
 //ctor from gHep
 Particle::Particle(genie::GHepParticle *Candidate, double PosX, double PosY, double PosZ)
 {
-	SetP4(*(Candidate->P4()));
 	SetPdg(abs(Candidate->Pdg()));
-	SetCharge(Candidate->Charge()/3);	//genie use e/3 charge
+	SetTau();	//in seconds
+
+	SetP4(*(Candidate->P4()));
+
 	SetX(PosX);
 	SetY(PosY);
 	SetZ(PosZ);
-	SetTrack(-1);
+	SetTrackIn(-1);
+	SetTrackOut(-1);
 }
 
 //manual ctor
-Particle::Particle(int PdgCode, double Charge, TLorentzVector &Vector, double PosX, double PosY, double PosZ)
+Particle::Particle(int PdgCode, TLorentzVector &Vector, double PosX, double PosY, double PosZ)
 {
-	SetP4(Vector);
 	SetPdg(abs(PdgCode));
-	SetCharge(Charge);
+	SetTau();	//in seconds
+
+	SetP4(Vector);
+
 	SetX(PosX);
 	SetY(PosY);
 	SetZ(PosZ);
-	SetTrack(-1);
+	SetTrackIn(-1);
+	SetTrackOut(-1);
 }
 
-Particle::Particle(int PdgCode, double Charge, TLorentzVector &Vector, TVector3 &Position)
+Particle::Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position)
 {
-	SetP4(Vector);
 	SetPdg(abs(PdgCode));
-	SetCharge(Charge);
+	SetTau();	//in seconds
+
+	SetP4(Vector);
+
 	SetPosition(Position);
-	SetTrack(-1);
+	SetTrackIn(-1);
+	SetTrackOut(-1);
 }
 
 //copy ctor
@@ -38,9 +47,10 @@ Particle::Particle(const Particle &P)
 {
 	SetP4(P.Px(), P.Py(), P.Pz(), P.E());
 	SetPdg(abs(P.Pdg()));
-	SetCharge(P.Charge());
+	SetTau();
 	SetPosition(P.X(), P.Y(), P.Z());
-	SetTrack(-1);
+	SetTrackIn(-1);
+	SetTrackOut(-1);
 }
 
 int Particle::Pdg() const
@@ -50,7 +60,28 @@ int Particle::Pdg() const
 
 int Particle::Charge() const
 {
-	return iCharge;
+	TParticlePDG * FindP = genie::PDGLibrary::Instance()->Find(Pdg());
+	return FindP->Charge()/3;
+}
+
+bool Particle::IsShower() const
+{
+	return bShower;
+}
+
+double Particle::Tau() const
+{
+	return dTau;
+}
+
+double Particle::LabTau() const
+{
+	return Tau() * P4.Gamma();
+}
+
+double Particle::LabSpace() const
+{
+	return LabTau() * P4.Beta();
 }
 
 TLorentzVector Particle::GetP4() const
@@ -108,6 +139,11 @@ double Particle::Phi() const
 	return P4.Phi();
 }
 
+TVector3 Particle::Direction() const
+{
+	return GetP4().Vect();
+}
+
 TVector3 Particle::Position() const
 {
 	return Pos;
@@ -128,9 +164,19 @@ double Particle::Z() const
 	return Pos.Z();
 }
 
-double Particle::Track() const
+double Particle::TrackIn() const
 {
-	return dTrack;
+	return dTrackIn;
+}
+
+double Particle::TrackOut() const
+{
+	return dTrackOut;
+}
+
+double Particle::TrackTot() const
+{
+	return TrackIn() + TrackOut();
 }
 
 ////////
@@ -139,9 +185,15 @@ void Particle::SetPdg(int X)
 	iPdg = X;
 }
 
-void Particle::SetCharge(int X)
+void Particle::SetTau()
 {
-	iCharge = X;
+	if (Pdg() == 13)
+		dTau = 2.1969811e-6;
+	else if (Pdg() == 211)
+		dTau = 2.6033e-8;
+	else if (Pdg() == 111)
+		dTau = 8.52e-17;
+	else dTau = 1e26;
 }
 
 void Particle::SetP4(TLorentzVector &V)
@@ -160,19 +212,23 @@ void Particle::SetP4(double Px, double Py, double Pz, double E)
 	P4.SetPz(Pz);
 }
 
-void Particle::SetE(double E)
+void Particle::SetEnergy(double dE)
 {
-	if (P() > 0.0)
-	{
-		P4.SetRho(E*E - P4.M2());
-		P4.SetE(E);
-	}
-	else P4.SetE(E);
+	double dM = M();
+	P4.SetE(dE);
+	SetMomentum(dE, dM);
 }
 
-void Particle::SetMass(double M)
+void Particle::SetMass(double dM)
 {
-	P4.SetRho(sqrt(P4.E()*P4.E() - M*M));
+	double dE = E();
+	SetMomentum(dE, dM);
+}
+
+void Particle::SetMomentum(double dE, double dM)
+{
+	if (P() > 0.0)
+		P4.SetRho(sqrt(dE*dE - dM*dM));
 }
 
 void Particle::SetTheta(double Ang)
@@ -214,7 +270,12 @@ void Particle::SetZ(double X)
 	Pos.SetZ(X);
 }
 
-void Particle::SetTrack(double X)
+void Particle::SetTrackIn(double X)
 {
-	dTrack = X;
+	dTrackIn = X;
+}
+
+void Particle::SetTrackOut(double X)
+{
+	dTrackOut = X;
 }

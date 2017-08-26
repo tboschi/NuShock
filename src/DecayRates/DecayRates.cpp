@@ -638,6 +638,7 @@ TLorentzVector *Decay::GetNvec()
 }
 
 TLorentzVector *Decay::GetDecayProduct(int i, int &ID)
+//Particle *Decay::GetDecayProduct(int i, int &ID)
 {
 	ID = PdgCode[i];
 	return Event->GetDecay(i);

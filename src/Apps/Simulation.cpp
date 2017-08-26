@@ -13,6 +13,7 @@
 #include "EventGenerator.h"
 #include "DecayRates.h"
 #include "3Body.h"
+#include "Particle.h"
 
 void Usage(char* argv0);
 
@@ -101,77 +102,34 @@ int main(int argc, char** argv)
 	double Angle;	//separation between A & B
 	double angle;	//separation between A & B
 
-	TTree *tTrack = new TTree("tTrack", "Particle tracks");
+	TTree *Data = new TTree("Data", "Particle tracks");
 
-	tTrack->Branch("ID", &ID, "iID/i");
-	tTrack->Branch("Real", &Real, "fReal/D");
+	Data->Branch("ID", &ID, "iID/i");
+	Data->Branch("Real", &Real, "fReal/D");
 
-	tTrack->Branch("E_A", &EnergyA, "fEnergyA/D");
-	tTrack->Branch("P_A", &MomentA, "fMomentA/D");
-	tTrack->Branch("T_A", &TransvA, "fTransvA/D");
-	tTrack->Branch("TheA", &ThetaA, "fThetaA/D");
-	tTrack->Branch("PhiA", &PhiA, "fPhiA/D");
-	tTrack->Branch("M_A", &MassA, "fMassA/D");
+	Data->Branch("E_A", &EnergyA, "fEnergyA/D");
+	Data->Branch("P_A", &MomentA, "fMomentA/D");
+	Data->Branch("T_A", &TransvA, "fTransvA/D");
+	Data->Branch("TheA", &ThetaA, "fThetaA/D");
+	Data->Branch("PhiA", &PhiA, "fPhiA/D");
+	Data->Branch("M_A", &MassA, "fMassA/D");
 
-	tTrack->Branch("E_B", &EnergyB, "fEnergyB/D");
-	tTrack->Branch("P_B", &MomentB, "fMomentB/D");
-	tTrack->Branch("T_B", &TransvB, "fTransvB/D");
-	tTrack->Branch("TheB", &ThetaB, "fThetaB/D");
-	tTrack->Branch("PhiB", &PhiB, "fPhiB/D");
-	tTrack->Branch("M_B", &MassB, "fMassB/D");
+	Data->Branch("E_B", &EnergyB, "fEnergyB/D");
+	Data->Branch("P_B", &MomentB, "fMomentB/D");
+	Data->Branch("T_B", &TransvB, "fTransvB/D");
+	Data->Branch("TheB", &ThetaB, "fThetaB/D");
+	Data->Branch("PhiB", &PhiB, "fPhiB/D");
+	Data->Branch("M_B", &MassB, "fMassB/D");
 
-	//unboosted
-	tTrack->Branch("e_A", &energyA, "fenergyA/D");
-	tTrack->Branch("p_A", &momentA, "fmomentA/D");
-	tTrack->Branch("t_A", &transvA, "ftransvA/D");
-	tTrack->Branch("theA", &thetaA, "fthetaA/D");
-	tTrack->Branch("phiA", &phiA, "fphiA/D");
-	tTrack->Branch("m_A", &massA, "fmassA/D");
+	Data->Branch("Angle", &Angle, "fAngle/D");
 
-	tTrack->Branch("e_B", &energyB, "fenergyB/D");
-	tTrack->Branch("p_B", &momentB, "fmomentB/D");
-	tTrack->Branch("t_B", &transvB, "ftransvB/D");
-	tTrack->Branch("theB", &thetaB, "fthetaB/D");
-	tTrack->Branch("phiB", &phiB, "fphiB/D");
-	tTrack->Branch("m_B", &massB, "fmassB/D");
+	Data->Branch("E_0", &Energy0, "fEnergy0/D");
+	Data->Branch("P_0", &Moment0, "fMoment0/D");
+	Data->Branch("T_0", &Transv0, "fTransv0/D");
+	Data->Branch("The0", &Theta0, "fTheta0/D");
+	Data->Branch("Phi0", &Phi0, "fPhi0/D");
+	Data->Branch("M_0", &Mass0, "fMass0/D");
 
-	//tTrack->Branch("EnergyC", &EnergyC, "fEnergyC/D");
-	//tTrack->Branch("MomentC", &MomentC, "fMomentC/D");
-	//tTrack->Branch("TransvC", &TransvC, "fTransvC/D");
-	//tTrack->Branch("ThetaC", &ThetaC, "fThetaC/D");
-	//tTrack->Branch("PhiC", &PhiC, "fPhiC/D");
-	//tTrack->Branch("MassC", &MassC, "fMassC/D");
-
-	tTrack->Branch("Angle", &Angle, "fAngle/D");
-	//tTrack->Branch("angle", &angle, "fangle/D");
-
-	/*
-	tTrack->Branch("E_0", &Energy0, "fEnergy0/D");
-	tTrack->Branch("P_0", &Moment0, "fMoment0/D");
-	tTrack->Branch("T_0", &Transv0, "fTransv0/D");
-	tTrack->Branch("The0", &Theta0, "fTheta0/D");
-	tTrack->Branch("Phi0", &Phi0, "fPhi0/D");
-	tTrack->Branch("M_0", &Mass0, "fMass0/D");
-	*/
-
-	TH1D *E_All = new TH1D("E_All", "Neutrino energy before cut", 100, 0, 20);
-	TH1D *E_Cut = new TH1D("E_Cut", "Neutrino energy after cut", 100, 0, 20);
-
-	TH1D *InvMass = new TH1D("E_Cut", "Neutrino energy after cut", 500, 0, 1);	//Invariant mass for 2body decays
-
-	//TH1D *hEnergy = new TH1D("energy", "Energy", 500, 0, 20);
-	//TH1D *hAngleS = new TH1D("angles", "Angle Separation", 500, -180, 180);
-	//TH1D *hAngleN = new TH1D("anglen", "Angle N", 500, -180, 180);
-	//TH1D *hAngle0 = new TH1D("angle0", "Angle p0", 500, -180, 180);
-	//TH1D *hAngle1 = new TH1D("angle1", "Angle p1", 500, -180, 180);
-	//TH1D *hIMassN = new TH1D("imassn", "Invariant Mass of N", 500, 0, 0.5);
-	//TH1D *hIMass0 = new TH1D("imass0", "Invariant Mass of p0", 500, 0, 0.5);
-	//TH1D *hIMass1 = new TH1D("imass1", "Invariant Mass of p1", 500, 0, 0.5);
-
-	double Grad = Const::fPi/180.0;
-
-	//EvGen->SetEnergy(1);
-	//fill a tree with simulated neutrinos
 	while (ID < Nevent)
 	{
 		EvGen->SampleInDetector(1);
@@ -180,91 +138,56 @@ int main(int argc, char** argv)
 
 		if (EvGen->EventKinematics())
 		{
-			//std::cout << "h1" << std::endl;
-			TLorentzVector *pA = EvGen->GetDecayProduct(0, 1);
-			TLorentzVector *pB = EvGen->GetDecayProduct(1, 1);
-		//	TLorentzVector *pC = EvGen->GetDecayProduct(2, 1);
-			TLorentzVector *p0 = new TLorentzVector(*pA + *pB);
+			Particle *ParticleA = EvGen->GetDecayProduct(0, 1);
+			Particle *ParticleB = EvGen->GetDecayProduct(1, 1);
 
-			EnergyA = pA->E();
-			MomentA = pA->P();
-			TransvA = pA->Pt();
-			ThetaA = pA->Theta();
-			PhiA = pA->Phi();
-			MassA = pA->M();
-
-			EnergyB = pB->E();
-			MomentB = pB->P();
-			TransvB = pB->Pt();
-			ThetaB = pB->Theta();
-			PhiB = pB->Phi();
-			MassB = pB->M();
-
-		//	EnergyC = pC->E();
-		//	MomentC = pC->P();
-		//	TransvC = pC->Pt();
-		//	ThetaC = pC->Theta();
-		//	PhiC = pC->Phi();
-		//	MassC = pC->M();
-
-			Angle = pA->Angle(pB->Vect());
-
-			Energy0 = p0->E();
-			Moment0 = p0->P();
-			Transv0 = p0->Pt();
-			Theta0 = p0->Theta();
-			Phi0 = p0->Phi();
-			Mass0 = p0->M();
-
-			//unboost
-			/*
-			pA->Boost(- p0->Vect());
-			pB->Boost(- p0->Vect());
-			angle = pA->Angle(pB->Vect());
+			EnergyA = ParticleA->E();
+			MomentA = ParticleA->P();
+			TransvA = ParticleA->Pt();
+			ThetaA = ParticleA->Theta();
+			PhiA = ParticleA->Phi();
+			MassA = ParticleA->M();
+		
+			EnergyB = ParticleB->E();
+			MomentB = ParticleB->P();
+			TransvB = ParticleB->Pt();
+			ThetaB = ParticleB->Theta();
+			PhiB = ParticleB->Phi();
+			MassB = ParticleB->M();
 	
-			energyA = pA->E();
-			momentA = pA->P();
-			transvA = pA->Pt();
-			thetaA = pA->Theta();
-			phiA = pA->Phi();
-			massA = pA->M();
-
-			energyB = pB->E();
-			momentB = pB->P();
-			transvB = pB->Pt();
-			thetaB = pB->Theta();
-			phiB = pB->Phi();
-			massB = pB->M();
-
-			angle = pA->Angle(pB->Vect());
-			*/
-
-		//	EnergyC = pC->E();
-			
-			E_All->Fill(Energy0);
-			InvMass->Fill(Mass0);
-
-			tTrack->Fill();
+			Angle = ParticleA->Direction().Angle(ParticleB->Direction());
+	
+			TLorentzVector Reco = ParticleA->GetP4() + ParticleB->GetP4();
+		
+			Energy0 = Reco.E();
+		        Moment0 = Reco.P();
+		        Transv0 = Reco.Pt();
+		        Theta0 = Reco.Theta();
+		        Phi0 = Reco.Phi();
+		        Mass0 = Reco.M();
+	
+			Data->Fill();
 
 			std::cout << "Particle " << ++ID << std::endl;
 
-			delete p0;
+			delete ParticleA, ParticleB;
 
-			if (SaveMe++ > 1000)
+			if (SaveMe++ > 10000)
 			{
 				OutFile->cd();
-				tTrack->Write();
+				Data->Write();
 				SaveMe = 0;
 			}
 		}
 	}
 
 	OutFile->cd();
-        tTrack->Write();
+        Data->Write();
 
-	for (unsigned int i = 0; i < tTrack->GetEntries(); ++i)
+	/*
+	for (unsigned int i = 0; i < Data->GetEntries(); ++i)
 	{
-		tTrack->GetEntry(i);
+		Data->GetEntry(i);
 
 		if (Angle < 40*Grad &&
 		    ThetaA < 80*Grad &&
@@ -279,7 +202,7 @@ int main(int argc, char** argv)
 	{
 		Eff = E_Cut->GetBinContent(Bin)/E_All->GetBinContent(Bin);
 	}
-
+	*/
 
 	return 0;
 }
