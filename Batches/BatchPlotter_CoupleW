@@ -1,0 +1,17 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+./bin/Plotter -i Exclusion/Couple2/MUPI_M_B.dat -o Exclusion/Plot_Couple2/MUPI_M_B.dat -t -11.939 -m 214.95 -A 0.25 -B 0.35
+./bin/Plotter -i Exclusion/Couple2/nEE_M_B.dat -o Exclusion/Plot_Couple2/nEE_M_B.dat -t 29.3619 -m 61.8439 -A 0.05 -B 0.35
+./bin/Plotter -i Exclusion/Couple2/nMUE_M_B.dat -o Exclusion/Plot_Couple2/nMUE_M_B.dat -t 35.8722 -m 14.6314 -A 0.15 -B 0.35
+./bin/Plotter -i Exclusion/Couple2/nMUMU_M_B.dat -o Exclusion/Plot_Couple2/nMUMU_M_B.dat -t 48.7992 -m 76.9998 -A 0.25 -B 0.35
+./bin/Plotter -i Exclusion/Couple2/nGAMMA_M_B.dat -o Exclusion/Plot_Couple2/nGAMMA_M_B.dat -t 61.1011 -m -66.6617 -A 0.05 -B 0.35
+./bin/Plotter -i Exclusion/Couple2/nPI0_M_B.dat -o Exclusion/Plot_Couple2/nPI0_M_B.dat -t -31.261 -m 281.487 -A 0.15 -B 0.35
+
+./bin/Plotter -i Exclusion/Couple2/EPI_E_B.dat -o Exclusion/Plot_Couple2/EPI_E_B.dat -t 23.2226 -m 16.7771 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/Couple2/nEE_E_B.dat -o Exclusion/Plot_Couple2/nEE_E_B.dat -t 29.3619 -m 61.8439 -A 0.05 -B 0.45
+./bin/Plotter -i Exclusion/Couple2/nMUE_E_B.dat -o Exclusion/Plot_Couple2/nMUE_E_B.dat -t 35.8722 -m 14.6314 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/Couple2/nMUMU_E_B.dat -o Exclusion/Plot_Couple2/nMUMU_E_B.dat -t 48.7992 -m 76.9998 -A 0.25 -B 0.45
+./bin/Plotter -i Exclusion/Couple2/nGAMMA_E_B.dat -o Exclusion/Plot_Couple2/nGAMMA_E_B.dat -t 61.1011 -m -66.6617 -A 0.05 -B 0.45
+./bin/Plotter -i Exclusion/Couple2/nPI0_E_B.dat -o Exclusion/Plot_Couple2/nPI0_E_B.dat -t -31.261 -m 281.487 -A 0.15 -B 0.45

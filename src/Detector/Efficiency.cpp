@@ -3,7 +3,7 @@
 Efficiency::Efficiency(std::string InFile)
 {
 	double Mass;
-	std::string Line, SimFile, CutFile;
+	std::string Line, SimFile, CutFile, BkgName;
 	std::stringstream ssL;
 
 	std::ifstream Input(InFile.c_str());
@@ -16,6 +16,7 @@ Efficiency::Efficiency(std::string InFile)
 		ssL << Line;
 
 		ssL >> Mass >> SimFile >> CutFile;
+		std::cout << Mass << "\t" << SimFile << "\t" << CutFile << std::endl;
 
 		vMass.push_back(Mass);
 		vSim.push_back(SimFile);
@@ -25,7 +26,7 @@ Efficiency::Efficiency(std::string InFile)
 
 void Efficiency::InitFunc()	//energies from 0 to 20, 100 bin; masses from 0 to 0.5, 100 bin
 {
-	hhFunc = new TH2D("hhfunc", "Efficiency function of E and M", 100, 0, 20, 100, 0, 0.5);
+	hhFunc = new TH2D("hhfunc", "Efficiency function", 100, 0, 20, 100, 0, 0.5);
 	hCut = new TH1D("hcut", "Energy after cut", 100, 0, 20);
 	hAll = new TH1D("hall", "Energy before cut", 100, 0, 20);
 }
@@ -50,7 +51,6 @@ void Efficiency::LoopFile()
 
 void Efficiency::LoopTree()
 {
-
 	hAll->Reset("ICES");
 	hCut->Reset("ICES");
 
@@ -62,6 +62,7 @@ void Efficiency::LoopTree()
 		FillCut();
 	}
 }
+
 
 void Efficiency::InitTree()
 {
@@ -93,6 +94,8 @@ void Efficiency::LoadCut(std::string CutFile)
 	mRef.clear();
 	mCutLo.clear();
 	mCutUp.clear();
+	mSpecialLo.clear();
+	mSpecialUp.clear();
 
 	double Lower, Upper;
 	std::string Line, BranchName;
@@ -141,9 +144,21 @@ void Efficiency::LoadCut(std::string CutFile)
 			SetMap(BranchName, &M_0, Lower, Upper);
 		else if (BranchName == "Angle")
 			SetMap(BranchName, &Angle, Lower, Upper);
+		else if (BranchName == "CosAB")		//cos(PhiA-PhiB)
+			SetSpecial(0, Lower, Upper);
+		else if (BranchName == "aCosAB")	//abs(cos(PhiA-PhiB))
+			SetSpecial(1, Lower, Upper);
+		else if (BranchName == "CircAB")	//E_A*E_A+E_B*E_B
+			SetSpecial(2, Lower, Upper);
+		else if (BranchName == "atAB0")		//fabs(TheA-TheB)/The0
+			SetSpecial(3, Lower, Upper);
+		else if (BranchName == "T_A+B")		//T_A+T_B
+			SetSpecial(4, Lower, Upper);
+		else if (BranchName == "T_AB0")		//(T_A+T_B)/T_0
+			SetSpecial(5, Lower, Upper);
 		else
-			std::cout << "Branch unknown!" << std::endl;
-	}	
+			std::cout << BranchName << ": branch unknown!" << std::endl;
+	}
 }
 
 void Efficiency::SetMap(std::string BN, double *Address, double Lo, double Up)
@@ -154,6 +169,39 @@ void Efficiency::SetMap(std::string BN, double *Address, double Lo, double Up)
 	mCutUp[BN] = Up;
 }
 
+void Efficiency::SetSpecial(int CutNumber, double Lo, double Up)
+{
+	switch (CutNumber)
+	{
+		case 0:		//Special cut CosAB
+		case 1:		//Special cut AbsAB
+			Data->SetBranchStatus("PhiA", 1);
+			Data->SetBranchStatus("PhiB", 1);
+			break;
+		case 2:		//Special cut CircAB
+			Data->SetBranchStatus("E_A", 1);
+			Data->SetBranchStatus("E_B", 1);
+			break;
+		case 3:		//Special cut atAB0
+			Data->SetBranchStatus("TheA", 1);
+			Data->SetBranchStatus("TheB", 1);
+			Data->SetBranchStatus("The0", 1);
+			break;
+		case 4:		//Special cut T_A+B
+			Data->SetBranchStatus("T_A", 1);
+			Data->SetBranchStatus("T_B", 1);
+			break;
+		case 5:		//Special cut T_AB0
+			Data->SetBranchStatus("T_A", 1);
+			Data->SetBranchStatus("T_B", 1);
+			Data->SetBranchStatus("T_0", 1);
+			break;
+	}
+
+	mSpecialLo[CutNumber] = Lo;
+	mSpecialUp[CutNumber] = Up;
+}
+
 void Efficiency::FillAll()
 {
 	hAll->Fill(E_0);
@@ -161,7 +209,7 @@ void Efficiency::FillAll()
 
 void Efficiency::FillCut()
 {
-	if (PassCut())
+	if (PassCut() && SpecialCut())
 		hCut->Fill(E_0);
 }
 
@@ -171,10 +219,51 @@ bool Efficiency::PassCut()
 
 	for (im = mRef.begin(); im != mRef.end(); ++im)
 	{
-		if (*(im->second) > mCutLo[im->first] &&
-		    *(im->second) < mCutUp[im->first])
-			Ret = true;
-		else
+		double Value = *(im->second);
+		if (!(Value > mCutLo[im->first] && 
+		      Value < mCutUp[im->first]))
+		{
+			Ret = false;
+			break;
+		}
+	}
+
+	return Ret;
+}
+
+bool Efficiency::SpecialCut()
+{
+	bool Ret = true;
+
+	for (is = mSpecialLo.begin(); is != mSpecialLo.end(); ++is)
+	{
+		double Value;
+		switch(is->first)
+		{
+			case 0:		//Special cut CosAB
+				Value = cos(PhiA-PhiB);
+				break;
+			case 1:		//Special cut AbsAB
+				Value = fabs(cos(PhiA-PhiB));
+				break;
+			case 2:		//Special cut CircAB
+				Value = E_A*E_A + E_B*E_B;
+				break;
+			case 3:		//Special cut atAB0
+				Value = fabs(TheA-TheB)/The0;
+				break;
+			case 4:		//Special cut T_A+B
+				Value = T_A+T_B;
+				break;
+			case 5:		//Special cut T_AB0
+				Value = (T_A+T_B)/T_0;
+				break;
+			default:
+				break;
+		}
+
+		if (!(Value > is->second &&
+		      Value < mSpecialUp[is->first]))
 		{
 			Ret = false;
 			break;
@@ -280,6 +369,16 @@ void Efficiency::CompleteFunction()
 TH2D *Efficiency::GetFunction()
 {
 	return hhFunc;
+}
+
+TH1D *Efficiency::GetAll()
+{
+	return hAll;
+}
+
+TH1D *Efficiency::GetCut()
+{
+	return hCut;
 }
 
 double Efficiency::GetMass()

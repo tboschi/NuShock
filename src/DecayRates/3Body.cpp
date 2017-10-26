@@ -447,7 +447,7 @@ double ThreeBody::Integrate(double (ThreeBody::*FF)(), double A, double B)
 		A = tmp;
 	}
 	double a, b;
-	double h = (B-A)/Kine::Sample;	//Step
+	double h = (B-A)/100.0;	//Step
 	double Integral = 0;	//Boole's method for integration
 	for (a = A; b <= B; a = b)
 	{

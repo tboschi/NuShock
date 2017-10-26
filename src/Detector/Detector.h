@@ -39,25 +39,28 @@ struct EnergyEfficiency
 class Detector
 {
 	public:
-		Detector(std::string ConfigFile);
+		Detector(std::string ConfigFile, TRandom3 *Random);
 
 		std::vector<std::string> ListKey();
 		std::vector<std::string> ListChannel();
 		double GetElement(std::string Key);
 		//double Efficiency(std::string Channel, double Energy);
-		double Efficiency(std::string Channel, double Energy, double Mass);
-		double Background(std::string Channel, double Energy);
-		double EnergySigma(std::string Channel, double Energy);
+		double Efficiency(double Energy, double Mass);
+		double SetEfficiency(std::string Channel, char Couple);
 
-		double EnergySigma(Particle *P);
-		void SignalSmearing(TRandom3 *RanGen, Particle *P);
-		double TrackLength(TRandom3 *RanGen, Particle *P);
-		double InteractionLength(int Target);
-		double EnergyLoss(int Target, double Beta, double Mass);
+		void SignalSmearing(Particle *P);
+		void TrackLength(Particle *P);
+		double GammaDecay();
+		double CriticalEnergy();
+		double RadiationLength(bool Nuclear = false);
+		double EnergyLoss(Particle *P, bool &Contained);
+		double BetheLoss(Particle *P, double Target);
+
+		bool IsDecayed(Particle *P, double dx);
 		bool IsDetectable(Particle *P);	
-		bool IsDetectable(int Pdg, int Charge, double Ekin);	
+		//bool IsDetectable(int Pdg, int Charge, double Ekin);	
 		bool IsInside(Particle *P);
-		bool IsInside(TVector3 &P);
+		bool IsContained(Particle *P);	//B2B = 1 can cross z wall, B2B = 0 can't cross z wall
 		double GetXsize();
 		double GetXstart();
 		double GetXend();
@@ -68,13 +71,14 @@ class Detector
 		double GetZstart();
 		double GetZend();
 	private:
-
-		TFile *EffFile;
+		TRandom3 *RanGen;
+		TFile *FuncFile;
+		TH2D *hhFunc;
 		TH1D *hTemp, *hEfficiency;
 		bool Eff;
 
 		std::map<std::string, double> mapDetector;
-		std::map<std::string, std::string> mapEfficiency;
+		std::map<std::string, std::string> mapEfficiencyE, mapEfficiencyM;
 };
 
 #endif

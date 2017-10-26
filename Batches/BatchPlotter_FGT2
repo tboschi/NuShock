@@ -1,0 +1,17 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+./bin/Plotter -i Exclusion/FGT2/FGT_MUPI_M_0.dat -o Exclusion/Plot_FGT2/MUPI_M_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nMUMU_M_0.dat -o Exclusion/Plot_FGT2/nMUMU_M_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nMUE_M_0.dat -o Exclusion/Plot_FGT2/nMUE_M_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nEE_M_0.dat -o Exclusion/Plot_FGT2/nEE_M_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nGAMMA_M_0.dat -o Exclusion/Plot_FGT2/nGAMMA_M_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nPI0_M_0.dat -o Exclusion/Plot_FGT2/nPI0_M_0.dat -t 2.44
+
+./bin/Plotter -i Exclusion/FGT2/FGT_EPI_E_0.dat -o Exclusion/Plot_FGT2/EPI_E_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nMUMU_E_0.dat -o Exclusion/Plot_FGT2/nMUMU_E_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nMUE_E_0.dat -o Exclusion/Plot_FGT2/nMUE_E_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nEE_E_0.dat -o Exclusion/Plot_FGT2/nEE_E_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nGAMMA_E_0.dat -o Exclusion/Plot_FGT2/nGAMMA_E_0.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT2/FGT_nPI0_E_0.dat -o Exclusion/Plot_FGT2/nPI0_E_0.dat -t 2.44

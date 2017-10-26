@@ -30,18 +30,22 @@ class Efficiency
 		void InitTree();
 		void LoadCut(std::string CutFile);
 		void SetMap(std::string BN, double *Address, double Up, double Lo);
+		void SetSpecial(int CutNumber, double Lo, double Up);
 		void FillAll();
 		void FillCut();
 		bool PassCut();
+		bool SpecialCut();
 		void MakeFunction();
 		void CompleteFunction();
 		TH2D *GetFunction();
+		TH1D *GetAll();
+		TH1D *GetCut();
 		double GetMass();
 		void SetMass(double X);
 
 	private:
-		TTree *Data;
-		TFile *TreeFile;
+		TTree *Data, *Back;
+		TFile *TreeFile, BkgFile;
 
 		TH2D *hhFunc;
 		TH1D *hCut, *hAll; 
@@ -50,6 +54,8 @@ class Efficiency
 		std::map<std::string, double*> mRef;
 		std::map<std::string, double*>::iterator im;
 		std::map<std::string, double> mCutLo, mCutUp;
+		std::map<int, double> mSpecialLo, mSpecialUp;
+		std::map<int, double>::iterator is;
 		std::vector<double> vMass;
 		std::vector<std::string> vSim, vCut;
 

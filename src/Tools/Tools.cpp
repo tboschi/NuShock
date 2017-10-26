@@ -44,7 +44,7 @@ double Kine::I1_xyz(double X, double Y, double Z)
 		A = tmp;
 	}
 	double a, b;
-	double h = (B-A)/Sample;
+	double h = (B-A)/1000;
 	double Integral = 0;	//Boole's method for integration
 	for (a = A; b < B; a = b)
 	{
@@ -79,7 +79,7 @@ double Kine::I2_xyz(double X, double Y, double Z)
 		A = tmp;
 	}
 	double a, b;
-	double h = (B-A)/Sample;
+	double h = (B-A)/1000;
 	double Integral = 0.0;	//Boole's method for integration
 	for (a = A; b < B; a = b)
 	{

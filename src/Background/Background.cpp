@@ -1,7 +1,7 @@
 #include "Background.h"
 
 //Background::Background(std::string EventDB, std::string DetectorConfig, std::string RootFile, std::string Channel)	: //Decay rates calculator
-Background::Background(std::ostream &OutStream, std::string EventDB, std::string DetectorConfig, std::string Channel)	: //Decay rates calculator
+Background::Background(std::string EventDB, std::string DetectorConfig, std::string Channel)	: //Decay rates calculator
 	M_Neutrino(0.0),
 	M_Photon(0.0),
 	M_Electron(Const::fMElectron),
@@ -10,8 +10,7 @@ Background::Background(std::ostream &OutStream, std::string EventDB, std::string
 	M_Pion0(Const::fMPion0),
 	M_Kaon(Const::fMKaon),
 	M_Kaon0(Const::fMKaon0),
-	Global(0),
-	Out(OutStream)
+	Global(0)
 {
  	InFile = new TFile(EventDB.c_str(), "READ");	//Don't close it until the end
 	InFile->cd();
@@ -24,17 +23,13 @@ Background::Background(std::ostream &OutStream, std::string EventDB, std::string
 	gEvRec = 0;
  	Genie->SetBranchAddress("gmcrec", &gEvRec);	//fetch event
 
-	TheBox = new Detector(DetectorConfig);
-
 	GenMT = new TRandom3;
 	Vertex = new TVector3();
+	TheBox = new Detector(DetectorConfig, GenMT);
 
 	TheChan.assign(Channel);
 
-	//OutFile = new TFile(RootFile.c_str(), "RECREATE");	//Output file, keep open
-	//OutFile->cd();
-
-//	InitTree();
+	InitTree();
 	InitMap();
 }
 
@@ -59,7 +54,6 @@ void Background::InitTree()
 	Data = new TTree("Data", "All data from GENIE");	//Tree with candidate events
 
 	Data->Branch("ID", &ID, "iID/i");	//global event ID
-	Data->Branch("NH", &Hadron, "iHadron/i");	//global event ID
 
 	//Particle A
 	Data->Branch("E_A", &EnergyA, "fEnergyA/D");
@@ -68,8 +62,8 @@ void Background::InitTree()
 	Data->Branch("TheA", &ThetaA, "fThetaA/D");
 	Data->Branch("PhiA", &PhiA, "fPhiA/D");
 	Data->Branch("M_A", &MassA, "fMassA/D");
-	Data->Branch("L_A", &LengthA, "fLengthA/D");
-	Data->Branch("Lo_A", &LengthoA, "fLengthoA/D");
+	Data->Branch("In_A", &LengthA, "fLengthA/D");
+	Data->Branch("Out_A", &LengthoA, "fLengthoA/D");
 
 	//Particle B
 	Data->Branch("E_B", &EnergyB, "fEnergyB/D");
@@ -78,8 +72,8 @@ void Background::InitTree()
 	Data->Branch("TheB", &ThetaB, "fThetaB/D");
 	Data->Branch("PhiB", &PhiB, "fPhiB/D");
 	Data->Branch("M_B", &MassB, "fMassB/D");
-	Data->Branch("L_B", &LengthB, "fLengthB/D");
-	Data->Branch("Lo_B", &LengthoB, "fLengthoB/D");
+	Data->Branch("In_B", &LengthB, "fLengthB/D");
+	Data->Branch("Out_B", &LengthoB, "fLengthoB/D");
 
 	Data->Branch("Angle", &Angle, "fAngle/D");
 
@@ -126,8 +120,7 @@ void Background::LoadTree()
 		std::cerr << "You lost a particle there!" << std::endl;
 	else 
 	{
-		Hadron = pCount["Hadron"];
-
+		//ListCount();
 		EnergyA = ParticleA->E();
 		MomentA = ParticleA->P();
 		TransvA = ParticleA->Pt();
@@ -165,9 +158,10 @@ void Background::LoadTree()
 void Background::Loop(unsigned int Save)
 {
 	unsigned int Span = NEvt/Save;
+
 	for (ID = Global; ID < Global+Span && ID < NEvt; ++ID)
 	{
-		Out << "Entry " << ID << std::endl;
+		//std::cout << "Entry " << ID << std::endl;
 		Genie->GetEntry(ID);	//get event from ID
 
 		for (iP = vParticle.begin() ; iP != vParticle.end(); ++iP)
@@ -186,7 +180,6 @@ void Background::Loop(unsigned int Save)
 		double PosZ = GenMT->Uniform(TheBox->GetZstart(), TheBox->GetZend());
 		Vertex->SetXYZ(PosX, PosY, PosZ);
 
-		Out << "Event contains " << gEvent.GetEntries() << " particles" << std::endl;
 		while((Hep = dynamic_cast<genie::GHepParticle *>(EvIter.Next())))	//loop on all particles
 		{									//inside the event
 			if (Hep->Status() == 1)
@@ -206,14 +199,12 @@ void Background::Loop(unsigned int Save)
 		
 		//Run through the collected particles
 		CountParticles();
-		ListCount();
 		Identify();
 
-		Out << std::endl;
 	}
-
 	//Data->Write();
 	Global = ID;	//ID should be +1 
+
 }
 
 Particle* Background::CreateParticle(genie::GHepParticle *Hep, TVector3* Pos)
@@ -223,11 +214,14 @@ Particle* Background::CreateParticle(genie::GHepParticle *Hep, TVector3* Pos)
 	Particle *P = new Particle(Hep->Pdg(), P4, RefPos);
 
 	if (P->Charge() != 0)
-		TheBox->SignalSmearing(GenMT, P);
+	{
+		if (P->TrackIn() < 0)
+			TheBox->TrackLength(P);
+		TheBox->SignalSmearing(P);
+	}
 
 	return P;
 }
-
 
 int Background::Count(std::string PartName, int N)
 {
@@ -238,67 +232,35 @@ int Background::Count(std::string PartName, int N)
 	return pCount[PartName];
 }
 
-void Background::ListCount()
-{
-	if (pCount.size() == 0)
-		Out << "No interesting particles " << std::endl;
-	else
-	{
-		std::map<std::string, int>::iterator im = pCount.begin();
-		for ( ; im != pCount.end(); ++im)
-		{
-			Out << im->first << ": " << im->second << "\t";
-		}
-		Out << std::endl;
-	}
-}
-
 //Need to recalculate this factors..
-bool Background::MuonOrPion(Particle *P)	//T if muon, F if pion
+bool Background::IsPion(Particle *P)	//T if pion
 {
-	if (P->TrackIn() < 1.0)
-	{
-	       if (GenMT->Rndm() < 0.3906445328)
-		       return true;	
-	       else return false;
-	}
-	else if (P->TrackIn() > 1.0 && P->TrackIn() < 2.0)
-	{
-	       if (GenMT->Rndm() < 0.549552089)
-		       return true;	
-	       else return false;
-	}
-	else if (P->TrackIn() > 2.0 && P->TrackIn() < 3.0)
-	{
-	       if (GenMT->Rndm() < 0.6748498302)
-		       return true;	
-	       else return false;
-	}
-	else if (P->TrackIn() > 3.0 && P->TrackIn() < 4.0)
-	{
-	       if (GenMT->Rndm() < 0.7482980534)
-		       return true;	
-	       else return false;
-	}
-	else if (P->TrackIn() > 4.0)
-	{
-	       if (GenMT->Rndm() < 0.7192982456)
-		       return true;	
-	       else return false;
-	}
+	if (!P->IsShower() && P->TrackIn() > TheBox->GetElement("LengthMIP"))	//no shower & long track
+		return false;
+	else return true;
 }
 
 bool Background::IsPhoton(Particle *P)	//T if photon, F can be electron
 {
 	TVector3 Travel = (P->Position() - *Vertex);
-	if (P->TrackIn() > 0.0 || Travel.Mag() > 0.03)	//displacement of 3cm
+	if (P->TrackIn() > 0.0 || Travel.Mag() > TheBox->GetElement("ConversionEM"))	//displacement > 2cm
 		return true;
 	else return false;
 }
-
+/*
+bool Background::IsPi0(Particle *P, Particle *Main)	//T if photon, F can be electron
+{
+	TLorentzVector Pi0 = P->GetP4() + Main->GetP4();
+	
+	if (Pi0->M() > M_Pion0 - TheBox->GetElement("ResPi0Mass") &&
+	    Pi0->M() < M_Pion0 + TheBox->GetElement("ResPi0Mass"))
+		return true;
+	else return false;
+}
+*/
 bool Background::IseePair(Particle *P, Particle *Main)	//T if pair, F single electron
 {
-    	if (P->Direction().Angle(Main->Direction()) < 3.0/Const::fDeg)	//can't distinguish electrons 3deg close
+    	if (P->Direction().Angle(Main->Direction()) < TheBox->GetElement("PairAngle") / Const::fDeg)	//can't distinguish electrons 3deg close
 		return true;
 	else
 		return false;
@@ -311,47 +273,57 @@ bool Background::CountParticles()	//need to add smearing
 	std::vector<Particle*> vElectron, vPhoton;
 	std::vector<Particle*>::iterator ie;
 
-	Out << "Particles selected: " << vParticle.size() << std::endl;
 
 	int p = 0;
 	for (iP = vParticle.begin(); iP != vParticle.end(); ++iP, ++p)
 	{
-		if (TheBox->IsDetectable(*iP) && TheBox->IsInside(*iP))
+		if (TheBox->IsDetectable(*iP))
 		{
 			if ((*iP)->Pdg() == 13)		//Muon
 			{
-				if (!MuonOrPion(*iP))
+				/*if (!MuonOrPion(*iP))
 				{
 					(*iP)->SetPdg(211);
 					(*iP)->SetMass(M_Pion);
 					--iP;			//must recheck (for thr for instance)
 					--p;
 				}
-				else 
+				else */
+				Count("Muon");
+				switch (mapChan[GetChannel()])
 				{
-					Count("Muon");
-					switch (mapChan[GetChannel()])
-					{
-						case _nEMU:
-							ParticleB = *iP;
-							break;
-						case _nMUE:
-							ParticleB = *iP;
-							break;
-						case _nMUMU:
-							!ParticleA ? ParticleA = *iP : ParticleB = *iP;	//Fill first PA, then PB
-							break;
-						case _MUPI:
-							ParticleA = *iP;
-							break;
-						default:
-							break;
-					}
+					case _nEMU:
+						ParticleA = *iP;
+						break;
+					case _nMUE:
+						ParticleA = *iP;
+						break;
+					case _nMUMU:
+						!ParticleA ? ParticleA = *iP : ParticleB = *iP;	//Fill first PA, then PB
+						break;
+					case _MUPI:
+						ParticleA = *iP;
+						break;
+					default:
+						break;
 				}
 			}
+			/*else if ((*iP)->Pdg() == 111)	//Pion0
+			{
+				Count("Pion0");
+				switch (mapChan[GetChannel()])
+				{
+					case _nPI0:
+						ParticleA = *iP;
+					        ParticleB = *iP;	//Fill first PA, then PB
+						break;
+					default:
+						break;
+				}
+			}*/
 			else if ((*iP)->Pdg() == 211)	//Pion+
 			{
-				if (MuonOrPion(*iP))
+				if (!IsPion(*iP))
 				{
 					(*iP)->SetPdg(13);
 					(*iP)->SetMass(M_Muon);
@@ -400,7 +372,7 @@ bool Background::CountParticles()	//need to add smearing
 					else ++ie;
 				}
 
-				if (TrueElectron && GenMT->Rndm() < TheBox->GetElement("ElecEfficiency"))
+				if (TrueElectron)
 				{
 					Count("Electron");
 					vElectron.push_back(*iP);
@@ -410,10 +382,10 @@ bool Background::CountParticles()	//need to add smearing
 							!ParticleA ? ParticleA = *iP : ParticleB = *iP;	//Fill first PA, then PB
 							break;
 						case _nEMU:
-							ParticleA = *iP;
+							ParticleB = *iP;
 							break;
 						case _nMUE:
-							ParticleA = *iP;
+							ParticleB = *iP;
 							break;
 						case _EPI:
 							ParticleA = *iP;
@@ -425,11 +397,11 @@ bool Background::CountParticles()	//need to add smearing
 			}
 			else if ((*iP)->Pdg() == 22)	//Photons
 			{
-				if(!IsPhoton(*iP) || GenMT->Rndm() < TheBox->GetElement("GammaRejection"))
+				if(!IsPhoton(*iP))
 				{		//conversion before 3cm 
 					(*iP)->SetPdg(11);
 					(*iP)->SetMass(M_Electron);
-					TheBox->TrackLength(GenMT, *iP);
+					TheBox->TrackLength(*iP);
 					--iP;			//must recheck (for thr for instance)
 					--p;
 				}
@@ -476,14 +448,22 @@ bool Background::Identify()
 			break;
 		case _nEE:
 			if (IdentifynEE())	//A = e, B = e
+			{
+				if (GenMT->Rndm() < 0.5)
+				{
+					Particle *Temp = ParticleA;
+					ParticleA = ParticleB;
+					ParticleB = Temp;
+				}
 				LoadTree();
+			}
 			break;
 		case _nEMU:
-			if (IdentifynEMU())	//A = e, B = mu
+			if (IdentifynMUE())	//A = mu, B = e
 				LoadTree();
 			break;
 		case _nMUE:
-			if (IdentifynEMU())	//A = e, B = mu
+			if (IdentifynMUE())	//A = mu, B = e
 				LoadTree();
 			break;
 		case _nPI0:
@@ -496,7 +476,15 @@ bool Background::Identify()
 			break;
 		case _nMUMU:
 			if (IdentifynMUMU())	//A = mu, B = mu
+			{
+				if (GenMT->Rndm() < 0.5)
+				{
+					Particle *Temp = ParticleA;
+					ParticleA = ParticleB;
+					ParticleB = Temp;
+				}
 				LoadTree();
+			}
 			break;
 		case _MUPI:
 			if (IdentifyMUPI())	//A = mu, B = pi
@@ -533,7 +521,8 @@ bool Background::IdentifynGAMMA()	//need to add smearing
 	    pCount["Muon"]	== 0	&& 
 	    pCount["Pion"]	== 0	&& 
 	    pCount["Kaon"]	== 0	&& 
-	    pCount["Charm"]	== 0	  )
+	    pCount["Charm"]	== 0	&&
+	    pCount["Hadron"]	== 0	  )
 		return true;
 	else return false;
 }
@@ -545,19 +534,21 @@ bool Background::IdentifynEE()	//need to add smearing
 	    pCount["Muon"]	== 0	&& 
 	    pCount["Pion"]	== 0	&& 
 	    pCount["Kaon"]	== 0	&& 
-	    pCount["Charm"]	== 0	  )
+	    pCount["Charm"]	== 0	&&
+	    pCount["Hadron"]	== 0	  )
 		return true;
 	else return false;
 }
 
-bool Background::IdentifynEMU()	//need to add smearing
+bool Background::IdentifynMUE()	//need to add smearing
 {
 	if (pCount["Electron"]	== 1	&&
 	    pCount["Photon"]	== 0	&& 
 	    pCount["Muon"]	== 1	&& 
 	    pCount["Pion"]	== 0	&& 
 	    pCount["Kaon"]	== 0	&& 
-	    pCount["Charm"]	== 0	  )
+	    pCount["Charm"]	== 0	&&
+	    pCount["Hadron"]	== 0	  )
 		return true;
 	else return false;
 }
@@ -567,9 +558,9 @@ bool Background::IdentifynPI0()	//need to add smearing
 	if (pCount["Electron"]	== 0	&&
 	    pCount["Photon"]	== 2	&& 
 	    pCount["Muon"]	== 0	&& 
-	    pCount["Pion"]	== 0	&& 
 	    pCount["Kaon"]	== 0	&& 
-	    pCount["Charm"]	== 0	  )
+	    pCount["Charm"]	== 0	&&
+	    pCount["Hadron"]	== 0	  )
 		return true;
 	else return false;
 }
@@ -581,7 +572,8 @@ bool Background::IdentifyEPI()	//need to add smearing
 	    pCount["Muon"]	== 0	&& 
 	    pCount["Pion"]	== 1	&& 
 	    pCount["Kaon"]	== 0	&& 
-	    pCount["Charm"]	== 0	  )
+	    pCount["Charm"]	== 0	&&
+	    pCount["Hadron"]	== 0	  )
 		return true;
 	else return false;
 }
@@ -593,7 +585,8 @@ bool Background::IdentifynMUMU()	//need to add smearing
 	    pCount["Muon"]	== 2	&& 
 	    pCount["Pion"]	== 0	&& 
 	    pCount["Kaon"]	== 0	&& 
-	    pCount["Charm"]	== 0	  )
+	    pCount["Charm"]	== 0	&&
+	    pCount["Hadron"]	== 0	  )
 		return true;
 	else return false;
 }
@@ -605,7 +598,8 @@ bool Background::IdentifyMUPI()	//need to add smearing
 	    pCount["Muon"]	== 1	&& 
 	    pCount["Pion"]	== 1	&& 
 	    pCount["Kaon"]	== 0	&& 
-	    pCount["Charm"]	== 0	  )
+	    pCount["Charm"]	== 0	&&
+	    pCount["Hadron"]	== 0	  )
 		return true;
 	else return false;
 }
@@ -622,30 +616,18 @@ void Background::Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB)	//will tr
 	double Theta = GenMT->Uniform(-Const::fPi, Const::fPi);
 	double Phi = GenMT->Uniform(-Const::fPi, Const::fPi);
 
-	/*
-	//double dx = TheBox->GetElement("Vertex");	//1 mm
-	double dx = 1e-9;	//1 mm
-	double Move = 0.0;
-	Out << "before while " << dx/(Const::fC * Pi0->LabSpace()) <<  std::endl;
-	while (GenMT->Rndm() < exp(-dx/(Const::fC * Pi0->LabSpace())))	//check every 1mm if particle has decayed
-		Move += dx;
-	Start *= (Start.Mag() + Move) / Start.Mag();
-	Out << "after while " << Start.Mag() << std::endl;
-	Out << "after while " << Move << std::endl;
-	*/
-
 	GammaA.SetTheta(Theta);
-	GammaB.SetTheta(Const::fPi + Theta);
+	GammaB.SetTheta(Theta + Const::fPi);
 	GammaA.SetPhi(Phi);
-	GammaB.SetPhi(Phi);
+	GammaB.SetPhi(Phi + Const::fPi);
 
 	GammaA.Boost(vBoost);
 	GammaB.Boost(vBoost);
 
 	TVector3 MoveA(GammaA.Vect().Unit());
 	TVector3 MoveB(GammaB.Vect().Unit());
-	MoveA *= GammaDecay();
-	MoveB *= GammaDecay();
+	MoveA *= TheBox->GammaDecay();
+	MoveB *= TheBox->GammaDecay();
 	MoveA += Start;
 	MoveB += Start;
 
@@ -653,15 +635,4 @@ void Background::Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB)	//will tr
 	PB = new Particle(22, GammaB, MoveB);	//position should be different
 
 	delete Pi0;
-}
-
-//Distance travelled by photons before conversion
-double Background::GammaDecay()
-{
-	double Path = 9.0/7.0 * TheBox->InteractionLength(1);
-	double dx = 0.001;	//1 mm
-	double Length = 0.0;
-	while (GenMT->Rndm() < exp(-dx/Path))	//check every 1mm if particle has decayed
-		Length += dx;
-	return Length;	//in cm
 }

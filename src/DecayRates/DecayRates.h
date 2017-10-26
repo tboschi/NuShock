@@ -68,9 +68,9 @@ class Decay
 		std::vector<std::string> ListChannels();
 
 		TLorentzVector *GetNvec();
-		TLorentzVector *GetDecayProduct(int i, int &ID);
+		TLorentzVector GetDecayProduct(int i, int &ID);
 
-		bool IsChanged(std::string Name);
+		bool IsChanged();
 
 		double GetMass();
 		double GetUe();
@@ -86,13 +86,11 @@ class Decay
 	private:
 		int PdgCode[3];
 
-		double M_Sterile;
-		double U_e, U_m, U_t;
-		double M_Sterile_prev;
-		double U_e_prev, U_m_prev, U_t_prev;
+		double M_Sterile, M_Sterile_prev;
+		double Ue, Um, Ut;
 
 		double fTotal;	//Total Gamma, to avoid recalculation
-		double fnnn, fnGAMMA, fnEE, fnEMU, fnMUE, fnPI0, fEPI, fnMUMU, fMUPI, fEKA, fnKA0;
+		double fnnn, fnGAMMA, fnEE_e, fnEE_mt, fnEMU, fnMUE, fnPI0, fEPI, fnMUMU_m, fnMUMU_et, fMUPI, fEKA, fnKA0;
 
 		//Masses
 		const double M_Neutrino;
@@ -110,7 +108,7 @@ class Decay
 
 		//Generate PhaseSpace
 		TGenPhaseSpace *Event;
-		TLorentzVector *N_vec;
+		TLorentzVector *N_vec, *N_rest;
 		ThreeBody *TheSpace;
 };
 

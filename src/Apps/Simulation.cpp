@@ -24,9 +24,10 @@ int main(int argc, char** argv)
 		{"smconfig", 	required_argument, 	0, 's'},
 		{"detconfig", 	required_argument,	0, 'd'},
 		{"fluxconfig", 	required_argument,	0, 'f'},
-		{"nevent", 	required_argument,	0, 'n'},
+		{"number", 	required_argument,	0, 'n'},
 		{"channel", 	required_argument,	0, 'c'},
 		{"output", 	required_argument,	0, 'o'},
+		{"mass", 	required_argument,	0, 'm'},
 		{"help", 	no_argument,		0, 'h'},
 		{0,	0, 	0,	0},
 	};
@@ -38,10 +39,12 @@ int main(int argc, char** argv)
 	std::string SMConfig, DetConfig, FluxConfig;
 	TFile *OutFile;
 	unsigned int Nevent;
+	double Mass = 0.0;
+	bool UeFlag, UmFlag;
 
 	std::string Channel = "ALL";
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:n:c:o:h", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "s:d:f:m:n:c:o:EMh", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
@@ -54,6 +57,9 @@ int main(int argc, char** argv)
 			case 'f':
 				FluxConfig.assign(optarg);
 				break;
+			case 'm':
+				Mass = strtod(optarg, NULL);
+				break;
 			case 'n':
 				Nevent = strtod(optarg, NULL);
 				break;
@@ -63,6 +69,12 @@ int main(int argc, char** argv)
 			case 'o':
 				OutFile = new TFile(optarg, "RECREATE");
 				//OutFile = new TFile(optarg, "RECREATE");
+				break;
+			case 'M':
+				UmFlag = true;
+				break;
+			case 'E':
+				UeFlag = true;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -76,29 +88,31 @@ int main(int argc, char** argv)
 	
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 
+	if (Mass)
+		EvGen->SetMass(Mass);
+	if (UeFlag)
+		EvGen->SetUe(1e-4);
+	if (UmFlag)
+		EvGen->SetUm(1e-4);
+
 	EvGen->SetChannel(Channel);
 	EvGen->MakeSterileFlux(1);
 	EvGen->MakeInDetector();
 
-
 	//TH2D *hDalitz = new TH2D("dalitz", "Dalitz", 200,0,0.2, 200,0,0.2);
 	
 	unsigned int ID = 0;
+	unsigned int ND = 0;
 	unsigned int SaveMe = 0;
 	double Real;
 
 	double EnergyA, EnergyB, EnergyC, Energy0;
-	double energyA, energyB;
 	double MomentA, MomentB, MomentC, Moment0;
-	double momentA, momentB;
 	double TransvA, TransvB, TransvC, Transv0;
-	double transvA, transvB;
 	double ThetaA, ThetaB, ThetaC, Theta0;
-	double thetaA, thetaB;
 	double PhiA, PhiB, PhiC, Phi0;
-	double phiA, phiB;
 	double MassA, MassB, MassC, Mass0;
-	double massA, massB;
+	double InA, OutA, InB, OutB;
 	double Angle;	//separation between A & B
 	double angle;	//separation between A & B
 
@@ -113,6 +127,8 @@ int main(int argc, char** argv)
 	Data->Branch("TheA", &ThetaA, "fThetaA/D");
 	Data->Branch("PhiA", &PhiA, "fPhiA/D");
 	Data->Branch("M_A", &MassA, "fMassA/D");
+	Data->Branch("In_A", &InA, "fInA/D");
+	Data->Branch("Out_A", &OutA, "fOutA/D");
 
 	Data->Branch("E_B", &EnergyB, "fEnergyB/D");
 	Data->Branch("P_B", &MomentB, "fMomentB/D");
@@ -120,6 +136,8 @@ int main(int argc, char** argv)
 	Data->Branch("TheB", &ThetaB, "fThetaB/D");
 	Data->Branch("PhiB", &PhiB, "fPhiB/D");
 	Data->Branch("M_B", &MassB, "fMassB/D");
+	Data->Branch("In_B", &InB, "fInB/D");
+	Data->Branch("Out_B", &OutB, "fOutB/D");
 
 	Data->Branch("Angle", &Angle, "fAngle/D");
 
@@ -138,39 +156,56 @@ int main(int argc, char** argv)
 
 		if (EvGen->EventKinematics())
 		{
+			EvGen->GeneratePosition();
 			Particle *ParticleA = EvGen->GetDecayProduct(0, 1);
 			Particle *ParticleB = EvGen->GetDecayProduct(1, 1);
 
-			EnergyA = ParticleA->E();
-			MomentA = ParticleA->P();
-			TransvA = ParticleA->Pt();
-			ThetaA = ParticleA->Theta();
-			PhiA = ParticleA->Phi();
-			MassA = ParticleA->M();
-		
-			EnergyB = ParticleB->E();
-			MomentB = ParticleB->P();
-			TransvB = ParticleB->Pt();
-			ThetaB = ParticleB->Theta();
-			PhiB = ParticleB->Phi();
-			MassB = ParticleB->M();
-	
-			Angle = ParticleA->Direction().Angle(ParticleB->Direction());
-	
-			TLorentzVector Reco = ParticleA->GetP4() + ParticleB->GetP4();
-		
-			Energy0 = Reco.E();
-		        Moment0 = Reco.P();
-		        Transv0 = Reco.Pt();
-		        Theta0 = Reco.Theta();
-		        Phi0 = Reco.Phi();
-		        Mass0 = Reco.M();
-	
-			Data->Fill();
+			if (ParticleA != 0 && ParticleA->Pdg() == 111)
+				EvGen->Pi0Decay(ParticleA, ParticleA, ParticleB);
 
-			std::cout << "Particle " << ++ID << std::endl;
+			if (ParticleA != 0 && ParticleB != 0)
+			{
+				EnergyA = ParticleA->E();
+				MomentA = ParticleA->P();
+				TransvA = ParticleA->Pt();
+				ThetaA = ParticleA->Theta();
+				PhiA = ParticleA->Phi();
+				MassA = ParticleA->M();
+				InA = ParticleA->TrackIn();
+				OutA = ParticleA->TrackOut();
+			
+				EnergyB = ParticleB->E();
+				MomentB = ParticleB->P();
+				TransvB = ParticleB->Pt();
+				ThetaB = ParticleB->Theta();
+				PhiB = ParticleB->Phi();
+				MassB = ParticleB->M();
+				InB = ParticleB->TrackIn();
+				OutB = ParticleB->TrackOut();
+		
+				Angle = ParticleA->Direction().Angle(ParticleB->Direction());
+
+				TLorentzVector Reco = ParticleA->GetP4() + ParticleB->GetP4();
+			
+				Energy0 = Reco.E();
+			        Moment0 = Reco.P();
+			        Transv0 = Reco.Pt();
+			        Theta0 = Reco.Theta();
+			        Phi0 = Reco.Phi();
+			        Mass0 = Reco.M();
+
+				//std::cout << "Mass0 " << Mass0 << std::endl;
+				//std::cout << "E02 " << Energy0 << std::endl;
+				//std::cout << "P02 " << Moment0 << std::endl;
+		
+				Data->Fill();
+				++ID;
+			}
+			else ++ND;
 
 			delete ParticleA, ParticleB;
+			ParticleA = 0;
+			ParticleB = 0;
 
 			if (SaveMe++ > 10000)
 			{
@@ -184,25 +219,8 @@ int main(int argc, char** argv)
 	OutFile->cd();
         Data->Write();
 
-	/*
-	for (unsigned int i = 0; i < Data->GetEntries(); ++i)
-	{
-		Data->GetEntry(i);
-
-		if (Angle < 40*Grad &&
-		    ThetaA < 80*Grad &&
-		    ThetaB < 80*Grad && 
-		    Theta0 < 4*Grad &&
-		    Mass0 < InvMass->GetMean()+3*InvMass->GetRMS() &&
-		    Mass0 > InvMass->GetMean()-3*InvMass->GetRMS() )
-			E_Cut->Fill(Energy0);
-	}
-
-	for (unsigned int Bin = 0; Bin < E_All->GetNbinsX(); ++Bin)
-	{
-		Eff = E_Cut->GetBinContent(Bin)/E_All->GetBinContent(Bin);
-	}
-	*/
+	std::cout << "There are " << ND << " (" << double(ND)/(ND+ID) * 100;
+	std::cout << "\%) particles under detection threshold." << std::endl;
 
 	return 0;
 }
@@ -220,6 +238,8 @@ void Usage(char* argv0)
 	std::cout << "\t\tFlux configuration file" << std::endl;
 	std::cout <<"\n  -c,  --channel" << std::endl;
 	std::cout << "\t\tDecay channel, defaul ALL" << std::endl;
+	std::cout <<"\n  -n,  --number" << std::endl;
+	std::cout << "\t\tNumber of events" << std::endl;
 	std::cout <<"\n  -o,  --output" << std::endl;
 	std::cout << "\t\tOutput file" << std::endl;
 	std::cout <<"\n  -h,  --help" << std::endl;

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+./bin/Plotter -i Exclusion/LAr2/LAr_MUPI_M_B.dat -o Exclusion/Plot_LAr2/MUPI_M_B.dat -t 1.04047 -m 160.017 -A 0.25 -B 0.35
+./bin/Plotter -i Exclusion/LAr2/LAr_nEE_M_B.dat -o Exclusion/Plot_LAr2/nEE_M_B.dat -t 27.8337 -m 63.5176 -A 0.05 -B 0.35
+./bin/Plotter -i Exclusion/LAr2/LAr_nMUE_M_B.dat -o Exclusion/Plot_LAr2/nMUE_M_B.dat -t 30.9411 -m 11.7672 -A 0.15 -B 0.35
+./bin/Plotter -i Exclusion/LAr2/LAr_nMUMU_M_B.dat -o Exclusion/Plot_LAr2/nMUMU_M_B.dat -t 44.7863 -m 43.0288 -A 0.25 -B 0.35
+./bin/Plotter -i Exclusion/LAr2/LAr_nGAMMA_M_B.dat -o Exclusion/Plot_LAr2/nGAMMA_M_B.dat -t 50.049 -m -51.3359 -A 0.05 -B 0.35
+./bin/Plotter -i Exclusion/LAr2/LAr_nPI0_M_B.dat -o Exclusion/Plot_LAr2/nPI0_M_B.dat -t -14.3033 -m 193.0 -A 0.15 -B 0.35
+
+./bin/Plotter -i Exclusion/LAr2/LAr_EPI_E_B.dat -o Exclusion/Plot_LAr2/EPI_E_B.dat -t 19.7923 -m 21.0791 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/LAr2/LAr_nEE_E_B.dat -o Exclusion/Plot_LAr2/nEE_E_B.dat -t 27.8337 -m 63.5176 -A 0.05 -B 0.45
+./bin/Plotter -i Exclusion/LAr2/LAr_nMUE_E_B.dat -o Exclusion/Plot_LAr2/nMUE_E_B.dat -t 30.9411 -m 11.7672 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/LAr2/LAr_nMUMU_E_B.dat -o Exclusion/Plot_LAr2/nMUMU_E_B.dat -t 44.7863 -m 43.0288 -A 0.25 -B 0.45
+./bin/Plotter -i Exclusion/LAr2/LAr_nGAMMA_E_B.dat -o Exclusion/Plot_LAr2/nGAMMA_E_B.dat -t 50.049 -m -51.3359 -A 0.05 -B 0.45
+./bin/Plotter -i Exclusion/LAr2/LAr_nPI0_E_B.dat -o Exclusion/Plot_LAr2/nPI0_E_B.dat -t -14.3033 -m 193.0 -A 0.15 -B 0.45
+

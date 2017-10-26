@@ -1,0 +1,72 @@
+#Detector configuration file
+#Name of detector: LArTPC for DUNE
+#
+Baseline	577
+Length		6.4
+Width		3.5
+Height		3.5
+Fiducial	0.90
+Weight		8.0
+POT/s		5e13
+Years		5
+
+#1: LAr, 2: HP Ar, 3: Fe
+#
+InTarget	2
+OutTarget	3
+
+#Threshold in GeV
+#Resolution in [0:1]
+#
+Thres_Hadron	0.050
+Angle_Hadron	5.0
+Energ_Hadron	0.30	
+Ebias_Hadron	0.05
+Range_Hadron	0.0
+Exiti_Hadron	0.0
+
+Thres_Muon	0.030
+Angle_Muon	1.0
+Energ_Muon	0.0
+Ebias_Muon	0.0
+Range_Muon	0.05
+Exiti_Muon	0.30
+
+Thres_Pion	0.100
+Angle_Pion	1.0
+Energ_Pion	0.0
+Ebias_Pion	0.0
+Range_Pion	0.05
+Exiti_Pion	0.30
+
+Thres_Gamma	0.030
+Angle_Gamma	1.0
+Energ_Gamma	0.15
+Ebias_Gamma	0.02
+Range_Gamma	0.0
+Exiti_Gamma	0.0
+
+Vertex		0.001
+
+#Rejection methods
+#
+ConversionEM	0.020
+LengthMIP	2.0
+Containment	0.95
+PairAngle	3.0
+ResPi0Mass	0.040
+
+#Efficiency file
+#
+$MUPI	Efficiency/FGT/eff_MUPI_M.root
+$nMUMU	Efficiency/FGT/eff_nMUMU_M.root
+$nMUE	Efficiency/FGT/eff_nMUE_M.root
+$nEE	Efficiency/FGT/eff_nEE_M.root
+$nGAMMA	Efficiency/FGT/eff_nGAMMA_M.root
+$nPI0	Efficiency/FGT/eff_nPI0_M.root
+&EPI	Efficiency/FGT/eff_EPI_E.root
+&nMUMU	Efficiency/FGT/eff_nMUMU_E.root
+&nEMU	Efficiency/FGT/eff_nMUE_E.root
+&nEE	Efficiency/FGT/eff_nEE_E.root
+&nGAMMA	Efficiency/FGT/eff_nGAMMA_E.root
+&nPI0	Efficiency/FGT/eff_nPI0_E.root

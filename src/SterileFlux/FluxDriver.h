@@ -28,37 +28,53 @@ class FluxDriver
 		~FluxDriver();
 
 		TH1D *GetHist();
-		bool MakeSterileFlux(double M_Sterile, double U_e, double U_m, double U_t);
-		void MakeMuonComponent(Flux &sxFlux, double M_Sterile, double U_e, double U_m, double U_t);
-		void MakeElecComponent(Flux &sxFlux, double M_Sterile, double U_e, double U_m, double U_t);
+		bool MakeFlux(double M_Sterile);
+		void MakeMuonComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
+		void MakeElecComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
 		//void MakeStandardFlux();
-		double SampleEnergy();
+		//double SampleEnergy();
 
 		double GetRange();
-		double GetStartRange();
-		double GetEndRange();
-		double GetBinNumber();
-		long double GetIntensity(double Energy);
+		double GetRangeStart();
+		double GetRangeEnd();
+		int GetBinNumber();
+		double GetIntensityNeut(double Energy, double Ue = 1.0, double Um = 1.0, double Ut = 1.0);
+		double GetIntensityAnti(double Energy, double Ue = 1.0, double Um = 1.0, double Ut = 1.0);
 		void SetBaseline(double Baseline);
 		void SetPOT(double POT);
 		void SetArea(double Area);
 
-		bool IsChanged(double M_Sterile, double U_e, double U_m, double U_t);
+		bool IsChanged(double M_Sterile);
 
-		TH1D* GetTotal();
-		TH1D* GetPion();
-		TH1D* GetKaon();
-		TH1D* GetKaon0();
-		TH1D* GetMuon();
-
-		TH1D* GetTotalOriginal();
-		TH1D* GetPionOriginal();
-		TH1D* GetKaonOriginal();
-		TH1D* GetKaon0Original();
-		TH1D* GetMuonOriginal();
+		/*
+		TH1D* GetTotalMn();
+		TH1D* GetPionMn();
+		TH1D* GetKaonMn();
+		TH1D* GetKaon0Mn();
+		TH1D* GetMuonMn();
 	
+		TH1D* GetTotalEn();
+		TH1D* GetPionEn();
+		TH1D* GetKaonEn();
+		TH1D* GetKaon0En();
+		TH1D* GetMuonEn();
+
+		TH1D* GetTotalMa();
+		TH1D* GetPionMa();
+		TH1D* GetKaonMa();
+		TH1D* GetKaon0Ma();
+		TH1D* GetMuonMa();
+	
+		TH1D* GetTotalEa();
+		TH1D* GetPionEa();
+		TH1D* GetKaonEa();
+		TH1D* GetKaon0Ea();
+		TH1D* GetMuonEa();
+		*/
+
 	private:
-		double M_Sterile_prev, U_e_prev, U_m_prev, U_t_prev;
+		int BinNumber;
+		double RangeStart, RangeEnd;
 
 		TFile *SourceFile;
 		TFile *KineFile;
@@ -80,17 +96,19 @@ class FluxDriver
 		TH1D *hKaon0Elec;
 
 		//Output fluxes
-		TH1D* hTotalSterile;
-		TH1D* hPionSterile;
-		TH1D* hKaonSterile;
-		TH1D* hKaon0Sterile;
-		TH1D* hMuonSterile;
+		TH1D* hTotalMn, * hTotalMa;
+		TH1D* hPionMn,  * hPionMa;
+		TH1D* hKaonMn,  * hKaonMa;
+		TH1D* hKaon0Mn, * hKaon0Ma;
+		TH1D* hMuonMn,  * hMuonMa;
 
-		TH1D* hTotalStandard;
-		TH1D* hPionStandard;
-		TH1D* hKaonStandard;
-		TH1D* hKaon0Standard;
-		TH1D* hMuonStandard;
+		TH1D* hTotalEn, * hTotalEa;
+		TH1D* hPionEn,  * hPionEa;
+		TH1D* hKaonEn,  * hKaonEa;
+		TH1D* hKaon0En, * hKaon0Ea;
+		TH1D* hMuonEn,  * hMuonEa;
+
+		double M_Sterile_prev;
 
 		const double M_Electron;
 		const double M_Muon;

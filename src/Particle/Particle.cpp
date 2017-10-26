@@ -13,6 +13,7 @@ Particle::Particle(genie::GHepParticle *Candidate, double PosX, double PosY, dou
 	SetZ(PosZ);
 	SetTrackIn(-1);
 	SetTrackOut(-1);
+	SetShower(false);
 }
 
 //manual ctor
@@ -28,6 +29,7 @@ Particle::Particle(int PdgCode, TLorentzVector &Vector, double PosX, double PosY
 	SetZ(PosZ);
 	SetTrackIn(-1);
 	SetTrackOut(-1);
+	SetShower(false);
 }
 
 Particle::Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position)
@@ -40,6 +42,7 @@ Particle::Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position)
 	SetPosition(Position);
 	SetTrackIn(-1);
 	SetTrackOut(-1);
+	SetShower(false);
 }
 
 //copy ctor
@@ -51,6 +54,7 @@ Particle::Particle(const Particle &P)
 	SetPosition(P.X(), P.Y(), P.Z());
 	SetTrackIn(-1);
 	SetTrackOut(-1);
+	SetShower(false);
 }
 
 int Particle::Pdg() const
@@ -216,19 +220,31 @@ void Particle::SetEnergy(double dE)
 {
 	double dM = M();
 	P4.SetE(dE);
-	SetMomentum(dE, dM);
+	SetRho(sqrt(dE*dE - dM*dM));
+}
+
+void Particle::SetEnergyKin(double dE)
+{
+	SetEnergy(dE + M());
+}
+
+void Particle::SetMomentum(double dP)
+{
+	double dM = M();
+	P4.SetE(sqrt(dP*dP + dM*dM));
+	SetRho(dP);
 }
 
 void Particle::SetMass(double dM)
 {
 	double dE = E();
-	SetMomentum(dE, dM);
+	SetRho(sqrt(dE*dE - dM*dM));
 }
 
-void Particle::SetMomentum(double dE, double dM)
+void Particle::SetRho(double dR)
 {
-	if (P() > 0.0)
-		P4.SetRho(sqrt(dE*dE - dM*dM));
+	if (P() != 0.0)
+		P4.SetRho(dR);
 }
 
 void Particle::SetTheta(double Ang)
@@ -278,4 +294,9 @@ void Particle::SetTrackIn(double X)
 void Particle::SetTrackOut(double X)
 {
 	dTrackOut = X;
+}
+
+void Particle::SetShower(bool X)
+{
+	bShower = X;
 }

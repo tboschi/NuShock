@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+./bin/Eps2Dat -i SBND/mupi_m.dat -o SBND/line_mupi_m.dat --x1 0.01 --x2 1 --y1 5e-10 --y2 1e-4
+./bin/Eps2Dat -i SBND/nee_m.dat -o SBND/line_nee_m.dat --x1 0.01 --x2 1 --y1 5e-10 --y2 1e-4
+./bin/Eps2Dat -i SBND/epi_e.dat -o SBND/line_epi_e.dat --x1 0.01 --x2 1 --y1 5e-10 --y2 1e-4
+./bin/Eps2Dat -i SBND/nee_e.dat -o SBND/line_nee_e.dat --x1 0.01 --x2 1 --y1 5e-10 --y2 1e-4
+
+./bin/Eps2Dat -i SBND/ngamma_m.dat -o SBND/line_ngamma_m.dat --x1 0.01 --x2 1 --y1 1e-9 --y2 5e-4
+./bin/Eps2Dat -i SBND/npi0_m.dat -o SBND/line_npi0_m.dat --x1 0.01 --x2 1 --y1 1e-9 --y2 5e-4
+./bin/Eps2Dat -i SBND/ngamma_e.dat -o SBND/line_ngamma_e.dat --x1 0.01 --x2 1 --y1 1e-9 --y2 5e-4
+./bin/Eps2Dat -i SBND/npi0_e.dat -o SBND/line_npi0_e.dat --x1 0.01 --x2 1 --y1 1e-9 --y2 5e-4
+
+./bin/Eps2Dat -i SBND/nmue_m.dat -o SBND/line_nmue_m.dat --x1 0.01 --x2 1 --y1 2e-9 --y2 1e-5
+./bin/Eps2Dat -i SBND/nmumu_m.dat -o SBND/line_nmumu_m.dat --x1 0.01 --x2 1 --y1 2e-9 --y2 1e-5
+./bin/Eps2Dat -i SBND/nmue_e.dat -o SBND/line_nmue_e.dat --x1 0.01 --x2 1 --y1 2e-9 --y2 1e-5
+./bin/Eps2Dat -i SBND/nmumu_e.dat -o SBND/line_nmumu_e.dat --x1 0.01 --x2 1 --y1 2e-9 --y2 1e-5

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+./bin/MakeEfficiency -i Efficiency/FGT/config_MUPI_M -o Efficiency/FGT/eff_MUPI_M.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nMUMU_M -o Efficiency/FGT/eff_nMUMU_M.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nMUE_M -o Efficiency/FGT/eff_nMUE_M.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nEE_M -o Efficiency/FGT/eff_nEE_M.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nGAMMA_M -o Efficiency/FGT/eff_nGAMMA_M.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nPI0_M -o Efficiency/FGT/eff_nPI0_M.root -C
+
+./bin/MakeEfficiency -i Efficiency/FGT/config_EPI_E -o Efficiency/FGT/eff_EPI_E.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nMUMU_E -o Efficiency/FGT/eff_nMUMU_E.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nMUE_E -o Efficiency/FGT/eff_nMUE_E.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nEE_E -o Efficiency/FGT/eff_nEE_E.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nGAMMA_E -o Efficiency/FGT/eff_nGAMMA_E.root -C
+./bin/MakeEfficiency -i Efficiency/FGT/config_nPI0_E -o Efficiency/FGT/eff_nPI0_E.root -C

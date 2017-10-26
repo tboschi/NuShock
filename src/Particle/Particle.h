@@ -30,6 +30,7 @@ class Particle
 
 		int Pdg() const;
 		int Charge() const;
+		bool IsShower() const;
 		double Tau() const;	//lifetime at rest
 		double LabTau() const;		//lifetime in lab
 		double LabSpace() const;		//space travelled in lab before decay
@@ -58,8 +59,10 @@ class Particle
 		void SetPdg(int X);
 		void SetTau();
 		void SetEnergy(double dE);
+		void SetEnergyKin(double dE);
+		void SetMomentum(double dP);
 		void SetMass(double dM);
-		void SetMomentum(double dE, double dM);
+		void SetRho(double dR);
 		void SetTheta(double Ang);
 		void SetPhi(double Ang);
 		void SetPosition(TVector3 &V);
@@ -69,12 +72,14 @@ class Particle
 		void SetZ(double X);
 		void SetTrackIn(double X);
 		void SetTrackOut(double X);
+		void SetShower(bool X);
 
 	private:
 		TLorentzVector P4;
 		TVector3 Pos;
 		int iPdg;
 		double dTrackIn, dTrackOut, dTau;
+		bool bShower;
 };
 
 #endif

@@ -30,6 +30,7 @@
 #include "DecayRates.h"
 #include "Detector.h"
 #include "Particle.h"
+#include "Nucleon.h"
 
 class EventGenerator
 {
@@ -42,29 +43,38 @@ class EventGenerator
 		Decay* GetDecayPtr();
 		FluxDriver* GetFluxDriverPtr();
 
-		//MC stuff
-		long double EventProbability();
+		double DecayProb();
+		double ScatterProb(double Eh);
 		double EventEfficiency();
-		void EventTotalNumber(bool Efficiency = false);
+		double DecayNumber(double Energy, bool Efficiency = false);
+		double ScatterNumber(double Energy, bool Efficiency = false);
+
 		//Random generators
 		std::string RandomChannel();
-		bool EventInDetector();
+		bool DecayInDetector();
 		bool EventDetectable();
+
 		//Kinematics
 		int EventKinematics();
 		Particle *GetDecayProduct(int i, bool Smear = false);
+		void Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB, bool Smear = false);
+		void GeneratePosition();
 
 		//Generate flux to be used as PDF
-		void MakeSterileFlux(bool TotalPOT = true);
-		void MakeInDetector(bool Efficiency = false);
-		//void MakeStandardFlux(bool TotalPOT = true);
-		double SampleEnergy(bool Set = true);
-		double SampleInDetector(bool Set = true);
-		long double FluxIntensity();
-		long double BackgroundIntensity();	//Get the background intensity at given energy
+		void MakeFlux(bool Mass, bool TotalPOT = true);
+		void MakeInDetector();
+
+		//double SampleEnergy(bool Set = true);
+		//double SampleInDetector(bool Set = true);
+		double NeutIntensity(bool Mass);
+		double AntiIntensity(bool Mass);
+		double FluxIntensity(bool Mass);
+
+		double ScaleXSec(double IntP, double IntN);
+		double Variable(double dt);
 
 		//Statistics
-		void SmearVector(TLorentzVector* N, int Pdg);
+		//void SmearVector(TLorentzVector* N, int Pdg);
 
 		//Get function
 		std::string GetChannel();
@@ -75,13 +85,11 @@ class EventGenerator
 		double GetUe();
 		double GetUm();
 		double GetUt();
-
-		long double GetSignal();
-		long double GetBackground();
-		long double GetReducedChi2();
+		double GetRange(double &Start, double &End);
+		int GetBinNumber();
 
 		//Set function
-		void SetChannel(std::string Ch = "R");
+		void SetChannel(std::string Ch = "R", bool Efficiency = false, char Couple = 'M');
 		void SetMass(double X);
 		void SetEnergy(double X);
 		void SetEnergyKin(double X);
@@ -89,24 +97,26 @@ class EventGenerator
 		void SetUm(double X);
 		void SetUt(double X);
 
-		void SetSignalNumber(long double X);
-		void SetBackgroundNumber(long double X);
-		void SetReducedChi2(long double X);
+		bool IsChanged();
 
 	private:
 		std::string sChannel;	//Channel is set globally in class
 
 		double M_Sterile, E_Sterile;
-		double U_e, U_m, U_t;
-
-		long double lSignal, lBackground, lRedChi2;
+		double M_Sterile_prev, E_Sterile_prev;
+		double Ue, Um, Ut;
+		double fTotalXSec;
 
 		Decay *TheGamma;
 		Detector *TheBox;
 		FluxDriver *TheFlux;
+		Nucleon *TheProton, *TheNeutron;
+		//Nucleon *TheProton_a, *TheNeutron_a;
 
 		TFile *SourceFile;
 		TRandom3 *GenMT;
+
+		TVector3* Position;
 
 		TH1D *InDetector;
 

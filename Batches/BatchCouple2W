@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+./bin/Coupler -A Exclusion/LAr2/LAr_MUPI_M_B.dat -B Exclusion/FGT2/FGT_MUPI_M_B.dat -o Exclusion/Couple2/MUPI_M_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nMUMU_M_B.dat -B Exclusion/FGT2/FGT_nMUMU_M_B.dat -o Exclusion/Couple2/nMUMU_M_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nMUE_M_B.dat -B Exclusion/FGT2/FGT_nMUE_M_B.dat -o Exclusion/Couple2/nMUE_M_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nEE_M_B.dat -B Exclusion/FGT2/FGT_nEE_M_B.dat -o Exclusion/Couple2/nEE_M_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nPI0_M_B.dat -B Exclusion/FGT2/FGT_nPI0_M_B.dat -o Exclusion/Couple2/nPI0_M_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nGAMMA_M_B.dat -B Exclusion/FGT2/FGT_nGAMMA_M_B.dat -o Exclusion/Couple2/nGAMMA_M_B.dat
+
+./bin/Coupler -A Exclusion/LAr2/LAr_EPI_E_B.dat -B Exclusion/FGT2/FGT_EPI_E_B.dat -o Exclusion/Couple2/EPI_E_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nMUMU_E_B.dat -B Exclusion/FGT2/FGT_nMUMU_E_B.dat -o Exclusion/Couple2/nMUMU_E_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nMUE_E_B.dat -B Exclusion/FGT2/FGT_nMUE_E_B.dat -o Exclusion/Couple2/nMUE_E_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nEE_E_B.dat -B Exclusion/FGT2/FGT_nEE_E_B.dat -o Exclusion/Couple2/nEE_E_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nPI0_E_B.dat -B Exclusion/FGT2/FGT_nPI0_E_B.dat -o Exclusion/Couple2/nPI0_E_B.dat
+./bin/Coupler -A Exclusion/LAr2/LAr_nGAMMA_E_B.dat -B Exclusion/FGT2/FGT_nGAMMA_E_B.dat -o Exclusion/Couple2/nGAMMA_E_B.dat
+

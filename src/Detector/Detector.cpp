@@ -1,6 +1,6 @@
 #include "Detector.h"
 
-Detector::Detector(std::string ConfigName)
+Detector::Detector(std::string ConfigName, TRandom3 *Random)
 {
 	std::ifstream ConfigFile(ConfigName.c_str());
 
@@ -18,29 +18,27 @@ Detector::Detector(std::string ConfigName)
 		ssL.clear();
 		ssL << Line;
 
-		if (Line == "EffFile")
+		if (Line[0] == '&')
 		{
 			ssL >> Key >> Name;
-			EffFile = new TFile(Name.c_str(), "OPEN");
-			Eff = true;
-
-			hTemp = (TH1D*) EffFile->Get("efficiency");
-			hEfficiency = (TH1D*) hTemp->Clone();
-			hEfficiency->SetDirectory(0);
-			EffFile->Close();
-		}
-		else if (Line[0] == '_')
-		{
-			ssL >> Key >> Key >> Name;
 			Key.erase(Key.begin());
-			mapEfficiency[Key] = Name;
+			mapEfficiencyE[Key] = Name;
+		}
+		else if (Line[0] == '$')
+		{
+			ssL >> Key >> Name;
+			Key.erase(Key.begin());
+			mapEfficiencyM[Key] = Name;
 		}
 		else
 		{
 			ssL >> Key >> Element;
 			mapDetector[Key] = Element;
 		}
-	 }
+	}
+
+	FuncFile = new TFile();
+	RanGen = Random;
 }
 
 std::vector<std::string> Detector::ListKey()
@@ -56,7 +54,9 @@ std::vector<std::string> Detector::ListChannel()
 {
 	std::vector<std::string> List;
 	std::map<std::string, std::string>::iterator it;
-	for (it = mapEfficiency.begin(); it != mapEfficiency.end(); ++it)
+	for (it = mapEfficiencyE.begin(); it != mapEfficiencyE.end(); ++it)
+		List.push_back(it->first);
+	for (it = mapEfficiencyM.begin(); it != mapEfficiencyM.end(); ++it)
 		List.push_back(it->first);
 	return List;
 }
@@ -66,27 +66,25 @@ double Detector::GetElement(std::string Key)
 	return mapDetector[Key];
 }
 
-double Detector::Efficiency(std::string Channel, double Energy, double Mass)
+double Detector::Efficiency(double Energy, double Mass)
 {
-	TFile FuncFile(mapEfficiency[Channel].c_str(), "OPEN");
- 	TH2D *hhEff = dynamic_cast<TH2D*> (FuncFile.Get("hhfunc"));
+	int Ebin = hhFunc->GetXaxis()->FindBin(Energy);
+	int Mbin = hhFunc->GetYaxis()->FindBin(Mass);
 
-	int Ebin = hhEff->GetXaxis()->FindBin(Energy);
-	int Mbin = hhEff->GetYaxis()->FindBin(Mass);
-
-	return hhEff->GetBinContent(Ebin, Mbin);
+	return hhFunc->GetBinContent(Ebin, Mbin);
 }
 
-double Detector::Background(std::string Channel, double Energy)
+double Detector::SetEfficiency(std::string Channel, char Coupling)
 {
-	TFile FuncFile(mapEfficiency[Channel].c_str(), "OPEN");
- 	TH1D *hBack = dynamic_cast<TH1D*> (FuncFile.Get("hcut"));
+	if (FuncFile != 0 && FuncFile->IsOpen())
+		FuncFile->Close();
 
-	int Ebin = hBack->GetXaxis()->FindBin(Energy);
-	double POT = GetElement("POT/s") * pow(10, GetElement("Years"));
-	double Norm = GetElement("Events") * GetElement("Weigth") * POT / 1.0e6;
+	if (Coupling == 'E')
+		FuncFile = new TFile(mapEfficiencyE[Channel].c_str(), "OPEN");
+	else if (Coupling == 'M')
+		FuncFile = new TFile(mapEfficiencyM[Channel].c_str(), "OPEN");
 
-	return hBack->GetBinContent(Ebin) * Norm;
+ 	hhFunc = dynamic_cast<TH2D*> (FuncFile->Get("hhfunc"));
 }
 
 /*
@@ -141,173 +139,275 @@ double Detector::Efficiency(std::string Channel, double Energy)
 */
 
 //detector effect and smearing
-/*
-double Detector::GausSmearing(TRandom3 *RanGen, double Mean, double Sigma)
-{
-	return RanGen->Gaus(Mean, Sigma);
-}
-*/
 
-double Detector::EnergySigma(Particle *P)
+void Detector::SignalSmearing(Particle *P)
 {
-	double SigmaE;
+	double iM = P->M();
+	double iEkin = P->Ekin();
+	double iP = P->P();
+	double iTheta = P->Theta();
+	double iPhi = P->Phi();
+	double SigmaE, SigmaP, SigmaA; 
 
-	if (P->Pdg() == 11)
+	if (P->Pdg() == 11 || P->Pdg() == 22)
 	{
-		double SysErr = P->E()*GetElement("SysElectron");
-		double StatErr = sqrt(P->E())*GetElement("ResElectron");
-		SigmaE = sqrt(pow(SysErr, 2)+pow(StatErr, 2));
-	}
-	else if (P->Pdg() == 22)
-	{
-		double SysErr = P->E()*GetElement("SysGamma");
-		double StatErr = sqrt(P->E())*GetElement("ResGamma");
-		SigmaE = sqrt(pow(SysErr, 2)+pow(StatErr, 2));
+		SigmaA = GetElement("Angle_Gamma") / Const::fDeg;
+		double StatE = GetElement("Energ_Gamma") / sqrt(iEkin);
+		double SystE = GetElement("Ebias_Gamma");
+		SigmaE = sqrt(pow(StatE, 2)+pow(SystE, 2)) * iEkin;
+
+		P->SetEnergyKin(RanGen->Gaus(iEkin, SigmaE));
+		P->SetTheta(RanGen->Gaus(iTheta, SigmaA));
+		P->SetPhi(RanGen->Gaus(iPhi, SigmaA));
 	}
 	else if (P->Pdg() == 13)
 	{
-		double SysErr = P->E()*GetElement("SysMuon");
-		double StatErr = sqrt(P->E())*GetElement("ResMuon");
+		SigmaA = GetElement("Angle_Muon") / Const::fDeg;
 		double Ratio = P->TrackIn()/(P->TrackIn()+P->TrackOut());
-		SigmaE = sqrt(pow(SysErr, 2)+pow(StatErr, 2));
-		if (Ratio < 0.90)
-			SigmaE *= 4;
+		//std::cout << "13  " << Ratio << "\t" << P->TrackIn() << "\t" << P->TrackOut() << std::endl;
+		if (Ratio > GetElement("Containment"))	//90% of track inside
+		{
+			double StatP = GetElement("Range_Muon") / iP;
+			SigmaP = StatP * iP;
+		}
+		else
+		{
+			double StatP = GetElement("Exiti_Muon");
+			SigmaP = StatP * iP;
+		}
+
+
+		P->SetMomentum(RanGen->Gaus(iP, SigmaP));
+		P->SetTheta(RanGen->Gaus(iTheta, SigmaA));
+		P->SetPhi(RanGen->Gaus(iPhi, SigmaA));
 	}
 	else if (P->Pdg() == 211)
 	{
-		double SysErr = P->E()*GetElement("SysPion");
-		double StatErr = sqrt(P->E())*GetElement("ResPion");
+		SigmaA = GetElement("Angle_Pion") / Const::fDeg;
 		double Ratio = P->TrackIn()/(P->TrackIn()+P->TrackOut());
-		SigmaE = sqrt(pow(SysErr, 2)+pow(StatErr, 2));
-		if (Ratio < 0.90)
-			SigmaE *= 4;
-	}
-	else if (P->Charge() != 0)
-	{
-		double SysErr = P->E()*GetElement("SysHadron");
-		double StatErr = sqrt(P->E())*GetElement("ResHadron");
-		SigmaE = sqrt(pow(SysErr, 2)+pow(StatErr, 2));
-	}
-	else SigmaE = 0;
-
-	return SigmaE;
-}
-
-void Detector::SignalSmearing(TRandom3 *RanGen, Particle *P)
-{
-	double iM = P->M();
-	double iE = P->E();
-	double iTheta = P->Theta();
-	double iPhi = P->Phi();
-
-	double SigmaA = GetElement("ResAngle");
-	double SigmaZt = GetElement("Vertex");
-
-	double Length = TrackLength(RanGen, P);
-
-	double SigmaE = EnergySigma(P);
-	//double SigmaEz = sqrt(iEkin) * Resolution;
-	//double SigmaP = sqrt(1.5) * TheBox->GetElement("Vertex") * 8.0*iP*iP * 2.0 / (TheBox->GetElement("Bfield") * pow(TheBox->GetElement("Length"),2));
-	//double SigmaE = sqrt(pow(SigmaEz,2)*pow(Length,2) + pow(SigmaZt,2)*pow(iEkin, 2));
-
-	//double SigmaP = GetElement("SysMomentum")*P->P()/sqrt(Length)
-	//	        GetElement("ResMomentum")*pow(P->P(), 2)/pow(Length, 2.5);
-
-	//P->SetEnergy(iM + RanGen->Gaus(iEkin, SigmaE));
-	P->SetEnergy(RanGen->Gaus(iE, SigmaE));
-
-	P->SetTheta(RanGen->Gaus(iTheta, SigmaA));
-	P->SetPhi(RanGen->Gaus(iPhi, SigmaA));
-
-	P->SetX(RanGen->Gaus(P->X(), SigmaZt));
-	P->SetY(RanGen->Gaus(P->Y(), SigmaZt));
-	P->SetZ(RanGen->Gaus(P->Z(), SigmaZt));
-}
-
-double Detector::TrackLength(TRandom3 *RanGen, Particle *P)	//This should not change *P
-{
-	if (P->TrackIn() < 0.0 && P->Charge() != 0)
-	{
-		//double dx = GetElement("Vertex");	//1 mm
-		double dx = 0.001;	//1 mm
-		TVector3 Step(P->Direction().Unit());
-		Step *= dx;		//move by dx
-		TVector3 Pos(P->Position());
-		
-		double LengthIn = 0.0;
-		double LengthOut = 0.0;
-		double dE = P->E();
-		double iM = P->M();
-
-		double Beta = P->GetP4().Beta();
-		double Gamma = P->GetP4().Gamma();
-		double Ran = 1, Exp = 0;
-
-		while ( IsDetectable(P->Pdg(), P->Charge(), dE-iM) &&
-			RanGen->Rndm() < exp(-dx/(Const::fC * Gamma * Beta * P->Tau())))	//this should quit when particle decays too!
+		//std::cout << "211 " << Ratio << "\t" << P->TrackIn() << "\t" << P->TrackOut() << std::endl;
+		if (!P->IsShower() && Ratio > GetElement("Containment"))	//pion track, not shower
 		{
-			Beta = sqrt(1-iM*iM/dE/dE);
-			Gamma = dE/iM;
-
-			if (IsInside(Pos))
-			{
-				dE -= dx * EnergyLoss(1, Beta, iM);	//LAr	argon inside
-				LengthIn += dx;
-			}
-			else
-			{
-				dE -= dx * EnergyLoss(3, Beta, iM);	//Fe	iron outside
-				LengthOut += dx;
-			}
-			Pos += Step;
+			double StatP = GetElement("Range_Pion") / iP;
+			SigmaP = StatP * iP;
 		}
-	
+		else
+		{
+			double StatP = GetElement("Exiti_Pion");
+			SigmaP = StatP * iP;
+		}
+
+		P->SetMomentum(RanGen->Gaus(iP, SigmaP));
+		P->SetTheta(RanGen->Gaus(iTheta, SigmaA));
+		P->SetPhi(RanGen->Gaus(iPhi, SigmaA));
+	}
+	else if (P->Charge() != 0)	//other and protons?
+	{
+		SigmaA = GetElement("Angle_Hadron") / Const::fDeg;
+		double StatE = GetElement("Energ_Hadron") / sqrt(iEkin);
+		double SystE = GetElement("Ebias_Hadron");
+		SigmaE = sqrt(pow(StatE, 2)+pow(SystE, 2)) * iEkin;
+
+		P->SetEnergyKin(RanGen->Gaus(iEkin, SigmaE));
+		P->SetTheta(RanGen->Gaus(iTheta, SigmaA));
+		P->SetPhi(RanGen->Gaus(iPhi, SigmaA));
+	}
+
+	P->SetTrackIn(RanGen->Gaus(P->TrackIn(), GetElement("Vertex")));
+	if (P->TrackIn() < 0)
+		P->SetTrackIn(0);
+	P->SetTrackOut(RanGen->Gaus(P->TrackOut(), GetElement("Vertex")));
+	if (P->TrackOut() < 0)
+		P->SetTrackOut(0);
+}
+
+void Detector::TrackLength(Particle *P)	//This should not change *P
+{
+	if (P->Pdg() == 11)
+	{
+		double tmax = log(P->E()/CriticalEnergy()) - 1.0;
+		double Depth = RadiationLength() * RanGen->Gaus(tmax, 0.3*tmax);	//justify this
+		P->SetTrackIn(Depth);
+	}
+	else if (P->Pdg() == 22)
+	{
+		P->SetTrackIn(GammaDecay());
+	}
+	else if (P->Pdg() == 13)
+	{
+		double iE = P->E();
+		double dE;
+		double dStep = 0.01;	//cm step
+		double dx, LengthIn = 0, LengthOut = 0;
+		
+		TVector3 Step(P->Direction().Unit());
+		TVector3 Pos(P->Position());
+		TVector3 Start(P->Position());
+
+
+		bool InOut;
+		while (IsDetectable(P) && !IsDecayed(P, dStep))		//this should quit when particle decays too!
+		{
+			dx = RanGen->Gaus(dStep, GetElement("Vertex"));
+
+			dE = dx * EnergyLoss(P, InOut);	//inside material
+
+			if (InOut)
+				LengthIn += dx;			//even b2b det?
+			else
+				LengthOut += dx;
+
+			Pos += Step*dx;		//move by dx
+			P->SetEnergy(P->E() - dE);
+			P->SetPosition(Pos);
+		}
+
 		P->SetTrackIn(LengthIn);
 		P->SetTrackOut(LengthOut);
-		return LengthIn;
+		P->SetEnergy(iE);		//reset to original energy
+		P->SetPosition(Start);		//reset to original position
 	}
-	else
-		return P->TrackIn();
+	else if (P->Pdg() == 211)
+	{
+		double iE = P->E();
+		double iM = P->M();
+		double dE;
+		double dStep = 0.01;	//cm step
+		double dx, LengthIn = 0, LengthOut = 0;
+		
+		TVector3 Step(P->Direction().Unit());
+		TVector3 Pos(P->Position());
+		TVector3 Start(P->Position());
+
+		double TotTrack = 0;
+		int Layer = 0;
+		bool InOut;
+		while (IsDetectable(P) && !IsDecayed(P, dStep))		//this should quit when particle decays too!
+		{
+			dx = RanGen->Gaus(dStep, GetElement("Vertex"));
+			double Length = RanGen->Exp(RadiationLength(1));
+			double Cover = 0;
+
+			while (IsDetectable(P) && !IsDecayed(P, dStep) && Cover < Length)	//this should quit when particle decays too!
+			{
+				dx = RanGen->Gaus(dStep, GetElement("Vertex"));
+
+				dE = dx * EnergyLoss(P, InOut);	//inside material
+				Cover += dx;
+
+				if (InOut)
+					LengthIn += dx;			//even b2b det?
+				else
+					LengthOut += dx;
+
+				Pos += Step*dx;		//move by dx
+				P->SetEnergy(P->E() - dE);
+				P->SetPosition(Pos);
+			}
+
+			int Mult = ceil(pow(P->Ekin() * 1e6, 0.18) * 0.15);
+			if (Mult > 1)
+			{
+				++Layer;
+				P->SetEnergyKin(P->Ekin()/Mult);
+			}
+		}
+
+		if (RanGen->Rndm() > 1.0/Layer)		//need something better
+			P->SetShower(true);
+		else P->SetShower(false);
+
+		P->SetTrackIn(LengthIn);
+		P->SetTrackOut(LengthOut);
+		P->SetEnergy(iE);			//reset to original energy
+		P->SetPosition(Start);		//reset to original position
+	}
 }
 
-double Detector::InteractionLength(int Target)
+double Detector::GammaDecay()
 {
-	if (Target == 1)	//Liquid Argon
-		return Kine::RadiationLength(1.3945, 18, 40);
-	else if (Target == 3)	//Steel
-		return Kine::RadiationLength(7.874, 26, 56);
+	double Path = 9.0/7.0 * RadiationLength(0);
+	return RanGen->Exp(Path);
+}
+
+double Detector::CriticalEnergy()	//assuming same for positron and electron
+{
+	int Target = GetElement("InTarget");
+	if (Target == 1)
+		return 0.03284;	//GeV
+	else if (Target == 2)
+		return 0.03803;	//GeV
+	else if (Target == 2)
+		return 0.02168;	//GeV
+	else return 0;
+}
+
+double Detector::RadiationLength(bool Nuclear)
+{
+	int Target = GetElement("InTarget");
+	double Ret;
+	if (!Nuclear) switch (Target)
+	{
+		case 1:
+			Ret = 19.55/1.3945;
+			break;
+		case 2:
+			Ret = 19.55/0.1020;
+			break;
+		case 3:
+			Ret = 13.84/7.874;
+			break;
+	}
+	else switch (Target)
+	{
+		case 1:
+			Ret = 119.7/1.3945;
+			break;
+		case 2:
+			Ret = 119.7/0.1020;
+			break;
+		case 3:
+			Ret = 132.1/7.874;
+			break;
+	}
+
+	return Ret / 100.0;
+}
+
+double Detector::EnergyLoss(Particle *P, bool &Contained)
+{
+	if (IsContained(P) && IsInside(P))
+	{
+		Contained = true;
+		return BetheLoss(P, GetElement("InTarget"));
+	}
+	else if (IsContained(P) && GetElement("BackTarget") != 0)
+	{
+		Contained = true;
+		return BetheLoss(P, GetElement("BackTarget"));
+	}
+	else
+	{
+		Contained = false;
+		return BetheLoss(P, GetElement("OutTarget"));
+	}
+}
+
+double Detector::BetheLoss(Particle *P, double Target)
+{
+	if (Target == 1)
+		return Kine::Bethe(P->GetP4().Beta(), P->M(), 1.3945, 188.0, 18, 40);	//LAr, code 1
+	else if (Target== 2)
+		return Kine::Bethe(P->GetP4().Beta(), P->M(), 0.1020, 188.0, 18, 40);	//GasAr, code 2
+	else if (Target == 3)
+		return Kine::Bethe(P->GetP4().Beta(), P->M(), 7.874, 286.0, 26, 56);	//Fe, code 3
 	else return 0.0;
 }
 
-double Detector::EnergyLoss(int Target, double Beta, double Mass)
+bool Detector::IsDecayed(Particle *P, double dx)	//Threshold check
 {
-	if (Mass > 10*Const::fMElectron) 
-	{
-		if (Target == 1)
-			return Kine::Bethe(Beta, Mass, 1.3945, 188.0, 18, 40);	//LAr, code 1
-		else if (Target == 3)
-			return Kine::Bethe(Beta, Mass, 7.874, 286.0, 26, 56);	//Fe, code 3
-		else return 0.0;
-	}
-	else
-		return Mass/sqrt(1-Beta*Beta)/InteractionLength(Target);	//first bit is energy
+	return RanGen->Rndm() > exp(-dx/(Const::fC * P->LabSpace()));	//this should quit when particle decays too!
 }
-
-/*
-std::string Detector::ParticleID(TLorentzVector *Track)
-{
-	std::string Ret = "undefined";
-
-	std::map<std::string, double>::iterator it;
-	for (it = mapMass.begin(); it != mapMass.end(); ++it)
-	{
-		if (fabs(Track->M() - it->second) < 0.005)
-			Ret.assign(it->first);
-	}
-
-	return Ret;
-}
-*/
 
 bool Detector::IsDetectable(Particle *P)	//Threshold check
 {
@@ -315,59 +415,35 @@ bool Detector::IsDetectable(Particle *P)	//Threshold check
 
 	if (P->Pdg() == 11 || P->Pdg() == 22)	//electron or photon
 	{
-		if (P->Ekin() > GetElement("ThrGamma"))
+		if (P->Ekin() > GetElement("Thres_Gamma"))
 			Ret = true;
 	}
 	else if (P->Pdg() == 13)	//muon
 	{
-		if (P->Ekin() > GetElement("ThrMuon"))
+		if (P->Ekin() > GetElement("Thres_Muon"))
 			Ret = true;
 	}
 	else if (P->Pdg() == 211)	//pion
 	{
-		if (P->Ekin() > GetElement("ThrPion"))
+		if (P->Ekin() > GetElement("Thres_Pion"))
 			Ret = true;
 	}
 	else if (P->Charge() != 0)	//hadron
 	{
-		if (P->Ekin() > GetElement("ThrHadron"))
+		if (P->Ekin() > GetElement("Thres_Hadron"))
 			Ret = true;
 	}
 
 	return Ret;
 }
 
-bool Detector::IsDetectable(int Pdg, int Charge, double Ekin)	//Threshold check
+bool Detector::IsContained(Particle *P)
 {
-	bool Ret = false;
-
-	if (Pdg == 11)	//photon
-	{
-		if (Ekin > GetElement("ThrGamma"))
-			Ret = true;
-	}
-	else if (Pdg == 22)	//photon
-	{
-		if (Ekin > 2*Const::fMElectron)
-			Ret = true;
-	}
-	else if (Pdg == 13)	//muon
-	{
-		if (Ekin > GetElement("ThrMuon"))
-			Ret = true;
-	}
-	else if (Pdg == 211)	//pion
-	{
-		if (Ekin > GetElement("ThrPion"))
-			Ret = true;
-	}
-	else if (Charge != 0)	//proton
-	{
-		if (Ekin > GetElement("ThrHadron"))
-			Ret = true;
-	}
-
-	return Ret;
+	if (P->X() > GetXstart() && P->X() < GetXend() &&
+	    P->Y() > GetYstart() && P->Y() < GetYend() &&
+	    P->Z() > GetZstart() )
+		return true;
+	else return false;
 }
 
 bool Detector::IsInside(Particle *P)
@@ -375,15 +451,6 @@ bool Detector::IsInside(Particle *P)
 	if (P->X() > GetXstart() && P->X() < GetXend() &&
 	    P->Y() > GetYstart() && P->Y() < GetYend() &&
 	    P->Z() > GetZstart() && P->Z() < GetZend() )
-		return true;
-	else return false;
-}
-
-bool Detector::IsInside(TVector3 &P)
-{
-	if (P.X() > GetXstart() && P.X() < GetXend() &&
-	    P.Y() > GetYstart() && P.Y() < GetYend() &&
-	    P.Z() > GetZstart() && P.Z() < GetZend() )
 		return true;
 	else return false;
 }

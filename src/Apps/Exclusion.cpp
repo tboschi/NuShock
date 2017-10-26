@@ -89,7 +89,10 @@ int main(int argc, char** argv)
 	//TH2D * Contour = new TH2D ("contour", "Above threshold", 100, 0.01, 1.0, 100, 1.0e-10, 1.0e-4);
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 	
-	EvGen->SetChannel(Channel);
+	if (UeFlag)
+		EvGen->SetChannel(Channel, Efficiency, 'E');
+	if (UmFlag)
+		EvGen->SetChannel(Channel, Efficiency, 'M');
 
 	EvGen->SetMass(0);
 	EvGen->SetUe(0);
@@ -98,6 +101,7 @@ int main(int argc, char** argv)
 	
 	double Mass, Uu;
 	double contMass, contUu, contN;
+	std::vector<double> vSignal;	//summing over energy, array of Uus
 	
 	for (double logMass = -2.0; logMass < -0.3; logMass += 0.0034)	//increase mass log
 	//for (double logMass = -1.61; logMass < -1.51; logMass += 0.001)	//increase mass log
@@ -106,24 +110,35 @@ int main(int argc, char** argv)
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
 		EvGen->SetMass(Mass);
+		EvGen->MakeFlux(1);
 
-		for (double logUu2 = -10.0; logUu2 < -0.0; logUu2 += 0.02)	//increase Uu logarithmically
-		//for (Uu = 1.0e-4; Uu < 1.0e-2; Uu += 1.0e-4)	//increase Uu linearly
+		vSignal.clear();
+		vSignal.resize(int(10/0.02));	//number of Uus probing
+
+		double Start, End;
+		double EnStep = EvGen->GetRange(Start, End)/EvGen->GetBinNumber();
+		for (double Energy = Start; Energy < End; Energy += EnStep)
+		{
+			unsigned int i = 0;
+			for (double logUu2 = -10.0; logUu2+1e-6 < 0.0; logUu2 += 0.02, ++i)	//increase Uu logarithmically
+			{
+				Uu = pow(10.0, 0.5*logUu2);
+				if (UeFlag)
+					EvGen->SetUe(Uu);
+				if (UmFlag)
+					EvGen->SetUm(Uu);
+				if (UtFlag)
+					EvGen->SetUt(Uu);
+	
+				vSignal.at(i) += EnStep * EvGen->DecayNumber(Energy, Efficiency);
+			}
+		}
+
+		unsigned int j = 0;
+		for (double logUu2 = -10.0; logUu2+1e-6 < 0.0; logUu2 += 0.02, ++j)	//increase Uu logarithmically
 		{
 			Uu = pow(10.0, 0.5*logUu2);
-			if (UeFlag)
-				EvGen->SetUe(Uu);
-			if (UmFlag)
-				EvGen->SetUm(Uu);
-			if (UtFlag)
-				EvGen->SetUt(Uu);
-			EvGen->MakeSterileFlux(1);	//totalpot BNB = 0
-			EvGen->EventTotalNumber(Efficiency);
-
-			Out << Mass << "\t" << Uu*Uu << "\t";
-			Out << EvGen->GetSignal() << "\t"; 
-			Out << EvGen->GetBackground() << "\t"; 
-			Out << EvGen->GetReducedChi2() << std::endl;
+			Out << Mass << "\t" << Uu*Uu << "\t" << vSignal.at(j) << std::endl;
 		}
 	}
 

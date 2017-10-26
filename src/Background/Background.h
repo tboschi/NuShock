@@ -37,7 +37,7 @@ class Background
 {
 	public:
 		//Background(std::string EventDB, std::string DetectorConfig, std::string OutFile, std::string Channel);
-		Background(std::ostream &OutStream, std::string EventDB, std::string DetectorConfig, std::string Channel);
+		Background(std::string EventDB, std::string DetectorConfig, std::string Channel);
 		~Background();
 		void InitTree();
 		void InitMap();
@@ -50,7 +50,7 @@ class Background
 
 		int Count(std::string PartName, int N = 1);
 		void ListCount();
-		bool MuonOrPion(Particle *P);
+		bool IsPion(Particle *P);
 		bool IsPhoton(Particle *P);
 		bool IseePair(Particle *P, Particle *Main);
 		bool CountParticles();
@@ -59,19 +59,16 @@ class Background
 		void IdentifyHadron(Particle *iP);
 		bool IdentifynGAMMA();
 		bool IdentifynEE();
-		bool IdentifynEMU();
+		bool IdentifynMUE();
 		bool IdentifynPI0();
 		bool IdentifyEPI();
 		bool IdentifynMUMU();
 		bool IdentifyMUPI();
 
-		double GammaDecay();
 		void Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB);
 
 	private:
-		std::ostream &Out;
-
-		int NEvt;
+		unsigned int NEvt;
 		TRandom3 *GenMT;
 		TTree *Genie, *Data;
 		TFile *InFile, *OutFile;
@@ -88,7 +85,7 @@ class Background
 		std::vector<Particle*> vParticle;
 		std::vector<Particle*>::iterator iP;
 
-		unsigned int ID, Global, Hadron;
+		unsigned int ID, Global;
 		double EnergyA, MomentA, TransvA, ThetaA, PhiA, MassA, LengthA, LengthoA;
 		double EnergyB, MomentB, TransvB, ThetaB, PhiB, MassB, LengthB, LengthoB;
 		double Angle;

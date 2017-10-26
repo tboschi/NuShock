@@ -1,0 +1,31 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+./bin/GenBack -d config/ND_LAr -i ../numu.ghep.root -r Background/LAr2/back_LAr_MUPI_M.root -c MUPI
+./bin/GenBack -d config/ND_LAr -i ../nue.ghep.root -r Background/LAr2/back_LAr_MUPI_E.root -c MUPI
+./bin/GenBack -d config/ND_LAr -i ../nubar.ghep.root -r Background/LAr2/back_LAr_MUPI_B.root -c MUPI
+
+./bin/GenBack -d config/ND_LAr -i ../numu.ghep.root -r Background/LAr2/back_LAr_EPI_M.root -c EPI
+./bin/GenBack -d config/ND_LAr -i ../nue.ghep.root -r Background/LAr2/back_LAr_EPI_E.root -c EPI
+./bin/GenBack -d config/ND_LAr -i ../nubar.ghep.root -r Background/LAr2/back_LAr_EPI_B.root -c EPI
+
+./bin/GenBack -d config/ND_LAr -i ../numu.ghep.root -r Background/LAr2/back_LAr_nMUMU_M.root -c nMUMU
+./bin/GenBack -d config/ND_LAr -i ../nue.ghep.root -r Background/LAr2/back_LAr_nMUMU_E.root -c nMUMU
+./bin/GenBack -d config/ND_LAr -i ../nubar.ghep.root -r Background/LAr2/back_LAr_nMUMU_B.root -c nMUMU
+
+./bin/GenBack -d config/ND_LAr -i ../numu.ghep.root -r Background/LAr2/back_LAr_nMUE_M.root -c nMUE
+./bin/GenBack -d config/ND_LAr -i ../nue.ghep.root -r Background/LAr2/back_LAr_nMUE_E.root -c nMUE
+./bin/GenBack -d config/ND_LAr -i ../nubar.ghep.root -r Background/LAr2/back_LAr_nMUE_B.root -c nMUE
+
+./bin/GenBack -d config/ND_LAr -i ../numu.ghep.root -r Background/LAr2/back_LAr_nEE_M.root -c nEE
+./bin/GenBack -d config/ND_LAr -i ../nue.ghep.root -r Background/LAr2/back_LAr_nEE_E.root -c nEE
+./bin/GenBack -d config/ND_LAr -i ../nubar.ghep.root -r Background/LAr2/back_LAr_nEE_B.root -c nEE
+
+./bin/GenBack -d config/ND_LAr -i ../numu.ghep.root -r Background/LAr2/back_LAr_nGAMMA_M.root -c nGAMMA
+./bin/GenBack -d config/ND_LAr -i ../nue.ghep.root -r Background/LAr2/back_LAr_nGAMMA_E.root -c nGAMMA
+./bin/GenBack -d config/ND_LAr -i ../nubar.ghep.root -r Background/LAr2/back_LAr_nGAMMA_B.root -c nGAMMA
+
+./bin/GenBack -d config/ND_LAr -i ../numu.ghep.root -r Background/LAr2/back_LAr_nPI0_M.root -c nPI0
+./bin/GenBack -d config/ND_LAr -i ../nue.ghep.root -r Background/LAr2/back_LAr_nPI0_E.root -c nPI0
+./bin/GenBack -d config/ND_LAr -i ../nubar.ghep.root -r Background/LAr2/back_LAr_nPI0_B.root -c nPI0

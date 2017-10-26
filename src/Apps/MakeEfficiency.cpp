@@ -21,6 +21,8 @@ int main(int argc, char** argv)
 	{
 		{"input", 	required_argument,	0, 'i'},
 		{"output", 	required_argument,	0, 'o'},
+		{"highenergy", 	no_argument,		0, 'E'},
+		{"complete", 	no_argument,		0, 'C'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
 	};
@@ -32,9 +34,9 @@ int main(int argc, char** argv)
 	//Initialize variables
 	std::string InFile;
 	TFile *OutFile;
-	double Threshold = 2.44;
+	bool Complete = false;
 	
-	while((iarg = getopt_long(argc,argv, "i:o:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "i:o:Ch", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -43,6 +45,9 @@ int main(int argc, char** argv)
 				break;
 			case 'o':
 				OutFile = new TFile(optarg, "RECREATE");
+				break;
+			case 'C':
+				Complete = true;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -55,15 +60,23 @@ int main(int argc, char** argv)
 
 
 	TH2D *TheFunction;
+	TH1D *TheAll, *TheCut;
 	Efficiency *MakeEff = new Efficiency(InFile);
 	
 	MakeEff->InitFunc();
 	MakeEff->LoopFile();
-	//MakeEff->CompleteFunction();
+
+	if (Complete)
+		MakeEff->CompleteFunction();
+
 	OutFile->cd();
 	TheFunction = MakeEff->GetFunction();
+	TheAll = MakeEff->GetAll();
+	TheCut = MakeEff->GetCut();
 
 	TheFunction->Write();
+	TheAll->Write();
+	TheCut->Write();
 
 	OutFile->Close();
 
@@ -79,6 +92,10 @@ void Usage(char* argv0)
 	std::cout << "\t\tInput file, contains list of simulation files" << std::endl;
 	std::cout <<"\n  -o,  --output" << std::endl;
 	std::cout << "\t\tROOT output file, where to save the function" << std::endl;
+	std::cout <<"\n  -C,  --complete" << std::endl;
+	std::cout << "\t\tExtrapolate function and complete it for any mass value" << std::endl;
+	std::cout <<"\n  -E,  --highenergy" << std::endl;
+	std::cout << "\t\tConsiders only events higher than 5 GeV" << std::endl;
 	std::cout <<"\n  -h,  --help" << std::endl;
 	std::cout << "\t\tPrint this message and exit" << std::endl;
 }

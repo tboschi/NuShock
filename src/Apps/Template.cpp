@@ -4,11 +4,9 @@
 #include <cstring>
 #include <getopt.h>
 
-#include "headers.h"
-
+void Usage(char* Name);
 int main(int argc, char** argv)
 {
-
 	const struct option longopts[] = 
 	{
 		{"option1", 	required_argument, 	0, '1'},
@@ -25,9 +23,6 @@ int main(int argc, char** argv)
 	
 //Initialize variables
 	double M_Sterile = 0.350;	//350 MeV
-	double U_e = 1.0/sqrt(3.0);	//All mixing enabled to be maximal
-	double U_m = 1.0/sqrt(3.0);
-	double U_t = 1.0/sqrt(3.0);
 	
 	while((iarg = getopt_long(argc,argv, "1:2h", longopts, &index)) != -1)
 	{
@@ -57,6 +52,7 @@ int main(int argc, char** argv)
 
 	//Main body
 
+	std::cout << "Hello World!" << std::endl;
 	//Garbage collection
 
 	return 0;
