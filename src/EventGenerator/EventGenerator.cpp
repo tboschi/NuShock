@@ -45,7 +45,6 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 	}
 	ConfigFile.close();
 
-	TheEFT = new EFT(GetMass()); 
 	SetChannel("ALL");			//Channel is not initialised randomly!
 }
 
@@ -74,19 +73,6 @@ FluxDriver* EventGenerator::GetFluxDriverPtr()
 {
 	return TheFlux;
 }
-
-double EventGenerator::SetLambda(double X)
-{
-	TheEFT->SetLambdaScale(X);
-	return TheEFT->Gammalll();	//return gamma
-}
-
-/*
-void EventGenerator::SetA(double X)
-{
-	TheEFT->SetWilson(X);
-}
-*/
 
 void EventGenerator::SetUserData(double X)
 {
@@ -122,7 +108,6 @@ double EventGenerator::ScatterProb(double Eh)	//decaying inside the detector
 		return 0.0;
 	else
 	{
-		//double Total = GetUserData() < 0.0 ? TheEFT->Gammalll() : GetUserData();
 		double Total = TheGamma->Total(GetEnhancement());
 		//std::cout << "T " << Total << std::endl;
 		//double Ratio = TheGamma->Branch(GetChannel());
@@ -148,7 +133,6 @@ double EventGenerator::GetEnhancement()
 //		return 0.0;
 //	else
 //	{
-//		double Total = TheGamma->Total() + TheEFT->Gammalll();
 //		double Ratio = TheGamma->Branch(GetChannel()); 
 //		double Lambda = Const::fM2GeV * TheBox->GetZsize();
 //		double Lorentz = sqrt(Eh*Eh/GetMass(2) - 1.0);	//betagamma, to invert

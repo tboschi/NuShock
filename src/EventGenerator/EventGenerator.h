@@ -31,7 +31,6 @@
 #include "Detector.h"
 #include "Particle.h"
 #include "Nucleon.h"
-#include "EFT.h"
 
 class EventGenerator
 {
@@ -123,7 +122,6 @@ class EventGenerator
 		Detector *TheBox;
 		FluxDriver *TheFlux;
 		Nucleon *TheProton, *TheNeutron;
-		EFT * TheEFT;
 		//Nucleon *TheProton_a, *TheNeutron_a;
 
 		TFile *SourceFile;

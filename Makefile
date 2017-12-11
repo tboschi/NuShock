@@ -59,7 +59,6 @@ BIN :=  $(NEW:%=bin/%)
 DEP =	Tools/Tools		\
 	DecayRates/DecayRates	\
 	DecayRates/3Body	\
-	DecayRates/EFT		\
 	SterileFlux/Flux	\
 	SterileFlux/FluxDriver	\
 	EventGenerator/EventGenerator	\
