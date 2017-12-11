@@ -89,23 +89,31 @@ int main(int argc, char** argv)
 	//TH2D * Contour = new TH2D ("contour", "Above threshold", 100, 0.01, 1.0, 100, 1.0e-10, 1.0e-4);
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 	
+	double Uo;
 	if (UeFlag)
+	{
 		EvGen->SetChannel(Channel, Efficiency, 'E');
+		Uo = EvGen->GetUm();
+	}
 	if (UmFlag)
+	{
 		EvGen->SetChannel(Channel, Efficiency, 'M');
+		Uo = EvGen->GetUe();
+	}
+	if (UtFlag)
+		Uo = EvGen->GetUt();
 
 	EvGen->SetMass(0);
-	EvGen->SetUe(0);
-	EvGen->SetUm(0);
-	EvGen->SetUt(0);
+	EvGen->SyncUu();
 	
+	unsigned int Grid = 250;
 	double Mass, Uu;
 	double contMass, contUu, contN;
 	std::vector<double> vSignal;	//summing over energy, array of Uus
 	
-	for (double logMass = -2.0; logMass < -0.3; logMass += 0.0034)	//increase mass log
-	//for (double logMass = -1.61; logMass < -1.51; logMass += 0.001)	//increase mass log
- 	//for (Mass = 0.0249; Mass < 0.0251; Mass += 0.01)	//increase mass linearly
+	EvGen->SyncUu(0);
+
+	for (double logMass = -2.0; logMass < -0.3; logMass += 1.7/Grid)	//increase mass log
 	{
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
@@ -113,31 +121,35 @@ int main(int argc, char** argv)
 		EvGen->MakeFlux(1);
 
 		vSignal.clear();
-		vSignal.resize(int(10/0.02));	//number of Uus probing
+		vSignal.resize(Grid);	//number of Uus probing
 
 		double Start, End;
 		double EnStep = EvGen->GetRange(Start, End)/EvGen->GetBinNumber();
 		for (double Energy = Start; Energy < End; Energy += EnStep)
 		{
 			unsigned int i = 0;
-			for (double logUu2 = -10.0; logUu2+1e-6 < 0.0; logUu2 += 0.02, ++i)	//increase Uu logarithmically
+			for (double logUu2 = -15.0; logUu2+1e-6 < 0.0; logUu2 += 15.0/Grid, ++i)	//increase Uu logarithmically
 			{
 				Uu = pow(10.0, 0.5*logUu2);
-				if (UeFlag)
-					EvGen->SetUe(Uu);
-				if (UmFlag)
-					EvGen->SetUm(Uu);
-				if (UtFlag)
-					EvGen->SetUt(Uu);
+				//if (UeFlag)
+				//	EvGen->SetUe(Uu);
+				//if (UmFlag)
+				//	EvGen->SetUm(Uu);
+				//if (UtFlag)
+				//	EvGen->SetUt(Uu);
+				EvGen->SetUe(Uu, 1);	//production
+				EvGen->SetUm(Uu, 0);	//decay
 	
 				vSignal.at(i) += EnStep * EvGen->DecayNumber(Energy, Efficiency);
 			}
 		}
 
 		unsigned int j = 0;
-		for (double logUu2 = -10.0; logUu2+1e-6 < 0.0; logUu2 += 0.02, ++j)	//increase Uu logarithmically
+		for (double logUu2 = -15.0; logUu2+1e-6 < 0.0; logUu2 += 15.0/Grid, ++j)	//increase Uu logarithmically
 		{
 			Uu = pow(10.0, 0.5*logUu2);
+			//Out << Mass << "\t" << Uu*Uu << "\t" << vSignal.at(j) << std::endl;
+			//Out << Mass << "\t" << Uo*Uu << "\t" << vSignal.at(j) << std::endl;
 			Out << Mass << "\t" << Uu*Uu << "\t" << vSignal.at(j) << std::endl;
 		}
 	}

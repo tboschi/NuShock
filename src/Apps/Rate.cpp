@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 	XsecFile->Close();
 
 	double Ysec = 1.0e7 * TheBox->GetElement("Years");
-	Out << "Total number of events is " << std::setprecision(10) << Rate*Ysec << " in 5 years" << std::endl;
+	Out << "Total number of events is " << std::setprecision(10) << Rate*Ysec << " in " << TheBox->GetElement("Years") << " years" << std::endl;
 	Out << "Frequency " << Rate << " Hz on average" << std::endl;
 	Out << "Scale factor " << Rate*Ysec * 1e-6 << std::endl;
 

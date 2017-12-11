@@ -7,8 +7,8 @@ Width		3
 Height		3
 Fiducial	0.90
 Weight		50.0
-POT/s		5e13
-Years		5
+POT/s		2.205e14
+Years		6
 
 #1: LAr, 2: HP Ar, 3: Fe
 #
@@ -59,6 +59,7 @@ ResPi0Mass	0.040
 
 #Efficiency file
 #
+#$MUPI	Efficiency/LAr/eff_MUPI_M.root
 $MUPI	Efficiency/LAr/eff_MUPI_M.root
 $nMUMU	Efficiency/LAr/eff_nMUMU_M.root
 $nMUE	Efficiency/LAr/eff_nMUE_M.root

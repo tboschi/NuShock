@@ -17,6 +17,7 @@ int main(int argc, char** argv)
 		{"start", 	required_argument,	0, 'A'},
 		{"end", 	required_argument,	0, 'B'},
 		{"input", 	no_argument,		0, 'i'},
+		{"background", 	required_argument,	0, 'W'},
 		{"output", 	required_argument,	0, 'o'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
@@ -66,18 +67,13 @@ int main(int argc, char** argv)
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	std::vector<double> vMass, vUu;
-	for (double logMass = -2.0; logMass < -0.3; logMass += 0.0068)	//increase mass log
-		vMass.push_back(pow(10.0, logMass));
-	for (double logUu2 = -10.0; logUu2 < -0.0; logUu2 += 0.04)	//increase Uu logarithmically
-		vUu.push_back(pow(10.0, logUu2));
+	bool First = true;
+	bool Reached = false;
+	double rMass, rUu2, rEvt;
+	double fMass, fUu2, fEvt;
+	std::vector <double> vMass, vUu2, vEvt;
 
-	std::vector<std::vector<double> > mnEvt;
-	std::vector<double> vnEvt;
-
-	double Mass_ = -1, Uu_ = -1, nEvt_ = -1;
-	double Mass = 0, Uu = 0, nEvt = 0;
-	std::string Line, Key, Name;
+	std::string Line;
 	std::stringstream ssL;
 	while (std::getline(InFile, Line))
 	{
@@ -87,70 +83,61 @@ int main(int argc, char** argv)
 		ssL.clear();
 		ssL << Line;
 
-		ssL >> Mass >> Uu >> nEvt;
+		ssL >> rMass >> rUu2 >> rEvt;
+		vMass.push_back(rMass);
+		vUu2.push_back(rUu2);
+		vEvt.push_back(rEvt);
+	}
 
-		if (Mass != Mass_ && Mass_ >= 0)
+	double Thr;
+	unsigned int i;
+	double Mass_ = -1.0;
+	for (unsigned int j = 0; j < 2*vMass.size(); ++j)
+	{
+		if (j < vMass.size())
+			i = j;
+		else
+			i = 2*vMass.size() - 1 - j;
+
+		if (vMass.at(i) != Mass_)
 		{
-			mnEvt.push_back(vnEvt);
-			vnEvt.clear();
+			Reached = false;
+			Mass_ = vMass.at(i);
 		}
 
-		vnEvt.push_back(nEvt);
-
-		Mass_ = Mass;
-		Uu_ = Uu;
-	}	
-
-	//last entry
-	mnEvt.push_back(vnEvt);
-	vnEvt.clear();
-
-	for (int i = 0; i < vMass.size(); ++i)
-	{
-		double Thr = Threshold;
+		Thr = Threshold;
 		if (MassDep != 0)
 		{
 			if (vMass.at(i) < MassA)
-				Thr += MassDep*MassA;
+				Thr += MassDep * MassA;
 			else if (vMass.at(i) > MassB)
-				Thr += MassDep*MassB;
-			else Thr += MassDep*vMass.at(i);
+				Thr += MassDep * MassB;
+			else Thr += MassDep * vMass.at(i);
 		}
 
-		for (int j = 0; j < vUu.size(); ++j)
+		if (!Reached && vEvt.at(i) > Thr)
 		{
-			if (mnEvt.at(i).at(j) > Thr)
+			if (First)
 			{
-				Out << vMass.at(i) << "\t" << vUu.at(j) << std::endl;
-				break;
+				fMass = vMass.at(i);
+				fUu2 = vUu2.at(i);
+				fEvt = vEvt.at(i);
+				First = false;
 			}
-		}
-	}
-	for (int i = vMass.size()-1; i > 0; --i)
-	{
-		double Thr = Threshold;
-		if (vMass.at(i) < MassA)
-			Thr = Threshold + MassDep*MassA;
-		else if (vMass.at(i) > MassB)
-			Thr = Threshold + MassDep*MassB;
-		else Thr = Threshold + MassDep*vMass.at(i);
 
-		for (int j = vUu.size()-1; j > 0; --j)
-		{
-			if (mnEvt.at(i).at(j) > Thr)
-			{
-				Out << vMass.at(i) << "\t" << vUu.at(j) << std::endl;
-				break;
-			}
+			Out << vMass.at(i) << "\t" << vUu2.at(i) << "\t" << vEvt.at(i) << std::endl;
+			Reached = true;
 		}
 	}
+
+	Out << fMass << "\t" << fUu2 << "\t" << fEvt << std::endl;
 
 	InFile.close();
 	OutFile.close();
 
 	return 0;
 }
-	
+
 void Usage(char* argv0)
 {
 	std::cout << "Description" << std::endl;

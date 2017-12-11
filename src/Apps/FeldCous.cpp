@@ -62,14 +62,15 @@ int main(int argc, char** argv)
 
 	/* WARNING: BLACK MAGIC USED HERE!!! */
 	double s = sqrt(2.5*b);			//from plot
-	double lim = 70*log(b + 270) - 350;	//from plot
+	//double lim = 70*log(b + 270) - 350;	//from plot
+	double lim = 70*log(b + 270);	//from plot
 	/* END OF BLACK MAGIC */
 
 	int Width = int(b + lim - std::max(0, b-1));
 	std::cout << "Belt limited from " << std::max(0, b-1) << " to " << int(b + lim) << " (width " << Width << ")" << std::endl;
 	while (nA < b+1)
 	{
-		//std::cout << nA << std::endl;
+		std::cout << nB-nA << std::endl;
 		s += 0.005;
 		vRatio.clear();
 		vP0.clear();

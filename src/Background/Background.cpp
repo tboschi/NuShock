@@ -29,7 +29,8 @@ Background::Background(std::string EventDB, std::string DetectorConfig, std::str
 
 	TheChan.assign(Channel);
 
-	InitTree();
+	//EasyInitTree();
+	//InitTree();
 	InitMap();
 }
 
@@ -47,6 +48,12 @@ Background::~Background()
 	delete TheBox;
 	delete GenMT;
 	*/
+}
+
+void Background::EasyInitTree()
+{
+	Data = new TTree("Data", "All data from GENIE");	//Tree with candidate events
+	Data->Branch("E", &ProbeEnergy, "fProbeEnergy/D");
 }
 
 void Background::InitTree()
@@ -154,6 +161,36 @@ void Background::LoadTree()
 	}
 }
 
+void Background::EasyLoop(unsigned int Save)
+{
+	unsigned int Span = NEvt/Save;
+
+	for (ID = Global; ID < Global+Span && ID < NEvt; ++ID)
+	{
+		//std::cout << "Entry " << ID << std::endl;
+		Genie->GetEntry(ID);	//get event from ID
+
+		for (iP = vParticle.begin() ; iP != vParticle.end(); ++iP)
+			delete (*iP);
+		vParticle.clear();	//reset particle array at each loop
+		pCount.clear();
+
+		genie::EventRecord & gEvent = *(gEvRec->event);		//Get event
+		genie::GHepParticle * neu = gEvent.Probe();	//get probe
+		genie::GHepParticle * Hep = 0;	//particle pointer for loop in event
+		TIter EvIter(&gEvent);		//iterate inside the same event, skip the probe
+
+		while((Hep = dynamic_cast<genie::GHepParticle *>(EvIter.Next())))	//loop on all particles
+		{									//inside the event
+		}
+		
+		ProbeEnergy = neu->E();	
+		Data->Fill();
+	}
+	//Data->Write();
+	Global = ID;	//ID should be +1 
+
+}
 
 void Background::Loop(unsigned int Save)
 {

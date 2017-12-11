@@ -152,9 +152,9 @@ namespace Const
 	//Conversion
 	static const double fM2GeV = 5.06e15;		//1GeV in 1/m
 	static const double fS2GeV = 1.52e24;		//1GeV in 1/s
-	static const double fPi = 3.1415926536;		//1GeV in 1/s
-	static const double fPi2 = fPi*fPi;		//1GeV in 1/s
-	static const double fPi3 = fPi2*fPi;		//1GeV in 1/s
+	static const double fPi = 3.1415926536;		//pi
+	static const double fPi2 = fPi*fPi;		//pi
+	static const double fPi3 = fPi2*fPi;		//pi
 	static const double fDeg = 180.0/fPi;		//Rad to Deg
 	static const double fGeV2b = 389.4e-30;	//1GeV-2 in cm2
 
@@ -189,6 +189,8 @@ namespace Const
 	static const double fMKaon0 = genie::PDGLibrary::Instance()->Find(311)->Mass();
 	static const double fMProton = genie::PDGLibrary::Instance()->Find(2212)->Mass();
 	static const double fMNeutron = genie::PDGLibrary::Instance()->Find(2112)->Mass();
+	static const double fMW = genie::PDGLibrary::Instance()->Find(24)->Mass();
+	static const double fMZ = genie::PDGLibrary::Instance()->Find(23)->Mass();
 
 	//SM constant - PDG 2016
 	static const double fGF = 1.16637876e-5;	//GeV-2, from PDG
@@ -208,6 +210,8 @@ namespace Const
 	static const double fMV = 0.840;		//GeV, vectorial mass, from GENIE
 	static const double fGA0 = 1.2671;		//Axial form factor at Q2 = 0, from GENIE
 
+	static const double fWwidth = 2.085;		//W decay width, in GeV
+	static const double fZwidth = 2.4952;		//W decay width, in GeV
 }
 
 #endif

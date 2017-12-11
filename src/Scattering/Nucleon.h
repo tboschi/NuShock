@@ -38,9 +38,6 @@ class Nucleon
 		//static int Integrand(const int *nDim, const double x[], const int *nComp, double f[], void* UserData);
 		//double VegasIntegration(double &Error, double &Chi2Prob);
 
-		//double MaxGamma();
-		//bool IsEnergyConserved();
-
 		double A();
 		double B();
 		double C();
@@ -58,9 +55,12 @@ class Nucleon
 		double GMsachs(bool N, int e = 1);
 		double GDipole();
 
-		double s(double e = 1.0);
-		double t(double e = 1.0);
-		double u(double e = 1.0);
+		double s();
+		double s_();
+		double t();
+		double t_();
+		double u();
+		double u_();
 		double Q2();
 
 		int Tau3();
@@ -68,7 +68,6 @@ class Nucleon
 		double GetHeavyE();
 
 		void SetQ2(double X);
-		void SetUu(double X);
 
 		void SetNeutrino(bool B);
 		void SetNeutrino(bool B, TLorentzVector &nu);
@@ -87,27 +86,28 @@ class Nucleon
 		void SetRecoilM(double dM);
 		void SetRecoilE(double dE);
 
-		bool IsEnergyConserved();
 		double Acos(double X);
+
+		bool IsEnergyConserved();
 		bool IsChanged();
+		bool IsAllowed();
 		void ResetFormFactors();
 
 	private:
 		TLorentzVector *Pl, *Pi, *Ph, *Pf;	//Pl + Pi = Ph + Pf
 		TGenPhaseSpace *Event;
 
-		double Mn, Ml, Mh, Uu;
-		double El;
+		double El, Mn, Ml, Mh;
 		double fA, fB, fC;
 		double fF1, fF2, fGA, fF1EM, fF2EM, fGAEM, fF1S, fF2S, fGAS, fGEsachs, fGMsachs, fGDipole;
 
-		double fSigmaTot;
+		double fSigmaTot, fQ2Min, fQ2Max;
 		double Mh_prev, El_prev;
 
 		const double M_Proton;
 		const double M_Neutron;
 
-		bool t3, Nu;
+		int t3, Nu;
 };
 
 #endif

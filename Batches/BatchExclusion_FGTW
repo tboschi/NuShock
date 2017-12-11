@@ -2,16 +2,16 @@
 
 cd /mt/home/tboschi/Templates/MCflux/Supershock
 
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_MUPI_M_B.dat -M -c MUPI -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nMUMU_M_B.dat -M -c nMUMU -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nMUE_M_B.dat -M -c nMUE -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nEE_M_B.dat -M -c nEE -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nGAMMA_M_B.dat -M -c nGAMMA -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nPI0_M_B.dat -M -c nPI0 -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_MUPI_M_B.dat -M -c MUPI -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nMUMU_M_B.dat -M -c nMUMU -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nMUE_M_B.dat -M -c nMUE -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nEE_M_B.dat -M -c nEE -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nGAMMA_M_B.dat -M -c nGAMMA -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nPI0_M_B.dat -M -c nPI0 -W
 
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_EPI_E_B.dat -E -c EPI -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nMUMU_E_B.dat -E -c nMUMU -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nMUE_E_B.dat -E -c nEMU -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nEE_E_B.dat -E -c nEE -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nGAMMA_E_B.dat -E -c nGAMMA -W
-./bin/Exclusion -s config/SMConfig -d config/ND_FGT2 -f config/FluxConfig -o Exclusion/FGT2/FGT_nPI0_E_B.dat -E -c nPI0 -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_EPI_E_B.dat -E -c EPI -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nMUMU_E_B.dat -E -c nMUMU -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nMUE_E_B.dat -E -c nEMU -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nEE_E_B.dat -E -c nEE -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nGAMMA_E_B.dat -E -c nGAMMA -W
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nPI0_E_B.dat -E -c nPI0 -W

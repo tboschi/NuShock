@@ -1,7 +1,0 @@
-#!/bin/bash
-
-cd /mt/home/tboschi/Templates/MCflux/Supershock
-
-./bin/Rate -d config/ND_LAr2 -x ../numu_argon_xsec.root -f data/NuMu_0.root -o data/Rate_LAr2_NuMu.dat
-./bin/Rate -d config/ND_LAr2 -x ../nue_argon_xsec.root -f data/NuE_0.root -o data/Rate_LAr2_NuE.dat
-./bin/Rate -d config/ND_LAr2 -x ../nubar_argon_xsec.root -f data/NuBar_0.root -o data/Rate_LAr2_NuBar.dat

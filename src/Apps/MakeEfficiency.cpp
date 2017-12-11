@@ -23,6 +23,7 @@ int main(int argc, char** argv)
 		{"output", 	required_argument,	0, 'o'},
 		{"highenergy", 	no_argument,		0, 'E'},
 		{"complete", 	no_argument,		0, 'C'},
+		{"timing", 	no_argument,		0, 'T'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
 	};
@@ -34,9 +35,9 @@ int main(int argc, char** argv)
 	//Initialize variables
 	std::string InFile;
 	TFile *OutFile;
-	bool Complete = false;
+	bool Complete = false, Time = false;
 	
-	while((iarg = getopt_long(argc,argv, "i:o:Ch", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "i:o:CTh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -48,6 +49,9 @@ int main(int argc, char** argv)
 				break;
 			case 'C':
 				Complete = true;
+				break;
+			case 'T':
+				Time = true;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -61,7 +65,7 @@ int main(int argc, char** argv)
 
 	TH2D *TheFunction;
 	TH1D *TheAll, *TheCut;
-	Efficiency *MakeEff = new Efficiency(InFile);
+	Efficiency *MakeEff = new Efficiency(InFile, Time);
 	
 	MakeEff->InitFunc();
 	MakeEff->LoopFile();

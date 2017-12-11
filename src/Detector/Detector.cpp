@@ -61,15 +61,21 @@ std::vector<std::string> Detector::ListChannel()
 	return List;
 }
 
-double Detector::GetElement(std::string Key)
+double Detector::GetElement(std::string Key, bool S)
 {
-	return mapDetector[Key];
+	if (S && mapDetector.count("Scale") > 0)	//there is a scale element
+		return mapDetector["Scale"] * mapDetector[Key];
+	else
+		return mapDetector[Key];
 }
 
 double Detector::Efficiency(double Energy, double Mass)
 {
+	//std::cout << "eff0" << std::endl;
 	int Ebin = hhFunc->GetXaxis()->FindBin(Energy);
+	//std::cout << "eff1" << std::endl;
 	int Mbin = hhFunc->GetYaxis()->FindBin(Mass);
+	//std::cout << "eff2" << std::endl;
 
 	return hhFunc->GetBinContent(Ebin, Mbin);
 }
@@ -458,13 +464,13 @@ bool Detector::IsInside(Particle *P)
 double Detector::GetXsize()
 {
 	double F = GetElement("Fiducial");
-	return F > 0.0 ? F *GetElement("Width") : GetElement("Width");
+	return F > 0.0 ? F *GetElement("Width", 1) : GetElement("Width", 1);
 }
 
 double Detector::GetXstart()
 {
 	double F = GetElement("Fiducial");
-	return F > 0.0 ? 0.5*GetElement("Width")*(1-F) : 0.0;
+	return F > 0.0 ? 0.5*GetElement("Width", 1)*(1-F) : 0.0;
 }
 
 double Detector::GetXend()
@@ -475,13 +481,13 @@ double Detector::GetXend()
 double Detector::GetYsize()
 {
 	double F = GetElement("Fiducial");
-	return F > 0.0 ? F * GetElement("Height") : GetElement("Height");
+	return F > 0.0 ? F * GetElement("Height", 1) : GetElement("Height", 1);
 }
 
 double Detector::GetYstart()
 {
 	double F = GetElement("Fiducial");
-	return F > 0.0 ? 0.5*GetElement("Height")*(1-F) : 0.0;
+	return F > 0.0 ? 0.5*GetElement("Height", 1)*(1-F) : 0.0;
 }
 
 double Detector::GetYend()
@@ -492,13 +498,13 @@ double Detector::GetYend()
 double Detector::GetZsize()
 {
 	double F = GetElement("Fiducial");
-	return F > 0.0 ? F * GetElement("Length") : GetElement("Length");
+	return F > 0.0 ? F * GetElement("Length", 1) : GetElement("Length", 1);
 }
 
 double Detector::GetZstart()
 {
 	double F = GetElement("Fiducial");
-	return F > 0.0 ? 0.5*GetElement("Length")*(1-F) : 0.0;
+	return F > 0.0 ? 0.5*GetElement("Length", 1)*(1-F) : 0.0;
 }
 
 double Detector::GetZend()

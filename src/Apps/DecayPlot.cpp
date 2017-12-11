@@ -26,12 +26,9 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	std::ofstream OutFile;
-	double M_Sterile = 0.300;	//350 MeV
-	double U_e = 1.0/sqrt(3.0);	//All mixing enabled to be maximal
-	double U_m = 1.0/sqrt(3.0);
-	double U_t = 1.0/sqrt(3.0);
-	
-	while((iarg = getopt_long(argc,argv, "o:s:e:m:t:h", longopts, &index)) != -1)	
+	std::string SMConfig;
+
+	while((iarg = getopt_long(argc,argv, "o:s:h", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
@@ -43,14 +40,8 @@ int main(int argc, char** argv)
 					return 1;
 				}
 				break;
-			case 'e':
-				U_e = strtod(optarg,NULL);
-				break;
-			case 'm':
-				U_m = strtod(optarg,NULL);
-				break;
-			case 't':
-				U_t = strtod(optarg,NULL);
+			case 's':
+				SMConfig.assign(optarg);
 				break;
 			case 'h':
 				std::cout << "Compute decay spectrum from 0 MeV to 500 MeV" << std::endl;
@@ -58,12 +49,8 @@ int main(int argc, char** argv)
 				std::cout << "decayplot [OPTIONS]" << std::endl;
 				std::cout <<"\n  -o,  --output" << std::endl;
 				std::cout << "\t\tOutput file to save plot; if not specified the standard output is used instead" << std::endl;
-				std::cout <<"\n  -e,  --ue4" << std::endl;
-				std::cout << "\t\tSpecifiy electron-heavy mixing, default 1/sqrt(3)" << std::endl;
-				std::cout <<"\n  -m,  --um4" << std::endl;
-				std::cout << "\t\tSpecifiy muon-heavy mixing, default 1/sqrt(3)" << std::endl;
-				std::cout <<"\n  -t,  --ut4" << std::endl;
-				std::cout << "\t\tSpecifiy tau-heavy mixing, default 1/sqrt(3)" << std::endl;
+				std::cout <<"\n  -s,  --smconfig" << std::endl;
+				std::cout << "\t\tSMconfig" << std::endl;
 				std::cout <<"\n  -h,  --help" << std::endl;
 				std::cout << "\t\tPrint this message and exit" << std::endl;
 				return 1;
@@ -72,41 +59,45 @@ int main(int argc, char** argv)
 		}
 	}
 
+	double Ms, Ue, Um, Ut;
+	
+	std::string Line, Key;
+	std::stringstream ssL;
+	double Element;
+
+	std::ifstream ConfigFile(SMConfig.c_str());
+	while (std::getline(ConfigFile, Line))
+	{
+		if (Line[0] == '#') continue;
+
+		ssL.str("");
+		ssL.clear();
+		ssL << Line;
+
+		ssL >> Key >> Element;
+		if (Key == "M_Sterile") Ms = Element;
+		if (Key == "U_e") Ue = Element;
+		if (Key == "U_m") Um = Element;
+		if (Key == "U_t") Ut = Element;
+	}
+	ConfigFile.close();
+
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
+	Decay * SuperGamma = new Decay(Ms, Ue, Um, Ut);
 
 	std::vector<std::string> vChannel(SuperGamma->ListChannels());
 	
-	//ThreeBody * SuperGamma = new ThreeBody("ALL", M_Sterile, U_e, U_m, U_t);
-/*
-	double xa, xb, dx;
-	dx = SuperGamma->xLim(xa, xb);
-	double MaxGamma = SuperGamma->MaxGamma();
-	for (double x = xa; x < xb; x += dx/100)
-	{
-		SuperGamma->SetX(x);
-		double ya, yb, dy;
-		dy = SuperGamma->yLim(ya, yb);
-		for (double y = ya; y < yb; y += dy/100)
-		{
-			SuperGamma->SetY(y);
-			double GG = SuperGamma->ddGamma();
-			Out << x << "\t" << y << "\t" << GG/MaxGamma << std::endl; 
-		}
-	}
-*/
-	
-	Out << "#Mass\t";
+	Out << "#Mass\tTotal\t";
 	for (int i = 1; i < vChannel.size(); ++i)
 		Out << vChannel.at(i) << "\t";
 	Out << std::endl;
 
-	for (M_Sterile = 0; M_Sterile < 0.500; M_Sterile += 0.001)
+	for (Ms = 0; Ms < 0.5; Ms += 0.001)
 	{
-		SuperGamma->SetMass(M_Sterile);
+		SuperGamma->SetMass(Ms);
 
-		Out << M_Sterile << "\t";
+		Out << Ms << "\t" << SuperGamma->Total() << "\t";
 		for (int i = 1; i < vChannel.size(); ++i)
 			Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
 		Out << std::endl;

@@ -31,6 +31,7 @@
 #include "Detector.h"
 #include "Particle.h"
 #include "Nucleon.h"
+#include "EFT.h"
 
 class EventGenerator
 {
@@ -62,10 +63,9 @@ class EventGenerator
 
 		//Generate flux to be used as PDF
 		void MakeFlux(bool Mass, bool TotalPOT = true);
-		void MakeInDetector();
+		void MakeSampler();
+		double SampleEnergy(bool Set = true);
 
-		//double SampleEnergy(bool Set = true);
-		//double SampleInDetector(bool Set = true);
 		double NeutIntensity(bool Mass);
 		double AntiIntensity(bool Mass);
 		double FluxIntensity(bool Mass);
@@ -82,9 +82,9 @@ class EventGenerator
 		double GetEnergy(int Pow = 1);
 		double GetEnergyKin(int Pow = 1);
 		double GetMomentum(int Pow = 1);
-		double GetUe();
-		double GetUm();
-		double GetUt();
+		double GetUe(int Pow = 1);
+		double GetUm(int Pow = 1);
+		double GetUt(int Pow = 1);
 		double GetRange(double &Start, double &End);
 		int GetBinNumber();
 
@@ -93,11 +93,18 @@ class EventGenerator
 		void SetMass(double X);
 		void SetEnergy(double X);
 		void SetEnergyKin(double X);
-		void SetUe(double X);
-		void SetUm(double X);
-		void SetUt(double X);
+		void SetUe(double X, bool GvF = 0);
+		void SetUm(double X, bool GvF = 0);
+		void SetUt(double X, bool GvF = 0);
+		void SyncUu(bool B = 1);
 
 		bool IsChanged();
+
+		void SetEnhancement(double X = 1.0);
+		double GetEnhancement();
+		double SetLambda(double X);
+		void SetUserData(double X);
+		double GetUserData();
 
 	private:
 		std::string sChannel;	//Channel is set globally in class
@@ -107,10 +114,16 @@ class EventGenerator
 		double Ue, Um, Ut;
 		double fTotalXSec;
 
+		double fEnhance, fEnhance_prev;
+		double fUserData, fUserData_prev;
+
+		bool Sync;
+
 		Decay *TheGamma;
 		Detector *TheBox;
 		FluxDriver *TheFlux;
 		Nucleon *TheProton, *TheNeutron;
+		EFT * TheEFT;
 		//Nucleon *TheProton_a, *TheNeutron_a;
 
 		TFile *SourceFile;
@@ -118,7 +131,7 @@ class EventGenerator
 
 		TVector3* Position;
 
-		TH1D *InDetector;
+		TH1D *hSampler;
 
 };
 

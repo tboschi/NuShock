@@ -81,7 +81,6 @@ int main(int argc, char** argv)
 	//Nucl->SetSterile(Ns);
 
 	NN->SetPS(Mass);
-
 	for (double E_nu = 0; E_nu < 20; E_nu += 0.1)
 	{
 		std::cout << "Probing energy " << E_nu << std::endl;

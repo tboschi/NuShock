@@ -8,6 +8,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TTree.h"
+#include "TRandom3.h"
 
 #include "Tools.h"
 #include "EventGenerator.h"
@@ -28,6 +29,8 @@ int main(int argc, char** argv)
 		{"channel", 	required_argument,	0, 'c'},
 		{"output", 	required_argument,	0, 'o'},
 		{"mass", 	required_argument,	0, 'm'},
+		{"ueratio", 	required_argument,	0, 'E'},
+		{"umratio", 	required_argument,	0, 'M'},
 		{"help", 	no_argument,		0, 'h'},
 		{0,	0, 	0,	0},
 	};
@@ -40,11 +43,11 @@ int main(int argc, char** argv)
 	TFile *OutFile;
 	unsigned int Nevent;
 	double Mass = 0.0;
-	bool UeFlag, UmFlag;
+	double UeF = 0.0, UmF = 0.0;
 
 	std::string Channel = "ALL";
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:m:n:c:o:EMh", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "s:d:f:m:n:c:o:E:M:h", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
@@ -71,10 +74,10 @@ int main(int argc, char** argv)
 				//OutFile = new TFile(optarg, "RECREATE");
 				break;
 			case 'M':
-				UmFlag = true;
+				UmF = strtod(optarg, NULL);
 				break;
 			case 'E':
-				UeFlag = true;
+				UeF = strtod(optarg, NULL);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -90,21 +93,22 @@ int main(int argc, char** argv)
 
 	if (Mass)
 		EvGen->SetMass(Mass);
-	if (UeFlag)
-		EvGen->SetUe(1e-4);
-	if (UmFlag)
-		EvGen->SetUm(1e-4);
+	UeF *= 1e-5/sqrt(UeF*UeF + UmF*UmF);  //sum^2 is 1e-10
+	UmF *= 1e-5/sqrt(UeF*UeF + UmF*UmF);  
+	EvGen->SetUe(UeF);
+	EvGen->SetUe(UmF);
 
 	EvGen->SetChannel(Channel);
-	EvGen->MakeSterileFlux(1);
-	EvGen->MakeInDetector();
+	EvGen->MakeFlux(1);
+	EvGen->MakeSampler();
 
-	//TH2D *hDalitz = new TH2D("dalitz", "Dalitz", 200,0,0.2, 200,0,0.2);
+	//TH2D *hDalitz = new TH2D("dalitz", "Dalitz", 200,i0,0.2, 200,0,0.2);
 	
 	unsigned int ID = 0;
 	unsigned int ND = 0;
 	unsigned int SaveMe = 0;
-	double Real;
+
+	double Real, Delay;
 
 	double EnergyA, EnergyB, EnergyC, Energy0;
 	double MomentA, MomentB, MomentC, Moment0;
@@ -114,13 +118,15 @@ int main(int argc, char** argv)
 	double MassA, MassB, MassC, Mass0;
 	double InA, OutA, InB, OutB;
 	double Angle;	//separation between A & B
-	double angle;	//separation between A & B
 
+	TRandom3 *Rand = new TRandom3(0);
 	TTree *Data = new TTree("Data", "Particle tracks");
 
 	Data->Branch("ID", &ID, "iID/i");
 	Data->Branch("Real", &Real, "fReal/D");
+	Data->Branch("Delay", &Delay, "fDelay/D");
 
+	/*
 	Data->Branch("E_A", &EnergyA, "fEnergyA/D");
 	Data->Branch("P_A", &MomentA, "fMomentA/D");
 	Data->Branch("T_A", &TransvA, "fTransvA/D");
@@ -147,13 +153,30 @@ int main(int argc, char** argv)
 	Data->Branch("The0", &Theta0, "fTheta0/D");
 	Data->Branch("Phi0", &Phi0, "fPhi0/D");
 	Data->Branch("M_0", &Mass0, "fMass0/D");
+	*/
 
+	unsigned int nBunch = 80;	//80 bunhces 
+	double tBunch = 20e-9;	//20ns between bunches
+	unsigned int iBunch = 0;
+	double Beta = 1.0;
+	double Lc = EvGen->GetDetectorPtr()->GetElement("Baseline")/Const::fC;
 	while (ID < Nevent)
 	{
-		EvGen->SampleInDetector(1);
+		Real = EvGen->SampleEnergy(1);
 
-		Real = EvGen->GetEnergy();
+		iBunch = Rand->Integer(nBunch);
+		if (Rand->Rndm() < 2.99)
+			Beta = sqrt(1 - Mass*Mass / Real/Real);
+		else
+			Beta = 1.0;
 
+		//Delay = Lc * (1.0/Beta - 1) + iBunch*tBunch;
+		Delay = Rand->Gaus(Lc * (1.0/Beta - 1) + iBunch*tBunch, 1e-9);
+
+		Data->Fill();
+		++ID;
+
+		/*
 		if (EvGen->EventKinematics())
 		{
 			EvGen->GeneratePosition();
@@ -207,6 +230,7 @@ int main(int argc, char** argv)
 			ParticleA = 0;
 			ParticleB = 0;
 
+			Data->Fill();
 			if (SaveMe++ > 10000)
 			{
 				OutFile->cd();
@@ -214,6 +238,7 @@ int main(int argc, char** argv)
 				SaveMe = 0;
 			}
 		}
+			*/
 	}
 
 	OutFile->cd();

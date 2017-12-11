@@ -39,11 +39,11 @@ struct EnergyEfficiency
 class Detector
 {
 	public:
-		Detector(std::string ConfigFile, TRandom3 *Random);
+		Detector(std::string ConfigFile, TRandom3 *Random = 0);
 
 		std::vector<std::string> ListKey();
 		std::vector<std::string> ListChannel();
-		double GetElement(std::string Key);
+		double GetElement(std::string Key, bool S = false);
 		//double Efficiency(std::string Channel, double Energy);
 		double Efficiency(double Energy, double Mass);
 		double SetEfficiency(std::string Channel, char Couple);

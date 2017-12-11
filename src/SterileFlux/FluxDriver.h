@@ -8,6 +8,7 @@
 #define fluxdriver_H
 
 #include <iostream>
+#include <string>
 #include <fstream>
 #include <cstring>
 #include <sstream>
@@ -38,13 +39,19 @@ class FluxDriver
 		double GetRangeStart();
 		double GetRangeEnd();
 		int GetBinNumber();
-		double GetIntensityNeut(double Energy, double Ue = 1.0, double Um = 1.0, double Ut = 1.0);
-		double GetIntensityAnti(double Energy, double Ue = 1.0, double Um = 1.0, double Ut = 1.0);
+		double GetIntensity(double Energy, bool NvA, bool Uu);
 		void SetBaseline(double Baseline);
 		void SetPOT(double POT);
 		void SetArea(double Area);
 
 		bool IsChanged(double M_Sterile);
+
+		void SetUe(double X);
+		void SetUm(double X);
+		void SetUt(double X);
+		double GetUe();
+		double GetUm();
+		double GetUt();
 
 		/*
 		TH1D* GetTotalMn();
@@ -73,8 +80,9 @@ class FluxDriver
 		*/
 
 	private:
-		int BinNumber;
+		unsigned int BinNumber;
 		double RangeStart, RangeEnd;
+		double U_e, U_m, U_t;
 
 		TFile *SourceFile;
 		TFile *KineFile;

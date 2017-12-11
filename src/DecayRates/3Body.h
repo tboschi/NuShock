@@ -32,7 +32,9 @@ class ThreeBody
 		double M2IntY();
 		double M2IntXY();
 		double M2_Z();
+		double M2_ZIntY();
 		double M2_WZ();
+		double M2_WZIntY();
 
 		double M2Muon();
 		double M2MuonIntY();
@@ -43,6 +45,7 @@ class ThreeBody
 		double M2Kaon0IntY(double Y);
 		double M2Kaon0IntY();
 		double M2nEE();
+		double M2nEEIntY();
 		double M2nMUMU();
 		double M2nEMU();
 		double M2nMUE();

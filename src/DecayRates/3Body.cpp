@@ -241,6 +241,9 @@ double ThreeBody::M2IntY()	//Unpolarised amplitude, integrated over Ey
 			case _Kaon0:
 				M2 = M2Kaon0IntY();
 				break;
+			case _nEE:
+				M2 = M2nEEIntY();
+				break;
 			default:
 				M2 = 0.0;
 				break;
@@ -276,6 +279,21 @@ double ThreeBody::M2_Z() //NC N to n l l, Z propagator
 		  + (gV*gV - gA*gA) * a()*b() * (2 - x() - y()) );
 }
 
+double ThreeBody::M2_ZIntY() //NC N to n l l, Z propagator
+{
+	double ymin, ymax;
+	double dy = yLim(ymin, ymax);
+
+	double gV = -0.5 + 2 * Const::fSin2W;
+	double gA = -0.5;
+	return 16 * Const::fGF2 * pow(M_Sterile, 4) * 
+		( dy * ( pow((gV+gA), 2) * x() * (1 + a(2) - b(2) - c(2) - x()) +
+		         (gV*gV - gA*gA) * a()*b() * (2 - x()) ) +
+		  (ymax*ymax - ymin*ymin) / 2.0 * ( pow((gV-gA), 2) * (1 + b(2) - a(2) - c(2)) -
+						    (gV*gV - gA*gA) * a()*b() ) -
+		  (ymax*ymax*ymax - ymin*ymin*ymin) / 3.0 * pow((gV-gA), 2) );
+}
+
 double ThreeBody::M2_WZ() //Interference term between Z and W propagator
 {
 	double gV = -0.5 + 2 * Const::fSin2W;
@@ -283,6 +301,20 @@ double ThreeBody::M2_WZ() //Interference term between Z and W propagator
 	return  8.0 * Const::fGF2 * pow(M_Sterile, 4) * 
 	       ( - (gV + gA) * x() * (1 + a(2) - b(2) - c(2) - x())
 		 + (gV - gA) * a()*b() * (2 - x() - y()) );
+}
+
+double ThreeBody::M2_WZIntY() //Interference term between Z and W propagator
+{
+	double ymin, ymax;
+	double dy = yLim(ymin, ymax);
+
+	double gV = -0.5 + 2 * Const::fSin2W;
+	double gA = -0.5;
+
+	return  8.0 * Const::fGF2 * pow(M_Sterile, 4) * 
+	       ( dy * (- (gV + gA) * x() * (1 + a(2) - b(2) - c(2) - x()) +
+		       (gV - gA) * a()*b() * (2 - x()) ) -
+		 (ymax*ymax - ymin*ymin) / 2.0 * (gV - gA) * a()*b() );
 }
 
 double ThreeBody::M2Muon()	//Muon decay 	//W propagator
@@ -367,6 +399,11 @@ double ThreeBody::M2Kaon0IntY() //Kaon0 decay, integrated analytically over y
 double ThreeBody::M2nEE()
 {
 	return GetUe()*GetUe() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUm()*GetUm() + GetUt()*GetUt()) * M2_Z();
+}
+
+double ThreeBody::M2nEEIntY()
+{
+	return GetUe()*GetUe() * (M2MuonIntY() + M2_WZIntY() + M2_ZIntY()) + (GetUm()*GetUm() + GetUt()*GetUt()) * M2_ZIntY();
 }
 
 double ThreeBody::M2nMUMU()

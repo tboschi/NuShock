@@ -10,6 +10,9 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 	M_Sterile_prev = -1.0;
 	E_Sterile_prev = -1.0;
 
+	fUserData = -1.0;
+	fUserData_prev = -1.0;
+
 	TheBox = new Detector(DetectorConfig, GenMT);
 	TheGamma = new Decay();
 	TheFlux = new FluxDriver(FluxConfig);	//I have decided this is kinetic energy
@@ -17,9 +20,11 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 	TheNeutron = new Nucleon(1, 0);
 
 	Position = new TVector3;
-	InDetector = 0;
+	hSampler = 0;
 
-	std::string Line, Key, Name;
+	SyncUu();	//both parameters are set
+
+	std::string Line, Key;
 	std::stringstream ssL;
 	double Element;
 
@@ -40,6 +45,7 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 	}
 	ConfigFile.close();
 
+	TheEFT = new EFT(GetMass()); 
 	SetChannel("ALL");			//Channel is not initialised randomly!
 }
 
@@ -69,6 +75,28 @@ FluxDriver* EventGenerator::GetFluxDriverPtr()
 	return TheFlux;
 }
 
+double EventGenerator::SetLambda(double X)
+{
+	TheEFT->SetLambdaScale(X);
+	return TheEFT->Gammalll();	//return gamma
+}
+
+/*
+void EventGenerator::SetA(double X)
+{
+	TheEFT->SetWilson(X);
+}
+*/
+
+void EventGenerator::SetUserData(double X)
+{
+	fUserData = X;
+}
+
+double EventGenerator::GetUserData()
+{
+	return fUserData;
+}
 
 //MC procedures to detection of event after sampling energy
 
@@ -78,9 +106,10 @@ double EventGenerator::DecayProb()	//reaching the detector and decaying
 		return 0.0;
 	else
 	{
+		//double Total = GetUserData() < 0.0 ? TheGamma->Total() : GetUserData();
 		double Total = TheGamma->Total();
 		double Ratio = TheGamma->Branch(GetChannel()); 
-		double Length = Const::fM2GeV * (TheBox->GetElement("Baseline") + TheBox->GetZstart());
+		double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
 		double Lambda = Const::fM2GeV * TheBox->GetZsize();
 		double Lorentz = sqrt(GetEnergy(2)/GetMass(2) - 1.0);	//betagamma, to invert
 		return exp(- Total * Length / Lorentz) * (1 - exp(- Total * Lambda / Lorentz)) * Ratio;
@@ -93,18 +122,44 @@ double EventGenerator::ScatterProb(double Eh)	//decaying inside the detector
 		return 0.0;
 	else
 	{
-		//double Total = TheGamma->Total();
-		//double Ratio = TheGamma->Branch(GetChannel()); 
-		//double Lambda = Const::fM2GeV * TheBox->GetZsize();
-		//double Lorentz = sqrt(Eh*Eh/GetMass(2) - 1.0);	//betagamma, to invert
-		//return (1 - exp(- Total * Lambda / Lorentz)) * Ratio;
-		return 1.0;
+		//double Total = GetUserData() < 0.0 ? TheEFT->Gammalll() : GetUserData();
+		double Total = TheGamma->Total(GetEnhancement());
+		//std::cout << "T " << Total << std::endl;
+		//double Ratio = TheGamma->Branch(GetChannel());
+		double Lambda = Const::fM2GeV * TheBox->GetZsize();
+		double Lorentz = sqrt(Eh*Eh/GetMass(2) - 1.0);	//betagamma, to invert
+		return (1 - exp(- Total * Lambda / Lorentz));
 	}
 }
+
+void EventGenerator::SetEnhancement(double X)
+{
+	fEnhance = X;
+}
+
+double EventGenerator::GetEnhancement()
+{
+	return fEnhance;
+}
+
+//double EventGenerator::ScatterProb(double Eh)	//decaying inside the detector
+//{							//using heavy neutrino energy
+//	if (Eh < GetMass())
+//		return 0.0;
+//	else
+//	{
+//		double Total = TheGamma->Total() + TheEFT->Gammalll();
+//		double Ratio = TheGamma->Branch(GetChannel()); 
+//		double Lambda = Const::fM2GeV * TheBox->GetZsize();
+//		double Lorentz = sqrt(Eh*Eh/GetMass(2) - 1.0);	//betagamma, to invert
+//		return (1 - exp(- Total * Lambda / Lorentz)) * Ratio;
+//	}
+//}
 
 
 double EventGenerator::EventEfficiency()
 {
+	//std::cout << "call" << std::endl;
 	return TheBox->Efficiency(GetEnergy(), GetMass());
 }
 
@@ -115,7 +170,6 @@ double EventGenerator::DecayNumber(double EnergyKin, bool Efficiency)
 {
 	SetEnergyKin(EnergyKin);
 
-	//std::cout << "mass " << GetMass() << "\tFlux " << FluxIntensity(1) << "\tProb " << DecayProb() << std::endl;
 	double Signal = FluxIntensity(1) * DecayProb();
 	if (Efficiency)
 		Signal *= EventEfficiency();
@@ -126,7 +180,7 @@ double EventGenerator::DecayNumber(double EnergyKin, bool Efficiency)
 double EventGenerator::ScatterNumber(double Energy, bool Efficiency)	//watchout for units!!! not set
 {
 	SetEnergy(Energy);
-	TLorentzVector Nu(0, 0, GetEnergy(), GetEnergy());
+	TLorentzVector Nu(0, 0, Energy, Energy);
 
 	TheProton->SetProbe(Nu);
 	TheNeutron->SetProbe(Nu);
@@ -179,9 +233,8 @@ bool EventGenerator::EventDetectable()	//Third step: is the detector able to det
 int EventGenerator::EventKinematics()	//Fourth step: simulate the phase space of the decay
 {
 	TLorentzVector N_vec(0, 0, GetMomentum(), GetEnergy());	//Lab frame for the heavy neutrino
-	//std::cout << "Mom 0 " << GetMomentum() << "\tEne 0 " << GetEnergy() << std::endl;
 
-	double Radius = sqrt(pow(TheBox->GetElement("Width"),2) + pow(TheBox->GetElement("Height"),2));
+	double Radius = sqrt(pow(TheBox->GetElement("Width", 1),2) + pow(TheBox->GetElement("Height", 1),2));
 	double SigmaT = atan2(Radius, TheBox->GetElement("Baseline"));	//3sigma will be inside the detector (better distribution needed)
 	N_vec.SetTheta(abs(GenMT->Gaus(0, SigmaT)));	//abs needed to avoid degeneracy with phi (?)
 	N_vec.SetPhi(GenMT->Uniform(-Const::fPi, Const::fPi));
@@ -292,41 +345,30 @@ void EventGenerator::GeneratePosition()
 //area
 void EventGenerator::MakeFlux(bool Mass, bool TotalPOT)	//Generate the flux for heavy neutrinos
 {
+	bool Ret;
 	if (Mass)	//heavy neutrino flux
+		Ret = TheFlux->MakeFlux(GetMass());
+	else		//light neutrino
+		Ret = TheFlux->MakeFlux(0);
+
+	if (Ret)
 	{
-		if (TheFlux->MakeFlux(GetMass()))
-		{
-			TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
-	
-			double Y = TotalPOT ? 1.0e7 * TheBox->GetElement("Years") : 1.0;
-			TheFlux->SetPOT(Y * TheBox->GetElement("POT/s"));
-	
-			TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
-		}
-	}
-	else		//light neutrino flux
-	{
-		if (TheFlux->MakeFlux(0))
-		{
-			TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
-	
-			double Y = TotalPOT ? 1.0e7 * TheBox->GetElement("Years") : 1.0;
-			TheFlux->SetPOT(Y * TheBox->GetElement("POT/s"));
-	
-			//TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
-		}
+		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
+		double Y = TotalPOT ? 1.0e7 * TheBox->GetElement("Years") : 1.0;
+		TheFlux->SetPOT(Y * TheBox->GetElement("POT/s"));
+		TheFlux->SetArea(TheBox->GetElement("Height", 1)*TheBox->GetElement("Width", 1)*1.0e4);
 	}
 }
 
-void EventGenerator::MakeInDetector()
+void EventGenerator::MakeSampler()
 {
-	delete InDetector;
-	InDetector = 0;
+	delete hSampler;
+	hSampler = 0;
 
 	double Start, End;
 	double EnStep = GetRange(Start, End)/GetBinNumber();
 
-	InDetector = new TH1D("InDetector", "Neutrinos in detector", GetBinNumber(), Start, End);
+	hSampler = new TH1D("sampler", "Neutrinos in detector", GetBinNumber(), Start, End);
 
 	double Sgn;
 	for (double EnKin = Start; EnKin < End; EnKin += EnStep)
@@ -334,62 +376,33 @@ void EventGenerator::MakeInDetector()
 		SetEnergyKin(EnKin);
 
 		Sgn = EnStep * FluxIntensity(1) * DecayProb();
-		InDetector->Fill(EnKin+1e-6, Sgn);
+		hSampler->Fill(GetEnergy()+1e-6, Sgn);
 	}
 }
 
-/*
-void EventGenerator::MakeStandardFlux(bool TotalPOT)	//Generate the flux of SM neutrinos, just for comparison
-{
-	if (IsChanged())
-	{
-		TheFlux->MakeStandardFlux();
-		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
-
-		double Y = TotalPOT ? 1.0e7 * TheBox->GetElement("Years") : 1.0;
-		TheFlux->SetPOT(Y * TheBox->GetElement("POT/s"));
-
-		TheFlux->SetArea(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
-	}
-}
-*/
-
-/*
 double EventGenerator::SampleEnergy(bool Set)	//Sample Energy according to PDF distribution
 {
-	double Energy = TheFlux->SampleEnergy();
+	double Energy = hSampler->GetRandom();
 	if (Set)
-		SetEnergyKin(Energy);
+		SetEnergy(Energy);
 
-	return Energy + GetMass();
+	return Energy;
 }
-
-double EventGenerator::SampleInDetector(bool Set)
-{
-	double Energy = InDetector->GetRandom();
-	if (Set)
-		SetEnergyKin(Energy);
-
-	return Energy + GetMass();
-}
-*/
 
 double EventGenerator::NeutIntensity(bool Mass)	//Get the neutrino flux intensity at given energy
 {
 	if (Mass)
-		return TheFlux->GetIntensityNeut(GetEnergyKin(), GetUe(), GetUm(), GetUt());
+		return TheFlux->GetIntensity(GetEnergyKin(), 1, 1);
 	else 
-	{
-		return TheFlux->GetIntensityNeut(GetEnergy());
-	}
+		return TheFlux->GetIntensity(GetEnergy(), 1, 0);
 }
 
 double EventGenerator::AntiIntensity(bool Mass)	//Get the antineutrino flux intensity at given energy
 {
 	if (Mass)
-		return TheFlux->GetIntensityAnti(GetEnergyKin(), GetUe(), GetUe(), GetUt());
+		return TheFlux->GetIntensity(GetEnergyKin(), 0, 1);
 	else
-		return TheFlux->GetIntensityAnti(GetEnergy());
+		return TheFlux->GetIntensity(GetEnergy(), 0, 0);
 }
 
 double EventGenerator::FluxIntensity(bool Mass)	//Get the flux intensity at given energy
@@ -397,7 +410,7 @@ double EventGenerator::FluxIntensity(bool Mass)	//Get the flux intensity at give
 	return NeutIntensity(Mass) + AntiIntensity(Mass);
 }
 
-double EventGenerator::ScaleXSec(double IntP, double IntN)	//includeing probability (one single integration)
+double EventGenerator::ScaleXSec(double IntP, double IntN)	//including probability (one single integration)
 {
 	double MolarMass = 1.0;
 	int A = 1.0, Z = 1.0;
@@ -414,9 +427,10 @@ double EventGenerator::ScaleXSec(double IntP, double IntN)	//includeing probabil
 	}
 
 	MolarMass = double(A);	//grams
-	double Ntarget = Const::fNa * TheBox->GetElement("Weight") * 1e6 / MolarMass;	//number of targets
+	double Area = TheBox->GetElement("Width", 1) * TheBox->GetElement("Height", 1);
+	double RhoTarget = Const::fNa * TheBox->GetElement("Weight", 1) * 1e6 / MolarMass / Area;	//surface density of targets
 
-	return Ntarget * Const::fGeV2b * (Z * IntP + (A-Z) * IntN);
+	return RhoTarget * Const::fGeV2b * (Z * IntP + (A-Z) * IntN);
 }
 
 double EventGenerator::Variable(double dt)
@@ -485,19 +499,19 @@ double EventGenerator::GetMomentum(int Pow)
 	return pow(P, Pow);
 }
 
-double EventGenerator::GetUe()
+double EventGenerator::GetUe(int Pow)	//it is the last value
 {
-	return Ue;
+	return pow(Ue, Pow);
 }
 
-double EventGenerator::GetUm()
+double EventGenerator::GetUm(int Pow)
 {
-	return Um;
+	return pow(Um, Pow);
 }
 
-double EventGenerator::GetUt()
+double EventGenerator::GetUt(int Pow)
 {
-	return Ut;
+	return pow(Ut, Pow);
 }
 
 double EventGenerator::GetRange(double &Start, double &End)
@@ -543,31 +557,51 @@ void EventGenerator::SetEnergyKin(double X)
 	E_Sterile = X + M_Sterile;
 }
 
-void EventGenerator::SetUe(double X)
+void EventGenerator::SetUe(double X, bool GvF)	//GvF == 1 -> Gamma, GvF == 0 -> Flux
 {
 	Ue = X;
-	TheGamma->SetUe(X);
+
+	if (Sync || GvF)
+		TheGamma->SetUe(X);
+	if (Sync || !GvF)
+		TheFlux->SetUe(X);
 }
 
-void EventGenerator::SetUm(double X)
+void EventGenerator::SetUm(double X, bool GvF) 	//GvF == 1 -> Gamma, GvF == 0 -> Flux
 {
 	Um = X;
-	TheGamma->SetUm(X);
+
+	if (Sync || GvF)
+		TheGamma->SetUm(X);
+	if (Sync || !GvF)
+		TheFlux->SetUm(X);
 }
 
-void EventGenerator::SetUt(double X)
+void EventGenerator::SetUt(double X, bool GvF)	//GvF == 1 -> Gamma, GvF == 0 -> Flux
 {
 	Ut = X;
-	TheGamma->SetUt(X);
+
+	if (Sync || GvF)
+		TheGamma->SetUt(X);
+	if (Sync || !GvF)
+		TheFlux->SetUt(X);
+}
+
+void EventGenerator::SyncUu(bool B)	//B == 1 -> Gamma&Flux same U, B == 0 -> Indipendent (Gamma default)
+{
+	Sync = B;
+
 }
 
 bool EventGenerator::IsChanged()
 {
 	bool Ret = (fabs(M_Sterile - M_Sterile_prev) > 1e-9 || 
-		    fabs(E_Sterile - E_Sterile_prev) > 1e-9);
+		    fabs(E_Sterile - E_Sterile_prev) > 1e-9 || 
+		    fabs(fUserData - fUserData_prev) > 1e-30 );
 
 	M_Sterile_prev = M_Sterile;
 	E_Sterile_prev = E_Sterile;
+	fUserData_prev = fUserData;
 
 	return Ret;
 }

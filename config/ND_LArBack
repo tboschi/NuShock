@@ -7,8 +7,8 @@ Width		3
 Height		3
 Fiducial	0.90
 Weight		50.0
-POT/s		1.47e14
-Years		5
+POT/s		2.205e14
+Years		6
 
 #1: LAr, 2: HP Ar, 3: Fe
 #
@@ -59,19 +59,15 @@ ResPi0Mass	0.040
 
 #Efficiency file
 #
-#_MUPI	Efficiency/eff_MUPI_All.root
-_MUPI	Efficiency/eff_MUPI_High.root
-#_EPI	Efficiency/eff_EPI_All.root
-#_EPI	Efficiency/eff_EPI_High.root
-#_nMUMU	Efficiency/eff_nMUMU_All.root
-#_nMUMU	Efficiency/eff_nMUMU_High.root
-#_nMUE	Efficiency/eff_nMUE_All.root
-#_nMUE	Efficiency/eff_nMUE_High.root
-#_nEMU	Efficiency/eff_nMUE_All.root
-#_nEMU	Efficiency/eff_nMUE_High.root
-#_nEE	Efficiency/eff_nEE_All.root
-#_nEE	Efficiency/eff_nEE_High.root
-#_nPI0	Efficiency/eff_nPI0_All.root
-#_nPI0	Efficiency/eff_nPI0_High.root
-#_nGAMMA	Efficiency/eff_nGAMMA_All.root
-#_nGAMMA	Efficiency/eff_nGAMMA_High.root
+$MUPI	Efficiency/LAr/eff_MUPI_M.root
+$nMUMU	Efficiency/LAr/eff_nMUMU_M.root
+$nMUE	Efficiency/LAr/eff_nMUE_M.root
+$nEE	Efficiency/LAr/eff_nEE_M.root
+$nGAMMA	Efficiency/LAr/eff_nGAMMA_M.root
+$nPI0	Efficiency/LAr/eff_nPI0_M.root
+&EPI	Efficiency/LAr/eff_EPI_E.root
+&nMUMU	Efficiency/LAr/eff_nMUMU_E.root
+&nEMU	Efficiency/LAr/eff_nMUE_E.root
+&nEE	Efficiency/LAr/eff_nEE_E.root
+&nGAMMA	Efficiency/LAr/eff_nGAMMA_E.root
+&nPI0	Efficiency/LAr/eff_nPI0_E.root

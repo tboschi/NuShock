@@ -22,7 +22,7 @@
 class Efficiency
 {
 	public:
-		Efficiency(std::string InFile);
+		Efficiency(std::string InFile, bool Time = false);
 
 		void InitFunc();
 		void LoopFile();
@@ -59,6 +59,8 @@ class Efficiency
 		std::vector<double> vMass;
 		std::vector<std::string> vSim, vCut;
 
+		double  Real;
+
 		double  E_A;
 		double  P_A;
 		double  T_A;
@@ -79,6 +81,7 @@ class Efficiency
 		//Double_   Phi0;	//not useful
 		double  M_0;
 		
+		TBranch  *b_fReal;   //!
 		TBranch  *b_fEnergyA;   //!
 		TBranch  *b_fMomentA;   //!
 		TBranch  *b_fTransvA;   //!
@@ -98,6 +101,8 @@ class Efficiency
 		TBranch  *b_fTheta0;   //!
 		//TBranch  *b_fPhi0;   //not useful
 		TBranch  *b_fMass0;   //!
+
+		bool Timing;
 };
 
 #endif

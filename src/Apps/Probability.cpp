@@ -29,11 +29,12 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	//Initialize variables
-	std::string SMConfig, DetConfig;
-	std::string FluxConfig;
-	TFile *OutFile;
+	std::string SMConfig, DetConfig, FluxConfig;
+	std::string Channel;
+	std::ofstream OutFile;
+	char Flag;
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:o:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "s:d:f:c:o:U:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -46,8 +47,14 @@ int main(int argc, char** argv)
 			case 'f':
 				FluxConfig.assign(optarg);
 				break;
+			case 'c':
+				Channel.assign(optarg);
+				break;
 			case 'o':
-				OutFile = new TFile(optarg, "RECREATE");
+				OutFile.open(optarg);
+				break;
+			case 'U':
+				Flag = *optarg;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -59,40 +66,32 @@ int main(int argc, char** argv)
 	}
 
 	//To have multiple output, handled by usage
-//	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
+	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	TH1D *Fake = new TH1D("fake", "Fake", 200, 0, 20);
-	TH1D *True = new TH1D("true", "True", 200, 0, 20);
-	TH1D *Prob = new TH1D("prob", "Prob", 200, 0, 20);
-	TH1D *Flux = new TH1D("flux", "Flux", 200, 0, 20);
-	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
+	EventGenerator * EvGenLow = new EventGenerator(SMConfig, DetConfig, FluxConfig);
+	EventGenerator * EvGenHig = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 	
-	EvGen->SetChannel("ALL");
-	EvGen->MakeSterileFlux();
+	EvGenLow->SetChannel(Channel);
+	EvGenHig->SetChannel(Channel);
 
-	std::cout << "Mass " << EvGen->GetMass() << std::endl;
-	std::cout << "UUU " << EvGen->GetUe() << "\t" << EvGen->GetUm() << "\t" <<  EvGen->GetUt() << std::endl;
-	for (double Energy = 0.05; Energy < 20.0; Energy += 0.5)	//increase mass
+	EvGenLow->SetEnergy(1);
+	EvGenHig->SetEnergy(19);
+
+	double Uu;
+	if (Flag == 'E')
+		Uu = EvGenLow->GetUe();
+	if (Flag == 'M')
+		Uu = EvGenLow->GetUm();
+	if (Flag == 'T')
+		Uu = EvGenLow->GetUt();
+	
+	for (double Mass = 0.0; Mass < 0.5; Mass += 0.001)	//increase mass
 	{
-		EvGen->SetEnergy(Energy);
-		std::cout << Energy << std::endl;
-		Flux->Fill(Energy, EvGen->FluxIntensity());
-		Prob->Fill(Energy, EvGen->EventProbability());
-		Fake->Fill(Energy, EvGen->FluxIntensity()*EvGen->EventProbability());
-		for (int i = 0; i < 2000; ++i)
-		{
-			if (EvGen->EventInDetectorBoosted())
-				True->Fill(Energy);
-		}
-	}
-	Fake->Scale(2000);
+		EvGenLow->SetMass(Mass);
+		EvGenHig->SetMass(Mass);
 
-	OutFile->cd();
-	Prob->Write();
-	Flux->Write();
-	Fake->Write();
-	True->Write();
-	OutFile->Close();
+		Out << Mass << "\t" << EvGenLow->DecayProb()/Uu/Uu << "\t" << EvGenHig->DecayProb()/Uu/Uu << std::endl;
+	}
 
 	return 0;
 }

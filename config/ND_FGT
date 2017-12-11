@@ -1,14 +1,14 @@
 #Detector configuration file
 #Name of detector: LArTPC for DUNE
 #
-Baseline	577
+Baseline	578
 Length		6.4
 Width		3.5
 Height		3.5
 Fiducial	0.90
 Weight		8.0
-POT/s		5e13
-Years		5
+POT/s		2.205e14
+Years		6
 
 #1: LAr, 2: HP Ar, 3: Fe
 #

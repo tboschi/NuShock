@@ -17,25 +17,37 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	XSec		\
-	Exclusion	\
+NEW =	Exclusion	\
+	ExcluMix	\
+	MegaExcl	\
+	Timing		\
+	Simulation	\
+	Probability	\
+	DecayPlot	\
+	#Plotter	\
+	MakeFlux	\
+	MakeEfficiency	\
 	CrossExcl	\
-	#FeldCous	\
+	EnergyBack	\
+	#RegionSearch	\
+	SearchRegion	\
+	FeldCous	\
+	Plotter		\
 	Coupler		\
+	CosmoBounds
+	#EFTgamma	\
+	EFTexcl		\
+	GammaRequired
+	#XSec		\
+	#PSscatter	\
 	Rate		\
 	GenBack		\
-	Simulation	\
-	MakeEfficiency	\
-	Plotter		\
 	Eps2Dat		\
 	Kine		\
 	CLs		\
-	EvGen		\
-	DecayPlot	\
 	Width		\
 	#Eps2Root	\
 	#FakeElectron	\
-	Probability	\
 	PionMuonFlux	\
 	Kine		\
 	DUNE_FGT
@@ -47,7 +59,8 @@ BIN :=  $(NEW:%=bin/%)
 DEP =	Tools/Tools		\
 	DecayRates/DecayRates	\
 	DecayRates/3Body	\
-	SterileFlux/Flux		\
+	DecayRates/EFT		\
+	SterileFlux/Flux	\
 	SterileFlux/FluxDriver	\
 	EventGenerator/EventGenerator	\
 	Detector/Detector	\

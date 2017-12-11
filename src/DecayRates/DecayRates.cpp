@@ -39,8 +39,8 @@ void Decay::MapInit()
 	mapChannel["EPI"] = _EPI;
 	mapChannel["nMUMU"] = _nMUMU;
 	mapChannel["MUPI"] = _MUPI;
-	mapChannel["EKA"] = _EKA;
-	mapChannel["nKA0"] = _nKA0;
+	//mapChannel["EKA"] = _EKA;
+	//mapChannel["nKA0"] = _nKA0;
 }
 
 double Decay::Gamma(std::string Channel, double B)
@@ -348,8 +348,8 @@ double Decay::Total(double A)
 {
 	//SetEnhancement("ALL", A);
 
-	return nnn() + nGAMMA() + nEE() + nEMU() + nMUE() + 
-	       nPI0() + EPI() + nMUMU() + MUPI() + EKA() + nKA0();
+	return A * (nnn() + nGAMMA() + nEE() + nEMU() + nMUE() + 
+	       nPI0() + EPI() + nMUMU() + MUPI());	// + EKA() + nKA0());
 }
 
 

@@ -8,37 +8,6 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 	M_Kaon(Const::fMKaon),
 	M_Kaon0(Const::fMKaon0)
 {
-	BinNumber = 100;
-	RangeStart = 0;
-	RangeEnd = 20;
-	M_Sterile_prev = -1.0;
-
-	//muonic components
-	hTotalMn = new TH1D("htotalmn", "Total flux", 100,0,20);
-        hPionMn  = new TH1D("hpionmn",  "Pion flux",  100,0,20);
-        hKaonMn  = new TH1D("hkaonmn",  "Kaon flux",  100,0,20);
-        hKaon0Mn = new TH1D("hkaon0mn", "Kaon0 flux", 100,0,20);
-        hMuonMn  = new TH1D("hmuonmn",  "Muon flux",  100,0,20);
-
-	hTotalMa = new TH1D("htotalma", "Total flux", 100,0,20);
-        hPionMa  = new TH1D("hpionma",  "Pion flux",  100,0,20);
-        hKaonMa  = new TH1D("hkaonma",  "Kaon flux",  100,0,20);
-        hKaon0Ma = new TH1D("hkaon0ma", "Kaon0 flux", 100,0,20);
-        hMuonMa  = new TH1D("hmuonma",  "Muon flux",  100,0,20);
-
-	//electronic components
-	hTotalEn = new TH1D("htotalen", "Total flux", 100,0,20);
-        hPionEn  = new TH1D("hpionen",  "Pion flux",  100,0,20);
-        hKaonEn  = new TH1D("hkaonen",  "Kaon flux",  100,0,20);
-        hKaon0En = new TH1D("hkaon0en", "Kaon0 flux", 100,0,20);
-        hMuonEn  = new TH1D("hmuonen",  "Muon flux",  100,0,20);
-	
-	hTotalEa = new TH1D("htotalea", "Total flux", 100,0,20);
-        hPionEa  = new TH1D("hpionea",  "Pion flux",  100,0,20);
-        hKaonEa  = new TH1D("hkaonea",  "Kaon flux",  100,0,20);
-        hKaon0Ea = new TH1D("hkaon0ea", "Kaon0 flux", 100,0,20);
-        hMuonEa  = new TH1D("hmuonea",  "Muon flux",  100,0,20);
-	
 	fxNuMuon = 0;
 	fxNuMuonBar = 0;
 	fxNuElectron = 0;
@@ -63,6 +32,9 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 			if (Key.find("MuonBar_") != std::string::npos) fxNuMuonBar = new Flux(Name);
 			if (Key.find("Electron_") != std::string::npos) fxNuElectron = new Flux(Name);
 			if (Key.find("ElectronBar_") != std::string::npos) fxNuElectronBar = new Flux(Name);
+			if (Key.find("BinNumber") != std::string::npos) BinNumber = std::strtoul(Name.c_str(), NULL, 10);
+			if (Key.find("RangeStart") != std::string::npos) RangeStart = std::strtod(Name.c_str(), NULL);
+			if (Key.find("RangeEnd") != std::string::npos) RangeEnd = std::strtod(Name.c_str(), NULL);
 
 			if (Key.find("Kinematics") != std::string::npos) 
 			{
@@ -99,6 +71,32 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 	}
 	ConfigFile.close();
 
+	hTotalMn = new TH1D("htotalmn", "Total flux", BinNumber, RangeStart, RangeEnd);
+        hPionMn  = new TH1D("hpionmn",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
+        hKaonMn  = new TH1D("hkaonmn",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
+        hKaon0Mn = new TH1D("hkaon0mn", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
+        hMuonMn  = new TH1D("hmuonmn",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+
+	hTotalMa = new TH1D("htotalma", "Total flux", BinNumber, RangeStart, RangeEnd);
+        hPionMa  = new TH1D("hpionma",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
+        hKaonMa  = new TH1D("hkaonma",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
+        hKaon0Ma = new TH1D("hkaon0ma", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
+        hMuonMa  = new TH1D("hmuonma",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+
+	//electronic components
+	hTotalEn = new TH1D("htotalen", "Total flux", BinNumber, RangeStart, RangeEnd);
+        hPionEn  = new TH1D("hpionen",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
+        hKaonEn  = new TH1D("hkaonen",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
+        hKaon0En = new TH1D("hkaon0en", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
+        hMuonEn  = new TH1D("hmuonen",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+	
+	hTotalEa = new TH1D("htotalea", "Total flux", BinNumber, RangeStart, RangeEnd);
+        hPionEa  = new TH1D("hpionea",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
+        hKaonEa  = new TH1D("hkaonea",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
+        hKaon0Ea = new TH1D("hkaon0ea", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
+        hMuonEa  = new TH1D("hmuonea",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+
+	M_Sterile_prev = -1.0;
 }
 
 FluxDriver::~FluxDriver()
@@ -335,82 +333,70 @@ int FluxDriver::GetBinNumber()
 	return BinNumber;
 }
 
-double FluxDriver::GetIntensityNeut(double Energy, double Ue, double Um, double Ut)	//Return flux intensity, given energy, simple linear interpolation
-{
-	int Bin = hTotalMn->FindBin(Energy);
-	double I1 = hTotalMn->GetBinContent(Bin);
-	double E1 = hTotalMn->GetBinCenter(Bin);
+double FluxDriver::GetIntensity(double Energy, bool NvA, bool Uu)	//Return flux intensity, given energy, simple linear interpolation
+{									//NvA == 1 -> Neutrino, NvA == 0 -> Antineutrino
+	double Ue, Um, Ut;						//Uu == 1 -> mixing , Uu == 1 -> maximal (light neutrino)
+
+	if (Uu)
+	{
+		Ue = GetUe();
+		Um = GetUm();
+		Ut = GetUt();
+	}
+	else
+	{
+		Ue = 1.0;
+		Um = 1.0;
+		Ut = 1.0;
+	}
+
+	TH1D *hTotMuon, *hTotElec;
+
+	if (NvA)
+	{
+		hTotMuon = hTotalMn;
+		hTotElec = hTotalEn;
+	}
+	else
+	{
+		hTotMuon = hTotalMa;
+		hTotElec = hTotalEa;
+	}
+
+	int Bin = hTotMuon->FindBin(Energy);
+	double I1 = hTotMuon->GetBinContent(Bin);
+	double E1 = hTotMuon->GetBinCenter(Bin);
 	double I2, E2;
-	if (Energy < hTotalMn->GetBinCenter(Bin))
+	if (Energy < hTotMuon->GetBinCenter(Bin))
 	{
-		I2 = hTotalMn->GetBinContent(Bin-1);
-		E2 = hTotalMn->GetBinCenter(Bin-1);
+		I2 = hTotMuon->GetBinContent(Bin-1);
+		E2 = hTotMuon->GetBinCenter(Bin-1);
 	}
 	else
 	{
-		I2 = hTotalMn->GetBinContent(Bin+1);
-		E2 = hTotalMn->GetBinCenter(Bin+1);
+		I2 = hTotMuon->GetBinContent(Bin+1);
+		E2 = hTotMuon->GetBinCenter(Bin+1);
 	}
 
-	double IntenseM = (Energy-E1)*(I2-I1)/(E2-E1) + I1;
+	double IntMuon = (Energy-E1)*(I2-I1)/(E2-E1) + I1;
 
-	Bin = hTotalEn->FindBin(Energy);
-	I1 = hTotalEn->GetBinContent(Bin);
-	E1 = hTotalEn->GetBinCenter(Bin);
-	I2, E2;
-	if (Energy < hTotalEn->GetBinCenter(Bin))
+	Bin = hTotElec->FindBin(Energy);
+	I1 = hTotElec->GetBinContent(Bin);
+	E1 = hTotElec->GetBinCenter(Bin);
+	if (Energy < hTotElec->GetBinCenter(Bin))
 	{
-		I2 = hTotalEn->GetBinContent(Bin-1);
-		E2 = hTotalEn->GetBinCenter(Bin-1);
+		I2 = hTotElec->GetBinContent(Bin-1);
+		E2 = hTotElec->GetBinCenter(Bin-1);
 	}
 	else
 	{
-		I2 = hTotalEn->GetBinContent(Bin+1);
-		E2 = hTotalEn->GetBinCenter(Bin+1);
+		I2 = hTotElec->GetBinContent(Bin+1);
+		E2 = hTotElec->GetBinCenter(Bin+1);
 	}
 
-	double IntenseE = (Energy-E1)*(I2-I1)/(E2-E1) + I1;
+	double IntElec = (Energy-E1)*(I2-I1)/(E2-E1) + I1;
 
-	return Um*Um*IntenseM + Ue*Ue*IntenseE;
-} 
-
-double FluxDriver::GetIntensityAnti(double Energy, double Ue, double Um, double Ut)	//Return flux intensity, given energy, simple linear interpolation
-{
-	int Bin = hTotalMa->FindBin(Energy);
-	double I1 = hTotalMa->GetBinContent(Bin);
-	double E1 = hTotalMa->GetBinCenter(Bin);
-	double I2, E2;
-	if (Energy < hTotalMa->GetBinCenter(Bin))
-	{
-		I2 = hTotalMa->GetBinContent(Bin-1);
-		E2 = hTotalMa->GetBinCenter(Bin-1);
-	}
-	else
-	{
-		I2 = hTotalMa->GetBinContent(Bin+1);
-		E2 = hTotalMa->GetBinCenter(Bin+1);
-	}
-
-	double IntenseM = (Energy-E1)*(I2-I1)/(E2-E1) + I1;
-
-	Bin = hTotalEa->FindBin(Energy);
-	I1 = hTotalEa->GetBinContent(Bin);
-	E1 = hTotalEa->GetBinCenter(Bin);
-	I2, E2;
-	if (Energy < hTotalEa->GetBinCenter(Bin))
-	{
-		I2 = hTotalEa->GetBinContent(Bin-1);
-		E2 = hTotalEa->GetBinCenter(Bin-1);
-	}
-	else
-	{
-		I2 = hTotalEa->GetBinContent(Bin+1);
-		E2 = hTotalEa->GetBinCenter(Bin+1);
-	}
-
-	double IntenseE = (Energy-E1)*(I2-I1)/(E2-E1) + I1;
-
-	return Um*Um*IntenseM + Ue*Ue*IntenseE;
+	return Ue*Ue*IntElec + Um*Um*IntMuon;
 } 
 
 void FluxDriver::SetBaseline(double Baseline)
@@ -501,6 +487,36 @@ bool FluxDriver::IsChanged(double M_Sterile)
 	M_Sterile_prev = M_Sterile;
 
 	return Ret;
+}
+
+void FluxDriver::SetUe(double X)
+{
+	U_e = X;
+}
+
+void FluxDriver::SetUm(double X)
+{
+	U_m = X;
+}
+
+void FluxDriver::SetUt(double X)
+{
+	U_t = X;
+}
+
+double FluxDriver::GetUe()
+{
+	return U_e;
+}
+
+double FluxDriver::GetUm()
+{
+	return U_m;
+}
+
+double FluxDriver::GetUt()
+{
+	return U_t;
 }
 
 //Get individual histograms

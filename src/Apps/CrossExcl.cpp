@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 		{"detconfig", 	required_argument,	0, 'd'},
 		{"fluxconfig", 	required_argument,	0, 'f'},
 		{"channel", 	required_argument,	0, 'c'},
-		{"threshold", 	required_argument,	0, 't'},
+		{"enhance", 	required_argument,	0, 'L'},
 		{"efficiency", 	no_argument,		0, 'W'},
 		{"output", 	required_argument,	0, 'o'},
 		{"help", 	no_argument,	 	0, 'h'},
@@ -42,8 +42,9 @@ int main(int argc, char** argv)
 	bool UmFlag = false;
 	bool UtFlag = false;
 	bool Efficiency = false;
+	double Lambda = 1.0;
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:c:t:o:WEMTh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "s:d:f:c:t:o:WEMTL:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -75,6 +76,9 @@ int main(int argc, char** argv)
 			case 'T':
 				UtFlag = true;
 				break;
+			case 'L':
+				Lambda = strtod(optarg, NULL);
+				break;
 			case 'h':
 				Usage(argv[0]);
 				return 1;
@@ -99,11 +103,13 @@ int main(int argc, char** argv)
 	EvGen->SetUm(0);
 	EvGen->SetUt(0);
 	
+	EvGen->SetEnhancement(Lambda);
+
 	double Mass, Uu;
 	double contMass, contUu, contN;
 	std::vector<double> vSignal;	//summing over energy, array of Uus
 	
-	for (double logMass = 0.0; logMass < 0.7; logMass += 0.0054)	//increase mass log
+	for (double logMass = -2.0; logMass < 0.75; logMass += 0.0055)	//increase mass log
 	//for (double logMass = -1.61; logMass < -1.51; logMass += 0.001)	//increase mass log
  	//for (Mass = 0.0249; Mass < 0.0251; Mass += 0.01)	//increase mass linearly
 	{
@@ -123,12 +129,7 @@ int main(int argc, char** argv)
 			for (double logUu2 = -10.0; logUu2+1e-6 < 0.0; logUu2 += 0.02, ++i)	//increase Uu logarithmically
 			{
 				Uu = pow(10.0, 0.5*logUu2);
-				if (UeFlag)
-					EvGen->SetUe(Uu);
-				if (UmFlag)
-					EvGen->SetUm(Uu);
-				if (UtFlag)
-					EvGen->SetUt(Uu);
+				EvGen->SetUe(Uu);
 	
 				vSignal.at(i) += EnStep * EvGen->ScatterNumber(Energy, Efficiency);
 			}

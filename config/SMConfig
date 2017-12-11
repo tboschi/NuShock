@@ -1,5 +1,5 @@
 #configuration file for unknown parameters
-M_Sterile	0.300
+M_Sterile	0.450
 U_e		0.0
-U_m		1.0e-4
+U_m		0.0
 U_t		0.0

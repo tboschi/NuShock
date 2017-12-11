@@ -2,17 +2,17 @@
 
 cd /mt/home/tboschi/Templates/MCflux/Supershock
 
-./bin/Plotter -i Exclusion/FGT2/FGT_MUPI_M_B.dat -o Exclusion/Plot_FGT2/MUPI_M_B.dat -t -33.2595 -m 175.394 -A 0.25 -B 0.35
-./bin/Plotter -i Exclusion/FGT2/FGT_nEE_M_B.dat -o Exclusion/Plot_FGT2/nEE_M_B.dat -t 9.66569 -m 2.03107 -A 0.05 -B 0.35
-./bin/Plotter -i Exclusion/FGT2/FGT_nMUE_M_B.dat -o Exclusion/Plot_FGT2/nMUE_M_B.dat -t 18.75981 -m 10.7001 -A 0.15 -B 0.35
-./bin/Plotter -i Exclusion/FGT2/FGT_nMUMU_M_B.dat -o Exclusion/Plot_FGT2/nMUMU_M_B.dat -t 24.7381 -m 64.0254 -A 0.25 -B 0.35
-./bin/Plotter -i Exclusion/FGT2/FGT_nGAMMA_M_B.dat -o Exclusion/Plot_FGT2/nGAMMA_M_B.dat -t 35.5667 -m -42.7735 -A 0.05 -B 0.35
-./bin/Plotter -i Exclusion/FGT2/FGT_nPI0_M_B.dat -o Exclusion/Plot_FGT2/nPI0_M_B.dat -t -14.5933 -m 120.897 -A 0.15 -B 0.35
+./bin/Plotter -i Exclusion/FGT/FGT_MUPI_M_B.dat -o Exclusion/Plot_FGT/MUPI_M_B.dat -t -28.3269 -m 185.11 -A 0.25 -B 0.35
+./bin/Plotter -i Exclusion/FGT/FGT_nEE_M_B.dat -o Exclusion/Plot_FGT/nEE_M_B.dat -t 11.9906 -m 3.3144 -A 0.05 -B 0.35
+./bin/Plotter -i Exclusion/FGT/FGT_nMUE_M_B.dat -o Exclusion/Plot_FGT/nMUE_M_B.dat -t 25.0697 -m 13.2461 -A 0.15 -B 0.35
+./bin/Plotter -i Exclusion/FGT/FGT_nMUMU_M_B.dat -o Exclusion/Plot_FGT/nMUMU_M_B.dat -t 49.0559 -m 51.9738 -A 0.25 -B 0.35
+./bin/Plotter -i Exclusion/FGT/FGT_nGAMMA_M_B.dat -o Exclusion/Plot_FGT/nGAMMA_M_B.dat -t 47.6569 -m -58.0033 -A 0.05 -B 0.35
+./bin/Plotter -i Exclusion/FGT/FGT_nPI0_M_B.dat -o Exclusion/Plot_FGT/nPI0_M_B.dat -t -20.6483 -m 163.968 -A 0.15 -B 0.35
 
-./bin/Plotter -i Exclusion/FGT2/FGT_EPI_E_B.dat -o Exclusion/Plot_FGT2/EPI_E_B.dat -t 9.05424 -m 4.41607 -A 0.15 -B 0.45
-./bin/Plotter -i Exclusion/FGT2/FGT_nEE_E_B.dat -o Exclusion/Plot_FGT2/nEE_E_B.dat -t 9.66569 -m 2.03107 -A 0.05 -B 0.45
-./bin/Plotter -i Exclusion/FGT2/FGT_nMUE_E_B.dat -o Exclusion/Plot_FGT2/nMUE_E_B.dat -t 18.7598 -m 10.7001 -A 0.15 -B 0.45
-./bin/Plotter -i Exclusion/FGT2/FGT_nMUMU_E_B.dat -o Exclusion/Plot_FGT2/nMUMU_E_B.dat -t 24.7381 -m 64.0254 -A 0.25 -B 0.45
-./bin/Plotter -i Exclusion/FGT2/FGT_nGAMMA_E_B.dat -o Exclusion/Plot_FGT2/nGAMMA_E_B.dat -t 35.5667 -m -42.7335 -A 0.05 -B 0.45
-./bin/Plotter -i Exclusion/FGT2/FGT_nPI0_E_B.dat -o Exclusion/Plot_FGT2/nPI0_E_B.dat -t -14.5993 -m 120.897 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/FGT/FGT_EPI_E_B.dat -o Exclusion/Plot_FGT/EPI_E_B.dat -t 11.2859 -m 7.48414 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/FGT/FGT_nEE_E_B.dat -o Exclusion/Plot_FGT/nEE_E_B.dat -t 11.9906 -m 3.3144 -A 0.05 -B 0.45
+./bin/Plotter -i Exclusion/FGT/FGT_nMUE_E_B.dat -o Exclusion/Plot_FGT/nMUE_E_B.dat -t 25.0697 -m 13.2461 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/FGT/FGT_nMUMU_E_B.dat -o Exclusion/Plot_FGT/nMUMU_E_B.dat -t 49.0559 -m 51.9738 -A 0.25 -B 0.45
+./bin/Plotter -i Exclusion/FGT/FGT_nGAMMA_E_B.dat -o Exclusion/Plot_FGT/nGAMMA_E_B.dat -t 47.6569 -m -58.0033 -A 0.05 -B 0.45
+./bin/Plotter -i Exclusion/FGT/FGT_nPI0_E_B.dat -o Exclusion/Plot_FGT/nPI0_E_B.dat -t -20.6483 -m 163.968 -A 0.15 -B 0.45
 

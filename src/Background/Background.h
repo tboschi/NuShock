@@ -39,12 +39,14 @@ class Background
 		//Background(std::string EventDB, std::string DetectorConfig, std::string OutFile, std::string Channel);
 		Background(std::string EventDB, std::string DetectorConfig, std::string Channel);
 		~Background();
+		void EasyInitTree();
 		void InitTree();
 		void InitMap();
 		TTree *GetTree();
 		void LoadTree();
 
 		std::string GetChannel();
+		void EasyLoop(unsigned int Save);
 		void Loop(unsigned int Save);
 		Particle* CreateParticle(genie::GHepParticle *Hep, TVector3 *Pos);
 
@@ -66,6 +68,8 @@ class Background
 		bool IdentifyMUPI();
 
 		void Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB);
+
+		double ProbeEnergy;
 
 	private:
 		unsigned int NEvt;

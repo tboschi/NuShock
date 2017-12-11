@@ -1,9 +1,11 @@
 #Flux configuration file
+BinNumber	100
+RangeStart	0
+RangeEnd	20
 #Define a file for each type of neutrino
 Muon_		data/NuMu_0.root
-#MuonBar_	data/NuBar_0.root
-#Electron_	data/NuE_0.root
-#Electron_	data/NuE_0.root
+MuonBar_	data/NuBar_0.root
+Electron_	data/NuE_0.root
 #ElectronBar_	
 
 Kinematics	data/Enhancement.root

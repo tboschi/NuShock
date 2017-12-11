@@ -1,6 +1,6 @@
 #include "Efficiency.h"
 
-Efficiency::Efficiency(std::string InFile)
+Efficiency::Efficiency(std::string InFile, bool Time)
 {
 	double Mass;
 	std::string Line, SimFile, CutFile, BkgName;
@@ -22,6 +22,8 @@ Efficiency::Efficiency(std::string InFile)
 		vSim.push_back(SimFile);
 		vCut.push_back(CutFile);
 	}	
+
+	Timing = Time;
 }
 
 void Efficiency::InitFunc()	//energies from 0 to 20, 100 bin; masses from 0 to 0.5, 100 bin
@@ -66,6 +68,8 @@ void Efficiency::LoopTree()
 
 void Efficiency::InitTree()
 {
+	Data->SetBranchAddress("Real", &Real, &b_fReal);
+
 	Data->SetBranchAddress("E_A", &E_A, &b_fEnergyA);
 	Data->SetBranchAddress("P_A", &P_A, &b_fMomentA);
 	Data->SetBranchAddress("T_A", &T_A, &b_fTransvA);
@@ -90,7 +94,7 @@ void Efficiency::InitTree()
 void Efficiency::LoadCut(std::string CutFile)
 {
 	Data->SetBranchStatus("*", 0);		// disable all branches
-	Data->SetBranchStatus("E_0", 1);	// always on
+	Data->SetBranchStatus("Real", 1);	// always on
 	mRef.clear();
 	mCutLo.clear();
 	mCutUp.clear();
@@ -204,13 +208,15 @@ void Efficiency::SetSpecial(int CutNumber, double Lo, double Up)
 
 void Efficiency::FillAll()
 {
-	hAll->Fill(E_0);
+	hAll->Fill(Real);
 }
 
 void Efficiency::FillCut()
 {
-	if (PassCut() && SpecialCut())
-		hCut->Fill(E_0);
+	if (Timing && Real < 5.0)
+		hCut->Fill(Real);
+	else if (PassCut() && SpecialCut())
+		hCut->Fill(Real);
 }
 
 bool Efficiency::PassCut()

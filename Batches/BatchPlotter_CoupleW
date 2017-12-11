@@ -2,16 +2,16 @@
 
 cd /mt/home/tboschi/Templates/MCflux/Supershock
 
-./bin/Plotter -i Exclusion/Couple2/MUPI_M_B.dat -o Exclusion/Plot_Couple2/MUPI_M_B.dat -t -11.939 -m 214.95 -A 0.25 -B 0.35
-./bin/Plotter -i Exclusion/Couple2/nEE_M_B.dat -o Exclusion/Plot_Couple2/nEE_M_B.dat -t 29.3619 -m 61.8439 -A 0.05 -B 0.35
-./bin/Plotter -i Exclusion/Couple2/nMUE_M_B.dat -o Exclusion/Plot_Couple2/nMUE_M_B.dat -t 35.8722 -m 14.6314 -A 0.15 -B 0.35
-./bin/Plotter -i Exclusion/Couple2/nMUMU_M_B.dat -o Exclusion/Plot_Couple2/nMUMU_M_B.dat -t 48.7992 -m 76.9998 -A 0.25 -B 0.35
-./bin/Plotter -i Exclusion/Couple2/nGAMMA_M_B.dat -o Exclusion/Plot_Couple2/nGAMMA_M_B.dat -t 61.1011 -m -66.6617 -A 0.05 -B 0.35
-./bin/Plotter -i Exclusion/Couple2/nPI0_M_B.dat -o Exclusion/Plot_Couple2/nPI0_M_B.dat -t -31.261 -m 281.487 -A 0.15 -B 0.35
+./bin/Plotter -i Exclusion/Couple/MUPI_M_B.dat -o Exclusion/Plot_Couple/MUPI_M_B.dat -t -0.1082 -m 214.95 -A 0.25 -B 0.35
+./bin/Plotter -i Exclusion/Couple/nEE_M_B.dat -o Exclusion/Plot_Couple/nEE_M_B.dat -t 35.9329 -m 88.0119 -A 0.05 -B 0.35
+./bin/Plotter -i Exclusion/Couple/nMUE_M_B.dat -o Exclusion/Plot_Couple/nMUE_M_B.dat -t 41.1923 -m 14.9867 -A 0.15 -B 0.35
+./bin/Plotter -i Exclusion/Couple/nMUMU_M_B.dat -o Exclusion/Plot_Couple/nMUMU_M_B.dat -t 59.5378 -m 58.0274 -A 0.25 -B 0.35
+./bin/Plotter -i Exclusion/Couple/nGAMMA_M_B.dat -o Exclusion/Plot_Couple/nGAMMA_M_B.dat -t 66.8106 -m -68.1774 -A 0.05 -B 0.35
+./bin/Plotter -i Exclusion/Couple/nPI0_M_B.dat -o Exclusion/Plot_Couple/nPI0_M_B.dat -t -45.0049 -m 391.118 -A 0.15 -B 0.35
 
-./bin/Plotter -i Exclusion/Couple2/EPI_E_B.dat -o Exclusion/Plot_Couple2/EPI_E_B.dat -t 23.2226 -m 16.7771 -A 0.15 -B 0.45
-./bin/Plotter -i Exclusion/Couple2/nEE_E_B.dat -o Exclusion/Plot_Couple2/nEE_E_B.dat -t 29.3619 -m 61.8439 -A 0.05 -B 0.45
-./bin/Plotter -i Exclusion/Couple2/nMUE_E_B.dat -o Exclusion/Plot_Couple2/nMUE_E_B.dat -t 35.8722 -m 14.6314 -A 0.15 -B 0.45
-./bin/Plotter -i Exclusion/Couple2/nMUMU_E_B.dat -o Exclusion/Plot_Couple2/nMUMU_E_B.dat -t 48.7992 -m 76.9998 -A 0.25 -B 0.45
-./bin/Plotter -i Exclusion/Couple2/nGAMMA_E_B.dat -o Exclusion/Plot_Couple2/nGAMMA_E_B.dat -t 61.1011 -m -66.6617 -A 0.05 -B 0.45
-./bin/Plotter -i Exclusion/Couple2/nPI0_E_B.dat -o Exclusion/Plot_Couple2/nPI0_E_B.dat -t -31.261 -m 281.487 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/Couple/EPI_E_B.dat -o Exclusion/Plot_Couple/EPI_E_B.dat -t 26.1154 -m 28.5739 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/Couple/nEE_E_B.dat -o Exclusion/Plot_Couple/nEE_E_B.dat -t 35.9329 -m 88.0119 -A 0.05 -B 0.45
+./bin/Plotter -i Exclusion/Couple/nMUE_E_B.dat -o Exclusion/Plot_Couple/nMUE_E_B.dat -t 41.1923 -m 14.9867 -A 0.15 -B 0.45
+./bin/Plotter -i Exclusion/Couple/nMUMU_E_B.dat -o Exclusion/Plot_Couple/nMUMU_E_B.dat -t 59.5378 -m 58.0274 -A 0.25 -B 0.45
+./bin/Plotter -i Exclusion/Couple/nGAMMA_E_B.dat -o Exclusion/Plot_Couple/nGAMMA_E_B.dat -t 66.8106 -m -68.1774 -A 0.05 -B 0.45
+./bin/Plotter -i Exclusion/Couple/nPI0_E_B.dat -o Exclusion/Plot_Couple/nPI0_E_B.dat -t -45.0049 -m 391.118 -A 0.15 -B 0.45

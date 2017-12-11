@@ -1,0 +1,6 @@
+#nMUMU, E
+0.250	Simulation/FGT/sign_FGT_nMUMU_250_E.root	Backgrounj/FGT/cut_FGT_nMUMU_250.dat
+0.300	Simulation/FGT/sign_FGT_nMUMU_300_E.root	Background/FGT/cut_FGT_nMUMU_300.dat
+0.350	Simulation/FGT/sign_FGT_nMUMU_350_E.root	Background/FGT/cut_FGT_nMUMU_350.dat
+0.400	Simulation/FGT/sign_FGT_nMUMU_400_E.root	Background/FGT/cut_FGT_nMUMU_400.dat
+0.450	Simulation/FGT/sign_FGT_nMUMU_450_E.root	Background/FGT/cut_FGT_nMUMU_450.dat
