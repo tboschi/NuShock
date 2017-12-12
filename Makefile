@@ -20,6 +20,7 @@ include $(GENIE)/src/make/Make.include
 NEW =	Exclusion	\
 	ExcluMix	\
 	MegaExcl	\
+	MegaPlot	\
 	Timing		\
 	Simulation	\
 	Probability	\
