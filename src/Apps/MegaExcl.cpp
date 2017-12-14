@@ -91,10 +91,7 @@ int main(int argc, char** argv)
 
 	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 	
-	if (UeFlag)
-		EvGen->SetChannel(Channel, Efficiency, 'E');
-	if (UmFlag)
-		EvGen->SetChannel(Channel, Efficiency, 'M');
+	EvGen->SetChannel(Channel, Efficiency, 'E');
 
 	EvGen->SetMass(0);
 	EvGen->SyncUu();

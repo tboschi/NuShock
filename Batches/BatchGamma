@@ -1,0 +1,22 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+#./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e21 -c ALL -o gammatest_21.dat
+#./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e18 -c ALL -o gammatest_18.dat
+#./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e15 -c ALL -o gammatest_15.dat
+#./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e12 -c ALL -o gammatest_12.dat
+#./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e9 -c ALL -o gammatest_9.dat
+#./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e6 -c ALL -o gammatest_6.dat
+#./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e3 -c ALL -o gammatest_3.dat
+#./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e0 -c ALL -o gammatest_0.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e0 -c ALL -o gammatest_0.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e1 -c ALL -o gammatest_1.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e2 -c ALL -o gammatest_2.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e3 -c ALL -o gammatest_3.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e4 -c ALL -o gammatest_4.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e5 -c ALL -o gammatest_5.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e6 -c ALL -o gammatest_6.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e7 -c ALL -o gammatest_7.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e8 -c ALL -o gammatest_8.dat
+./bin/CrossExcl -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -E -L 1e9 -c ALL -o gammatest_9.dat
