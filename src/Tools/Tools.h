@@ -73,33 +73,21 @@ namespace Kine
 	int Integrand(const int *nDim, const double x[], const int *nComp, double f[], void *UserData)
 	{
 		TempClass *TempObject = static_cast<TempClass*>(UserData);
-		//Nucleon::Nucleon *TempObject = static_cast<Nucleon::Nucleon*>(UserData);
 
 		TempObject->Integrand(nDim, x, nComp, f);
 	}
 
-	/*
-	template <class T>
-	int call_int_function(lua_State *L) 
-	{
-		void (*method)(T*, int, int) = reinterpret_cast<void (*)(T*, int, int)>(lua_touserdata(L, lua_upvalueindex(1)));
-		T *obj = reinterpret_cast<T *>(lua_touserdata(L, 1));
-
-		method(obj, lua_tointeger(L, 2), lua_tointeger(L, 3));
-		return 0;
-	}*/
-
 	template<class TempClass>
-	double VegasIntegration(TempClass *TempObject, int &Trial, int &Fail, double &Error, double &Chi2Prob)
+	double VegasIntegration(TempClass *TempObject, int nDim, int &Trial, int &Fail, double &Error, double &Chi2Prob)
 	{
 		//input
-		double EpsRel = 1.0e-3;		//relative error for each component
+		double EpsRel = 1.0e-8;		//relative error for each component
 		double EpsAbs = 1.0e-12;	//absolute error
-		int MinEval = 1e4;		//minimum number of evaluation
+		int MinEval = 1e5;		//minimum number of evaluation
 		int MaxEval = 1e6;		//maximum number of evaluation
-		int nStart = 500;
-		int nIncrease = 100;
-		int nBatch = 500;
+		int nStart = 1000;
+		int nIncrease = 500;
+		int nBatch = 1000;
 		void *UserData = TempObject;
 		char *state = NULL;
 		void *spin = NULL;
@@ -108,8 +96,8 @@ namespace Kine
 	
 		//output
 		double Integral;
-	
-		Vegas(1, 1, IntCast, UserData, 1, 	//ndim, ncomp, integrand_t, userdata, nvec
+
+		Vegas(nDim, 1, IntCast, UserData, 1, 	//ndim, ncomp, integrand_t, userdata, nvec
 		      EpsRel, EpsAbs, 0, 0, 		//epsrel, epsabs, verbosity, seed
 		      MinEval, MaxEval, nStart, nIncrease, nBatch,
 		      0, state, spin,			//gridno, statefile, spin
@@ -137,8 +125,6 @@ namespace Kine
 	
 		return Integral * h/90.0;
 	}	
-
-
 }
 
 //Constants
@@ -152,11 +138,12 @@ namespace Const
 	//Conversion
 	static const double fM2GeV = 5.06e15;		//1GeV in 1/m
 	static const double fS2GeV = 1.52e24;		//1GeV in 1/s
+	static const double fGeV2cm = 389.4e-30;	//1GeV-2 in cm2
+	static const double fGeV2ub = 0.3894e3;		//1GeV-2 in ub
 	static const double fPi = 3.1415926536;		//pi
 	static const double fPi2 = fPi*fPi;		//pi
 	static const double fPi3 = fPi2*fPi;		//pi
 	static const double fDeg = 180.0/fPi;		//Rad to Deg
-	static const double fGeV2b = 389.4e-30;	//1GeV-2 in cm2
 
 	//CKM entries
 	static const double fV_ud = 0.97417;
@@ -181,6 +168,12 @@ namespace Const
 	static const double fU_t3 = 0.77;
 
 	//Masses
+	static const double fMQuarkU = genie::PDGLibrary::Instance()->Find(1)->Mass();
+	static const double fMQuarkD = genie::PDGLibrary::Instance()->Find(2)->Mass();
+	static const double fMQuarkS = genie::PDGLibrary::Instance()->Find(3)->Mass();
+	static const double fMQuarkC = genie::PDGLibrary::Instance()->Find(4)->Mass();
+	static const double fMQuarkB = genie::PDGLibrary::Instance()->Find(5)->Mass();
+	static const double fMQuarkT = genie::PDGLibrary::Instance()->Find(6)->Mass();
 	static const double fMElectron = genie::PDGLibrary::Instance()->Find(11)->Mass();
 	static const double fMMuon = genie::PDGLibrary::Instance()->Find(13)->Mass();
 	static const double fMPion = genie::PDGLibrary::Instance()->Find(211)->Mass();

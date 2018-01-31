@@ -414,7 +414,7 @@ double EventGenerator::ScaleXSec(double IntP, double IntN)	//including probabili
 	double Area = TheBox->GetElement("Width", 1) * TheBox->GetElement("Height", 1);
 	double RhoTarget = Const::fNa * TheBox->GetElement("Weight", 1) * 1e6 / MolarMass / Area;	//surface density of targets
 
-	return RhoTarget * Const::fGeV2b * (Z * IntP + (A-Z) * IntN);
+	return RhoTarget * Const::fGeV2cm * (Z * IntP + (A-Z) * IntN);	//xs in cm2
 }
 
 double EventGenerator::Variable(double dt)

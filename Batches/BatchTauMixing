@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+#./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nMUMU_M_0.dat -T -c nMUMU
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/Tau_nMUMU_M_0.dat -T -c nMUMU
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/Tau_nEE_M_0.dat -T -c nEE
+./bin/Exclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/Tau_nPI0_M_0.dat -T -c nPI0
+
+./bin/Exclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/Tau_nMUMU_E_0.dat -T -c nMUMU
+./bin/Exclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/Tau_nEE_E_0.dat -T -c nEE
+./bin/Exclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/Tau_nPI0_E_0.dat -T -c nPI0
+

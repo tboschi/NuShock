@@ -70,8 +70,8 @@ int main(int argc, char** argv)
 
 	TH1D* hFlux = dynamic_cast<TH1D*> (FluxFile->Get("htotal"));
 	hFlux->Scale(1.0/pow(TheBox->GetElement("Baseline"), 2));
-	hFlux->Scale(TheBox->GetElement("POT/s"));
-	//hFlux->Scale(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
+	//hFlux->Scale(TheBox->GetElement("POT/s"));
+	hFlux->Scale(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
 
 	TIter Next(XsecFile->GetListOfKeys());
 	TKey *Kkk = dynamic_cast<TKey*> (Next());
@@ -109,8 +109,12 @@ int main(int argc, char** argv)
 	double Ntarget = Const::fNa * TheBox->GetElement("Weight") * 1e6 / MolarMass;	//number of targets
 
 	double Rate = 0;
+	double Npot = 0;
 	for (unsigned int i = 0; i < hFlux->GetNbinsX(); ++i)
+	{
+		Npot += hFlux->GetBinContent(i) * 0.2;
 		Rate += hFlux->GetBinContent(i) * hXsec->GetBinContent(i) * 0.2;
+	}
 	Rate *= Ntarget;
 	Rate *= TheBox->GetElement("Fiducial");		//fiducial volume
 
@@ -121,6 +125,7 @@ int main(int argc, char** argv)
 	Out << "Total number of events is " << std::setprecision(10) << Rate*Ysec << " in " << TheBox->GetElement("Years") << " years" << std::endl;
 	Out << "Frequency " << Rate << " Hz on average" << std::endl;
 	Out << "Scale factor " << Rate*Ysec * 1e-6 << std::endl;
+	Out << "tot numb of neutrinos per POT " << Npot << std::endl;
 
 	return 0;
 }

@@ -17,14 +17,17 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Exclusion	\
+NEW =	OpenCC		\
+	Dmeson		\
+	Rate		\
+	DecayPlot	\
+	#Exclusion	\
 	ExcluMix	\
 	MegaExcl	\
 	MegaPlot	\
 	Timing		\
 	Simulation	\
 	Probability	\
-	DecayPlot	\
 	#Plotter	\
 	MakeFlux	\
 	MakeEfficiency	\
@@ -41,7 +44,6 @@ NEW =	Exclusion	\
 	GammaRequired
 	#XSec		\
 	#PSscatter	\
-	Rate		\
 	GenBack		\
 	Eps2Dat		\
 	Kine		\
@@ -68,14 +70,15 @@ DEP =	Tools/Tools		\
 	Particle/Particle	\
 	Background/Background	\
 	Scattering/Nucleon	\
+	Scattering/Hadron	\
 
 INC_DIR := $(patsubst %,-I$(SRC_DIR)/%,$(subst /, ,$(DEP)))
 DEP :=  $(DEP:%=$(SRC_DIR)/%.o)
 
 GENIE_LIBS  = $(shell $(GENIE)/src/scripts/setup/genie-config --libs)
-LDFLAGS  := $(LDFLAGS) $(GENIE_LIBS) $(LIBRARIES) $(CERN_LIBRARIES) -L$(CUBA)/lib
-LDLIBS   := $(LDLIBS) -lcuba
-CXXFLAGS := $(CXXFLAGS) -I$(CUBA)/include $(INCLUDES) $(INC_DIR) 
+LDFLAGS  := $(LDFLAGS) $(GENIE_LIBS) $(LIBRARIES) $(CERN_LIBRARIES) -L$(CUBA)/lib -L$(LHAPDF)/lib
+LDLIBS   := $(LDLIBS) -lcuba -lrealLHAPDF
+CXXFLAGS := $(CXXFLAGS) -I$(CUBA)/include -I$(LHAPDF)/include $(INCLUDES) $(INC_DIR) 
 
 #Using implicit rules for G++ and linker
 #Then moves exec into main folder
