@@ -167,23 +167,25 @@ namespace Const
 	static const double fU_t2 = -0.45;
 	static const double fU_t3 = 0.77;
 
-	//Masses
-	static const double fMQuarkU = genie::PDGLibrary::Instance()->Find(1)->Mass();
-	static const double fMQuarkD = genie::PDGLibrary::Instance()->Find(2)->Mass();
-	static const double fMQuarkS = genie::PDGLibrary::Instance()->Find(3)->Mass();
-	static const double fMQuarkC = genie::PDGLibrary::Instance()->Find(4)->Mass();
-	static const double fMQuarkB = genie::PDGLibrary::Instance()->Find(5)->Mass();
-	static const double fMQuarkT = genie::PDGLibrary::Instance()->Find(6)->Mass();
-	static const double fMElectron = genie::PDGLibrary::Instance()->Find(11)->Mass();
-	static const double fMMuon = genie::PDGLibrary::Instance()->Find(13)->Mass();
-	static const double fMPion = genie::PDGLibrary::Instance()->Find(211)->Mass();
-	static const double fMPion0 = genie::PDGLibrary::Instance()->Find(111)->Mass();
-	static const double fMKaon = genie::PDGLibrary::Instance()->Find(321)->Mass();
-	static const double fMKaon0 = genie::PDGLibrary::Instance()->Find(311)->Mass();
-	static const double fMProton = genie::PDGLibrary::Instance()->Find(2212)->Mass();
-	static const double fMNeutron = genie::PDGLibrary::Instance()->Find(2112)->Mass();
-	static const double fMW = genie::PDGLibrary::Instance()->Find(24)->Mass();
-	static const double fMZ = genie::PDGLibrary::Instance()->Find(23)->Mass();
+	//Masses in GeV - PDG 2017 -- remove genie dep on Tools
+	static const double fMQuarkU = 2.2e-3;
+	static const double fMQuarkD = 4.7e-3;
+	static const double fMQuarkS = 96e-3;
+	static const double fMQuarkC = 1.28;
+	static const double fMQuarkB = 4.18;
+	static const double fMQuarkT = 173.1;
+	static const double fMElectron = 0.510999e-3;
+	static const double fMMuon = 105.6583e-3;
+	static const double fMTau = 1776.86e-3;
+	static const double fMPion = 139.57061e-3;
+	static const double fMPion0 = 134.9770e-3;
+	static const double fMKaon = 493.677e-3;
+	static const double fMKaon0 = 497.611e-3;
+	static const double fMDs = 1968.28e-3;
+	static const double fMProton = 938.272081e-3;
+	static const double fMNeutron = 939.565143e-3;
+	static const double fMW = 80.385;
+	static const double fMZ = 91.1876;
 
 	//SM constant - PDG 2016
 	static const double fGF = 1.16637876e-5;	//GeV-2, from PDG
