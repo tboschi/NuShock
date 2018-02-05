@@ -19,10 +19,6 @@
 //ROOT include
 #include "TMath.h"
 
-//GENIE include
-#include "Conventions/Constants.h"
-#include "PDG/PDGLibrary.h"
-
 //CUBA
 #include "cuba.h"
 
@@ -45,6 +41,8 @@ enum ChannelName
 	_EKA,		//2 body
 	_nKA0,		//3 body
 	_Muon,		//3 body
+	_TauE,		//3 body
+	_TauM,		//3 body
 	_Kaon,		//3 body
 	_Kaon0		//3 body
 };
