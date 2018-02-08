@@ -13,7 +13,7 @@
 #include "Tools.h"
 #include "EventGenerator.h"
 #include "DecayRates.h"
-#include "3Body.h"
+#include "ThreeBody.h"
 #include "Particle.h"
 
 void Usage(char* argv0);

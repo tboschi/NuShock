@@ -4,8 +4,8 @@ ThreeBody::ThreeBody(std::string Parent, double MSterile, double Ue, double Um, 
 	M_Neutrino(0.0),
 	M_Photon(0.0),
 	M_Electron(Const::fMElectron),
-	//M_Electron(0.0),
 	M_Muon(Const::fMMuon),
+	M_Tau(Const::fMTau),
 	M_Pion(Const::fMPion),
 	M_Pion0(Const::fMPion0),
 	M_Kaon(Const::fMKaon),
@@ -24,6 +24,7 @@ ThreeBody::ThreeBody(std::string Parent, double MSterile, double Ue, double Um, 
 
 	IsElectron = false;
 	IsMuon = false;
+	IsTau = false;
 
 	InitConst();
 }
@@ -45,6 +46,13 @@ void ThreeBody::InitMap()
 
 void ThreeBody::InitConst()
 {
+	M_Sterile_prev = -1.0;
+	M_Parent_prev = -1.0;
+	U_e_prev = -1.0;
+	U_m_prev = -1.0;
+	U_t_prev = -1.0;
+	fMax = -1.0;
+
 	switch(mapParent[GetParent()])
 	{
 		case _Muon:	//Muon decays into nu_mu (c), nu_e (a,x), e(b,y)
@@ -73,17 +81,19 @@ void ThreeBody::InitConst()
 				fA = M_Sterile/M_Parent;
 				fC = M_Neutrino/M_Parent;
 			}
-			if (!IsElectron && IsTau) //nu_mu is the sterile
+			if (!IsElectron && IsTau) //nu_tau is the sterile
 			{
 				fA = M_Neutrino/M_Parent;
 				fC = M_Sterile/M_Parent;
 			}
 
+			fA = M_Neutrino/M_Parent;
 			fB = M_Electron/M_Parent;
+			fC = M_Neutrino/M_Parent;
 
 			break;
 
-		case _TauE:	//Tau decays into nu_tau (c), nu_mu (a,x), mu(b,y)
+		case _TauM:	//Tau decays into nu_tau (c), nu_mu (a,x), mu(b,y)
 			M_Parent = M_Tau;
 
 			if (IsMuon && !IsTau) //nu_e is the sterile
@@ -91,13 +101,15 @@ void ThreeBody::InitConst()
 				fA = M_Sterile/M_Parent;
 				fC = M_Neutrino/M_Parent;
 			}
-			if (!IsMuon && IsTau) //nu_mu is the sterile
+			if (!IsMuon && IsTau) //nu_tau is the sterile
 			{
 				fA = M_Neutrino/M_Parent;
 				fC = M_Sterile/M_Parent;
 			}
 
+			fA = M_Neutrino/M_Parent;
 			fB = M_Muon/M_Parent;
+			fC = M_Neutrino/M_Parent;
 
 			break;
 
@@ -233,7 +245,9 @@ double ThreeBody::M2()		//Unpolarised amplitude
 		switch(mapParent[GetParent()])
 		{
 			case _Muon:
-				M2 = M2Muon();
+			case _TauE:
+			case _TauM:
+				M2 = M2Lept();
 				break;
 			case _Kaon:
 				M2 = M2Kaon();
@@ -271,7 +285,7 @@ double ThreeBody::M2IntY()	//Unpolarised amplitude, integrated over Ey
 		switch(mapParent[GetParent()])
 		{
 			case _Muon:
-				M2 = M2MuonIntY();
+				M2 = M2LeptIntY();
 				break;
 			case _Kaon:
 				M2 = M2KaonIntY();
@@ -394,7 +408,7 @@ double ThreeBody::M2KaonIntY(double Y)	//Kaon decay primitive
 	return Const::fGF2 * GetUu()*GetUu() * pow(M_Kaon,4) * pow(GetDecayConst(),2) * (Ret1 - Ret2);
 }
 
-double ThreeBody::M2KaonIntY()	//Kaon decay, itnegrated analytically over y
+double ThreeBody::M2KaonIntY()	//Kaon decay, integrated analytically over y
 {
 	double ymin, ymax;
 	double dy = yLim(ymin, ymax);
@@ -436,38 +450,38 @@ double ThreeBody::M2Kaon0IntY() //Kaon0 decay, integrated analytically over y
 
 double ThreeBody::M2nEE()
 {
-	return GetUe()*GetUe() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUm()*GetUm() + GetUt()*GetUt()) * M2_Z();
+	return GetUe()*GetUe() * (M2Lept() + M2_WZ() + M2_Z()) + (GetUm()*GetUm() + GetUt()*GetUt()) * M2_Z();
 }
 
 double ThreeBody::M2nEEIntY()
 {
-	return GetUe()*GetUe() * (M2MuonIntY() + M2_WZIntY() + M2_ZIntY()) + (GetUm()*GetUm() + GetUt()*GetUt()) * M2_ZIntY();
+	return GetUe()*GetUe() * (M2LeptIntY() + M2_WZIntY() + M2_ZIntY()) + (GetUm()*GetUm() + GetUt()*GetUt()) * M2_ZIntY();
 }
 
 double ThreeBody::M2nMUMU()
 {
-	return GetUm()*GetUm() * (M2Muon() + M2_WZ() + M2_Z()) + (GetUe()*GetUe() + GetUt()*GetUt()) * M2_Z();
+	return GetUm()*GetUm() * (M2Lept() + M2_WZ() + M2_Z()) + (GetUe()*GetUe() + GetUt()*GetUt()) * M2_Z();
 }
 
 double ThreeBody::M2nEMU()
 {
-	return GetUm()*GetUm() * M2Muon();
+	return GetUm()*GetUm() * M2Lept();
 }
 
 double ThreeBody::M2nMUE()
 {
-	return GetUe()*GetUm() * M2Muon();
+	return GetUe()*GetUm() * M2Lept();
 }
 
 //Maximum values of ddG for MC purposes
 double ThreeBody::MaxGamma()
 {
-	double temx = x();
-	double temy = y();
-
-	if (IsChanged())
+	if (IsChanged() && fMax < 0)
 	{
-		fMax = 0.0;
+		double temx = x();
+		double temy = y();
+
+		fMax = -1.0;
 
 		//Phasespace coordinates are already checked by ddGamma
 		//for (double ix = 0.0; ix <= 2.0; ix += 2.0/Kine::Loop)
@@ -483,10 +497,10 @@ double ThreeBody::MaxGamma()
 				       fMax = Gam;	
 			}
 		}
-	}
 
-	SetX(temx);
-	SetY(temy);
+		SetX(temx);
+		SetY(temy);
+	}
 
 	return fMax;
 }
@@ -612,6 +626,7 @@ void ThreeBody::ElectronChannel()
 {
 	IsElectron = true;
 	IsMuon = false;
+	IsTau = false;
 	InitConst();
 }
 
@@ -619,6 +634,15 @@ void ThreeBody::MuonChannel()
 {
 	IsElectron = false;
 	IsMuon = true;
+	IsTau = false;
+	InitConst();
+}
+
+void ThreeBody::TauChannel()
+{
+	IsElectron = false;
+	IsMuon = false;
+	IsTau = true;
 	InitConst();
 }
 
@@ -669,6 +693,8 @@ double ThreeBody::GetUu()
 		return GetUe();
 	else if (IsMuon)
 		return GetUm();
+	else if (IsTau)
+		return GetUt();
 	else return 1.0;
 }
 

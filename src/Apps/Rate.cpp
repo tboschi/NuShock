@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 
 	Detector * TheBox = new Detector(DetConfig, NULL);
 
-	TH1D* hFlux = dynamic_cast<TH1D*> (FluxFile->Get("htotal"));
+	TH1D* hFlux = dynamic_cast<TH1D*> (FluxFile->Get("ptotal"));
 	hFlux->Scale(1.0/pow(TheBox->GetElement("Baseline"), 2));
 	//hFlux->Scale(TheBox->GetElement("POT/s"));
 	hFlux->Scale(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);

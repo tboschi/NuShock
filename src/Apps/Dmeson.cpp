@@ -10,6 +10,7 @@
 
 #include "TFile.h"
 #include "TTree.h"
+#include "TH1D.h"
 #include "TRandom3.h"
 #include "TGenPhaseSpace.h"
 
@@ -41,8 +42,9 @@ int main(int argc, char** argv)
 	TFile *OutF;
 	double SE = 1000;
 	double Eb = 800;
+	unsigned int nMAX = 1e5;
 
-	while((iarg = getopt_long(argc,argv, "r:s:E:t:o:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "r:s:E:t:o:I:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -61,6 +63,9 @@ int main(int argc, char** argv)
 			case 'o':
 				OutFile.open(optarg);
 				break;
+			case 'I':
+				nMAX = strtol(optarg, NULL, 10);
+				break;
 			case 'h':
 				Usage(argv[0]);
 				return 1;
@@ -70,6 +75,21 @@ int main(int argc, char** argv)
 	}
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
+
+	TH1D * hTotal = new TH1D("htotal", "htotal", 400, 0, 40);
+	TH1D * hCharm = new TH1D("hcharm", "hcharm", 400, 0, 40);
+	TH1D * hTauE = new TH1D("htaue", "htaue", 400, 0, 40);
+	TH1D * hTauM = new TH1D("htaum", "htaum", 400, 0, 40);
+	TH1D * hPion = new TH1D("hpion", "hpion", 400, 0, 40);
+
+	TH1D * pTotal = new TH1D("ptotal", "total geo", 400, 0, 40);
+	TH1D * pCharm = new TH1D("pcharm", "charm geo", 400, 0, 40);
+	TH1D * pTauE = new TH1D("ptaue", "taue geo", 400, 0, 40);
+	TH1D * pTauM = new TH1D("ptaum", "taum geo", 400, 0, 40);
+	TH1D * pPion = new TH1D("ppion", "pion geo", 400, 0, 40);
+
+	double Th0 = atan2(3.5, 574);
+
 	TTree *tMeson = new TTree("tmeson", "Mesons");
 
 	double dE, dPt, dth, dxf;
@@ -140,7 +160,7 @@ int main(int argc, char** argv)
 	ThreeBody * Space = new ThreeBody("");
 
 	unsigned int nIter = 0;
-	while (nIter < 1e6)
+	while (nIter < nMAX)
 	{
 		Decay0 = false;
 		Decay1 = false;
@@ -167,7 +187,7 @@ int main(int argc, char** argv)
 		//if (Gen->Uniform(minF, maxF) < lDparam(xf, pt))
 		if (Gen->Uniform(0, pow(10,maxF)) < pow(10, lDparam(xf, pt)))
 		{
-			std::cout << xf << "\t" << pt << "\t" << lDparam(xf, pt) << std::endl;
+			//std::cout << nIter << "\t";
 			double px, py;
 			Gen->Circle(px, py, pt);
 			//scale properly
@@ -184,14 +204,15 @@ int main(int argc, char** argv)
 			DPt = Ds_vec.Pt();
 			Dth = Ds_vec.Theta();
 
-			if (Gen->Rndm() < 0.0548)
+			//if (Gen->Rndm() < 0.0548)
+			if (true)		//every Ds decays
 			{
 				Decay0 = true;
 				event.SetDecay(Ds_vec, 2, massdecay0);
 				event.Generate();
 
-				TLorentzVector tau_vec = *(event.GetDecay(0));
-				TLorentzVector nut_vec = *(event.GetDecay(1));
+				TLorentzVector tau_vec = *(event.GetDecay(1));
+				TLorentzVector nut_vec = *(event.GetDecay(0));
 				TE  = tau_vec.E();
 				TPt = tau_vec.Pt();
 				Tth = tau_vec.Theta();
@@ -199,48 +220,68 @@ int main(int argc, char** argv)
 				N0Pt = nut_vec.Pt();
 				N0th = nut_vec.Theta();
 
+				hCharm->Fill(N0E);
+				if (N0th < Th0)
+					pCharm->Fill(N0E);
+
 				double Branch = Gen->Rndm();
 				if (Branch < 0.1785)		//tau->e (17.85 %)
 				{
 					Decay1 = true;
 					Space->SetParent("TauE");
+					Space->TauChannel();
+					Space->SetUt(1.0);
 
-					event.SetDecay(tau_vec, 3, massdecay1);
+					TLorentzVector tau_cm(0, 0, 0, mt);
+					event.SetDecay(tau_cm, 3, massdecay1);
 					double Weight = 1.0;
-					while (Gen->Rndm() < Weight)
+					while (Gen->Rndm() < Weight)	//works in CM only
 					{
 						event.Generate();
-						Space->SetEnergyX(event.GetDecay(0)->E());	//don't remember this!!
-						Space->SetEnergyY(event.GetDecay(1)->E());
+						Space->SetEnergyX(event.GetDecay(1)->E());
+						Space->SetEnergyY(event.GetDecay(2)->E());
 						Weight = Space->ddGamma()/Space->MaxGamma();
 					}
 
 					TLorentzVector nut_vec = *(event.GetDecay(0));
+					nut_vec.Boost(tau_vec.BoostVector());
 					N1E  = nut_vec.E();
 					N1Pt = nut_vec.Pt();
 					N1th = nut_vec.Theta();
+
+					hTauE->Fill(N1E);
+					if (N1th < Th0)
+						pTauE->Fill(N1E);
 				}
 				else if (Branch < 0.3521)	//tau->mu (17.36 %)
 				{
 					Decay2 = true;
 					Space->SetParent("TauM");
+					Space->TauChannel();
+					Space->SetUt(1.0);
 
-					event.SetDecay(tau_vec, 3, massdecay2);
+					TLorentzVector tau_cm(0, 0, 0, mt);
+					event.SetDecay(tau_cm, 3, massdecay2);
 					double Weight = 1.0;
-					while (Gen->Rndm() < Weight)
+					while (Gen->Rndm() < Weight)	//works in CM only
 					{
 						event.Generate();
-						Space->SetEnergyX(event.GetDecay(0)->E());	//don't remember this!!
-						Space->SetEnergyY(event.GetDecay(1)->E());
+						Space->SetEnergyX(event.GetDecay(1)->E());
+						Space->SetEnergyY(event.GetDecay(2)->E());
 						Weight = Space->ddGamma()/Space->MaxGamma();
 					}
 
 					TLorentzVector nut_vec = *(event.GetDecay(0));
+					nut_vec.Boost(tau_vec.BoostVector());
 					N2E  = nut_vec.E();
 					N2Pt = nut_vec.Pt();
 					N2th = nut_vec.Theta();
+
+					hTauM->Fill(N2E);
+					if (N2th < Th0)
+						pTauM->Fill(N2E);
 				}
-				else if (Branch < 0.4612)	//tau->mu (17.36 %)
+				else if (Branch < 0.4612)	//tau->pi (10.82 %)
 				{
 					Decay3 = true;
 
@@ -251,30 +292,54 @@ int main(int argc, char** argv)
 					N3E  = nut_vec.E();
 					N3Pt = nut_vec.Pt();
 					N3th = nut_vec.Theta();
+
+					hPion->Fill(N3E);
+					if (N3th < Th0)
+						pPion->Fill(N3E);
 				}
 			}
 
 			tMeson->Fill();
 			++nIter;
 		}
-		
-		/*
-		event.Generate();
-		TLorentzVector D1vec = *(event.GetDecay(0));
-		D1E = D1vec.E();
-
-		event.SetDecay(D1vec, 2, massdecay);
-		event.Generate();
-		n1E = event.GetDecay(1)->E();
-
-		TLorentzVector nuvec = *(event.GetDecay(1))+Targ;
-		event.SetDecay(nuvec, 2, massscatt);
-		event.Generate();
-		t1E = event.GetDecay(0)->E();
-		*/
 	}
+	//		cc	pC	fDs	Tot evts  
+	double SF = 12.1e-3 / 331.4 * 0.077 / double(nMAX);
+
+	hCharm->Scale(SF);
+	hTauE->Scale(SF);
+	hTauM->Scale(SF);
+	hPion->Scale(SF);
+
+	pCharm->Scale(SF);
+	pTauE->Scale(SF);
+	pTauM->Scale(SF);
+	pPion->Scale(SF);
+
+	hTotal->Add(hCharm);
+	hTotal->Add(hTauE);
+	hTotal->Add(hTauM);
+	hTotal->Add(hPion);
+
+	pTotal->Add(pCharm);
+	pTotal->Add(pTauE);
+	pTotal->Add(pTauM);
+	pTotal->Add(pPion);
 
 	tMeson->Write();
+
+	hTotal->Write();
+	hCharm->Write();
+	hTauE->Write();
+	hTauM->Write();
+	hPion->Write();
+
+	pTotal->Write();
+	pCharm->Write();
+	pTauE->Write();
+	pTauM->Write();
+	pPion->Write();
+
 	OutF->Close();
 	if (OutFile.is_open())
 		OutFile.close();

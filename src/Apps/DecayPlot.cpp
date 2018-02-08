@@ -6,7 +6,7 @@
 
 #include "Tools.h"
 #include "EventGenerator.h"
-#include "3Body.h"
+#include "ThreeBody.h"
 
 int main(int argc, char** argv)
 {

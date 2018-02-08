@@ -36,8 +36,8 @@ class ThreeBody
 		double M2_WZ();
 		double M2_WZIntY();
 
-		double M2Muon();
-		double M2MuonIntY();
+		double M2Lept();
+		double M2LeptIntY();
 		double M2Kaon();
 		double M2KaonIntY(double Y);
 		double M2KaonIntY();
@@ -70,6 +70,7 @@ class ThreeBody
 
 		void ElectronChannel();
 		void MuonChannel();
+		void TauChannel();
 
 		std::string GetParent();
 		double GetEnergyX();
@@ -105,6 +106,7 @@ class ThreeBody
 		const double M_Photon;
 		const double M_Electron;
 		const double M_Muon;
+		const double M_Tau;
 		const double M_Pion;
 		const double M_Pion0;
 		const double M_Kaon;
@@ -121,7 +123,7 @@ class ThreeBody
 		std::map<std::string, ChannelName> mapParent;
 		std::string sParent;
 
-		bool IsElectron, IsMuon;
+		bool IsElectron, IsMuon, IsTau;
 };
 
 #endif

@@ -6,7 +6,7 @@
 #include <getopt.h>
 
 #include "Tools.h"
-#include "3Body.h"
+#include "ThreeBody.h"
 
 #include "TFile.h"
 #include "TH1D.h"

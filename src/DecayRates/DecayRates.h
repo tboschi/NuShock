@@ -20,7 +20,7 @@
 #include "TGenPhaseSpace.h"
 
 #include "Tools.h"
-#include "3Body.h"
+#include "ThreeBody.h"
 
 
 class Decay
