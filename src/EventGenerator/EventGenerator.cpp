@@ -154,6 +154,7 @@ double EventGenerator::DecayNumber(double EnergyKin, bool Efficiency)
 {
 	SetEnergyKin(EnergyKin);
 
+	//std::cout << " I " << FluxIntensity(1) << "\t P " << DecayProb() << std::endl;
 	double Signal = FluxIntensity(1) * DecayProb();
 	if (Efficiency)
 		Signal *= EventEfficiency();
@@ -574,7 +575,6 @@ void EventGenerator::SetUt(double X, bool GvF)	//GvF == 1 -> Gamma, GvF == 0 -> 
 void EventGenerator::SyncUu(bool B)	//B == 1 -> Gamma&Flux same U, B == 0 -> Indipendent (Gamma default)
 {
 	Sync = B;
-
 }
 
 bool EventGenerator::IsChanged()

@@ -107,7 +107,6 @@ void Background::InitMap()
 	mapChan["nMUMU"] = _nMUMU;
 	mapChan["MUPI"] = _MUPI;
 	mapChan["EKA"] = _EKA;
-	mapChan["nKA0"] = _nKA0;
 }
 
 TTree *Background::GetTree()

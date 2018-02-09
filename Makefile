@@ -17,19 +17,19 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	Dmeson		\
+NEW =	FluxDUNE	\
 	Rate		\
+	OriginalExclusion	\
+	DecayPlot	\
+	Plotter		\
 	#OpenCC		\
 	Rate		\
-	DecayPlot	\
-	#Exclusion	\
 	ExcluMix	\
 	MegaExcl	\
 	MegaPlot	\
 	Timing		\
 	Simulation	\
 	Probability	\
-	#Plotter	\
 	MakeFlux	\
 	MakeEfficiency	\
 	CrossExcl	\

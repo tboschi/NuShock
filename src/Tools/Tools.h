@@ -29,17 +29,34 @@ enum ChannelName
 {
 	_undefined,
 	_ALL,		//
-	_nnn,		//3 body
-	_nGAMMA,	//2 body
-	_nEE,		//3 body
-	_nEMU,		//3 body
-	_nMUE,		//3 body
-	_nPI0,		//3 body
-	_EPI,		//2 body
-	_nMUMU,		//3 body
-	_MUPI,		//2 body
-	_EKA,		//2 body
-	_nKA0,		//3 body
+	_nnn,		//3 body	2
+	_nGAMMA,	//2 body	3
+	_nEE,		//3 body	4
+	_nEMU,		//3 body	5
+	_nMUE,		//3 body	6
+	_nMUMU,		//3 body	7
+	_nET,		//3 body	8
+	_nTE,		//3 body	9
+	_nMUT,		//3 body	10
+	_nTMU,		//3 body	11
+	_nPI0,		//2 body	12
+	_EPI,		//2 body	13
+	_MUPI,		//2 body	14
+	_TPI,		//2 body	15
+	_EKA,		//2 body	16
+	_MUKA,		//2 body	17
+	_nRHO0,		//2 body	18
+	_ERHO,		//2 body	19
+	_MURHO,		//2 body	20
+	_EKAx,		//2 body	21
+	_nKA0x,		//2 body	22
+	_MUKAx,		//2 body	23
+	_nOMEGA,	//2 body	24
+	_nETA,		//2 body	25
+	_nETAi,		//2 body	26
+	_nPHI,		//2 body	27
+	_ECHARM,	//2 body	28
+////////////////////////////////
 	_Muon,		//3 body
 	_TauE,		//3 body
 	_TauM,		//3 body
@@ -144,15 +161,15 @@ namespace Const
 	static const double fDeg = 180.0/fPi;		//Rad to Deg
 
 	//CKM entries
-	static const double fV_ud = 0.97417;
-	static const double fV_us = 0.2248;
-	static const double fV_ub = 0.0409;
-	static const double fV_cd = 0.220;
-	static const double fV_cs = 0.995;
-	static const double fV_cb = 0.0405;
-	static const double fV_td = 0.0082;
-	static const double fV_ts = 0.0400;
-	static const double fV_tb = 1.009;
+	static const double fU_ud = 0.97417;
+	static const double fU_us = 0.2248;
+	static const double fU_ub = 0.0409;
+	static const double fU_cd = 0.220;
+	static const double fU_cs = 0.995;
+	static const double fU_cb = 0.0405;
+	static const double fU_td = 0.0082;
+	static const double fU_ts = 0.0400;
+	static const double fU_tb = 1.009;
 
 	//PMNS entries
 	static const double fU_e1 = 0.81;
@@ -179,6 +196,15 @@ namespace Const
 	static const double fMPion0 = 134.9770e-3;
 	static const double fMKaon = 493.677e-3;
 	static const double fMKaon0 = 497.611e-3;
+	static const double fMEta = 547.862e-3;
+	static const double fMEtai = 957.78e-3;
+	static const double fMRho = 775.11e-3;
+	static const double fMRho0 = 775.26e-3;
+	static const double fMOmega = 782.65e-3;
+	static const double fMKaonx = 891.76e-3;
+	static const double fMKaon0x = 682e-3;
+	static const double fMPhi = 1019.460e-3;
+	static const double fMCharm = 1869.56e-3;
 	static const double fMDs = 1968.28e-3;
 	static const double fMProton = 938.272081e-3;
 	static const double fMNeutron = 939.565143e-3;
@@ -189,11 +215,28 @@ namespace Const
 	static const double fGF = 1.16637876e-5;	//GeV-2, from PDG
 	static const double fGF2 = fGF*fGF;		//From PDG
 	static const double fSin2W = 0.23129;		//Sin weinberg squared - MSbar scheme
-	static const double fFPion2 = pow(0.1302, 2.0);	//Decay constant squared of pion
-	static const double fFKaon2 = pow(0.1556, 2.0);	//Decay constant squared of kaon
+	
+	//decay constant
+	static const double fDPion2   = pow(0.1307, 2.0);
+	static const double fDPion02  = pow(0.1300, 2.0);
+	static const double fDKaon2   = pow(0.1598, 2.0);
+	static const double fDRho2    = pow(0.2200, 2.0);
+	static const double fDRho02   = pow(0.2200, 2.0);
+	static const double fDEta2    = pow(0.1647, 2.0);
+	static const double fDEtai2   = pow(0.1529, 2.0);
+	static const double fDOmega2  = pow(0.1950, 2.0);
+	static const double fDKaonx2  = pow(0.2170, 2.0);
+	static const double fDKaon0x2 = pow(0.2170, 2.0);	
+	static const double fDPhi2    = pow(0.2290, 2.0);
+	static const double fDCharm2  = pow(0.2226, 2.0);
+
+	static const double fVLight   = fSin2W / 3.0;		//Vector constant for Rho 0 and Omega
+	static const double fVStrange = -0.25+fSin2W/3.0;	//Vector constant for Kaon star and Phi
+	static const double fVCharm   = 0.25-2.0*fSin2W / 3.0;	//Vector constant for Charm meson D and JPsi
+	static const double fVusFKaon = 0.2165;			//From 1607.00299
+
 	static const double fLambdaPlus = 0.0297;	//Linear dependence of f+ in Ke3 (PDG)
 	static const double fLambdaZero = 0.0196;	//Linear dependence of f0 in Km3 (PDG)
-	static const double fVusFKaon = 0.2165;		//From 1607.00299
 	static const double fMagMuN = -1.9130427345;	//neutron magnetic moment (in nuclear magneton units)
 	static const double fMagMuP = 2.79284735128;	//proton magnetic moment (in nuclear magneton units);
 	static const double fMA = 0.990;		//GeV, axial mass, from GENIE

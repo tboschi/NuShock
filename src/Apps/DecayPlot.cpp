@@ -87,19 +87,27 @@ int main(int argc, char** argv)
 	Decay * SuperGamma = new Decay(Ms, Ue, Um, Ut);
 
 	std::vector<std::string> vChannel(SuperGamma->ListChannels());
-	
+	std::vector<ChannelName> vNameKey(SuperGamma->ListNameKeys());
+
 	Out << "#Mass\tTotal\t";
-	for (int i = 1; i < vChannel.size(); ++i)
-		Out << vChannel.at(i) << "\t";
+	for (int i = 1; i < vNameKey.size(); ++i)
+	{
+		unsigned int index = std::find(vNameKey.begin(), vNameKey.end(), i+1) - vNameKey.begin();
+		Out << vChannel.at(index) << "\t";
+	}
+	std::cout << std::endl;
 	Out << std::endl;
 
-	for (Ms = 0; Ms < 0.5; Ms += 0.001)
+	for (Ms = 0; Ms < 2.0; Ms += 0.001)
 	{
 		SuperGamma->SetMass(Ms);
 
 		Out << Ms << "\t" << SuperGamma->Total() << "\t";
-		for (int i = 1; i < vChannel.size(); ++i)
-			Out << SuperGamma->Branch(vChannel.at(i)) << "\t";
+		for (int i = 1; i < vNameKey.size(); ++i)
+		{
+			unsigned int index = std::find(vNameKey.begin(), vNameKey.end(), i+1) - vNameKey.begin();
+			Out << SuperGamma->Branch(vChannel.at(index)) << "\t";
+		}
 		Out << std::endl;
 	}
 	

@@ -56,16 +56,39 @@ class Decay
 		double nEE();
 		double nEMU();
 		double nMUE();
-		double nLeptonW(double m1, double m2);
+		double nMUMU();
+		double nET();
+		double nTE();
+		double nMUT();
+		double nTMU();
 		double nPI0();
 		double EPI();
 		double MUPI();
-		double nMUMU();
+		double TPI();
 		double EKA();
-		double nKA0();
+		double MUKA();
+		double EKAx();
+		double nKA0x();
+		double MUKAx();
+		double nRHO0();
+		double ERHO();
+		double MURHO();
+		double nOMEGA();
+		double nETA();
+		double nETAi();
+		double nPHI();
+		double ECHARM();
+
+		double LeptonPseudoMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2);
+		double NeutrinoPseudoMeson(double M_Meson, double fDecay2);
+		double LeptonVectorMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2, double fVector);
+		double NeutrinoVectorMeson(double M_Meson, double fDecay2, double fVector);
+		double NeutrinoLeptonAA(double &fCC, double &fNC, double M_Lepton);
+		double NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB);
 
 		//Set and Get
 		std::vector<std::string> ListChannels();
+		std::vector<ChannelName> ListNameKeys();
 
 		TLorentzVector *GetNvec();
 		TLorentzVector GetDecayProduct(int i, int &ID);
@@ -89,8 +112,36 @@ class Decay
 		double M_Sterile, M_Sterile_prev;
 		double Ue, Um, Ut;
 
-		double fTotal;	//Total Gamma, to avoid recalculation
-		double fnnn, fnGAMMA, fnEE_e, fnEE_mt, fnEMU, fnMUE, fnPI0, fEPI, fnMUMU_m, fnMUMU_et, fMUPI, fEKA, fnKA0;
+		double fTotal, 
+		       fnnn,
+                       fnGAMMA,
+                       fnEE_e,	
+                       fnEE_mt,	
+                       fnEMU,	
+                       fnMUE,	
+                       fnMUMU_m,	
+                       fnMUMU_et,	
+                       fnET,	
+                       fnTE,	
+                       fnMUT,	
+                       fnTMU,	
+                       fnPI0,	
+                       fEPI,	
+                       fMUPI,	
+                       fTPI,	
+                       fEKA,	
+                       fMUKA,	
+                       fnRHO0,	
+                       fERHO,	
+                       fMURHO,	
+                       fEKAx,	
+                       fnKA0x,	
+                       fMUKAx,	
+                       fnETA,	
+                       fnETAi,	
+                       fnOMEGA,
+                       fnPHI,	
+                       fECHARM;
 
 		//Masses
 		const double M_Neutrino;
@@ -101,6 +152,16 @@ class Decay
 		const double M_Pion0;
 		const double M_Kaon;
 		const double M_Kaon0;
+		const double M_Eta;
+		const double M_Rho;
+		const double M_Rho0;
+		const double M_Omega;
+		const double M_Kaonx;
+		const double M_Kaon0x;
+		const double M_Etai;
+		const double M_Phi;
+		const double M_Tau;
+		const double M_Charm;
 
 		//Maps
 		std::map<std::string, ChannelName> mapChannel;

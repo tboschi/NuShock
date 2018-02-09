@@ -28,10 +28,11 @@ class FluxDriver
 		FluxDriver(std::string ConfigFlux);
 		~FluxDriver();
 
-		TH1D *GetHist();
+		void CloneCopy(TH1D* T, TObject* X);
 		bool MakeFlux(double M_Sterile);
-		void MakeMuonComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
 		void MakeElecComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
+		void MakeMuonComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
+		void MakeTauComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
 		//void MakeStandardFlux();
 		//double SampleEnergy();
 
@@ -89,41 +90,55 @@ class FluxDriver
 		bool Kine;
 
 		//Get fluxes from file
-		Flux* fxNuMuon;
-		Flux* fxNuMuonBar;
 		Flux* fxNuElectron;
 		Flux* fxNuElectronBar;
+		Flux* fxNuMuon;
+		Flux* fxNuMuonBar;
+		Flux* fxNuTau;
+		Flux* fxNuTauBar;
 
 		//Kinematic factors
 		TH1D *hTemp; 
-		TH1D *hMuonMuon; 
 		TH1D *hMuonElec;
-		TH1D *hKaonMuon;
+		TH1D *hMuonMuon; 
 		TH1D *hKaonElec;
-		TH1D *hKaon0Muon;
+		TH1D *hKaonMuon;
 		TH1D *hKaon0Elec;
+		TH1D *hKaon0Muon;
+		TH1D *hTauElec;
+		TH1D *hTauMuon;
+		TH1D *hTau2Pion;
 
 		//Output fluxes
-		TH1D* hTotalMn, * hTotalMa;
-		TH1D* hPionMn,  * hPionMa;
-		TH1D* hKaonMn,  * hKaonMa;
-		TH1D* hKaon0Mn, * hKaon0Ma;
-		TH1D* hMuonMn,  * hMuonMa;
-
 		TH1D* hTotalEn, * hTotalEa;
 		TH1D* hPionEn,  * hPionEa;
 		TH1D* hKaonEn,  * hKaonEa;
 		TH1D* hKaon0En, * hKaon0Ea;
 		TH1D* hMuonEn,  * hMuonEa;
 
+		TH1D* hTotalMn, * hTotalMa;
+		TH1D* hPionMn,  * hPionMa;
+		TH1D* hKaonMn,  * hKaonMa;
+		TH1D* hKaon0Mn, * hKaon0Ma;
+		TH1D* hMuonMn,  * hMuonMa;
+
+		TH1D* hTotalTn, * hTotalTa;
+		TH1D* hPionTn,  * hPionTa;
+		TH1D* h2PionTn, * h2PionTa;
+		TH1D* hCharmTn, * hCharmTa;
+		TH1D* hTauETn,  * hTauETa;
+		TH1D* hTauMTn,  * hTauMTa;
+
 		double M_Sterile_prev;
 
 		const double M_Electron;
 		const double M_Muon;
+		const double M_Tau;
 		const double M_Pion;
 		const double M_Pion0;
 		const double M_Kaon;
 		const double M_Kaon0;
+		const double M_Charm;
 };
 
 #endif

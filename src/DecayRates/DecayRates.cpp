@@ -8,7 +8,17 @@ Decay::Decay(double MSterile, double Ue, double Um, double Ut)	: //Decay rates c
 	M_Pion(Const::fMPion),
 	M_Pion0(Const::fMPion0),
 	M_Kaon(Const::fMKaon),
-	M_Kaon0(Const::fMKaon0)
+	M_Kaon0(Const::fMKaon0),
+	M_Eta(Const::fMEta),
+        M_Rho(Const::fMRho),
+        M_Rho0(Const::fMRho0),
+        M_Omega(Const::fMOmega),
+        M_Kaonx(Const::fMKaonx),
+        M_Kaon0x(Const::fMKaon0x),
+        M_Etai(Const::fMEta),
+        M_Phi(Const::fMPhi),
+        M_Tau(Const::fMTau),
+        M_Charm(Const::fMCharm)
 {
 	M_Sterile_prev = -1.0;
 
@@ -29,18 +39,51 @@ Decay::Decay(double MSterile, double Ue, double Um, double Ut)	: //Decay rates c
 //Initialisation of map
 void Decay::MapInit()
 {
-	mapChannel["ALL"] = _ALL;
-	mapChannel["nnn"] = _nnn;
+	mapChannel["ALL"]    = _ALL;
+
+	//unclassified
+	mapChannel["nnn"]    = _nnn;
 	mapChannel["nGAMMA"] = _nGAMMA;
-	mapChannel["nEE"] = _nEE;
-	mapChannel["nEMU"] = _nEMU;
-	mapChannel["nMUE"] = _nMUE;
-	mapChannel["nPI0"] = _nPI0;
-	mapChannel["EPI"] = _EPI;
-	mapChannel["nMUMU"] = _nMUMU;
-	mapChannel["MUPI"] = _MUPI;
-	//mapChannel["EKA"] = _EKA;
-	//mapChannel["nKA0"] = _nKA0;
+
+	//pure leptonic
+	mapChannel["nEE"]    = _nEE;
+	mapChannel["nEMU"]   = _nEMU;
+	mapChannel["nMUE"]   = _nMUE;
+	mapChannel["nMUMU"]  = _nMUMU;
+	mapChannel["nET"]    = _nET;
+	mapChannel["nTE"]    = _nTE;
+	mapChannel["nMUT"]   = _nMUT;
+	mapChannel["nTMU"]   = _nTMU;
+
+	//pion
+	mapChannel["nPI0"]   = _nPI0;
+	mapChannel["EPI"]    = _EPI;
+	mapChannel["MUPI"]   = _MUPI;
+	mapChannel["TPI"]    = _TPI;
+
+	//kaon
+	mapChannel["EKA"]    = _EKA;
+	mapChannel["MUKA"]   = _MUKA;
+
+	//rho
+	mapChannel["nRHO0"]  = _nRHO0;
+	mapChannel["ERHO"]   = _ERHO;
+	mapChannel["MURHO"]  = _MURHO;
+
+	//kaon*
+	mapChannel["EKAx"]   = _EKAx;
+	mapChannel["nKA0x"]  = _nKA0x;
+	mapChannel["MUKAx"]  = _MUKAx;
+
+	//other (eta, phi, omega.. )
+	mapChannel["nETA"]   = _nETA;
+	mapChannel["nETAi"]  = _nETAi;
+	mapChannel["nOMEGA"] = _nOMEGA;
+	mapChannel["nPHI"]   = _nPHI;
+
+	//charm
+	mapChannel["ECHARM"] = _ECHARM;
+
 }
 
 double Decay::Gamma(std::string Channel, double B)
@@ -68,23 +111,71 @@ double Decay::Gamma(std::string Channel, double B)
 		case _nMUE:
 			Result = nMUE();
 			break;
+		case _nMUMU:
+			Result = nMUMU();
+			break;
+		case _nET:
+			Result = nET();
+			break;
+		case _nTE:
+			Result = nTE();
+			break;
+		case _nMUT:
+			Result = nMUT();
+			break;
+		case _nTMU:
+			Result = nTMU();
+			break;
 		case _nPI0:
 			Result = nPI0();
 			break;
 		case _EPI:
 			Result = EPI();
 			break;
-		case _nMUMU:
-			Result = nMUMU();
-			break;
 		case _MUPI:
 			Result = MUPI();
+			break;
+		case _TPI:
+			Result = TPI();
 			break;
 		case _EKA:
 			Result = EKA();
 			break;
-		case _nKA0:
-			Result = nKA0();
+		case _MUKA:
+			Result = MUKA();
+			break;
+		case _EKAx:
+			Result = EKAx();
+			break;
+		case _nKA0x:
+			Result = nKA0x();
+			break;
+		case _MUKAx:
+			Result = MUKAx();
+			break;
+		case _nRHO0:
+			Result = nRHO0();
+			break;
+		case _ERHO:
+			Result = ERHO();
+			break;
+		case _MURHO:
+			Result = MURHO();
+			break;
+		case _nETA:
+			Result = nETA();
+			break;
+		case _nETAi:
+			Result = nETAi();
+			break;
+		case _nOMEGA:
+			Result = nOMEGA();
+			break;
+		case _nPHI:
+			Result = nPHI();
+			break;
+		case _ECHARM:
+			Result = ECHARM();
 			break;
 		default:
 			Result = -1.0;
@@ -106,37 +197,85 @@ double Decay::Other(std::string Channel, double A)
 			Result = 0.0;
 			break;
 		case _nnn:
-			Result = Total()-nnn();
+			Result = Total() - nnn();
 			break;
 		case _nGAMMA:
-			Result = Total()-nGAMMA();
+			Result = Total() - nGAMMA();
 			break;
 		case _nEE:
-			Result = Total()-nEE();
+			Result = Total() - nEE();
 			break;
 		case _nEMU:
-			Result = Total()-nEMU();
+			Result = Total() - nEMU();
 			break;
 		case _nMUE:
-			Result = Total()-nMUE();
-			break;
-		case _nPI0:
-			Result = Total()-nPI0();
-			break;
-		case _EPI:
-			Result = Total()-EPI();
+			Result = Total() - nMUE();
 			break;
 		case _nMUMU:
-			Result = Total()-nMUMU();
+			Result = Total() - nMUMU();
+			break;
+		case _nET:
+			Result = Total() - nET();
+			break;
+		case _nTE:
+			Result = Total() - nTE();
+			break;
+		case _nMUT:
+			Result = Total() - nMUT();
+			break;
+		case _nTMU:
+			Result = Total() - nTMU();
+			break;
+		case _nPI0:
+			Result = Total() - nPI0();
+			break;
+		case _EPI:
+			Result = Total() - EPI();
 			break;
 		case _MUPI:
-			Result = Total()-MUPI();
+			Result = Total() - MUPI();
+			break;
+		case _TPI:
+			Result = Total() - TPI();
 			break;
 		case _EKA:
-			Result = Total()-EKA();
+			Result = Total() - EKA();
 			break;
-		case _nKA0:
-			Result = Total()-nKA0();
+		case _MUKA:
+			Result = Total() - MUKA();
+			break;
+		case _EKAx:
+			Result = Total() - EKAx();
+			break;
+		case _nKA0x:
+			Result = Total() - nKA0x();
+			break;
+		case _MUKAx:
+			Result = Total() - MUKAx();
+			break;
+		case _nRHO0:
+			Result = Total() - nRHO0();
+			break;
+		case _ERHO:
+			Result = Total() - ERHO();
+			break;
+		case _MURHO:
+			Result = Total() - MURHO();
+			break;
+		case _nETA:
+			Result = Total() - nETA();
+			break;
+		case _nETAi:
+			Result = Total() - nETAi();
+			break;
+		case _nOMEGA:
+			Result = Total() - nOMEGA();
+			break;
+		case _nPHI:
+			Result = Total() - nPHI();
+			break;
+		case _ECHARM:
+			Result = Total() - ECHARM();
 			break;
 		default:
 			Result = -1.0;
@@ -173,23 +312,71 @@ double Decay::Branch(std::string Channel, double A, double B)
 		case _nMUE:
 			Result = nMUE()/Total();
 			break;
+		case _nMUMU:
+			Result = nMUMU()/Total();
+			break;
+		case _nET:
+			Result = nET()/Total();
+			break;
+		case _nTE:
+			Result = nTE()/Total();
+			break;
+		case _nMUT:
+			Result = nMUT()/Total();
+			break;
+		case _nTMU:
+			Result = nTMU()/Total();
+			break;
 		case _nPI0:
 			Result = nPI0()/Total();
 			break;
 		case _EPI:
 			Result = EPI()/Total();
 			break;
-		case _nMUMU:
-			Result = nMUMU()/Total();
-			break;
 		case _MUPI:
 			Result = MUPI()/Total();
+			break;
+		case _TPI:
+			Result = TPI()/Total();
 			break;
 		case _EKA:
 			Result = EKA()/Total();
 			break;
-		case _nKA0:
-			Result = nKA0()/Total();
+		case _MUKA:
+			Result = MUKA()/Total();
+			break;
+		case _EKAx:
+			Result = EKAx()/Total();
+			break;
+		case _nKA0x:
+			Result = nKA0x()/Total();
+			break;
+		case _MUKAx:
+			Result = MUKAx()/Total();
+			break;
+		case _nRHO0:
+			Result = nRHO0()/Total();
+			break;
+		case _ERHO:
+			Result = ERHO()/Total();
+			break;
+		case _MURHO:
+			Result = MURHO()/Total();
+			break;
+		case _nETA:
+			Result = nETA()/Total();
+			break;
+		case _nETAi:
+			Result = nETAi()/Total();
+			break;
+		case _nOMEGA:
+			Result = nOMEGA()/Total();
+			break;
+		case _nPHI:
+			Result = nPHI()/Total();
+			break;
+		case _ECHARM:
+			Result = ECHARM()/Total();
 			break;
 		default:
 			Result = -1.0;
@@ -310,15 +497,6 @@ int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of pr
 			Weight = Event->Generate();
 			break;
 
-		case _nKA0:
-			Mass[0] = M_Neutrino;
-			Mass[1] = M_Kaon0;
-			PdgCode[0] = 12;
-			PdgCode[1] = 130;
-			Products = 2 * Event->SetDecay(*N_rest, 2, Mass);
-			Weight = Event->Generate();
-			break;
-
 		default:
 			Products = 0;
 			break;
@@ -346,10 +524,14 @@ void Decay::SetEnhancement(std::string Channel, double K)
 //total decay width
 double Decay::Total(double A)
 {
-	//SetEnhancement("ALL", A);
-
-	return A * (nnn() + nGAMMA() + nEE() + nEMU() + nMUE() + 
-	       nPI0() + EPI() + nMUMU() + MUPI());	// + EKA() + nKA0());
+	return A * ( nnn() + nGAMMA() +
+		     nEE() + nEMU() + nMUE() + nMUMU() + nET() + nTE() + nMUT() + nTMU() +
+		     nPI0() + EPI() + + MUPI() + TPI() +
+		     EKA() + MUKA() + 
+		     nRHO0() + ERHO() + MURHO() +
+		     EKAx() + nKA0x() + MUKAx() + 
+		     nETA() + nETAi() + nOMEGA() + nPHI() +
+		     ECHARM()	);
 }
 
 
@@ -390,191 +572,324 @@ double Decay::nGAMMA()
 double Decay::nEE()
 {
 	if (fnEE_e < 0 || fnEE_mt < 0 || IsChanged())
-	{
-		if (M_Sterile >= M_Neutrino + 2 * M_Electron)
-		{
-			double dMe = M_Electron / M_Sterile;
-			double dMn = M_Neutrino / M_Sterile;
-			double gL = -0.5 + Const::fSin2W;
-			double gR = Const::fSin2W;
-			double Int1 = Kine::I1_xyz(dMn, dMe, dMe);
-			double Int2 = Kine::I2_xyz(dMn, dMe, dMe);
-			double KF_e = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
-			double KF_mt = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
-	
-			fnEE_e  = mapEnhance["nEE"] * Const::fGF2 * pow(M_Sterile, 5) * 	//KF_e
-				  KF_e / (96.0 * Const::fPi3);
-			fnEE_mt = mapEnhance["nEE"] * Const::fGF2 * pow(M_Sterile, 5) * 	//KF_mt
-				  KF_mt / (96.0 * Const::fPi3);
-		}
-		else
-		{
-			fnEE_e  = 0.0;
-			fnEE_mt = 0.0;
-		}
-	}
+		NeutrinoLeptonAA(fnEE_e, fnEE_mt, M_Electron);
 
-	return fnEE_e * Ue*Ue + fnEE_mt * (Um*Um + Ut*Ut);
+	return mapEnhance["nEE"] * fnEE_e * Ue*Ue + fnEE_mt * (Um*Um + Ut*Ut);
 }
 
-//M_Sterile > M_Muon
-double Decay::nEMU()	//Anti is Elec
+//M_Sterile > M_Muon + M_Electron
+double Decay::nEMU()	//Antiparticle is Elec
 {
 	if (fnEMU < 0 || IsChanged())
-		fnEMU = mapEnhance["nEMU"] * nLeptonW(M_Muon, M_Electron);
+		fnEMU = NeutrinoLeptonAB(M_Muon, M_Electron);
 
-	return fnEMU * Ue*Ue;
+	return mapEnhance["nEMU"] * fnEMU * Ue*Ue;
 }
 
 double Decay::nMUE()	//Anti is Muon
 {
 	if (fnMUE < 0 || IsChanged())
-		fnMUE = mapEnhance["nMUE"] * nLeptonW(M_Electron, M_Muon);
+		fnMUE = NeutrinoLeptonAB(M_Electron, M_Muon);
 
-	return fnMUE * Um*Um;
-}
-
-double Decay::nLeptonW(double m1, double m2)	//it is doubled for the cc conjugate
-{
-	if (M_Sterile >= M_Neutrino + m1 + m2)
-	{
-		double dM1 = m1 / M_Sterile;
-		double dM2 = m2 / M_Sterile;
-		double dMn = M_Neutrino / M_Sterile;
-
-		return 2.0 * Const::fGF2 * pow(M_Sterile, 5) * Kine::I1_xyz(dM1, dMn, dM2) /
-			(192.0 * Const::fPi3);
-	}
-	return 0.0;
-}       
-
-//M_Sterile > M_Pion0
-double Decay::nPI0()
-{
-	if (fnPI0 < 0 || IsChanged())
-	{
-		if (M_Sterile >= M_Neutrino + M_Pion0)
-		{
-			double dMp2 = M_Pion0*M_Pion0/M_Sterile/M_Sterile;
-	
-			fnPI0 = mapEnhance["nPI0"] * Const::fGF2 * pow(M_Sterile, 3) *
-				pow((1.0-dMp2), 2.0) * Const::fFPion2 / (64.0 * Const::fPi);
-		}
-		else fnPI0 = 0.0;
-	}
-
-	return fnPI0 * (Ue*Ue + Um*Um + Ut*Ut);
-}
-
-//M_Sterile > M_Pion
-double Decay::EPI()
-{
-	if (fEPI < 0 || IsChanged())
-	{
-		if (M_Sterile >= M_Electron + M_Pion)
-		{
-			double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
-			double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
-	
-			fEPI = 2.0 * mapEnhance["EPI"] * Const::fGF2 * pow(M_Sterile, 3) *
-			       pow(Const::fV_ud, 2.0) * Const::fFPion2 * Kine::I1_xy(dMe2, dMp2) / 
-			       (16.0 * Const::fPi);
-		}
-		else fEPI = 0.0;
-	}
-	
-	return fEPI * Ue*Ue;
+	return mapEnhance["nMUE"] * fnMUE * Um*Um;
 }
 
 //M_Sterile > 2 M_Muon
 double Decay::nMUMU()
 {
 	if (fnMUMU_m < 0 || fnMUMU_et < 0 || IsChanged())
-	{
-		if (M_Sterile >= M_Neutrino + 2 * M_Muon)
-		{
-			double dMm = M_Muon / M_Sterile;
-			double dMn = M_Neutrino / M_Sterile;
-			double gL = -0.5 + Const::fSin2W;
-			double gR = Const::fSin2W;
-			double Int1 = Kine::I1_xyz(dMn, dMm, dMm);
-			double Int2 = Kine::I2_xyz(dMn, dMm, dMm);
-			double KF_m = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
-			double KF_e = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
-	
-			fnMUMU_m  = mapEnhance["nMUMU"] * Const::fGF2 * pow(M_Sterile, 5) *
-				    KF_m / (96.0 * Const::fPi3);
-			fnMUMU_et = mapEnhance["nMUMU"] * Const::fGF2 * pow(M_Sterile, 5) *
-				    KF_e / (96.0 * Const::fPi3);
-		}
-		else
-		{
-			fnMUMU_m  = 0.0;
-			fnMUMU_et = 0.0;
-		}
-	}
+		NeutrinoLeptonAA(fnMUMU_m, fnMUMU_et, M_Muon);
 
-	return fnMUMU_m * Um*Um + fnMUMU_et * (Ue*Ue + Ut*Ut);
+	return mapEnhance["nMUMU"] * (fnMUMU_m * Um*Um + fnMUMU_et * (Ue*Ue + Ut*Ut));
+}
+
+//M_Sterile > M_Tau + M_Electron
+double Decay::nET()	//Antiparticle is Elec
+{
+	if (fnET < 0 || IsChanged())
+		fnET = NeutrinoLeptonAB(M_Tau, M_Electron);
+
+	return mapEnhance["nET"] * fnET * Ut*Ut;
+}
+
+double Decay::nTE()	//Anti is Tau
+{
+	if (fnTE < 0 || IsChanged())
+		fnTE = NeutrinoLeptonAB(M_Electron, M_Tau);
+
+	return mapEnhance["nTE"] * fnTE * Ue*Ue;
+}
+
+//M_Sterile > M_Tau + M_Muon
+double Decay::nMUT()	//Antiparticle is Muon
+{
+	if (fnMUT < 0 || IsChanged())
+		fnMUT = NeutrinoLeptonAB(M_Tau, M_Muon);
+
+	return mapEnhance["nMUT"] * fnMUT * Ut*Ut;
+}
+
+double Decay::nTMU()	//Anti is Tau
+{
+	if (fnTMU < 0 || IsChanged())
+		fnTMU = NeutrinoLeptonAB(M_Muon, M_Tau);
+
+	return mapEnhance["nTMU"] * fnTE * Um*Um;
+}
+
+//M_Sterile > M_Pion0
+double Decay::nPI0()
+{
+	if (fnPI0 < 0 || IsChanged())
+		fnPI0 = NeutrinoPseudoMeson(M_Pion, Const::fDPion02);	//check
+
+	return mapEnhance["nPI0"] * fnPI0 * (Ue*Ue + Um*Um + Ut*Ut);
+}
+
+//M_Sterile > M_Pion
+double Decay::EPI()
+{
+	if (fEPI < 0 || IsChanged())
+		fEPI = LeptonPseudoMeson(M_Electron, M_Pion, Const::fU_ud, Const::fDPion2);
+	
+	return mapEnhance["EPI"] * fEPI * Ue*Ue;
 }
 
 //M_Sterile > M_Pion + M_Muon
 double Decay::MUPI()
 {
 	if (fMUPI < 0 || IsChanged())
-	{
-		if (M_Sterile >= M_Muon + M_Pion)
-		{
-			double dMm2 = M_Muon*M_Muon/M_Sterile/M_Sterile;
-			double dMp2 = M_Pion*M_Pion/M_Sterile/M_Sterile;
+		fMUPI = LeptonPseudoMeson(M_Muon, M_Pion, Const::fU_ud, Const::fDPion2);
 	
-			fMUPI = 2.0 * mapEnhance["MUPI"] * Const::fGF2 * pow(M_Sterile, 3) *
-			        pow(Const::fV_ud, 2.0)*Const::fFPion2 * Kine::I1_xy(dMm2, dMp2) /
-			        (16.0 * Const::fPi);
-		}
-		else fMUPI = 0.0;
-	}
+	return mapEnhance["MUPI"] * fMUPI * Um*Um;
+}
+
+//M_Sterile > M_Tau + M_Pion
+double Decay::TPI()
+{
+	if (fTPI < 0 || IsChanged())
+		fTPI = LeptonPseudoMeson(M_Tau, M_Pion, Const::fU_ud, Const::fDPion2);
 	
-	return fMUPI * Um*Um;
+	return mapEnhance["TPI"] * fTPI * Ut*Ut;
 }
 
 //M_Sterile > M_Kaon + M_Electron
 double Decay::EKA()
 {
 	if (fEKA < 0 || IsChanged())
-	{
-		if (M_Sterile >= M_Electron + M_Kaon)
-		{
-			double dMe2 = M_Electron*M_Electron/M_Sterile/M_Sterile;
-			double dMk2 = M_Kaon*M_Kaon/M_Sterile/M_Sterile;
-	
-			fEKA = 2.0 * mapEnhance["EKA"] * Const::fGF2 * pow(M_Sterile, 3) *
-			       pow(Const::fV_us, 2.0) * Const::fFKaon2 * Kine::I1_xy(dMe2, dMk2) /
-			       (16.0 * Const::fPi);
-		}
-		else fEKA = 0.0;
-	}
+		fEKA = LeptonPseudoMeson(M_Electron, M_Kaon, Const::fU_us, Const::fDKaon2);
 
-	return fEKA * Ue*Ue;
+	return mapEnhance["EKA"] * fEKA * Ue*Ue;
 }
 
-//M_Sterile > M_Kaon0
-double Decay::nKA0()
+//M_Sterile > M_Kaon + M_Muon
+double Decay::MUKA()
 {
-	if (fnKA0 < 0 || IsChanged())
-	{
-		if (M_Sterile >= M_Neutrino + M_Kaon0)
-		{
-			double dMk2 = M_Kaon0*M_Kaon0/M_Sterile/M_Sterile;
-	
-			fnKA0 = mapEnhance["nKA0"] * Const::fGF2 * pow(M_Sterile, 3) *
-				Const::fFKaon2 * pow((1.0-dMk2), 2.0) / 
-				(64.0 * Const::fPi);
-		}
-		else fnKA0 = 0.0;
-	}
+	if (fMUKA < 0 || IsChanged())
+		fMUKA = LeptonPseudoMeson(M_Muon, M_Kaon, Const::fU_us, Const::fDKaon2);
 
-	return fnKA0 * (Ue*Ue + Um*Um + Ut*Ut);
+	return mapEnhance["MUKA"] * fMUKA * Um*Um;
 }
+
+//M_Sterile > M_Rho
+double Decay::nRHO0()
+{
+	if (fnRHO0 < 0 || IsChanged())
+		fnRHO0 = NeutrinoVectorMeson(M_Rho0, Const::fDRho02, Const::fVLight);	//check
+
+	return mapEnhance["nRHO0"] * fnRHO0 * (Ue*Ue + Um*Um + Ut*Ut);
+}
+
+//M_Sterile > M_Rho + M_Electron 
+double Decay::ERHO()
+{
+	if (fERHO < 0 || IsChanged())
+		fERHO = LeptonVectorMeson(M_Electron, M_Rho, Const::fU_ud, Const::fDRho2, Const::fVLight);	//check
+
+	return mapEnhance["ERHO"] * fERHO * Ue*Ue;
+}
+
+//M_Sterile > M_Rho + M_Muon 
+double Decay::MURHO()
+{
+	if (fMURHO < 0 || IsChanged())
+		fMURHO = LeptonVectorMeson(M_Muon, M_Rho, Const::fU_ud, Const::fDRho2, Const::fVLight);	//check
+
+	return mapEnhance["MURHO"] * fMURHO * Um*Um;
+}
+
+//M_Sterile > M_Kaon* + M_Electron 
+double Decay::EKAx()
+{
+	if (fEKAx < 0 || IsChanged())
+		fEKAx = LeptonVectorMeson(M_Electron, M_Kaonx, Const::fU_us, Const::fDKaonx2, Const::fVStrange);	//check
+
+	return mapEnhance["EKAx"] * fEKAx * Ue*Ue;
+}
+
+//M_Sterile > M_Kaon0* 
+double Decay::nKA0x()
+{
+	if (fnKA0x < 0 || IsChanged())
+		fnKA0x = NeutrinoVectorMeson(M_Kaon0x, Const::fDKaon0x2, Const::fVStrange);	//check
+
+	return mapEnhance["nKA0x"] * fnKA0x * (Ue*Ue + Um*Um + Ut*Ut);
+}
+
+//M_Sterile > M_Kaon* + M_Muon 
+double Decay::MUKAx()
+{
+	if (fMUKAx < 0 || IsChanged())
+		fMUKAx = LeptonVectorMeson(M_Muon, M_Kaonx, Const::fU_us, Const::fDKaonx2, Const::fVStrange);	//check
+
+	return mapEnhance["MUKAx"] * fMUKAx * Um*Um;
+}
+
+//M_Sterile > M_Eta
+double Decay::nETA()
+{
+	if (fnETA < 0 || IsChanged())
+		fnETA = NeutrinoPseudoMeson(M_Eta, Const::fDEta2);	//check
+
+	return mapEnhance["nETA"] * fnETA * (Ue*Ue + Um*Um + Ut*Ut);
+}
+
+//M_Sterile > M_Eta'
+double Decay::nETAi()
+{
+	if (fnETAi < 0 || IsChanged())
+		fnETAi = NeutrinoPseudoMeson(M_Etai, Const::fDEtai2);	//check
+
+	return mapEnhance["nETA"] * fnETA * (Ue*Ue + Um*Um + Ut*Ut);
+}
+
+//M_Sterile > M_Omega 
+double Decay::nOMEGA()
+{
+	if (fnOMEGA < 0 || IsChanged())
+		fnOMEGA = NeutrinoVectorMeson(M_Omega, Const::fDOmega2, Const::fVLight);	//check
+
+	return mapEnhance["nOMEGA"] * fnOMEGA * (Ue*Ue + Um*Um + Ut*Ut);
+}
+
+//M_Sterile > M_Phi 
+double Decay::nPHI()
+{
+	if (fnPHI < 0 || IsChanged())
+		fnPHI = NeutrinoVectorMeson(M_Phi, Const::fDPhi2, Const::fVStrange);	//check
+
+	return mapEnhance["nPHI"] * fnPHI * (Ue*Ue + Um*Um + Ut*Ut);
+}
+
+//M_Sterile > M_Charm + M_Electron
+double Decay::ECHARM()
+{
+	if (fECHARM < 0 || IsChanged())
+		fECHARM = LeptonPseudoMeson(M_Electron, M_Charm, Const::fU_cd, Const::fDCharm2);
+
+	return mapEnhance["ECHARM"] * fECHARM * Ue*Ue;
+}
+
+/////////////////
+//Generic decay//
+/////////////////
+double Decay::LeptonPseudoMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2)
+{
+	if (M_Sterile >= M_Lepton + M_Meson)
+	{
+		double dML2 = M_Lepton*M_Lepton/M_Sterile/M_Sterile;
+		double dMM2 = M_Meson*M_Meson/M_Sterile/M_Sterile;
+
+		return 2.0 * Const::fGF2 * pow(M_Sterile, 3) *
+		       pow(vCKM, 2.0) * fDecay2 * Kine::I1_xy(dML2, dMM2) /
+		       (16.0 * Const::fPi);
+	}
+	else return 0.0;
+}
+
+double Decay::NeutrinoPseudoMeson(double M_Meson, double fDecay2)
+{
+	if (M_Sterile >= M_Neutrino + M_Meson)
+	{
+		double dMM2 = M_Meson*M_Meson/M_Sterile/M_Sterile;
+
+		return  Const::fGF2 * pow(M_Sterile, 3) *
+			fDecay2 * pow((1.0-dMM2), 2.0) / 
+			(64.0 * Const::fPi);
+	}
+	else return 0.0;
+}
+
+double Decay::LeptonVectorMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2, double fVector)
+{
+	if (M_Sterile >= M_Lepton + M_Meson)
+	{
+		double dML2 = M_Lepton*M_Lepton/M_Sterile/M_Sterile;
+		double dMM2 = M_Meson*M_Meson/M_Sterile/M_Sterile;
+		fVector *= fVector;
+
+		return 2.0 * Const::fGF2 * pow(M_Sterile, 3) *
+		       pow(vCKM, 2.0) * fDecay2 * fVector * Kine::I2_xy(dML2, dMM2) /
+		       (16.0 * Const::fPi);
+	}
+	else return 0.0;
+}
+
+double Decay::NeutrinoVectorMeson(double M_Meson, double fDecay2, double fVector)
+{
+	if (M_Sterile >= M_Neutrino + M_Meson)
+	{
+		double dMN2 = M_Neutrino*M_Neutrino/M_Sterile/M_Sterile;
+		double dMM2 = M_Meson*M_Meson/M_Sterile/M_Sterile;
+		fVector *= fVector;
+
+		return  Const::fGF2 * pow(M_Sterile, 3) *
+			fDecay2 * fVector * Kine::I3_xy(dMN2, dMM2) / 
+			(2.0 * Const::fPi);
+	}
+	else return 0.0;
+}
+
+double Decay::NeutrinoLeptonAA(double &fCC, double &fNC, double M_Lepton)
+{
+	if (M_Sterile >= M_Neutrino + 2 * M_Lepton)
+	{
+		double dMm = M_Lepton / M_Sterile;
+		double dMn = M_Neutrino / M_Sterile;
+		double gL = -0.5 + Const::fSin2W;
+		double gR = Const::fSin2W;
+		double Int1 = Kine::I1_xyz(dMn, dMm, dMm);
+		double Int2 = Kine::I2_xyz(dMn, dMm, dMm);
+		double KF_CC = (gL*gR + gR) * Int2 + (gL*gL + gR*gR + (1+2*gL))*Int1;
+		double KF_NC = (gL*gR) * Int2 + (gL*gL + gR*gR)*Int1;
+
+		fCC = Const::fGF2 * pow(M_Sterile, 5) * KF_CC / (96.0 * Const::fPi3);
+		fNC = Const::fGF2 * pow(M_Sterile, 5) * KF_NC / (96.0 * Const::fPi3);
+	}
+	else
+	{
+		fCC = 0.0;
+		fNC = 0.0;
+	}
+	return 0.0;
+}
+
+double Decay::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB)	//it is doubled for the cc conjugate
+{
+	if (M_Sterile >= M_Neutrino + M_LeptonA + M_LeptonB)
+	{
+		double dM1 = M_LeptonA / M_Sterile;
+		double dM2 = M_LeptonB / M_Sterile;
+		double dMn = M_Neutrino / M_Sterile;
+
+		return 2.0 * Const::fGF2 * pow(M_Sterile, 5) * Kine::I1_xyz(dM1, dMn, dM2) /
+			(192.0 * Const::fPi3);
+	}
+	else return 0.0;
+}       
+/////////////////////////
+//end of generic decays//
+/////////////////////////
 
 
 std::vector<std::string> Decay::ListChannels()
@@ -583,6 +898,15 @@ std::vector<std::string> Decay::ListChannels()
 	std::vector<std::string> vList;
 	for (it = mapChannel.begin(); it != mapChannel.end(); ++it)
 		vList.push_back(it->first);
+	return vList;
+}
+
+std::vector<ChannelName> Decay::ListNameKeys()
+{
+	std::map<std::string, ChannelName>::iterator it;
+	std::vector<ChannelName> vList;
+	for (it = mapChannel.begin(); it != mapChannel.end(); ++it)
+		vList.push_back(it->second);
 	return vList;
 }
 
@@ -595,19 +919,36 @@ bool Decay::IsChanged()
 	//Reset decay widths if changed
 	if (Ret)
 	{
-		fnnn	  = -1.0;
-	        fnGAMMA	  = -1.0;
-	        fnEE_e	  = -1.0;
-	        fnEE_mt	  = -1.0;
-	        fnEMU	  = -1.0;
-	        fnMUE	  = -1.0;
-	        fnPI0	  = -1.0;
-	        fEPI	  = -1.0;
-	        fnMUMU_m  = -1.0;
-	        fnMUMU_et = -1.0;
-	        fMUPI	  = -1.0;
-	        fEKA	  = -1.0;
-	        fnKA0	  = -1.0;
+		fTotal    = -1.0;
+		fnnn      = -1.0;
+                fnGAMMA   = -1.0;
+                fnEE_e    = -1.0;
+                fnEE_mt   = -1.0;
+                fnEMU     = -1.0;
+                fnMUE     = -1.0;
+                fnMUMU_m  = -1.0;
+                fnMUMU_et = -1.0;
+                fnET      = -1.0;
+                fnTE      = -1.0;
+                fnMUT     = -1.0;
+                fnTMU     = -1.0;
+                fnPI0     = -1.0;
+                fEPI      = -1.0;
+                fMUPI     = -1.0;
+                fTPI      = -1.0;
+                fEKA      = -1.0;
+                fMUKA     = -1.0;
+                fnRHO0    = -1.0;
+                fERHO     = -1.0;
+                fMURHO    = -1.0;
+                fEKAx     = -1.0;
+                fnKA0x    = -1.0;
+                fMUKAx    = -1.0;
+                fnETA     = -1.0;
+                fnETAi    = -1.0;
+                fnOMEGA   = -1.0;
+                fnPHI     = -1.0;
+                fECHARM   = -1.0;
 	}
 
 	return Ret;

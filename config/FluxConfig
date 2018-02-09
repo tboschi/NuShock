@@ -3,9 +3,11 @@ BinNumber	100
 RangeStart	0
 RangeEnd	20
 #Define a file for each type of neutrino
+#Electron_	data/NuE_0.root
+#ElectronBar_	
 Muon_		data/NuMu_0.root
 MuonBar_	data/NuBar_0.root
-Electron_	data/NuE_0.root
-#ElectronBar_	
+#Tau_		data/NuTau_DUNE.root
+#TauBar_	data/NuBar_0.root
 
-Kinematics	data/Enhancement.root
+#Kinematics	data/Enhancement.root
