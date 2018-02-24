@@ -1,0 +1,31 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/Templates/MCflux/Supershock
+
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nnn_T.dat -c nnn  	-T 
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nGAMMA_T.dat -c nGAMMA	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nEE_T.dat -c nEE   	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nEMU_T.dat -c nEMU  	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nMUE_T.dat -c nMUE  	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nMUMU_T.dat -c nMUMU 	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nET_T.dat -c nET   	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nTE_T.dat -c nTE   	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nMUT_T.dat -c nMUT  	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nTMU_T.dat -c nTMU  	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nPI0_T.dat -c nPI0  	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_EPI_T.dat -c EPI   	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_MUPI_T.dat -c MUPI  	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_TPI_T.dat -c TPI   	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_EKA_T.dat -c EKA   	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_MUKA_T.dat -c MUKA  	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nRHO0_T.dat -c nRHO0 	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_ERHO_T.dat -c ERHO  	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_MURHO_T.dat -c MURHO 	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_EKAx_T.dat -c EKAx  	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nKA0x_T.dat -c nKA0x 	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_MUKAx_T.dat -c MUKAx 	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nOMEGA_T.dat -c nOMEGA	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nETA_T.dat -c nETA  	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nETAi_T.dat -c nETAi 	-T
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_nPHI_T.dat -c nPHI  	-T
+#./bin/OriginalExclusion -s config/SMConfig -d config/ND_LAr -f config/FluxConfig -o Exclusion/LAr/LAr_ECHARM_T.dat -c ECHARM	-T

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/scratch/Supershock
+
+./bin/Plotter -i Exclusion/Couple/nnn_T.dat -o Exclusion/Plot_Couple/nnn_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nGAMMA_T.dat -o Exclusion/Plot_Couple/nGAMMA_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nEE_T.dat -o Exclusion/Plot_Couple/nEE_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/nEMU_T.dat -o Exclusion/Plot_Couple/nEMU_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/nMUE_T.dat -o Exclusion/Plot_Couple/nMUE_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nMUMU_T.dat -o Exclusion/Plot_Couple/nMUMU_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/nET_T.dat -o Exclusion/Plot_Couple/nET_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nTE_T.dat -o Exclusion/Plot_Couple/nTE_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/nMUT_T.dat -o Exclusion/Plot_Couple/nMUT_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nTMU_T.dat -o Exclusion/Plot_Couple/nTMU_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nPI0_T.dat -o Exclusion/Plot_Couple/nPI0_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/EPI_T.dat -o Exclusion/Plot_Couple/EPI_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/MUPI_T.dat -o Exclusion/Plot_Couple/MUPI_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/TPI_T.dat -o Exclusion/Plot_Couple/TPI_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/EKA_T.dat -o Exclusion/Plot_Couple/EKA_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/MUKA_T.dat -o Exclusion/Plot_Couple/MUKA_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nRHO0_T.dat -o Exclusion/Plot_Couple/nRHO0_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/ERHO_T.dat -o Exclusion/Plot_Couple/ERHO_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/MURHO_T.dat -o Exclusion/Plot_Couple/MURHO_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/EKAx_T.dat -o Exclusion/Plot_Couple/EKAx_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nKA0x_T.dat -o Exclusion/Plot_Couple/nKA0x_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/MUKAx_T.dat -o Exclusion/Plot_Couple/MUKAx_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nOMEGA_T.dat -o Exclusion/Plot_Couple/nOMEGA_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nETA_T.dat -o Exclusion/Plot_Couple/nETA_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nETAi_T.dat -o Exclusion/Plot_Couple/nETAi_T.dat -t 2.44
+./bin/Plotter -i Exclusion/Couple/nPHI_T.dat -o Exclusion/Plot_Couple/nPHI_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/Couple/ECHARM_T.dat -o Exclusion/Plot_Couple/ECHARM_T.dat -t 2.44

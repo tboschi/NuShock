@@ -1,0 +1,17 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/scratch/Supershock
+
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_MUPI_M_C.dat -M -c MUPI
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nMUMU_M_C.dat -M -c nMUMU
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nMUE_M_C.dat -M -c nMUE
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nEE_M_C.dat -M -c nEE
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nGAMMA_M_C.dat -M -c nGAMMA
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nPI0_M_C.dat -M -c nPI0
+
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_EPI_E_C.dat -E -c EPI
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nMUMU_E_C.dat -E -c nMUMU
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nMUE_E_C.dat -E -c nEMU
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nEE_E_C.dat -E -c nEE
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nGAMMA_E_C.dat -E -c nGAMMA
+./bin/OriginalExclusion -s config/SMConfig -d config/ND_FGT -f config/FluxConfig -o Exclusion/FGT/FGT_nPI0_E_C.dat -E -c nPI0

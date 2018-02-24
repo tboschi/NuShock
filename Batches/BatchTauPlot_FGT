@@ -1,0 +1,31 @@
+#!/bin/bash
+
+cd /mt/home/tboschi/scratch/Supershock
+
+./bin/Plotter -i Exclusion/FGT/FGT_nnn_T.dat -o Exclusion/Plot_FGT/nnn_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nGAMMA_T.dat -o Exclusion/Plot_FGT/nGAMMA_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nEE_T.dat -o Exclusion/Plot_FGT/nEE_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_nEMU_T.dat -o Exclusion/Plot_FGT/nEMU_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_nMUE_T.dat -o Exclusion/Plot_FGT/nMUE_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nMUMU_T.dat -o Exclusion/Plot_FGT/nMUMU_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_nET_T.dat -o Exclusion/Plot_FGT/nET_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nTE_T.dat -o Exclusion/Plot_FGT/nTE_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_nMUT_T.dat -o Exclusion/Plot_FGT/nMUT_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nTMU_T.dat -o Exclusion/Plot_FGT/nTMU_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nPI0_T.dat -o Exclusion/Plot_FGT/nPI0_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_EPI_T.dat -o Exclusion/Plot_FGT/EPI_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_MUPI_T.dat -o Exclusion/Plot_FGT/MUPI_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_TPI_T.dat -o Exclusion/Plot_FGT/TPI_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_EKA_T.dat -o Exclusion/Plot_FGT/EKA_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_MUKA_T.dat -o Exclusion/Plot_FGT/MUKA_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nRHO0_T.dat -o Exclusion/Plot_FGT/nRHO0_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_ERHO_T.dat -o Exclusion/Plot_FGT/ERHO_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_MURHO_T.dat -o Exclusion/Plot_FGT/MURHO_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_EKAx_T.dat -o Exclusion/Plot_FGT/EKAx_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nKA0x_T.dat -o Exclusion/Plot_FGT/nKA0x_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_MUKAx_T.dat -o Exclusion/Plot_FGT/MUKAx_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nOMEGA_T.dat -o Exclusion/Plot_FGT/nOMEGA_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nETA_T.dat -o Exclusion/Plot_FGT/nETA_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nETAi_T.dat -o Exclusion/Plot_FGT/nETAi_T.dat -t 2.44
+./bin/Plotter -i Exclusion/FGT/FGT_nPHI_T.dat -o Exclusion/Plot_FGT/nPHI_T.dat -t 2.44
+#./bin/Plotter -i Exclusion/FGT/FGT_ECHARM_T.dat -o Exclusion/Plot_FGT/ECHARM_T.dat -t 2.44
