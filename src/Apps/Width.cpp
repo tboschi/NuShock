@@ -93,72 +93,109 @@ int main(int argc, char** argv)
 	ConfigFile.close();
 	*/
 
-	int bins = 500;
+	int bins = 2000;
 
-	TH1D *hMuonMuon = new TH1D("muonmuon", "Muon->Muon", bins,0,0.500);
-	TH1D *hMuonElec = new TH1D("muonelec", "Muon->Elec", bins,0,0.500);
-	TH1D *hKaonMuon = new TH1D("kaonmuon", "Kaon->Muon", bins,0,0.500);
-	TH1D *hKaonElec = new TH1D("kaonelec", "Kaon->Elec", bins,0,0.500);
-	TH1D *hKaon0Muon = new TH1D("kaon0muon", "Kaon0->Muon", bins,0,0.500);
-	TH1D *hKaon0Elec = new TH1D("kaon0elec", "Kaon0->Elec", bins,0,0.500);
+	TH1D *hMuonElec  = new TH1D("muonelec",  "Muon->Elec",  bins,0,2.0);
+	TH1D *hMuonMuon  = new TH1D("muonmuon",  "Muon->Muon",  bins,0,2.0);
+	TH1D *hKaonElec  = new TH1D("kaonelec",  "Kaon->Elec",  bins,0,2.0);
+	TH1D *hKaonMuon  = new TH1D("kaonmuon",  "Kaon->Muon",  bins,0,2.0);
+	TH1D *hKaon0Elec = new TH1D("kaon0elec", "Kaon0->Elec", bins,0,2.0);
+	TH1D *hKaon0Muon = new TH1D("kaon0muon", "Kaon0->Muon", bins,0,2.0);
+	TH1D *hTauEElec  = new TH1D("taueelec",  "TauE->Elec",  bins,0,2.0);
+	TH1D *hTauETau   = new TH1D("tauetau",   "TauE->Tau",   bins,0,2.0);
+	TH1D *hTauMMuon  = new TH1D("taummuon",  "TauM->Muon",  bins,0,2.0);
+	TH1D *hTauMTau   = new TH1D("taumtau",   "TauM->Tau",   bins,0,2.0);
 
 	double a,b,dx;
-	ThreeBody *Decay = new ThreeBody("Muon", 0.0, 1.0, 1.0, 1.0);
-	Decay->MuonChannel();
-	double gMM = Decay->Gamma();
-	Decay->ElectronChannel();
-	double gME = Decay->Gamma();
+	ThreeBody *DecayMuon  = new ThreeBody("Muon",  0.0, 1.0, 1.0, 1.0);
+	ThreeBody *DecayKaon0 = new ThreeBody("Kaon0", 0.0, 1.0, 1.0, 1.0);
+	ThreeBody *DecayKaon  = new ThreeBody("Kaon",  0.0, 1.0, 1.0, 1.0);
+	ThreeBody *DecayTauE  = new ThreeBody("TauE",  0.0, 1.0, 1.0, 1.0);
+	ThreeBody *DecayTauM  = new ThreeBody("TauM",  0.0, 1.0, 1.0, 1.0);
 
-	Decay->SetParent("Kaon");
-	Decay->MuonChannel();
-	double gKM = Decay->Gamma();
-	Decay->ElectronChannel();
-	double gKE = Decay->Gamma();
+	DecayMuon->ElectronChannel();
+	double gME = DecayMuon->Gamma();
+	DecayMuon->MuonChannel();
+	double gMM = DecayMuon->Gamma();
 
-	Decay->SetParent("Kaon0");
-	Decay->MuonChannel();
-	double gK0M = Decay->Gamma();
-	Decay->ElectronChannel();
-	double gK0E = Decay->Gamma();
+	DecayKaon->ElectronChannel();
+	double gKE = DecayKaon->Gamma();
+	DecayKaon->MuonChannel();
+	double gKM = DecayKaon->Gamma();
 
-	for (double MS = 0.0; MS <= 0.5; MS += 0.5/bins)
+	DecayKaon0->ElectronChannel();
+	double gK0E = DecayKaon0->Gamma();
+	DecayKaon0->MuonChannel();
+	double gK0M = DecayKaon0->Gamma();
+
+	DecayTauE->ElectronChannel();
+	double gTEE = DecayTauE->Gamma();
+	DecayTauE->TauChannel();
+	double gTET = DecayTauE->Gamma();
+
+	DecayTauM->MuonChannel();
+	double gTMM = DecayTauM->Gamma();
+	DecayTauM->TauChannel();
+	double gTMT = DecayTauM->Gamma();
+
+	for (double MS = 0.0; MS <= 2.0; MS += 0.001)
 	{
-		std::cout << "Mass " << MS << std::endl;
-		Decay->SetSterileMass(MS);
+		DecayMuon->SetSterileMass(MS);
+		DecayKaon->SetSterileMass(MS);
+		DecayKaon0->SetSterileMass(MS);
+		DecayTauE->SetSterileMass(MS);
+		DecayTauM->SetSterileMass(MS);
 
 		Out << MS << "\t";
 
-		Decay->SetParent("Muon");
-		Decay->MuonChannel();
-		hMuonMuon->Fill(MS, Decay->Gamma()/gMM);
-		Out << Decay->Gamma()/gMM << "\t";
-		Decay->ElectronChannel();
-		hMuonElec->Fill(MS, Decay->Gamma()/gME);
-		Out << Decay->Gamma()/gME << "\t";
+		DecayMuon->ElectronChannel();
+		hMuonElec->Fill(MS, DecayMuon->Gamma()/gME);
+		Out << DecayMuon->Gamma()/gME << "\t";
+		DecayMuon->MuonChannel();
+		hMuonMuon->Fill(MS, DecayMuon->Gamma()/gMM);
+		Out << DecayMuon->Gamma()/gMM << "\t";
 
-		Decay->SetParent("Kaon");
-		Decay->MuonChannel();
-		hKaonMuon->Fill(MS, Decay->Gamma()/gKM);
-		Out << Decay->Gamma()/gKM << "\t";
-		Decay->ElectronChannel();
-		hKaonElec->Fill(MS, Decay->Gamma()/gKE);
-		Out << Decay->Gamma()/gKE << "\t";
+		DecayKaon->ElectronChannel();
+		hKaonElec->Fill(MS, DecayKaon->Gamma()/gKE);
+		Out << DecayKaon->Gamma()/gKE << "\t";
+		DecayKaon->MuonChannel();
+		hKaonMuon->Fill(MS, DecayKaon->Gamma()/gKM);
+		Out << DecayKaon->Gamma()/gKM << "\t";
 
-		Decay->SetParent("Kaon0");
-		Decay->MuonChannel();
-		hKaon0Muon->Fill(MS, Decay->Gamma()/gK0M);
-		Out << Decay->Gamma()/gK0M << "\t";
-		Decay->ElectronChannel();
-		hKaon0Elec->Fill(MS, Decay->Gamma()/gK0E);
-		Out << Decay->Gamma()/gK0E << std::endl;
+		DecayKaon0->ElectronChannel();
+		hKaon0Elec->Fill(MS, DecayKaon0->Gamma()/gK0E);
+		Out << DecayKaon0->Gamma()/gK0E << "\t";
+		DecayKaon0->MuonChannel();
+		hKaon0Muon->Fill(MS, DecayKaon0->Gamma()/gK0M);
+		Out << DecayKaon0->Gamma()/gK0M << "\t";
+
+		DecayTauE->ElectronChannel();
+		hTauEElec->Fill(MS, DecayTauE->Gamma()/gTEE);
+		Out << DecayTauE->Gamma()/gTEE << "\t";
+		DecayTauE->TauChannel();
+		hTauETau->Fill(MS, DecayTauE->Gamma()/gTET);
+		Out << DecayTauE->Gamma()/gTET << "\t";
+
+		DecayTauM->MuonChannel();
+		hTauMMuon->Fill(MS, DecayTauM->Gamma()/gTMM);
+		Out << DecayTauM->Gamma()/gTMM << "\t";
+		DecayTauM->TauChannel();
+		hTauMTau->Fill(MS, DecayTauM->Gamma()/gTMT);
+		Out << DecayTauM->Gamma()/gTMT << "\t";
+
+		Out << std::endl;
 	}
 
-	hMuonMuon->Write();
         hMuonElec->Write();
-        hKaonMuon->Write();
+	hMuonMuon->Write();
         hKaonElec->Write();
-        hKaon0Muon->Write();
+        hKaonMuon->Write();
         hKaon0Elec->Write();
+        hKaon0Muon->Write();
+        hTauEElec->Write();
+	hTauETau->Write();
+        hTauMMuon->Write();
+	hTauMTau->Write();
 
 	OutFile->Close();
 

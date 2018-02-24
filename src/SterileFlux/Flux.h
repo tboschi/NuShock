@@ -8,6 +8,7 @@
 #define FLUX_H
 
 #include <iostream>
+#include <string>
 
 #include "TObject.h"
 #include "TFile.h"
@@ -23,15 +24,7 @@ class Flux
 		void CloneCopy(TH1D*& T, TObject* X);
 		void CloneCopy(TH1D*& T, TH1D* X);
 
-		TH1D* GetTotal() const;
-		TH1D* GetPion() const;
-		TH1D* Get2Pion() const;
-		TH1D* GetKaon() const;
-		TH1D* GetKaon0() const;
-		TH1D* GetCharm() const;
-		TH1D* GetMuon() const;
-		TH1D* GetTauE() const;
-		TH1D* GetTauM() const;
+		TH1D* Get(std::string T) const;
 
 	private:
 		TH1D *hTotal;

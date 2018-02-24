@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 
 	Detector * TheBox = new Detector(DetConfig, NULL);
 
-	TH1D* hFlux = dynamic_cast<TH1D*> (FluxFile->Get("ptotal"));
+	TH1D* hFlux = dynamic_cast<TH1D*> (FluxFile->Get("htotal"));
 	hFlux->Scale(1.0/pow(TheBox->GetElement("Baseline"), 2));
 	//hFlux->Scale(TheBox->GetElement("POT/s"));
 	//hFlux->Scale(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
@@ -122,8 +122,8 @@ int main(int argc, char** argv)
 		RateNC += hFlux->GetBinContent(i) * hXsecNC->GetBinContent(i) * 0.2;
 	}
 	std::cout << "Rate CC " << RateCC << "\tRate NC " << RateNC << std::endl;
-	RateCC *= TheBox->GetElement("Fiducial");		//fiducial volume
-	RateNC *= TheBox->GetElement("Fiducial");		//fiducial volume
+	//RateCC *= TheBox->GetElement("Fiducial");		//fiducial volume
+	//RateNC *= TheBox->GetElement("Fiducial");		//fiducial volume
 
 	FluxFile->Close();
 	XsecFile->Close();
@@ -137,6 +137,7 @@ int main(int argc, char** argv)
 	Out << "Frequency of NC events is " << NtargetPer*RateNC*TheBox->GetElement("POT/s") << " Hz on average" << std::endl;
 	Out << "Frequency of total events is " << NtargetPer*(RateNC+RateCC)*TheBox->GetElement("POT/s") << " Hz on average" << std::endl;
 	Out << "Percentage of CC over total " << RateCC/(RateNC+RateCC) << std::endl;
+	Out << "Percentage of NC over total " << RateNC/(RateNC+RateCC) << std::endl;
 
 	OutTemp->Close();
 	return 0;

@@ -53,9 +53,10 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 				CloneCopy(hKaonMuon,  KineFile->Get("kaonmuon"));
 				CloneCopy(hKaon0Elec, KineFile->Get("kaon0elec"));
 				CloneCopy(hKaon0Muon, KineFile->Get("kaon0muon"));
-				CloneCopy(hTau2Pion,  KineFile->Get("tau2pion"));
-				CloneCopy(hTauElec,   KineFile->Get("tauelec"));
-				CloneCopy(hTauMuon,   KineFile->Get("taumuon"));
+				CloneCopy(hTauEElec,  KineFile->Get("taueelec"));
+				CloneCopy(hTauETau,   KineFile->Get("tauetau"));
+				CloneCopy(hTauMMuon,  KineFile->Get("taummuon"));
+				CloneCopy(hTauMTau,   KineFile->Get("taumtau"));
 
 				KineFile->Close();
 			}
@@ -69,12 +70,14 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
         hKaonEn  = new TH1D("hkaonen",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
         hKaon0En = new TH1D("hkaon0en", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
         hMuonEn  = new TH1D("hmuonen",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+        hCharmEn = new TH1D("hcharmen", "Charm flux", BinNumber, RangeStart, RangeEnd);
 	
 	hTotalEa = new TH1D("htotalea", "Total flux", BinNumber, RangeStart, RangeEnd);
         hPionEa  = new TH1D("hpionea",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
         hKaonEa  = new TH1D("hkaonea",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
         hKaon0Ea = new TH1D("hkaon0ea", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
         hMuonEa  = new TH1D("hmuonea",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+        hCharmEa = new TH1D("hcharmea", "Charm flux", BinNumber, RangeStart, RangeEnd);
 
 	//muonic components
 	hTotalMn = new TH1D("htotalmn", "Total flux", BinNumber, RangeStart, RangeEnd);
@@ -82,12 +85,14 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
         hKaonMn  = new TH1D("hkaonmn",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
         hKaon0Mn = new TH1D("hkaon0mn", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
         hMuonMn  = new TH1D("hmuonmn",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+        hCharmMn = new TH1D("hcharmmn", "Charm flux", BinNumber, RangeStart, RangeEnd);
 
 	hTotalMa = new TH1D("htotalma", "Total flux", BinNumber, RangeStart, RangeEnd);
         hPionMa  = new TH1D("hpionma",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
         hKaonMa  = new TH1D("hkaonma",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
         hKaon0Ma = new TH1D("hkaon0ma", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
         hMuonMa  = new TH1D("hmuonma",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+        hCharmMa = new TH1D("hcharmma", "Charm flux", BinNumber, RangeStart, RangeEnd);
 
 	//tauonic components
 	hTotalTn = new TH1D("htotaltn", "Total flux", BinNumber, RangeStart, RangeEnd);
@@ -126,6 +131,8 @@ FluxDriver::~FluxDriver()
 	delete hKaon0Ea;
 	delete hMuonEn;
 	delete hMuonEa;
+	delete hCharmEn;
+	delete hCharmEa;
 
 	delete hTotalMn;
 	delete hTotalMa;
@@ -137,6 +144,8 @@ FluxDriver::~FluxDriver()
 	delete hKaon0Ma;
 	delete hMuonMn;
 	delete hMuonMa;
+	delete hCharmMn;
+	delete hCharmMa;
 
 	delete hTotalTn;
 	delete hTotalTa;
@@ -152,10 +161,15 @@ FluxDriver::~FluxDriver()
 	delete hTauETa;
 }
 
-void FluxDriver::CloneCopy(TH1D* T, TObject* X)
+void FluxDriver::CloneCopy(TH1D*& T, TObject* X)
 {
-	T = dynamic_cast<TH1D*> (X->Clone());
-	T->SetDirectory(0);
+	if (X)
+	{
+		T = dynamic_cast<TH1D*> (X->Clone());
+		T->SetDirectory(0);
+	}
+	else
+		T = NULL;
 }
 
 bool FluxDriver::MakeFlux(double M_Sterile)
@@ -167,12 +181,14 @@ bool FluxDriver::MakeFlux(double M_Sterile)
 		hKaonEn->Reset("ICES"); 
 		hKaon0En->Reset("ICES");
 		hMuonEn->Reset("ICES"); 
+                hCharmEn->Reset("ICES");
 
 		hTotalMn->Reset("ICES");	//Reset before generating
 		hPionMn->Reset("ICES");
 		hKaonMn->Reset("ICES"); 
 		hKaon0Mn->Reset("ICES");
 		hMuonMn->Reset("ICES"); 
+                hCharmMn->Reset("ICES");
 
 		hTotalTn->Reset("ICES");
                 hPionTn->Reset("ICES");
@@ -186,12 +202,14 @@ bool FluxDriver::MakeFlux(double M_Sterile)
 		hKaonEa->Reset("ICES"); 
 		hKaon0Ea->Reset("ICES");
 		hMuonEa->Reset("ICES"); 
+                hCharmEa->Reset("ICES");
 
 		hTotalMa->Reset("ICES");	//Reset before generating
 		hPionMa->Reset("ICES");
 		hKaonMa->Reset("ICES"); 
 		hKaon0Ma->Reset("ICES");
 		hMuonMa->Reset("ICES"); 
+                hCharmMa->Reset("ICES");
 
                 hTotalTa->Reset("ICES");
                 hPionTa->Reset("ICES");
@@ -209,6 +227,7 @@ bool FluxDriver::MakeFlux(double M_Sterile)
 			hTotalEn->Add(hKaonEn);
 		 	hTotalEn->Add(hKaon0En);
 			hTotalEn->Add(hMuonEn);
+			hTotalEn->Add(hCharmEn);
 		}
 	
 		if (fxNuElectronBar)	//Model on nu electron bar flux
@@ -220,6 +239,7 @@ bool FluxDriver::MakeFlux(double M_Sterile)
 			hTotalEa->Add(hKaonEa);
 		 	hTotalEa->Add(hKaon0Ea);
 			hTotalEa->Add(hMuonEa);
+			hTotalEa->Add(hCharmEa);
 		}
 
 		if (fxNuMuon)		//Model on nu mu flux
@@ -231,6 +251,7 @@ bool FluxDriver::MakeFlux(double M_Sterile)
 			hTotalMn->Add(hKaonMn);
 			hTotalMn->Add(hKaon0Mn);
 			hTotalMn->Add(hMuonMn);
+			hTotalMn->Add(hCharmMn);
 		}
 	
 		if (fxNuMuonBar)	//Model on nu mu bar flux
@@ -242,6 +263,7 @@ bool FluxDriver::MakeFlux(double M_Sterile)
 			hTotalMa->Add(hKaonMa);
 			hTotalMa->Add(hKaon0Ma);
 			hTotalMa->Add(hMuonMa);
+			hTotalMa->Add(hCharmMa);
 		}
 	
 		if (fxNuTau)	//Model on nu electron flux
@@ -277,163 +299,223 @@ bool FluxDriver::MakeFlux(double M_Sterile)
 void FluxDriver::MakeElecComponent(bool Neutrino, Flux &sxFlux, double M_Sterile)
 {
 	//pi- -> e- nu_e_bar
-	sxFlux.GetPion()->Scale(Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile));
-	if (Neutrino)
-		hPionEn->Add(sxFlux.GetPion());
-	else
-		hPionEa->Add(sxFlux.GetPion());
+	TH1D *hPoint;
+	if (hPoint = sxFlux.Get("Pion"))
+	{
+		hPoint->Scale(Kine::ShrockFactor(M_Pion, M_Electron, M_Sterile));
+		if (Neutrino)
+			hPionEn->Add(hPoint);
+		else
+			hPionEa->Add(hPoint);
+	}
 
 	//K- -> pi0 e- nu_e_bar
-	double KaonFactor = 1.582e-3/(1.582e-3+5.07) * Kine::ShrockFactor(M_Kaon, M_Electron, M_Sterile);	//Two body
-	if (Kine)
+	if (hPoint = sxFlux.Get("Kaon"))
 	{
-		double KE = hKaonElec->GetBinContent(hKaonElec->FindBin(M_Sterile+1e-9)+1);	//1e-9 to prevent bin error
-		KaonFactor += 5.07/(1.582e-3+5.07) * KE;	//Three body
+		double KaonFactor = 1.582e-3/(1.582e-3+5.07) * Kine::ShrockFactor(M_Kaon, M_Electron, M_Sterile);	//Two body
+		if (Kine)
+		{
+			double KE = hKaonElec->GetBinContent(hKaonElec->FindBin(M_Sterile+1e-9)+1);	//1e-9 to prevent bin error
+			KaonFactor += 5.07/(1.582e-3+5.07) * KE;	//Three body
+		}
+		else if (M_Sterile < M_Kaon - M_Pion0 - M_Electron)
+			KaonFactor += 5.07/(1.582e-3+5.07);	//simple scaling
+		else KaonFactor += 0;	//simple scaling
+		hPoint->Scale(KaonFactor);
+		if (Neutrino)
+			hKaonEn->Add(hPoint);
+		else
+			hKaonEa->Add(hPoint);
 	}
-	else if (M_Sterile < M_Kaon - M_Pion0 - M_Electron)
-		KaonFactor += 5.07/(1.582e-3+5.07);	//simple scaling
-	else KaonFactor += 0;	//simple scaling
-	sxFlux.GetKaon()->Scale(KaonFactor);
-	if (Neutrino)
-		hKaonEn->Add(sxFlux.GetKaon());
-	else
-		hKaonEa->Add(sxFlux.GetKaon());
 
 	//K0 -> pi- e- nu_e_bar
-	if (Kine)
+	if (hPoint = sxFlux.Get("Kaon0"))
 	{
-		double K0E = hKaon0Elec->GetBinContent(hKaon0Elec->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
-		sxFlux.GetKaon0()->Scale(K0E);
+		if (Kine)
+		{
+			double K0E = hKaon0Elec->GetBinContent(hKaon0Elec->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			hPoint->Scale(K0E);
+		}
+		else if (M_Sterile > M_Kaon0 - M_Pion - M_Electron)
+			hPoint->Scale(0);	//simple scaling
+		if (Neutrino)
+			hKaon0En->Add(hPoint);
+		else
+			hKaon0Ea->Add(hPoint);
 	}
-	else if (M_Sterile > M_Kaon0 - M_Pion - M_Electron)
-		sxFlux.GetKaon0()->Scale(0);	//simple scaling
-	if (Neutrino)
-		hKaon0En->Add(sxFlux.GetKaon0());
-	else
-		hKaon0Ea->Add(sxFlux.GetKaon0());
 
 	//mu -> nu_mu e nu_e
-	if (Kine)
+	if (hPoint = sxFlux.Get("Muon"))
 	{
-		double ME = hMuonElec->GetBinContent(hMuonElec->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
-		sxFlux.GetMuon()->Scale(ME);
+		if (Kine)
+		{
+			double ME = hMuonElec->GetBinContent(hMuonElec->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			hPoint->Scale(ME);
+		}
+		else if (M_Sterile > M_Muon - M_Electron)
+			hPoint->Scale(0);
+		if (Neutrino)
+			hMuonEn->Add(hPoint);
+		else
+			hMuonEa->Add(hPoint);
 	}
-	else if (M_Sterile > M_Muon - M_Electron)
-		sxFlux.GetMuon()->Scale(0);
-	if (Neutrino)
-		hMuonEn->Add(sxFlux.GetMuon());
-	else
-		hMuonEa->Add(sxFlux.GetMuon());
+
+	//Ds -> e nu_e
+	if (hPoint = sxFlux.Get("Charm"))
+	{
+		hPoint->Scale(Kine::ShrockFactor(M_Charm, M_Electron, M_Sterile));
+		if (Neutrino)
+			hCharmEn->Add(hPoint);
+		else 
+			hCharmEa->Add(hPoint);
+	}
 }
 
 void FluxDriver::MakeMuonComponent(bool Neutrino, Flux &sxFlux, double M_Sterile)
 {
 	//pi+ -> mu+ nu_mu
-	sxFlux.GetPion()->Scale(Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
-	if (Neutrino)
-		hPionMn->Add(sxFlux.GetPion());
-	else 
-		hPionMa->Add(sxFlux.GetPion());
+	TH1D *hPoint;
+	if (hPoint = sxFlux.Get("Pion"))
+	{	
+		hPoint->Scale(Kine::ShrockFactor(M_Pion, M_Muon, M_Sterile));
+		if (Neutrino)
+			hPionMn->Add(hPoint);
+		else 
+			hPionMa->Add(hPoint);
+	}
 
 	//K+ -> mu+ nu_mu	&&	pi0 mu+ nu_mu
-	double KaonFactor = 63.56/(63.56+3.35) * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile);	//Two body
-	if (Kine)
+	if (hPoint = sxFlux.Get("Kaon"))
 	{
-		double KM = hKaonMuon->GetBinContent(hKaonMuon->FindBin(M_Sterile+1e-9)+1);	//1e-9 to prevent bin error
-		KaonFactor += 3.35/(63.56+3.35) * KM;	//Three body
+		double KaonFactor = 63.56/(63.56+3.35) * Kine::ShrockFactor(M_Kaon, M_Muon, M_Sterile);	//Two body
+		if (Kine)
+		{
+			double KM = hKaonMuon->GetBinContent(hKaonMuon->FindBin(M_Sterile+1e-9)+1);	//1e-9 to prevent bin error
+			KaonFactor += 3.35/(63.56+3.35) * KM;	//Three body
+		}
+		else if (M_Sterile < M_Kaon - M_Pion0 - M_Muon)
+			KaonFactor += 3.35/(63.56+3.35);	//simple scaling
+		else KaonFactor += 0;	//simple scaling
+		hPoint->Scale(KaonFactor);
+		if (Neutrino)
+			hKaonMn->Add(hPoint);
+		else
+			hKaonMa->Add(hPoint);
 	}
-	else if (M_Sterile < M_Kaon - M_Pion0 - M_Muon)
-		KaonFactor += 3.35/(63.56+3.35);	//simple scaling
-	else KaonFactor += 0;	//simple scaling
-	sxFlux.GetKaon()->Scale(KaonFactor);
-	if (Neutrino)
-		hKaonMn->Add(sxFlux.GetKaon());
-	else
-		hKaonMa->Add(sxFlux.GetKaon());
 
 	//K0 -> pi- mu+ nu_mu
-	if (Kine)
+	if (hPoint = sxFlux.Get("Kaon0"))
 	{
-		double K0M = hKaon0Muon->GetBinContent(hKaon0Muon->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
-		sxFlux.GetKaon0()->Scale(K0M);	//Three body
+		if (Kine)
+		{
+			double K0M = hKaon0Muon->GetBinContent(hKaon0Muon->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+				hPoint->Scale(K0M);	//Three body
+		}
+		else if (M_Sterile > M_Kaon0 - M_Pion - M_Muon)
+			hPoint->Scale(0);	//simple scaling
+		if (Neutrino)
+			hKaon0Mn->Add(hPoint);
+		else
+			hKaon0Ma->Add(hPoint);
 	}
-	else if (M_Sterile > M_Kaon0 - M_Pion - M_Muon)
-		sxFlux.GetKaon0()->Scale(0);	//simple scaling
-	if (Neutrino)
-		hKaon0Mn->Add(sxFlux.GetKaon0());
-	else
-		hKaon0Ma->Add(sxFlux.GetKaon0());
 
 	//mu -> nu_mu e nu_e
-	if (Kine)
+	if (hPoint = sxFlux.Get("Muon"))
 	{
-		double MM = hMuonMuon->GetBinContent(hMuonMuon->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
-		sxFlux.GetMuon()->Scale(MM);	//Three body
+		if (Kine)
+		{
+			double MM = hMuonMuon->GetBinContent(hMuonMuon->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			hPoint->Scale(MM);	//Three body
+		}
+		else if (M_Sterile > M_Muon - M_Electron)
+			hPoint->Scale(0);
+		if (Neutrino)
+			hMuonMn->Add(hPoint);
+		else
+			hMuonMa->Add(hPoint);
 	}
-	else if (M_Sterile > M_Muon - M_Electron)
-		sxFlux.GetMuon()->Scale(0);
-	if (Neutrino)
-		hMuonMn->Add(sxFlux.GetMuon());
-	else
-		hMuonMa->Add(sxFlux.GetMuon());
+
+	//Ds -> mu nu_mu
+	if (hPoint = sxFlux.Get("Charm"))
+	{
+		hPoint->Scale(Kine::ShrockFactor(M_Charm, M_Muon, M_Sterile));
+		if (Neutrino)
+			hCharmMn->Add(hPoint);
+		else 
+			hCharmMa->Add(hPoint);
+	}	
 }
 
 void FluxDriver::MakeTauComponent(bool Neutrino, Flux &sxFlux, double M_Sterile)
 {
-	std::cout << "really here" << std::endl;
 	//Ds -> tau nu_tau
-	sxFlux.GetCharm()->Scale(Kine::ShrockFactor(M_Charm, M_Tau, M_Sterile));
-	if (Neutrino)
-		hCharmTn->Add(sxFlux.GetCharm());
-	else 
-		hCharmTa->Add(sxFlux.GetCharm());
+	TH1D *hPoint;
+	if (hPoint = sxFlux.Get("Charm"))
+	{
+		hPoint->Scale(Kine::ShrockFactor(M_Charm, M_Tau, M_Sterile));
+		if (Neutrino)
+			hCharmTn->Add(hPoint);
+		else 
+			hCharmTa->Add(hPoint);
+	}
 
 	//tau -> pi tau
-	sxFlux.GetPion()->Scale(Kine::ShrockFactor(M_Tau, M_Pion, M_Sterile));
-	if (Neutrino)
-		hCharmTn->Add(sxFlux.GetCharm());
-	else 
-		hCharmTa->Add(sxFlux.GetCharm());
+	if (hPoint = sxFlux.Get("Pion"))
+	{
+		hPoint->Scale(Kine::ShrockFactor(M_Tau, M_Pion, M_Sterile));
+		if (Neutrino)
+			hCharmTn->Add(hPoint);
+		else 
+			hCharmTa->Add(hPoint);
+	}
 
 	//tau -> pi pi0 nu_tau
-	if (Kine)
+	if (hPoint = sxFlux.Get("2Pion"))
 	{
-		double P2 = hTau2Pion->GetBinContent(hTau2Pion->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
-		sxFlux.Get2Pion()->Scale(P2);	//Three body
+		if (false)	//not implemented
+		{
+			//double P2 = hTau2Pion->GetBinContent(hTau2Pion->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			//hPoint->Scale(P2);	//Three body
+		}
+		else if (M_Sterile > M_Tau - M_Pion - M_Pion0)
+			hPoint->Scale(0);
+		if (Neutrino)
+			h2PionTn->Add(hPoint);
+		else
+			h2PionTa->Add(hPoint);
 	}
-	else if (M_Sterile > M_Tau - M_Pion - M_Pion0)
-		sxFlux.Get2Pion()->Scale(0);
-	if (Neutrino)
-		h2PionTn->Add(sxFlux.Get2Pion());
-	else
-		h2PionTa->Add(sxFlux.Get2Pion());
-
 
 	//tau -> nu_tau e nu_e
-	if (Kine)
+	if (hPoint = sxFlux.Get("TauE"))
 	{
-		double TE = hTauElec->GetBinContent(hTauElec->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
-		sxFlux.GetTauE()->Scale(TE);	//Three body
+		if (Kine)
+		{
+			double TE = hTauETau->GetBinContent(hTauETau->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			hPoint->Scale(TE);	//Three body
+		}
+		else if (M_Sterile > M_Tau - M_Electron)
+			hPoint->Scale(0);
+		if (Neutrino)
+			hTauETn->Add(hPoint);
+		else
+			hTauETa->Add(hPoint);
 	}
-	else if (M_Sterile > M_Tau - M_Electron)
-		sxFlux.GetTauE()->Scale(0);
-	if (Neutrino)
-		hTauETn->Add(sxFlux.GetTauE());
-	else
-		hTauETa->Add(sxFlux.GetTauE());
 
 	//tau -> nu_tau mu nu_mu
-	if (Kine)
+	if (hPoint = sxFlux.Get("TauM"))
 	{
-		double TM = hTauMuon->GetBinContent(hTauMuon->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
-		sxFlux.GetTauM()->Scale(TM);	//Three body
+		if (Kine)
+		{
+			double TM = hTauMTau->GetBinContent(hTauMTau->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			hPoint->Scale(TM);	//Three body
+		}
+		else if (M_Sterile > M_Tau - M_Muon)
+			hPoint->Scale(0);
+		if (Neutrino)
+			hTauMTn->Add(hPoint);
+		else
+			hTauMTa->Add(hPoint);
 	}
-	else if (M_Sterile > M_Tau - M_Muon)
-		sxFlux.GetTauM()->Scale(0);
-	if (Neutrino)
-		hTauMTn->Add(sxFlux.GetTauM());
-	else
-		hTauMTa->Add(sxFlux.GetTauM());
 }
 
 /*
@@ -551,24 +633,28 @@ void FluxDriver::SetBaseline(double Baseline)
 	hKaonEn->Scale(1.0/(Baseline*Baseline));
 	hKaon0En->Scale(1.0/(Baseline*Baseline));
 	hMuonEn->Scale(1.0/(Baseline*Baseline));
+	hCharmEn->Scale(1.0/(Baseline*Baseline));
 
 	hTotalEa->Scale(1.0/(Baseline*Baseline));
 	hPionEa->Scale(1.0/(Baseline*Baseline));
 	hKaonEa->Scale(1.0/(Baseline*Baseline));
 	hKaon0Ea->Scale(1.0/(Baseline*Baseline));
 	hMuonEa->Scale(1.0/(Baseline*Baseline));
+	hCharmEa->Scale(1.0/(Baseline*Baseline));
 
 	hTotalMn->Scale(1.0/(Baseline*Baseline));
 	hPionMn->Scale(1.0/(Baseline*Baseline));
 	hKaonMn->Scale(1.0/(Baseline*Baseline));
 	hKaon0Mn->Scale(1.0/(Baseline*Baseline));
 	hMuonMn->Scale(1.0/(Baseline*Baseline));
+	hCharmMn->Scale(1.0/(Baseline*Baseline));
 
 	hTotalMa->Scale(1.0/(Baseline*Baseline));
 	hPionMa->Scale(1.0/(Baseline*Baseline));
 	hKaonMa->Scale(1.0/(Baseline*Baseline));
 	hKaon0Ma->Scale(1.0/(Baseline*Baseline));
 	hMuonMa->Scale(1.0/(Baseline*Baseline));
+	hCharmMa->Scale(1.0/(Baseline*Baseline));
 
 	hTotalTn->Scale(1.0/(Baseline*Baseline));
 	hPionTn->Scale(1.0/(Baseline*Baseline));
@@ -592,24 +678,28 @@ void FluxDriver::SetPOT(double POT)
 	hKaonEn->Scale(POT);
 	hKaon0En->Scale(POT);
 	hMuonEn->Scale(POT);
+	hCharmEn->Scale(POT);
 
 	hTotalEa->Scale(POT);
 	hPionEa->Scale(POT);
 	hKaonEa->Scale(POT);
 	hKaon0Ea->Scale(POT);
 	hMuonEa->Scale(POT);
+	hCharmEa->Scale(POT);
 
 	hTotalMn->Scale(POT);
 	hPionMn->Scale(POT);
 	hKaonMn->Scale(POT);
 	hKaon0Mn->Scale(POT);
 	hMuonMn->Scale(POT);
+	hCharmMn->Scale(POT);
 
 	hTotalMa->Scale(POT);
 	hPionMa->Scale(POT);
 	hKaonMa->Scale(POT);
 	hKaon0Ma->Scale(POT);
 	hMuonMa->Scale(POT);
+	hCharmMa->Scale(POT);
 
 	hTotalTn->Scale(POT);
 	hPionTn->Scale(POT);
@@ -633,24 +723,28 @@ void FluxDriver::SetArea(double Area)
 	hKaonEn->Scale(Area);
 	hKaon0En->Scale(Area);
 	hMuonEn->Scale(Area);
+	hCharmEn->Scale(Area);
 
 	hTotalEa->Scale(Area);
 	hPionEa->Scale(Area);
 	hKaonEa->Scale(Area);
 	hKaon0Ea->Scale(Area);
 	hMuonEa->Scale(Area);
+	hCharmEa->Scale(Area);
 
 	hTotalMn->Scale(Area);
 	hPionMn->Scale(Area);
 	hKaonMn->Scale(Area);
 	hKaon0Mn->Scale(Area);
 	hMuonMn->Scale(Area);
+	hCharmMn->Scale(Area);
 
 	hTotalMa->Scale(Area);
 	hPionMa->Scale(Area);
 	hKaonMa->Scale(Area);
 	hKaon0Ma->Scale(Area);
 	hMuonMa->Scale(Area);
+	hCharmMa->Scale(Area);
 
 	hTotalTn->Scale(Area);
 	hPionTn->Scale(Area);

@@ -95,6 +95,7 @@ double EventGenerator::DecayProb()	//reaching the detector and decaying
 		//double Total = GetUserData() < 0.0 ? TheGamma->Total() : GetUserData();
 		double Total = TheGamma->Total();
 		double Ratio = TheGamma->Branch(GetChannel()); 
+		//std::cout << "Ratio " << Ratio << std::endl;
 		double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
 		double Lambda = Const::fM2GeV * TheBox->GetZsize();
 		double Lorentz = sqrt(GetEnergy(2)/GetMass(2) - 1.0);	//betagamma, to invert
@@ -143,7 +144,7 @@ double EventGenerator::GetEnhancement()
 
 double EventGenerator::EventEfficiency()
 {
-	//std::cout << "call" << std::endl;
+	////std::cout << "call" << std::endl;
 	return TheBox->Efficiency(GetEnergy(), GetMass());
 }
 
@@ -215,6 +216,11 @@ bool EventGenerator::EventDetectable()	//Third step: is the detector able to det
 }
 
 //Kinematics
+bool EventGenerator::IsAllowed()
+{
+	return TheGamma->IsAllowed(GetChannel());
+}
+
 int EventGenerator::EventKinematics()	//Fourth step: simulate the phase space of the decay
 {
 	TLorentzVector N_vec(0, 0, GetMomentum(), GetEnergy());	//Lab frame for the heavy neutrino

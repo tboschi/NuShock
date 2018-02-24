@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 	if (UtFlag)
 		EvGen->SetChannel(Channel);
 	
-	unsigned int Grid = 250;
+	unsigned int Grid = 500;
 	double Mass, Uu;
 	double contMass, contUu, contN;
 	std::vector<double> vSignal;	//summing over energy, array of Uus
@@ -111,6 +111,9 @@ int main(int argc, char** argv)
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
 		EvGen->SetMass(Mass);
+		if (!EvGen->IsAllowed())
+			continue;
+
 		EvGen->MakeFlux(1);
 
 		vSignal.clear();
@@ -121,7 +124,7 @@ int main(int argc, char** argv)
 		for (double Energy = Start; Energy < End; Energy += EnStep)
 		{
 			unsigned int i = 0;
-			for (double logUu2 = -10.0; logUu2+1e-6 < 0.0; logUu2 += 10.0/Grid, ++i)	//increase Uu logarithmically
+			for (double logUu2 = -11.0; logUu2+1e-6 < 0.0; logUu2 += 11.0/Grid, ++i)	//increase Uu logarithmically
 			{
 				Uu = pow(10.0, 0.5*logUu2);
 				if (UeFlag)
@@ -136,7 +139,7 @@ int main(int argc, char** argv)
 		}
 
 		unsigned int j = 0;
-		for (double logUu2 = -10.0; logUu2+1e-6 < 0.0; logUu2 += 10.0/Grid, ++j)	//increase Uu logarithmically
+		for (double logUu2 = -11.0; logUu2+1e-6 < 0.0; logUu2 += 11.0/Grid, ++j)	//increase Uu logarithmically
 		{
 			Uu = pow(10.0, logUu2);		//already squared
 			Out << Mass << "\t" << Uu << "\t" << vSignal.at(j) << std::endl;

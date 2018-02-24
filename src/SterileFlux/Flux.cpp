@@ -31,15 +31,15 @@ Flux::Flux(std::string HistFile) :
 //copy ctor
 Flux::Flux(const Flux & f)
 {
-	CloneCopy(hTotal, f.GetTotal());
-	CloneCopy(hPion,  f.GetPion());
-	CloneCopy(h2Pion, f.Get2Pion());
-	CloneCopy(hKaon,  f.GetKaon());
-	CloneCopy(hKaon0, f.GetKaon0());
-	CloneCopy(hCharm, f.GetCharm());
-	CloneCopy(hMuon,  f.GetMuon());
-	CloneCopy(hTauE,  f.GetTauE());
-	CloneCopy(hTauM,  f.GetTauM());
+	CloneCopy(hTotal, f.Get("Total"));
+	CloneCopy(hPion,  f.Get("Pion"));
+	CloneCopy(h2Pion, f.Get("2Pion"));
+	CloneCopy(hKaon,  f.Get("Kaon"));
+	CloneCopy(hKaon0, f.Get("Kaon0"));
+	CloneCopy(hCharm, f.Get("Charm"));
+	CloneCopy(hMuon,  f.Get("Muon"));
+	CloneCopy(hTauE,  f.Get("TauE"));
+	CloneCopy(hTauM,  f.Get("TauM"));
 }
 
 //detor
@@ -82,47 +82,63 @@ void Flux::CloneCopy(TH1D*& T, TH1D* X)
 
 //Get functions
 
-TH1D* Flux::GetTotal() const
+TH1D* Flux::Get(std::string T) const
 {
-	return hTotal;
-}
+	if (T == "Total")
+	{
+		if (hTotal)
+			return hTotal;
+		else return NULL;
+	}
+	else if (T == "Pion")
+	{
+		if (hPion)
+			return hPion;
+		else return NULL;
+	}
+	else if (T == "2Pion")
+	{
+		if (h2Pion)
+			return h2Pion;
+		else return NULL;
+	}
+	else if (T == "Kaon")
+	{
+		if (hKaon)
+			return hKaon;
+		else return NULL;
+	}
 
-TH1D* Flux::GetPion() const
-{
-	return hPion;
-}
-
-TH1D* Flux::Get2Pion() const
-{
-	return h2Pion;
-}
-
-TH1D* Flux::GetKaon() const
-{
-	return hKaon;
-}
-
-TH1D* Flux::GetKaon0() const
-{
-	return hKaon0;
-}
-
-TH1D* Flux::GetCharm() const
-{
-	return hCharm;
-}
-
-TH1D* Flux::GetMuon() const
-{
-	return hMuon;
-}
-
-TH1D* Flux::GetTauE() const
-{
-	return hTauE;
-}
-
-TH1D* Flux::GetTauM() const
-{
-	return hTauM;
+	else if (T == "Kaon0")
+	{
+		if (hKaon0)
+			return hKaon0;
+		else return NULL;
+	}
+	else if (T == "Charm")
+	{
+		if (hCharm)
+			return hCharm;
+		else return NULL;
+	}
+	else if (T == "Muon")
+	{
+		if (hMuon)
+			return hMuon;
+		else return NULL;
+	}
+	else if (T == "TauE")
+	{
+		if (hTauE)
+			return hTauE;
+		else return NULL;
+	}
+	else if (T == "TauM")
+	{
+		if (hTauM)
+			return hTauM;
+		else return NULL;
+	}
+	else
+		return NULL;
 }

@@ -34,6 +34,7 @@ class Decay
 		double Other(std::string Channel, double A = 1.0);
 		double Branch(std::string Channel, double A = 1.0, double B = 1.0);
 		int PhaseSpace(std::string Channel, double &Weight);
+		bool IsAllowed(std::string Channel);
 
 		void SetEnhancement(std::string Channel = "ALL", double K = 1.0);
 
@@ -51,6 +52,8 @@ class Decay
 		double ddGamma(std::string Channel, double Ex, double Ey);
 
 		double Total(double A = 1.0);
+		double ExpALL(double A = 1.0);
+
 		double nnn();
 		double nGAMMA();
 		double nEE();
@@ -112,8 +115,7 @@ class Decay
 		double M_Sterile, M_Sterile_prev;
 		double Ue, Um, Ut;
 
-		double fTotal, 
-		       fnnn,
+		double fnnn,
                        fnGAMMA,
                        fnEE_e,	
                        fnEE_mt,	

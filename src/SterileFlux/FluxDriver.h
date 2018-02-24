@@ -28,7 +28,7 @@ class FluxDriver
 		FluxDriver(std::string ConfigFlux);
 		~FluxDriver();
 
-		void CloneCopy(TH1D* T, TObject* X);
+		void CloneCopy(TH1D*& T, TObject* X);
 		bool MakeFlux(double M_Sterile);
 		void MakeElecComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
 		void MakeMuonComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
@@ -105,9 +105,11 @@ class FluxDriver
 		TH1D *hKaonMuon;
 		TH1D *hKaon0Elec;
 		TH1D *hKaon0Muon;
-		TH1D *hTauElec;
-		TH1D *hTauMuon;
-		TH1D *hTau2Pion;
+		TH1D *hTauEElec;
+                TH1D *hTauETau;
+                TH1D *hTauMMuon;
+                TH1D *hTauMTau;
+
 
 		//Output fluxes
 		TH1D* hTotalEn, * hTotalEa;
@@ -115,12 +117,14 @@ class FluxDriver
 		TH1D* hKaonEn,  * hKaonEa;
 		TH1D* hKaon0En, * hKaon0Ea;
 		TH1D* hMuonEn,  * hMuonEa;
+		TH1D* hCharmEn, * hCharmEa;
 
 		TH1D* hTotalMn, * hTotalMa;
 		TH1D* hPionMn,  * hPionMa;
 		TH1D* hKaonMn,  * hKaonMa;
 		TH1D* hKaon0Mn, * hKaon0Ma;
 		TH1D* hMuonMn,  * hMuonMa;
+		TH1D* hCharmMn, * hCharmMa;
 
 		TH1D* hTotalTn, * hTotalTa;
 		TH1D* hPionTn,  * hPionTa;

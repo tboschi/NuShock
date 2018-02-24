@@ -55,6 +55,7 @@ class EventGenerator
 		bool EventDetectable();
 
 		//Kinematics
+		bool IsAllowed();
 		int EventKinematics();
 		Particle *GetDecayProduct(int i, bool Smear = false);
 		void Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB, bool Smear = false);

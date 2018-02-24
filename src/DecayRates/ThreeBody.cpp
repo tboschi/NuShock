@@ -87,9 +87,7 @@ void ThreeBody::InitConst()
 				fC = M_Sterile/M_Parent;
 			}
 
-			fA = M_Neutrino/M_Parent;
 			fB = M_Electron/M_Parent;
-			fC = M_Neutrino/M_Parent;
 
 			break;
 
@@ -107,9 +105,7 @@ void ThreeBody::InitConst()
 				fC = M_Sterile/M_Parent;
 			}
 
-			fA = M_Neutrino/M_Parent;
 			fB = M_Muon/M_Parent;
-			fC = M_Neutrino/M_Parent;
 
 			break;
 
@@ -285,6 +281,8 @@ double ThreeBody::M2IntY()	//Unpolarised amplitude, integrated over Ey
 		switch(mapParent[GetParent()])
 		{
 			case _Muon:
+			case _TauE:
+			case _TauM:
 				M2 = M2LeptIntY();
 				break;
 			case _Kaon:

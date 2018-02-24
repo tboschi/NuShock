@@ -18,10 +18,15 @@ include $(GENIE)/src/make/Make.include
 
 #Main executable to be compiled
 NEW =	FluxDUNE	\
+	MakeEfficiency	\
 	Rate		\
 	OriginalExclusion	\
 	DecayPlot	\
 	Plotter		\
+	Coupler		\
+	FluxCharm	\
+	Kine		\
+	Width		\
 	#OpenCC		\
 	Rate		\
 	ExcluMix	\
@@ -31,14 +36,12 @@ NEW =	FluxDUNE	\
 	Simulation	\
 	Probability	\
 	MakeFlux	\
-	MakeEfficiency	\
 	CrossExcl	\
 	EnergyBack	\
 	#RegionSearch	\
 	SearchRegion	\
 	FeldCous	\
 	Plotter		\
-	Coupler		\
 	CosmoBounds
 	#EFTgamma	\
 	EFTexcl		\
@@ -47,9 +50,7 @@ NEW =	FluxDUNE	\
 	#PSscatter	\
 	GenBack		\
 	Eps2Dat		\
-	Kine		\
 	CLs		\
-	Width		\
 	#Eps2Root	\
 	#FakeElectron	\
 	PionMuonFlux	\

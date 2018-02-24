@@ -2,16 +2,28 @@
 
 cd /mt/home/tboschi/Templates/MCflux/Supershock
 
-./bin/MakeEfficiency -i Efficiency/LAr/config_MUPI_M -o Efficiency/LAr/eff_MUPI_M.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nMUMU_M -o Efficiency/LAr/eff_nMUMU_M.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nMUE_M -o Efficiency/LAr/eff_nMUE_M.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nEE_M -o Efficiency/LAr/eff_nEE_M.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nGAMMA_M -o Efficiency/LAr/eff_nGAMMA_M.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nPI0_M -o Efficiency/LAr/eff_nPI0_M.root -C
+echo "mupi m"
+./bin/MakeEfficiency -i Efficiency/LAr/config_MUPI_M -o Efficiency/LAr/teff_MUPI_M.root #-C
+echo "nmumu m"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nMUMU_M -o Efficiency/LAr/teff_nMUMU_M.root #-C
+echo "nmue m"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nMUE_M -o Efficiency/LAr/teff_nMUE_M.root #-C
+echo "nee m"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nEE_M -o Efficiency/LAr/teff_nEE_M.root #-C
+echo "ngamma m"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nGAMMA_M -o Efficiency/LAr/teff_nGAMMA_M.root #-C
+echo "npi0 m"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nPI0_M -o Efficiency/LAr/teff_nPI0_M.root #-C
 
-./bin/MakeEfficiency -i Efficiency/LAr/config_EPI_E -o Efficiency/LAr/eff_EPI_E.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nMUMU_E -o Efficiency/LAr/eff_nMUMU_E.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nMUE_E -o Efficiency/LAr/eff_nMUE_E.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nEE_E -o Efficiency/LAr/eff_nEE_E.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nGAMMA_E -o Efficiency/LAr/eff_nGAMMA_E.root -C
-./bin/MakeEfficiency -i Efficiency/LAr/config_nPI0_E -o Efficiency/LAr/eff_nPI0_E.root -C
+echo "epi e"
+./bin/MakeEfficiency -i Efficiency/LAr/config_EPI_E -o Efficiency/LAr/teff_EPI_E.root #-C
+echo "nmumu e"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nMUMU_E -o Efficiency/LAr/teff_nMUMU_E.root #-C
+echo "nmue e"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nMUE_E -o Efficiency/LAr/teff_nMUE_E.root #-C
+echo "nee e"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nEE_E -o Efficiency/LAr/teff_nEE_E.root #-C
+echo "ngamma e"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nGAMMA_E -o Efficiency/LAr/teff_nGAMMA_E.root #-C
+echo "npi0 e"
+./bin/MakeEfficiency -i Efficiency/LAr/config_nPI0_E -o Efficiency/LAr/teff_nPI0_E.root #-C

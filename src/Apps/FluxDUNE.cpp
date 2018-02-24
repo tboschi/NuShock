@@ -120,8 +120,6 @@ int main(int argc, char** argv)
 	double massdecay3[2] = {0.0, mpi};
 	double massdecay4[3] = {0.0, mpi, mpi0};
 
-	std::cout << "tau - pi" << mt - mpi << std::endl;
-	std::cout << "tau - 2pi" << mt - mpi -mpi0 << std::endl;
 	TGenPhaseSpace event;
 	
 	//find max of Ds param
@@ -240,8 +238,8 @@ int main(int argc, char** argv)
 			++nIter;
 		}
 	}
-	//		cc	pC	fDs	Tot evts  
-	double SF = 12.1e-3 / 331.4 * 0.077 / double(nMAX);
+	//		cc	pC	fDs	Br	Tot evts  
+	double SF = 12.1e-3 / 331.4 * 0.077 * 0.0548 / double(nMAX);
 
 	hCharm->Scale(SF);
 	hTauE->Scale(SF * 0.1785);	//tau->e (17.85 %)

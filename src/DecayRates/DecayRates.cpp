@@ -15,7 +15,7 @@ Decay::Decay(double MSterile, double Ue, double Um, double Ut)	: //Decay rates c
         M_Omega(Const::fMOmega),
         M_Kaonx(Const::fMKaonx),
         M_Kaon0x(Const::fMKaon0x),
-        M_Etai(Const::fMEta),
+        M_Etai(Const::fMEtai),
         M_Phi(Const::fMPhi),
         M_Tau(Const::fMTau),
         M_Charm(Const::fMCharm)
@@ -65,7 +65,7 @@ void Decay::MapInit()
 	mapChannel["EKA"]    = _EKA;
 	mapChannel["MUKA"]   = _MUKA;
 
-	//rho
+	//rho decay 100% in pions
 	mapChannel["nRHO0"]  = _nRHO0;
 	mapChannel["ERHO"]   = _ERHO;
 	mapChannel["MURHO"]  = _MURHO;
@@ -84,6 +84,9 @@ void Decay::MapInit()
 	//charm
 	mapChannel["ECHARM"] = _ECHARM;
 
+	//special channels
+	//Channels for experimental comparison (EPI, MUPI, nEE, nMUE, nMUMU)
+	mapChannel["ExpALL"] = _ExpALL;
 }
 
 double Decay::Gamma(std::string Channel, double B)
@@ -176,6 +179,9 @@ double Decay::Gamma(std::string Channel, double B)
 			break;
 		case _ECHARM:
 			Result = ECHARM();
+			break;
+		case _ExpALL:
+			Result = ExpALL();
 			break;
 		default:
 			Result = -1.0;
@@ -277,6 +283,9 @@ double Decay::Other(std::string Channel, double A)
 		case _ECHARM:
 			Result = Total() - ECHARM();
 			break;
+		case _ExpALL:
+			Result = Total() - ExpALL();
+			break;
 		default:
 			Result = -1.0;
 			break;
@@ -377,6 +386,9 @@ double Decay::Branch(std::string Channel, double A, double B)
 			break;
 		case _ECHARM:
 			Result = ECHARM()/Total();
+			break;
+		case _ExpALL:
+			Result = ExpALL()/Total();
 			break;
 		default:
 			Result = -1.0;
@@ -505,6 +517,99 @@ int Decay::PhaseSpace(std::string Channel, double &Weight)	//Return number of pr
 	return Products;
 }
 
+bool Decay::IsAllowed(std::string Channel)
+{
+	double Limit = 0.0;
+
+	switch(mapChannel[Channel])
+	{
+		case _ALL:
+		case _nnn:
+			Limit = 3*M_Neutrino;
+			break;
+		case _nGAMMA:
+			Limit = 3*M_Neutrino;
+			break;
+		case _nEE:
+			Limit = M_Neutrino + 2*M_Electron;
+			break;
+		case _nEMU:
+		case _nMUE:
+			Limit = M_Neutrino + M_Electron + M_Muon;
+			break;
+		case _nMUMU:
+			Limit = M_Neutrino + 2*M_Muon;
+			break;
+		case _nET:
+		case _nTE:
+			Limit = M_Neutrino + M_Electron + M_Tau;
+			break;
+		case _nMUT:
+		case _nTMU:
+			Limit = M_Neutrino + M_Muon + M_Tau;
+			break;
+		case _nPI0:
+			Limit = M_Neutrino + M_Pion0;
+			break;
+		case _EPI:
+			Limit = M_Electron + M_Pion;
+			break;
+		case _MUPI:
+			Limit = M_Muon + M_Pion;
+			break;
+		case _TPI:
+			Limit = M_Tau + M_Pion;
+			break;
+		case _EKA:
+			Limit = M_Electron + M_Kaon;
+			break;
+		case _MUKA:
+			Limit = M_Muon + M_Kaon;
+			break;
+		case _EKAx:
+			Limit = M_Electron + M_Kaonx;
+			break;
+		case _nKA0x:
+			Limit = M_Neutrino + M_Kaon0x;
+			break;
+		case _MUKAx:
+			Limit = M_Muon + M_Kaonx;
+			break;
+		case _nRHO0:
+			Limit = M_Neutrino + M_Rho0;
+			break;
+		case _ERHO:
+			Limit = M_Electron + M_Rho;
+			break;
+		case _MURHO:
+			Limit = M_Muon + M_Rho;
+			break;
+		case _nETA:
+			Limit = M_Neutrino + M_Eta;
+			break;
+		case _nETAi:
+			Limit = M_Neutrino + M_Etai;
+			break;
+		case _nOMEGA:
+			Limit = M_Neutrino + M_Omega;
+			break;
+		case _nPHI:
+			Limit = M_Neutrino + M_Phi;
+			break;
+		case _ECHARM:
+			Limit = M_Electron + M_Charm;
+			break;
+		case _ExpALL:
+			Limit = M_Neutrino + M_Electron;
+			break;
+		default:
+			Limit = 2*M_Sterile;
+			break;
+	}
+
+	return (M_Sterile >= Limit);
+}
+
 //Controller of decay enhancement
 void Decay::SetEnhancement(std::string Channel, double K)
 {
@@ -534,6 +639,14 @@ double Decay::Total(double A)
 		     ECHARM()	);
 }
 
+//special here
+double Decay::ExpALL(double A)
+{
+	return A * (nEE() + nMUE() + nMUMU() +
+		    EPI() + MUPI() +
+		    EKA() + MUKA() +
+		    ERHO() + MURHO() );
+}
 
 //individual decay channels
 //all mixing factors are factorised out
@@ -581,7 +694,7 @@ double Decay::nEE()
 double Decay::nEMU()	//Antiparticle is Elec
 {
 	if (fnEMU < 0 || IsChanged())
-		fnEMU = NeutrinoLeptonAB(M_Muon, M_Electron);
+		fnEMU = NeutrinoLeptonAB(M_Electron, M_Muon);
 
 	return mapEnhance["nEMU"] * fnEMU * Ue*Ue;
 }
@@ -589,7 +702,7 @@ double Decay::nEMU()	//Antiparticle is Elec
 double Decay::nMUE()	//Anti is Muon
 {
 	if (fnMUE < 0 || IsChanged())
-		fnMUE = NeutrinoLeptonAB(M_Electron, M_Muon);
+		fnMUE = NeutrinoLeptonAB(M_Muon, M_Electron);
 
 	return mapEnhance["nMUE"] * fnMUE * Um*Um;
 }
@@ -607,34 +720,34 @@ double Decay::nMUMU()
 double Decay::nET()	//Antiparticle is Elec
 {
 	if (fnET < 0 || IsChanged())
-		fnET = NeutrinoLeptonAB(M_Tau, M_Electron);
+		fnET = NeutrinoLeptonAB(M_Electron, M_Tau);
 
-	return mapEnhance["nET"] * fnET * Ut*Ut;
+	return mapEnhance["nET"] * fnET * Ue*Ue;
 }
 
 double Decay::nTE()	//Anti is Tau
 {
 	if (fnTE < 0 || IsChanged())
-		fnTE = NeutrinoLeptonAB(M_Electron, M_Tau);
+		fnTE = NeutrinoLeptonAB(M_Tau, M_Electron);
 
-	return mapEnhance["nTE"] * fnTE * Ue*Ue;
+	return mapEnhance["nTE"] * fnTE * Ut*Ut;
 }
 
 //M_Sterile > M_Tau + M_Muon
 double Decay::nMUT()	//Antiparticle is Muon
 {
 	if (fnMUT < 0 || IsChanged())
-		fnMUT = NeutrinoLeptonAB(M_Tau, M_Muon);
+		fnMUT = NeutrinoLeptonAB(M_Muon, M_Tau);
 
-	return mapEnhance["nMUT"] * fnMUT * Ut*Ut;
+	return mapEnhance["nMUT"] * fnMUT * Um*Um;
 }
 
 double Decay::nTMU()	//Anti is Tau
 {
 	if (fnTMU < 0 || IsChanged())
-		fnTMU = NeutrinoLeptonAB(M_Muon, M_Tau);
+		fnTMU = NeutrinoLeptonAB(M_Tau, M_Muon);
 
-	return mapEnhance["nTMU"] * fnTE * Um*Um;
+	return mapEnhance["nTMU"] * fnTMU * Ut*Ut;
 }
 
 //M_Sterile > M_Pion0
@@ -760,7 +873,7 @@ double Decay::nETAi()
 	if (fnETAi < 0 || IsChanged())
 		fnETAi = NeutrinoPseudoMeson(M_Etai, Const::fDEtai2);	//check
 
-	return mapEnhance["nETA"] * fnETA * (Ue*Ue + Um*Um + Ut*Ut);
+	return mapEnhance["nETAi"] * fnETAi * (Ue*Ue + Um*Um + Ut*Ut);
 }
 
 //M_Sterile > M_Omega 
@@ -878,11 +991,11 @@ double Decay::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB)	//it is doubl
 {
 	if (M_Sterile >= M_Neutrino + M_LeptonA + M_LeptonB)
 	{
-		double dM1 = M_LeptonA / M_Sterile;
-		double dM2 = M_LeptonB / M_Sterile;
+		double dMA = M_LeptonA / M_Sterile;
+		double dMB = M_LeptonB / M_Sterile;
 		double dMn = M_Neutrino / M_Sterile;
 
-		return 2.0 * Const::fGF2 * pow(M_Sterile, 5) * Kine::I1_xyz(dM1, dMn, dM2) /
+		return 2.0 * Const::fGF2 * pow(M_Sterile, 5) * Kine::I1_xyz(dMA, dMn, dMB) /
 			(192.0 * Const::fPi3);
 	}
 	else return 0.0;
@@ -919,7 +1032,6 @@ bool Decay::IsChanged()
 	//Reset decay widths if changed
 	if (Ret)
 	{
-		fTotal    = -1.0;
 		fnnn      = -1.0;
                 fnGAMMA   = -1.0;
                 fnEE_e    = -1.0;

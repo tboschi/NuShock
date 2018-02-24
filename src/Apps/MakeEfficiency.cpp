@@ -81,6 +81,7 @@ int main(int argc, char** argv)
 	TheFunction->Write();
 	TheAll->Write();
 	TheCut->Write();
+	std::cout << "Survive " << TheCut->GetEntries() / double(TheAll->GetEntries()) << std::endl;
 
 	OutFile->Close();
 

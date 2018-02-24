@@ -58,22 +58,20 @@ int main(int argc, char** argv)
 	double Pion0 = Const::fMPion0;
 	double Kaon = Const::fMKaon;
 	double Kaon0 = Const::fMKaon0;
+	double Charm = Const::fMDs;
 	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Out << "#MS\tMuPi\tMuKa\tMuKaPi0\tMuKa0Pi\t";
-	Out << "#ElPi\tElKa\tElKaPi0\tElKa0Pi" << std::endl;
-	for (double t = 0; t < 0.5; t += 0.5/1000)
+	Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
+	for (double t = 0; t < 2.0; t += 0.001)
 	{
 		Out << t << "\t";
-		Out << Kine::ShrockFactor(Pion, Muon, t) << "\t";
-		Out << Kine::ShrockFactor(Kaon, Muon, t) << "\t";
-		//Out << Kine::ShrockFactor(Kaon-Pion0, Muon, t) << "\t";
-		//Out << Kine::ShrockFactor(Kaon0-Pion, Muon, t) << "\t";
 		Out << Kine::ShrockFactor(Pion, Elec, t) << "\t";
 		Out << Kine::ShrockFactor(Kaon, Elec, t) << "\t";
-		//Out << Kine::ShrockFactor(Kaon-Pion0, Elec, t) << "\t";
-		//Out << Kine::ShrockFactor(Kaon0-Pion, Elec, t) << "\t";
+		Out << Kine::ShrockFactor(Charm, Elec, t) << "\t";
+		Out << Kine::ShrockFactor(Pion, Muon, t) << "\t";
+		Out << Kine::ShrockFactor(Kaon, Muon, t) << "\t";
+		Out << Kine::ShrockFactor(Charm, Muon, t) << "\t";
 		Out << std::endl;
 	}
 	//Create object from classes

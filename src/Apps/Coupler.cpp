@@ -27,21 +27,20 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	//Initialize variables
-	std::ofstream OutFile;
-	std::ifstream InAFile, InBFile;
+	std::string InAFile, InBFile, OutFile;
 	
 	while((iarg = getopt_long(argc,argv, "A:B:o:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
 			case 'A':
-				InAFile.open(optarg);
+				InAFile.assign(optarg);
 				break;
 			case 'B':
-				InBFile.open(optarg);
+				InBFile.assign(optarg);
 				break;
 			case 'o':
-				OutFile.open(optarg);
+				OutFile.assign(optarg);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -52,14 +51,15 @@ int main(int argc, char** argv)
 		}
 	}
 
-	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
+	//std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
 	double Mass = 0, Uu = 0, nEvt = 0;
 	std::string Line, Key, Name;
 	std::stringstream ssL;
 	std::vector<double> vnA, vnB, vMass, vUu;
 
-	while (std::getline(InAFile, Line))
+	std::ifstream InA(InAFile.c_str());
+	while (std::getline(InA, Line))
 	{
 		if (Line[0] == '#') continue;
 
@@ -70,9 +70,10 @@ int main(int argc, char** argv)
 		ssL >> Mass >> Uu >> nEvt;
 		vnA.push_back(nEvt);
 	}	
-	InAFile.close();
+	InA.close();
 
-	while (std::getline(InBFile, Line))
+	std::ifstream InB(InBFile.c_str());
+	while (std::getline(InB, Line))
 	{
 		if (Line[0] == '#') continue;
 
@@ -85,14 +86,16 @@ int main(int argc, char** argv)
 		vUu.push_back(Uu);
 		vnB.push_back(nEvt);
 	}	
-	InBFile.close();
+	InB.close();
 
+	std::ofstream Out(OutFile.c_str());
 	for (unsigned int i = 0; i < vMass.size(); ++i)
 	{
 		Out << vMass.at(i) << "\t";
 		Out << vUu.at(i) << "\t";
 		Out << vnA.at(i)+vnB.at(i) << std::endl;
 	}
+	Out.close();
 
 	return 0;
 }
