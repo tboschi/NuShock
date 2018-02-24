@@ -144,6 +144,9 @@ int main(int argc, char** argv)
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
 		EvGen->SetMass(Mass);
+		if (!EvGen->IsAllowed())
+			continue;
+
 		EvGen->MakeFlux(1);
 
 		for (double logUuA = -20.0; logUuA+1e-6 < 0.0; logUuA += 20.0/Grid)	//increase Uu logarithmically

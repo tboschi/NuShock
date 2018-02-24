@@ -17,7 +17,9 @@ include $(GENIE)/src/make/Make.include
 
 
 #Main executable to be compiled
-NEW =	FluxDUNE	\
+NEW =	MegaExcl	\
+	MegaPlot	\
+	#FluxDUNE	\
 	MakeEfficiency	\
 	Rate		\
 	OriginalExclusion	\
@@ -30,8 +32,6 @@ NEW =	FluxDUNE	\
 	#OpenCC		\
 	Rate		\
 	ExcluMix	\
-	MegaExcl	\
-	MegaPlot	\
 	Timing		\
 	Simulation	\
 	Probability	\
