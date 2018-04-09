@@ -39,13 +39,16 @@ int main(int argc, char** argv)
 	std::ofstream OutFile;
 	//TFile *OutFile;
 	std::string Channel = "ALL";
-	bool UeFlag = false;
-	bool UmFlag = false;
-	bool UtFlag = false;
+	bool UeFlagA = false;
+	bool UmFlagA = false;
+	bool UtFlagA = false;
+	bool UeFlagB = false;
+	bool UmFlagB = false;
+	bool UtFlagB = false;
 	bool Efficiency = false;
 	double Thr = 2.44;
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:c:t:o:WEMTh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "s:d:f:c:r:o:WEMTemth", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -64,20 +67,29 @@ int main(int argc, char** argv)
 			case 'o':
 				OutFile.open(optarg);
 				break;
-			case 't':
+			case 'r':
 				Thr = strtod(optarg, NULL);
 				break;
 			case 'W':
 				Efficiency = true;
 				break;
+			case 'e':
+				UeFlagA = true;
+				break;
+			case 'm':
+				UmFlagA = true;
+				break;
+			case 't':
+				UtFlagA = true;
+				break;
 			case 'E':
-				UeFlag = true;
+				UeFlagB = true;
 				break;
 			case 'M':
-				UmFlag = true;
+				UmFlagB = true;
 				break;
 			case 'T':
-				UtFlag = true;
+				UtFlagB = true;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -94,47 +106,35 @@ int main(int argc, char** argv)
 	EvGen->SetChannel(Channel, Efficiency, 'E');
 
 	EvGen->SetMass(0);
-	EvGen->SyncUu();
+	EvGen->SyncUu(0);
 	
-	unsigned int Grid = 500;
+	unsigned int Grid = 50;
 	double Mass, UuA, UuB;
 	std::vector<double> vSignal;	//summing over energy, array of Uus
 
 	void (EventGenerator::*SetUuA)(double, bool) = NULL;
 	void (EventGenerator::*SetUuB)(double, bool) = NULL;
-	if (UeFlag)
-	{
+	if (UeFlagA)
 		SetUuA = &EventGenerator::SetUe;
-		if (UmFlag)
-			SetUuB = &EventGenerator::SetUm;
-		else if (UtFlag)
-			SetUuB = &EventGenerator::SetUt;
-		else 
-			SetUuB = &EventGenerator::SetUe;
-	}
-	else if (UmFlag)
-	{
+	else if (UmFlagA)
 		SetUuA = &EventGenerator::SetUm;
-		if (UeFlag)
-			SetUuB = &EventGenerator::SetUe;
-		else if (UtFlag)
-			SetUuB = &EventGenerator::SetUt;
-		else 
-			SetUuB = &EventGenerator::SetUm;
-	}
-	else if (UtFlag)
-	{
+	else if (UtFlagA)
 		SetUuA = &EventGenerator::SetUt;
-		if (UeFlag)
-			SetUuB = &EventGenerator::SetUe;
-		else if (UmFlag)
-			SetUuB = &EventGenerator::SetUm;
-		else 
-			SetUuB = &EventGenerator::SetUt;
-	}
 	else
 	{
-		std::cout << "You have to define at least one channel (-E -M -T flags)!" << std::endl;
+		std::cout << "You have to define at least one production channel (-e -m -t flags)!" << std::endl;
+		return 1;
+	}
+
+	if (UeFlagB)
+		SetUuB = &EventGenerator::SetUe;
+	else if (UmFlagB)
+		SetUuB = &EventGenerator::SetUm;
+	else if (UtFlagB)
+		SetUuB = &EventGenerator::SetUt;
+	else
+	{
+		std::cout << "You have to define at least one decay channel (-E -M -T flags)!" << std::endl;
 		return 1;
 	}
 
@@ -153,6 +153,7 @@ int main(int argc, char** argv)
 		{
 			UuA = pow(10.0, 0.5*logUuA);
 			(EvGen->*SetUuA)(UuA, 1);
+			(EvGen->*SetUuA)(UuA, 0);
 
 			vSignal.clear();
 			vSignal.resize(Grid);	//number of Uus probing
@@ -176,7 +177,7 @@ int main(int argc, char** argv)
 			{
 				UuB = pow(10.0, 0.5*logUuB);
 				if (vSignal.at(j) > Thr)
-					Out << Mass << "\t" << UuA*UuB << "\t" << vSignal.at(j) << std::endl;
+					Out << Mass << "\t" << UuA*UuB << "\t" << UuA*sqrt(UuA*UuA + UuB*UuB) << "\t" << UuA*UuA+UuB*UuB << "\t" << vSignal.at(j) << std::endl;
 			}
 		}
 	}
