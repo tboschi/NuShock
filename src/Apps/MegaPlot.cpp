@@ -31,9 +31,6 @@ int main(int argc, char** argv)
 	//Initialize variables
 	std::ofstream OutFile;
 	std::ifstream InFile;
-	double Threshold = 2.44;
-	double MassDep = 0.0;
-	double MassA = 0.0, MassB = 0.5;
 	
 	while((iarg = getopt_long(argc,argv, "i:o:t:m:A:B:h", longopts, &index)) != -1)
 	{
@@ -44,18 +41,6 @@ int main(int argc, char** argv)
 				break;
 			case 'o':
 				OutFile.open(optarg);
-				break;
-			case 't':
-				Threshold = strtod(optarg, NULL);
-				break;
-			case 'm':
-				MassDep = strtod(optarg, NULL);
-				break;
-			case 'A':
-				MassA = strtod(optarg, NULL);
-				break;
-			case 'B':
-				MassB = strtod(optarg, NULL);
 				break;
 			case 'h':
 				Usage(argv[0]);

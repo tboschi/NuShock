@@ -108,7 +108,7 @@ int main(int argc, char** argv)
 	EvGen->SetMass(0);
 	EvGen->SyncUu(0);
 	
-	unsigned int Grid = 50;
+	unsigned int Grid = 500;
 	double Mass, UuA, UuB;
 	std::vector<double> vSignal;	//summing over energy, array of Uus
 
