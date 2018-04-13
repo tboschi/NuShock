@@ -19,13 +19,13 @@ include $(GENIE)/src/make/Make.include
 #Main executable to be compiled
 NEW =	MegaExcl	\
 	MegaPlot	\
+	Coupler		\
 	#FluxDUNE	\
 	MakeEfficiency	\
 	Rate		\
 	OriginalExclusion	\
 	DecayPlot	\
 	Plotter		\
-	Coupler		\
 	FluxCharm	\
 	Kine		\
 	Width		\
