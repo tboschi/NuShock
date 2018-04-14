@@ -31,8 +31,9 @@ int main(int argc, char** argv)
 	//Initialize variables
 	std::ofstream OutFile;
 	std::ifstream InFile;
+	unsigned int Comb;
 	
-	while((iarg = getopt_long(argc,argv, "i:o:t:m:A:B:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "i:o:t:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -41,6 +42,9 @@ int main(int argc, char** argv)
 				break;
 			case 'o':
 				OutFile.open(optarg);
+				break;
+			case 't':
+				Comb = strtol(optarg, NULL, 10);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -53,7 +57,7 @@ int main(int argc, char** argv)
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	double rMass, rUu2, rEvt;
+	double rMass, rProd, rSqrt, rSum, rEvt;
 	double Uu2Min = 2.0, Uu2Max = 0.0;
 	std::vector <double> vMass, vUu2Min, vUu2Max;
 
@@ -67,12 +71,26 @@ int main(int argc, char** argv)
 		ssL.clear();
 		ssL << Line;
 
-		ssL >> rMass >> rUu2 >> rEvt;
+		ssL >> rMass >> rProd >> rSqrt >> rSum >> rEvt;
 
-		if (rUu2 < Uu2Min)
-			Uu2Min = rUu2;
-		if (rUu2 > Uu2Max)
-			Uu2Max = rUu2;
+		double *rUu2;
+		switch (Comb)
+		{
+			case 1:
+				rUu2 = &rProd;
+				break;
+			case 2:
+				rUu2 = &rSqrt;
+				break;
+			case 3:
+				rUu2 = &rSum;
+				break;
+		}
+
+		if (*rUu2 < Uu2Min)
+			Uu2Min = *rUu2;
+		if (*rUu2 > Uu2Max)
+			Uu2Max = *rUu2;
 
 		if (vMass.empty())
 			vMass.push_back(rMass);
@@ -89,7 +107,6 @@ int main(int argc, char** argv)
 	vUu2Min.push_back(Uu2Min);
 	vUu2Max.push_back(Uu2Max);
 
-	std::cout << "size check " << vMass.size() << "\t" << vUu2Min.size() << "\t" << vUu2Max.size() << std::endl;
 	//lower line
 	for (unsigned int i = 0; i < vMass.size(); ++i)
 		Out << vMass.at(i) << "\t" << vUu2Min.at(i) << std::endl;
