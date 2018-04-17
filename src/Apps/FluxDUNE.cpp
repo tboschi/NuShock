@@ -43,8 +43,9 @@ int main(int argc, char** argv)
 	double SE = 1000;
 	double Eb = 800;
 	unsigned int nMAX = 1e5;
+	double mN = 0.0;	//neutrino mass
 
-	while((iarg = getopt_long(argc,argv, "r:s:E:t:o:I:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "r:s:m:E:t:o:I:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -53,6 +54,9 @@ int main(int argc, char** argv)
 				break;
 			case 's':
 				SE = strtod(optarg, NULL);
+				break;
+			case 'm':
+				mN = strtod(optarg, NULL);
 				break;
 			case 'E':
 				Eb = strtod(optarg, NULL);
@@ -114,11 +118,11 @@ int main(int argc, char** argv)
 	double sqrts = S.M();		//CM energy
 
 	double psint, pcost;
-	double massdecay0[2] = {0.0, mt};
-	double massdecay1[3] = {0.0, 0.0, mm};
-	double massdecay2[3] = {0.0, 0.0, me};
-	double massdecay3[2] = {0.0, mpi};
-	double massdecay4[3] = {0.0, mpi, mpi0};
+	double massdecay0[2] = {mN, mt};
+	double massdecay1[3] = {mN, 0.0, mm};
+	double massdecay2[3] = {mN, 0.0, me};
+	double massdecay3[2] = {mN, mpi};
+	double massdecay4[3] = {mN, mpi, mpi0};
 
 	TGenPhaseSpace event;
 	
@@ -163,6 +167,7 @@ int main(int argc, char** argv)
 				TLorentzVector tau_cm(0, 0, 0, mt);
 				switch(nChannel)
 				{
+					Space->SetSterileMass(mN);
 					case 1:		//tau -> nu_t nu_e e
 						Space->SetParent("TauE");
 						Space->TauChannel();

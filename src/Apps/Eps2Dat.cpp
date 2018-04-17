@@ -32,8 +32,6 @@ int main(int argc, char** argv)
 	std::ifstream InFile;
 	std::ofstream OutFile;
 	
-	double x1, x2, y1, y2;
-
 	while((iarg = getopt_long(argc,argv, "i:o:0:1:2:3:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
@@ -43,18 +41,6 @@ int main(int argc, char** argv)
 				break;
 			case 'o':
 				OutFile.open(optarg);
-				break;
-			case '0':
-				x1 = strtod(optarg, NULL);
-				break;
-			case '1':
-				x2 = strtod(optarg, NULL);
-				break;
-			case '2':
-				y1 = strtod(optarg, NULL);
-				break;
-			case '3':
-				y2 = strtod(optarg, NULL);
 				break;
 			case 'h':
 				std::cout << "Convert EPS file to ROOT" << std::endl;
@@ -83,6 +69,7 @@ int main(int argc, char** argv)
 	std::stringstream ssL;
 	double PosX = 0, PosY = 0, X, Y;
 	double X1, X2, Y1, Y2;
+	double x1, x2, y1, y2;
 
 	while(std::getline(InFile, Line))
 	{
@@ -97,6 +84,15 @@ int main(int argc, char** argv)
 			ssL >> X2;
 			ssL >> Y1;
 			ssL >> Y2;
+		}
+		else if (Line[0] == '$')
+		{
+			Line.erase(Line.begin());
+			ssL << Line;
+			ssL >> x1;
+			ssL >> x2;
+			ssL >> y1;
+			ssL >> y2;
 		}
 		else
 		{

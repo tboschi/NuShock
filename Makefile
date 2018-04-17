@@ -20,8 +20,9 @@ include $(GENIE)/src/make/Make.include
 NEW =	MegaExcl	\
 	MegaPlot	\
 	Coupler		\
-	#FluxDUNE	\
-	MakeEfficiency	\
+	MakeFlux	\
+	FluxDUNE	\
+	#MakeEfficiency	\
 	Rate		\
 	OriginalExclusion	\
 	DecayPlot	\
@@ -35,7 +36,6 @@ NEW =	MegaExcl	\
 	Timing		\
 	Simulation	\
 	Probability	\
-	MakeFlux	\
 	CrossExcl	\
 	EnergyBack	\
 	#RegionSearch	\
