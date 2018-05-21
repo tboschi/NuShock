@@ -60,11 +60,11 @@ namespace Inte
 		{
 			b = a + h;
 
-			Integral += 7  * TempObject->Variable( a );
-			Integral += 32 * TempObject->Variable( (3*a+b)/4.0 );
-			Integral += 12 * TempObject->Variable( (a+b)/2.0 );
-			Integral += 32 * TempObject->Variable( (a+3*b)/4.0 );
-			Integral += 7  * TempObject->Variable( b );
+			Integral += 7  * TempObject->Integrand(a);
+			Integral += 32 * TempObject->Integrand((3*a +b) / 4.0);
+			Integral += 12 * TempObject->Integrand((a+b)/2.0 );
+			Integral += 32 * TempObject->Integrand((a+3*b)/4.0 );
+			Integral += 7  * TempObject->Integrand(b);
 		}	
 	
 		return Integral * h/90.0;

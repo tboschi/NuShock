@@ -19,7 +19,7 @@
 #include "Decay/ThreeBody.h"
 
 
-enum class Channel
+enum Channel
 {
 	_ALL,		//
 	//unclassified
@@ -70,7 +70,7 @@ enum class Channel
 class Decay
 {
 	public:
-		Decay(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);	//Decay rates calculator
+		DecayRates(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);	//Decay rates calculator
 
 		//Decay width with A, B, and K the enhancement factors
 		double Gamma(std::string Channel, double B = 1.0);

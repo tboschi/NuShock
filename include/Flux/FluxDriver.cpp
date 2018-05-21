@@ -83,49 +83,28 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 
 	//initialising histograms
 	//electronic components
-	hTotalEn = new TH1D("htotalen", "Total flux", BinNumber, RangeStart, RangeEnd);
-        hPionEn  = new TH1D("hpionen",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
-        hKaonEn  = new TH1D("hkaonen",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
-        hKaon0En = new TH1D("hkaon0en", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
-        hMuonEn  = new TH1D("hmuonen",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
-        hCharmEn = new TH1D("hcharmen", "Charm flux", BinNumber, RangeStart, RangeEnd);
+	hTotalE = new TH1D("htotale", "Total flux", BinNumber, RangeStart, RangeEnd);
+        hPionE  = new TH1D("hpione",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
+        hKaonE  = new TH1D("hkaone",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
+        hKaon0E = new TH1D("hkaon0e", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
+        hMuonE  = new TH1D("hmuone",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+        hCharmE = new TH1D("hcharme", "Charm flux", BinNumber, RangeStart, RangeEnd);
 	
-	hTotalEa = new TH1D("htotalea", "Total flux", BinNumber, RangeStart, RangeEnd);
-        hPionEa  = new TH1D("hpionea",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
-        hKaonEa  = new TH1D("hkaonea",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
-        hKaon0Ea = new TH1D("hkaon0ea", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
-        hMuonEa  = new TH1D("hmuonea",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
-        hCharmEa = new TH1D("hcharmea", "Charm flux", BinNumber, RangeStart, RangeEnd);
-
 	//muonic components
-	hTotalMn = new TH1D("htotalmn", "Total flux", BinNumber, RangeStart, RangeEnd);
-        hPionMn  = new TH1D("hpionmn",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
-        hKaonMn  = new TH1D("hkaonmn",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
-        hKaon0Mn = new TH1D("hkaon0mn", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
-        hMuonMn  = new TH1D("hmuonmn",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
-        hCharmMn = new TH1D("hcharmmn", "Charm flux", BinNumber, RangeStart, RangeEnd);
-
-	hTotalMa = new TH1D("htotalma", "Total flux", BinNumber, RangeStart, RangeEnd);
-        hPionMa  = new TH1D("hpionma",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
-        hKaonMa  = new TH1D("hkaonma",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
-        hKaon0Ma = new TH1D("hkaon0ma", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
-        hMuonMa  = new TH1D("hmuonma",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
-        hCharmMa = new TH1D("hcharmma", "Charm flux", BinNumber, RangeStart, RangeEnd);
+	hTotalM = new TH1D("htotalm", "Total flux", BinNumber, RangeStart, RangeEnd);
+        hPionM  = new TH1D("hpionm",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
+        hKaonM  = new TH1D("hkaonm",  "Kaon flux",  BinNumber, RangeStart, RangeEnd);
+        hKaon0M = new TH1D("hkaon0m", "Kaon0 flux", BinNumber, RangeStart, RangeEnd);
+        hMuonM  = new TH1D("hmuonm",  "Muon flux",  BinNumber, RangeStart, RangeEnd);
+        hCharmM = new TH1D("hcharmm", "Charm flux", BinNumber, RangeStart, RangeEnd);
 
 	//tauonic components
-	hTotalTn = new TH1D("htotaltn", "Total flux", BinNumber, RangeStart, RangeEnd);
-        hPionTn  = new TH1D("hpiontn",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
-        h2PionTn = new TH1D("h2piontn", "2Pion flux", BinNumber, RangeStart, RangeEnd);
-        hCharmTn = new TH1D("hcharmtn", "Charm flux", BinNumber, RangeStart, RangeEnd);
-        hTauETn  = new TH1D("htauetn",  "TauE flux",  BinNumber, RangeStart, RangeEnd);
-        hTauMTn  = new TH1D("htaumtn",  "TauM flux",  BinNumber, RangeStart, RangeEnd);
-
-	hTotalTa = new TH1D("htotalta", "Total flux", BinNumber, RangeStart, RangeEnd);
-        hPionTa  = new TH1D("hpionta",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
-        h2PionTa = new TH1D("h2pionta", "2Pion flux", BinNumber, RangeStart, RangeEnd);
-        hCharmTa = new TH1D("hcharmta", "Charm flux", BinNumber, RangeStart, RangeEnd);
-        hTauETa  = new TH1D("htaueta",  "TauE flux",  BinNumber, RangeStart, RangeEnd);
-        hTauMTa  = new TH1D("htaumta",  "TauM flux",  BinNumber, RangeStart, RangeEnd);
+	hTotalT = new TH1D("htotalt", "Total flux", BinNumber, RangeStart, RangeEnd);
+        hPionT  = new TH1D("hpiont",  "Pion flux",  BinNumber, RangeStart, RangeEnd);
+        h2PionT = new TH1D("h2piont", "2Pion flux", BinNumber, RangeStart, RangeEnd);
+        hCharmT = new TH1D("hcharmt", "Charm flux", BinNumber, RangeStart, RangeEnd);
+        hTauET  = new TH1D("htauet",  "TauE flux",  BinNumber, RangeStart, RangeEnd);
+        hTauMT  = new TH1D("htaumt",  "TauM flux",  BinNumber, RangeStart, RangeEnd);
 
 	M_Sterile_prev = -1.0;
 
@@ -159,44 +138,26 @@ FluxDriver::~FluxDriver()
 	delete fxNuTau;
 	delete fxNuTauBar;
 
-	delete hTotalEn;
-	delete hTotalEa;
-	delete hPionEn;
-	delete hPionEa;
-	delete hKaonEn;
-	delete hKaonEa;
-	delete hKaon0En;
-	delete hKaon0Ea;
-	delete hMuonEn;
-	delete hMuonEa;
-	delete hCharmEn;
-	delete hCharmEa;
+	delete hTotalE;
+	delete hPionE;
+	delete hKaonE;
+	delete hKaon0E;
+	delete hMuonE;
+	delete hCharmE;
 
-	delete hTotalMn;
-	delete hTotalMa;
-	delete hPionMn;
-	delete hPionMa;
-	delete hKaonMn;
-	delete hKaonMa;
-	delete hKaon0Mn;
-	delete hKaon0Ma;
-	delete hMuonMn;
-	delete hMuonMa;
-	delete hCharmMn;
-	delete hCharmMa;
+	delete hTotalM;
+	delete hPionM;
+	delete hKaonM;
+	delete hKaon0M;
+	delete hMuonM;
+	delete hCharmM;
 
-	delete hTotalTn;
-	delete hTotalTa;
-	delete hPionTn;
-	delete h2PionTn;
+	delete hTotalT;
+	delete hPionT;
 	delete hPionTa;
-	delete h2PionTa;
-	delete hCharmTn;
-	delete hCharmTa;
-	delete hTauETn;
-	delete hTauETa;
-	delete hTauETn;
-	delete hTauETa;
+	delete hCharmT;
+	delete hTauET;
+	delete hTauET;
 }
 
 //clones the histograms in the kinematic files
@@ -214,310 +175,190 @@ void FluxDriver::CloneCopy(TH1D*& T, TObject* X)
 //make flux, only input needed is the mass of the neutrino
 //return true if successful
 //
-bool FluxDriver::MakeFlux(double M_Sterile)
+bool FluxDriver::MakeFlux(Neutrino * N)
 {
-	if (IsChanged(M_Sterile))
+	if (!IsChanged(N))	//compute only if particle is changed have changed 
 	{
-		//Reset before generating
-		hTotalEn->Reset("ICES");	
-		hPionEn->Reset("ICES");
-		hKaonEn->Reset("ICES"); 
-		hKaon0En->Reset("ICES");
-		hMuonEn->Reset("ICES"); 
-                hCharmEn->Reset("ICES");
+		std::cerr << "WARNING: recopmuting flux with same neutrino. This should not be happening!" << std::endl;
+		return false;
+	}
+	else
+	{
+		delete sxHeavyElectron;
+		delete sxHeavyMuon;
+		delete sxHeavyTau;
+		
+		if (sxHeavyElectron = new Flux(*fxNuElectron))
+			MakeElecComponent(sxHeavyElectron);
 
-		hTotalMn->Reset("ICES");
-		hPionMn->Reset("ICES");
-		hKaonMn->Reset("ICES"); 
-		hKaon0Mn->Reset("ICES");
-		hMuonMn->Reset("ICES"); 
-                hCharmMn->Reset("ICES");
+		if (sxHeavyMuon = new Flux(*fxNuMuon))
+			MakeElecComponent(sxHeavyMuon);
 
-		hTotalTn->Reset("ICES");
-                hPionTn->Reset("ICES");
-                h2PionTn->Reset("ICES");
-                hCharmTn->Reset("ICES");
-                hTauETn->Reset("ICES");
-                hTauMTn->Reset("ICES");
-                        
-		hTotalEa->Reset("ICES");
-		hPionEa->Reset("ICES");
-		hKaonEa->Reset("ICES"); 
-		hKaon0Ea->Reset("ICES");
-		hMuonEa->Reset("ICES"); 
-                hCharmEa->Reset("ICES");
-
-		hTotalMa->Reset("ICES");
-		hPionMa->Reset("ICES");
-		hKaonMa->Reset("ICES"); 
-		hKaon0Ma->Reset("ICES");
-		hMuonMa->Reset("ICES"); 
-                hCharmMa->Reset("ICES");
-
-                hTotalTa->Reset("ICES");
-                hPionTa->Reset("ICES");
-                h2PionTa->Reset("ICES");
-                hCharmTa->Reset("ICES");
-                hTauETa->Reset("ICES");
-                hTauMTa->Reset("ICES");
-
-		//if the light neutrino flux exists, continue with heavy one
-		//each component is modelled by Make<LEPTON>Component
-		//then added to the total flux
-		//
-		if (fxNuElectron)	//Model on nu electron flux
-		{
-			Flux sxFlux(*fxNuElectron);
-			MakeElecComponent(1, sxFlux, M_Sterile);
-
-			hTotalEn->Add(hPionEn);
-			hTotalEn->Add(hKaonEn);
-		 	hTotalEn->Add(hKaon0En);
-			hTotalEn->Add(hMuonEn);
-			hTotalEn->Add(hCharmEn);
-		}
-	
-		if (fxNuElectronBar)	//Model on nu electron bar flux
-		{
-			Flux sxFlux(*fxNuElectronBar);
-			MakeElecComponent(0, sxFlux, M_Sterile);
-
-			hTotalEa->Add(hPionEa);
-			hTotalEa->Add(hKaonEa);
-		 	hTotalEa->Add(hKaon0Ea);
-			hTotalEa->Add(hMuonEa);
-			hTotalEa->Add(hCharmEa);
-		}
-
-		if (fxNuMuon)		//Model on nu mu flux
-		{
-			Flux sxFlux(*fxNuMuon);
-			MakeMuonComponent(1, sxFlux, M_Sterile);
-
-			hTotalMn->Add(hPionMn);
-			hTotalMn->Add(hKaonMn);
-			hTotalMn->Add(hKaon0Mn);
-			hTotalMn->Add(hMuonMn);
-			hTotalMn->Add(hCharmMn);
-		}
-	
-		if (fxNuMuonBar)	//Model on nu mu bar flux
-		{
-			Flux sxFlux(*fxNuMuonBar);
-			MakeMuonComponent(0, sxFlux, M_Sterile);
-
-			hTotalMa->Add(hPionMa);
-			hTotalMa->Add(hKaonMa);
-			hTotalMa->Add(hKaon0Ma);
-			hTotalMa->Add(hMuonMa);
-			hTotalMa->Add(hCharmMa);
-		}
-	
-		if (fxNuTau)	//Model on nu electron flux
-		{
-			Flux sxFlux(*fxNuTau);
-			MakeTauComponent(1, sxFlux, M_Sterile);
-
-			hTotalTn->Add(hPionTn);
-			hTotalTn->Add(h2PionTn);
-		 	hTotalTn->Add(hCharmTn);
-			hTotalTn->Add(hTauETn);
-			hTotalTn->Add(hTauMTn);
-		}
-	
-		if (fxNuTauBar)	//Model on nu electron bar flux
-		{
-			Flux sxFlux(*fxNuTauBar);
-			MakeTauComponent(0, sxFlux, M_Sterile);
-
-			hTotalTa->Add(hPionTa);
-			hTotalTa->Add(h2PionTa);
-		 	hTotalTa->Add(hCharmTa);
-			hTotalTa->Add(hTauETa);
-			hTotalTa->Add(hTauMTa);
-		}
+		if (sxHeavyTau = new Flux(*fxNuTau))
+			MakeElecComponent(sxHeavyTau);
 
 		return true;
 	}
-	else 
-		return false;
 }
 
 //Make electronic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void FluxDriver::MakeElecComponent(bool Neutrino, Flux &sxFlux, double M_Sterile)
+void FluxDriver::MakeElecComponent(Flux *sxFlux)
 {
+	TH1D *hPoint, *hTotal;
+
 	//pi+ -> e+ nu_e
-	TH1D *hPoint;
-	if (hPoint = sxFlux.Get(Hist::Pion))
+	if (hPoint = sxFlux->Get(Hist::Pion))
 	{
-		hPoint->Scale(Kine::Unhelicity(M_Pion, M_Electron, M_Sterile));
-		if (Neutrino)
-			hPionEn->Add(hPoint);
-		else
-			hPionEa->Add(hPoint);
+		hPoint->Scale(Kine::Unhelicity(M_Pion, M_Electron, GetMass(), GetHelicity()));
+
+		hTotal->Add(hPoint);
 	}
 
 	//K+ -> pi0 e+ nu_e	(5.07 %)		//I just assume that both decays are equally probable 
 	//K+ -> e+ nu_e		(1.582e-3)		//for each different energy, so it is a linear combination of the two
-	if (hPoint = sxFlux.Get(Hist::Kaon))
+	if (hPoint = sxFlux->Get(Hist::Kaon))
 	{
-				//branching ratios
-		double KaonFactor = 1.582e-3/(1.582e-3+5.07) * Kine::Unhelicity(M_Kaon, M_Electron, M_Sterile);	//Two body
+				    //branching ratios
+		double KaonFactor = 1.582e-3/(1.582e-3+5.07) * Kine::Unhelicity(M_Kaon, M_Electron, GetMass(), GetHelicity());	//Two body
 		if (Kine)
 		{
-			double KE = hKaonElec->GetBinContent(hKaonElec->FindBin(M_Sterile+1e-9)+1);	//1e-9 to prevent bin error
+			double KE = hKaonElec->GetBinContent(hKaonElec->FindBin(GetMass()+1e-9)+1);	//1e-9 to prevent bin error
 			KaonFactor += 5.07/(1.582e-3+5.07) * KE;	//Three body
 		}
-		else if (M_Sterile < M_Kaon - M_Pion0 - M_Electron)
+		else if (GetMass() < M_Kaon - M_Pion0 - M_Electron)
 			KaonFactor += 5.07/(1.582e-3+5.07);	//simple scaling
 		else KaonFactor += 0;	//simple scaling
 		hPoint->Scale(KaonFactor);
-		if (Neutrino)
-			hKaonEn->Add(hPoint);
-		else
-			hKaonEa->Add(hPoint);
+
+		hTotal->Add(hPoint);
 	}
 
 	//K0 -> pi+ e+ nu_e
-	if (hPoint = sxFlux.Get(Hist::Kaon0))
+	if (hPoint = sxFlux->Get(Hist::Kaon0))
 	{
 		if (Kine)
 		{
-			double K0E = hKaon0Elec->GetBinContent(hKaon0Elec->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			double K0E = hKaon0Elec->GetBinContent(hKaon0Elec->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			hPoint->Scale(K0E);
 		}
-		else if (M_Sterile > M_Kaon0 - M_Pion - M_Electron)
+		else if (GetMass() > M_Kaon0 - M_Pion - M_Electron)
 			hPoint->Scale(0);	//simple scaling
-		if (Neutrino)
-			hKaon0En->Add(hPoint);
-		else
-			hKaon0Ea->Add(hPoint);
+
+		hTotal->Add(hPoint);
 	}
 
 	//mu+ -> nu_mu_bar e+ nu_e
-	if (hPoint = sxFlux.Get(Hist::Muon))
+	if (hPoint = sxFlux->Get(Hist::Muon))
 	{
 		if (Kine)
 		{
-			double ME = hMuonElec->GetBinContent(hMuonElec->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			double ME = hMuonElec->GetBinContent(hMuonElec->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			hPoint->Scale(ME);
 		}
-		else if (M_Sterile > M_Muon - M_Electron)
+		else if (GetMass() > M_Muon - M_Electron)
 			hPoint->Scale(0);
-		if (Neutrino)
-			hMuonEn->Add(hPoint);
-		else
-			hMuonEa->Add(hPoint);
+
+		hTotal->Add(hPoint);
 	}
 
 	//Ds+ -> e+ nu_e
-	if (hPoint = sxFlux.Get(Hist::Charm))
+	if (hPoint = sxFlux->Get(Hist::Charm))
 	{
-		hPoint->Scale(Kine::Unhelicity(M_Charm, M_Electron, M_Sterile));
-		if (Neutrino)
-			hCharmEn->Add(hPoint);
-		else 
-			hCharmEa->Add(hPoint);
+		hPoint->Scale(Kine::Unhelicity(M_Charm, M_Electron, GetMass(), GetHelicity()));
+
+		hTotal->Add(hPoint);
 	}
 }
 
 //Make muonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void FluxDriver::MakeMuonComponent(bool Neutrino, Flux &sxFlux, double M_Sterile)
+void FluxDriver::MakeMuonComponent(Flux *sxFlux)
 {
+	TH1D *hPoint, *hTotal;
+
 	//pi+ -> mu+ nu_mu
-	TH1D *hPoint;
-	if (hPoint = sxFlux.Get(Hist::Pion))
+	if (hPoint = sxFlux->Get(Hist::Pion))
 	{	
-		hPoint->Scale(Kine::Unhelicity(M_Pion, M_Muon, M_Sterile));
-		if (Neutrino)
-			hPionMn->Add(hPoint);
-		else 
-			hPionMa->Add(hPoint);
+		hPoint->Scale(Kine::Unhelicity(M_Pion, M_Muon, GetMass(), GetHelicity()));
+
+		hTotal->Add(hPoint);
 	}
 
 	//K+ -> mu+ nu_mu	(63.56%)
 	//K+ -> pi0 mu+ nu_mu	(3.53%)
-	if (hPoint = sxFlux.Get(Hist::Kaon))
+	if (hPoint = sxFlux->Get(Hist::Kaon))
 	{
-		double KaonFactor = 63.56/(63.56+3.35) * Kine::Unhelicity(M_Kaon, M_Muon, M_Sterile);	//Two body
+		double KaonFactor = 63.56/(63.56+3.35) * Kine::Unhelicity(M_Kaon, M_Muon, GetMass(), GetHelicity());	//Two body
 		if (Kine)
 		{
-			double KM = hKaonMuon->GetBinContent(hKaonMuon->FindBin(M_Sterile+1e-9)+1);	//1e-9 to prevent bin error
+			double KM = hKaonMuon->GetBinContent(hKaonMuon->FindBin(GetMass()+1e-9)+1);	//1e-9 to prevent bin error
 			KaonFactor += 3.35/(63.56+3.35) * KM;	//Three body
 		}
-		else if (M_Sterile < M_Kaon - M_Pion0 - M_Muon)
+		else if (GetMass() < M_Kaon - M_Pion0 - M_Muon)
 			KaonFactor += 3.35/(63.56+3.35);	//simple scaling
 		else KaonFactor += 0;	//simple scaling
 		hPoint->Scale(KaonFactor);
-		if (Neutrino)
-			hKaonMn->Add(hPoint);
-		else
-			hKaonMa->Add(hPoint);
+
+		hTotal->Add(hPoint);
 	}
 
 	//K0 -> pi- mu+ nu_mu
-	if (hPoint = sxFlux.Get(Hist::Kaon0))
+	if (hPoint = sxFlux->Get(Hist::Kaon0))
 	{
 		if (Kine)
 		{
-			double K0M = hKaon0Muon->GetBinContent(hKaon0Muon->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			double K0M = hKaon0Muon->GetBinContent(hKaon0Muon->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 				hPoint->Scale(K0M);	//Three body
 		}
-		else if (M_Sterile > M_Kaon0 - M_Pion - M_Muon)
+		else if (GetMass() > M_Kaon0 - M_Pion - M_Muon)
 			hPoint->Scale(0);	//simple scaling
-		if (Neutrino)
-			hKaon0Mn->Add(hPoint);
-		else
-			hKaon0Ma->Add(hPoint);
+
+		hTotal->Add(hPoint);
 	}
 
 	//mu- -> nu_mu e- nu_e_bar
-	if (hPoint = sxFlux.Get(Hist::Muon))
+	if (hPoint = sxFlux->Get(Hist::Muon))
 	{
 		if (Kine)
 		{
-			double MM = hMuonMuon->GetBinContent(hMuonMuon->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			double MM = hMuonMuon->GetBinContent(hMuonMuon->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			hPoint->Scale(MM);	//Three body
 		}
-		else if (M_Sterile > M_Muon - M_Electron)
+		else if (GetMass() > M_Muon - M_Electron)
 			hPoint->Scale(0);
-		if (Neutrino)
-			hMuonMn->Add(hPoint);
-		else
-			hMuonMa->Add(hPoint);
+
+		hTotal->Add(hPoint);
 	}
 
 	//Ds+ -> mu+ nu_mu
-	if (hPoint = sxFlux.Get(Hist::Charm))
+	if (hPoint = sxFlux->Get(Hist::Charm))
 	{
-		hPoint->Scale(Kine::Unhelicity(M_Charm, M_Muon, M_Sterile));
-		if (Neutrino)
-			hCharmMn->Add(hPoint);
-		else 
-			hCharmMa->Add(hPoint);
+		hPoint->Scale(Kine::Unhelicity(M_Charm, M_Muon, GetMass(), GetHelicity()));
+
+		hTotal->Add(hPoint);
 	}	
 }
 
 //Make tauonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void FluxDriver::MakeTauComponent(bool Neutrino, Flux &sxFlux, double M_Sterile)
+void FluxDriver::MakeTauComponent(Flux *sxFlux)
 {
+	TH1D *hPoint, *hTotal;
+
 	//Ds+ -> tau+ nu_tau
-	TH1D *hPoint;
-	if (hPoint = sxFlux.Get(Hist::Charm))
+	if (hPoint = sxFlux->Get(Hist::Charm))
 	{
 		//needs special scaling
-		hPoint->Scale(Kine::Unhelicity(M_Charm, M_Tau, M_Sterile));
+		hPoint->Scale(Kine::Unhelicity(M_Charm, M_Tau, GetMass(), GetHelicity()));
 
 		//"manual" modifier from empirical observation
 		//the histogram is stretched and pulled to match the MC simulation spectrum
 		//
-		if (Mod && M_Sterile < M_Charm - M_Tau)
+		if (Mod && GetMass() < M_Charm - M_Tau)
 		{
 			TH1D *hTemp = dynamic_cast<TH1D*> (hPoint->Clone());
 			hPoint->Reset("ICES");
 
 			double xdir, ydir;
-			Modify(xdir ,ydir, M_Sterile);
+			Modify(xdir ,ydir, GetMass());
 			double EnStep = (RangeEnd-RangeStart)/5000.0;
 			for (double Energy = RangeStart; Energy < RangeEnd; Energy += EnStep)
 			{
@@ -530,68 +371,57 @@ void FluxDriver::MakeTauComponent(bool Neutrino, Flux &sxFlux, double M_Sterile)
 			hTemp->Delete();
 		}
 
-		if (Neutrino)
-			hCharmTn->Add(hPoint);
-		else 
-			hCharmTa->Add(hPoint);
+		hTotal->Add(hPoint);
 	}
 
 	//tau+ -> pi+ nu_tau
-	if (hPoint = sxFlux.Get(Hist::Pion))
+	if (hPoint = sxFlux->Get(Hist::Pion))
 	{
-		hPoint->Scale(Kine::Unhelicity(M_Tau, M_Pion, M_Sterile));
-		if (Neutrino)
-			hCharmTn->Add(hPoint);
-		else 
-			hCharmTa->Add(hPoint);
+		hPoint->Scale(Kine::Unhelicity(M_Tau, M_Pion, GetMass(), GetHelicity()));
+
+		hTotal->Add(hPoint);
 	}
 
 	//tau+ -> pi+ pi0 nu_tau
-	if (hPoint = sxFlux.Get(Hist::2Pion))
+	if (hPoint = sxFlux->Get(Hist::2Pion))
 	{
 		if (false)	//not implemented
 		{
-			//double P2 = hTau2Pion->GetBinContent(hTau2Pion->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			//double P2 = hTau2Pion->GetBinContent(hTau2Pion->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			//hPoint->Scale(P2);	//Three body
 		}
-		else if (M_Sterile > M_Tau - M_Pion - M_Pion0)	//only hard cut threshold
+		else if (GetMass() > M_Tau - M_Pion - M_Pion0)	//only hard cut threshold
 			hPoint->Scale(0);
-		if (Neutrino)
-			h2PionTn->Add(hPoint);
-		else
-			h2PionTa->Add(hPoint);
+
+		hTotal->Add(hPoint);
 	}
 
 	//tau+ -> nu_tau_bar e+ nu_e
-	if (hPoint = sxFlux.Get(Hist::TauE))
+	if (hPoint = sxFlux->Get(Hist::TauE))
 	{
 		if (Kine)
 		{
-			double TE = hTauETau->GetBinContent(hTauETau->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			double TE = hTauETau->GetBinContent(hTauETau->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			hPoint->Scale(TE);	//Three body
 		}
-		else if (M_Sterile > M_Tau - M_Electron)
+		else if (GetMass() > M_Tau - M_Electron)
 			hPoint->Scale(0);
-		if (Neutrino)
-			hTauETn->Add(hPoint);
-		else
-			hTauETa->Add(hPoint);
+
+		hTotal->Add(hPoint);
 	}
 
 	//tau+ -> nu_tau_bar mu+ nu_mu
-	if (hPoint = sxFlux.Get(Hist::TauM))
+	if (hPoint = sxFlux->Get(Hist::TauM))
 	{
 		if (Kine)
 		{
-			double TM = hTauMTau->GetBinContent(hTauMTau->FindBin(M_Sterile+1e-9));	//1e-9 to prevent bin error
+			double TM = hTauMTau->GetBinContent(hTauMTau->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			hPoint->Scale(TM);	//Three body
 		}
-		else if (M_Sterile > M_Tau - M_Muon)
+		else if (GetMass() > M_Tau - M_Muon)
 			hPoint->Scale(0);
-		if (Neutrino)
-			hTauMTn->Add(hPoint);
-		else
-			hTauMTa->Add(hPoint);
+
+		hTotal->Add(hPoint);
 	}
 }
 
@@ -612,7 +442,7 @@ int FluxDriver::GetBinNumber()
 
 //return the intensity of the flux at given energy
 //
-double FluxDriver::GetIntensity(double Energy, bool NvA, bool Uu)	//Return flux intensity, given energy, simple linear interpolation
+double FluxDriver::GetIntensity(double Energy)	//Return flux intensity, given energy, simple linear interpolation
 {									//NvA == 1 -> Neutrino, NvA == 0 -> Antineutrino
 	double Ue, Um, Ut;						//Uu == 1 -> mixing , Uu == 0 -> maximal (light neutrino)
 
@@ -698,178 +528,135 @@ double FluxDriver::GetIntensity(double Energy, bool NvA, bool Uu)	//Return flux 
 	return Ue*Ue*IntElec + Um*Um*IntMuon + Ut*Ut*IntTau;
 } 
 
+double FluxDriver::InterpolateIntensity(TH1D* Hist, double Energy)
+{
+	int Bin = Hist->FindBin(Energy);
+	double I1 = Hist->GetBinContent(Bin);
+	double E1 = Hist->GetBinCenter(Bin);
+	double I2, E2;
+
+	double Ret = 0.0;
+	if (Bin > 2 && Bin < GetBinNumber())
+	{
+		if (Energy < Hist->GetBinCenter(Bin) && )
+		{
+			I2 = Hist->GetBinContent(Bin-1);
+			E2 = Hist->GetBinCenter(Bin-1);
+		}
+		else
+		{
+			I2 = Hist->GetBinContent(Bin+1);
+			E2 = Hist->GetBinCenter(Bin+1);
+		}
+
+		return (Energy-E1)*(I2-I1)/(E2-E1) + I1;
+	}
+	else
+		return 0.0;
+}
+
 void FluxDriver::SetBaseline(double Baseline)
 {
-	hTotalEn->Scale(1.0/(Baseline*Baseline));
-	hPionEn->Scale(1.0/(Baseline*Baseline));
-	hKaonEn->Scale(1.0/(Baseline*Baseline));
-	hKaon0En->Scale(1.0/(Baseline*Baseline));
-	hMuonEn->Scale(1.0/(Baseline*Baseline));
-	hCharmEn->Scale(1.0/(Baseline*Baseline));
-
-	hTotalEa->Scale(1.0/(Baseline*Baseline));
-	hPionEa->Scale(1.0/(Baseline*Baseline));
-	hKaonEa->Scale(1.0/(Baseline*Baseline));
-	hKaon0Ea->Scale(1.0/(Baseline*Baseline));
-	hMuonEa->Scale(1.0/(Baseline*Baseline));
-	hCharmEa->Scale(1.0/(Baseline*Baseline));
-
-	hTotalMn->Scale(1.0/(Baseline*Baseline));
-	hPionMn->Scale(1.0/(Baseline*Baseline));
-	hKaonMn->Scale(1.0/(Baseline*Baseline));
-	hKaon0Mn->Scale(1.0/(Baseline*Baseline));
-	hMuonMn->Scale(1.0/(Baseline*Baseline));
-	hCharmMn->Scale(1.0/(Baseline*Baseline));
-
-	hTotalMa->Scale(1.0/(Baseline*Baseline));
-	hPionMa->Scale(1.0/(Baseline*Baseline));
-	hKaonMa->Scale(1.0/(Baseline*Baseline));
-	hKaon0Ma->Scale(1.0/(Baseline*Baseline));
-	hMuonMa->Scale(1.0/(Baseline*Baseline));
-	hCharmMa->Scale(1.0/(Baseline*Baseline));
-
-	hTotalTn->Scale(1.0/(Baseline*Baseline));
-	hPionTn->Scale(1.0/(Baseline*Baseline));
-	h2PionTn->Scale(1.0/(Baseline*Baseline));
-	hCharmTn->Scale(1.0/(Baseline*Baseline));
-	hTauETn->Scale(1.0/(Baseline*Baseline));
-	hTauMTn->Scale(1.0/(Baseline*Baseline));
-                 
-	hTotalTa->Scale(1.0/(Baseline*Baseline));
-	hPionTa->Scale(1.0/(Baseline*Baseline));
-	h2PionTa->Scale(1.0/(Baseline*Baseline));
-	hCharmTa->Scale(1.0/(Baseline*Baseline));
-	hTauETa->Scale(1.0/(Baseline*Baseline));
-	hTauMTa->Scale(1.0/(Baseline*Baseline));
+	ScaleAll(1.0/(Baseline*Baseline));
 }
 
 void FluxDriver::SetPOT(double POT)
 {
-	hTotalEn->Scale(POT);
-	hPionEn->Scale(POT);
-	hKaonEn->Scale(POT);
-	hKaon0En->Scale(POT);
-	hMuonEn->Scale(POT);
-	hCharmEn->Scale(POT);
-
-	hTotalEa->Scale(POT);
-	hPionEa->Scale(POT);
-	hKaonEa->Scale(POT);
-	hKaon0Ea->Scale(POT);
-	hMuonEa->Scale(POT);
-	hCharmEa->Scale(POT);
-
-	hTotalMn->Scale(POT);
-	hPionMn->Scale(POT);
-	hKaonMn->Scale(POT);
-	hKaon0Mn->Scale(POT);
-	hMuonMn->Scale(POT);
-	hCharmMn->Scale(POT);
-
-	hTotalMa->Scale(POT);
-	hPionMa->Scale(POT);
-	hKaonMa->Scale(POT);
-	hKaon0Ma->Scale(POT);
-	hMuonMa->Scale(POT);
-	hCharmMa->Scale(POT);
-
-	hTotalTn->Scale(POT);
-	hPionTn->Scale(POT);
-	h2PionTn->Scale(POT);
-	hCharmTn->Scale(POT);
-	hTauETn->Scale(POT);
-	hTauMTn->Scale(POT);
-                 
-	hTotalTa->Scale(POT);
-	hPionTa->Scale(POT);
-	h2PionTa->Scale(POT);
-	hCharmTa->Scale(POT);
-	hTauETa->Scale(POT);
-	hTauMTa->Scale(POT);
+	ScaleAll(POT);
 }
 
 void FluxDriver::SetArea(double Area)
 {
-	hTotalEn->Scale(Area);
-	hPionEn->Scale(Area);
-	hKaonEn->Scale(Area);
-	hKaon0En->Scale(Area);
-	hMuonEn->Scale(Area);
-	hCharmEn->Scale(Area);
-
-	hTotalEa->Scale(Area);
-	hPionEa->Scale(Area);
-	hKaonEa->Scale(Area);
-	hKaon0Ea->Scale(Area);
-	hMuonEa->Scale(Area);
-	hCharmEa->Scale(Area);
-
-	hTotalMn->Scale(Area);
-	hPionMn->Scale(Area);
-	hKaonMn->Scale(Area);
-	hKaon0Mn->Scale(Area);
-	hMuonMn->Scale(Area);
-	hCharmMn->Scale(Area);
-
-	hTotalMa->Scale(Area);
-	hPionMa->Scale(Area);
-	hKaonMa->Scale(Area);
-	hKaon0Ma->Scale(Area);
-	hMuonMa->Scale(Area);
-	hCharmMa->Scale(Area);
-
-	hTotalTn->Scale(Area);
-	hPionTn->Scale(Area);
-	h2PionTn->Scale(Area);
-	hCharmTn->Scale(Area);
-	hTauETn->Scale(Area);
-	hTauMTn->Scale(Area);
-                 
-	hTotalTa->Scale(Area);
-	hPionTa->Scale(Area);
-	h2PionTa->Scale(Area);
-	hCharmTa->Scale(Area);
-	hTauETa->Scale(Area);
-	hTauMTa->Scale(Area);
+	ScaleAll(Area);
 }
 
-
-bool FluxDriver::IsChanged(double M_Sterile)
+void FluxDriver::ScaleAll(double X)
 {
-	bool Ret = (fabs(M_Sterile - M_Sterile_prev) > 1e-9);
-	M_Sterile_prev = M_Sterile;
+	hTotalE->Scale(X);
+	hPionE->Scale(X);
+	hKaonE->Scale(X);
+	hKaon0E->Scale(X);
+	hMuonE->Scale(X);
+	hCharmE->Scale(X);
+
+	hTotalM->Scale(X);
+	hPionM->Scale(X);
+	hKaonM->Scale(X);
+	hKaon0M->Scale(X);
+	hMuonM->Scale(X);
+	hCharmM->Scale(X);
+
+	hTotalT->Scale(X);
+	hPionT->Scale(X);
+	h2PionT->Scale(X);
+	hCharmT->Scale(X);
+	hTauET->Scale(X);
+	hTauMT->Scale(X);
+}
+
+bool FluxDriver::IsChanged(Neutrino *N)
+{
+	bool Ret = (fabs(N->GetMass() - GetMass()) > 1e-9) ||
+	           (N->GetHelicity() != GetHelicity()) ||
+		   (N->IsParticle() != IsParticle());
+
+	SetMass(N->GetMass());
+	SetHelicity(N->GetHelicity());
+	SetParticle(N->IsParticle());
 
 	return Ret;
 }
 
-void FluxDriver::SetUe(double X)
+void FluxDriver::SetMass(double Mass)
 {
-	U_e = X;
+	fMass = Mass;
 }
 
-void FluxDriver::SetUm(double X)
+void FluxDriver::SetHelicity(int Helicity)
 {
-	U_m = X;
+	iHel = Helicity;
 }
 
-void FluxDriver::SetUt(double X)
+void FluxDriver::SetParticle(bool Particle)
 {
-	U_t = X;
+	bParticle = Particle;
+}
+
+void FluxDriver::SetMixings(double *Mixings)
+{
+	fUe = Mixings[0];
+	fUm = Mixings[1];
+	fUt = Mixings[2];
+}
+
+double FluxDriver::GetMass()
+{
+	return fMass;
+}
+
+int FluxDriver::GetHelicity()
+{
+	return iHel;
+}
+
+bool FluxDriver::IsParticle()
+{
+	return bParticle;
 }
 
 double FluxDriver::GetUe()
 {
-	return U_e;
+	return fUe;
 }
 
 double FluxDriver::GetUm()
 {
-	return U_m;
+	return fUm;
 }
 
 double FluxDriver::GetUt()
 {
-	return U_t;
+	return fUt;
 }
 
 //Modificator for charm to tau flux

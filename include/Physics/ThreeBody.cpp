@@ -1,6 +1,6 @@
-#include "ThreeBody.h"
+#include "ProductionRates.h"
 
-ThreeBody::ThreeBody(std::string Parent, double MSterile, double Ue, double Um, double Ut)	: //ThreeBody rates calculator
+ProductionRates::ProductionRates(std::string Parent, double MSterile, double Ue, double Um, double Ut)	: //ProductionRates rates calculator
 	M_Neutrino(0.0),
 	M_Photon(0.0),
 	M_Electron(Const::fMElectron),
@@ -30,7 +30,7 @@ ThreeBody::ThreeBody(std::string Parent, double MSterile, double Ue, double Um, 
 }
 
 //Initialisation of map
-void ThreeBody::InitMap()
+void ProductionRates::InitMap()
 {
 	mapParent[""] = _undefined;
 	mapParent["Muon"] = _Muon;
@@ -44,7 +44,7 @@ void ThreeBody::InitMap()
 	mapParent["nMUE"] = _nMUE;
 }
 
-void ThreeBody::InitConst()
+void ProductionRates::InitConst()
 {
 	M_Sterile_prev = -1.0;
 	M_Parent_prev = -1.0;
@@ -181,14 +181,14 @@ void ThreeBody::InitConst()
 	}
 }
 
-double ThreeBody::ddGamma()	//double differential decay width (dG/dExdEy)
+double ProductionRates::ddGamma()	//double differential decay width (dG/dExdEy)
 {
 	if (IsEnergyConserved() && InLimX() && InLimY())
 		return M2() / (64.0 * Const::fPi3 * GetParentMass());
 	else return 0.0;
 }
 
-double ThreeBody::dGamma()	//differential decay width (dG/dEx)
+double ProductionRates::dGamma()	//differential decay width (dG/dEx)
 {
 	if (IsEnergyConserved() && InLimX())
 		return M2IntY() / (64.0 * Const::fPi3 * GetParentMass());
@@ -196,21 +196,21 @@ double ThreeBody::dGamma()	//differential decay width (dG/dEx)
 	else return 0.0;
 }
 
-double ThreeBody::Gamma()	//fully integrated decay width (G)
+double ProductionRates::Gamma()	//fully integrated decay width (G)
 {
 	if (IsEnergyConserved())
 		return M2IntXY() / (64.0 * Const::fPi3 * GetParentMass());
 	else return 0.0;
 }
 
-double ThreeBody::ddPhaseSpace()	//double differential phase space (dPS/dExdEy)
+double ProductionRates::ddPhaseSpace()	//double differential phase space (dPS/dExdEy)
 {
 	if (IsEnergyConserved() && InLimX() && InLimY())
 		return 1.0;
 	else return 0.0;
 }
 
-double ThreeBody::dPhaseSpace()	//differential phase space (dPS/dEx)
+double ProductionRates::dPhaseSpace()	//differential phase space (dPS/dEx)
 {
 	if (IsEnergyConserved() && InLimX())
 	{
@@ -220,20 +220,20 @@ double ThreeBody::dPhaseSpace()	//differential phase space (dPS/dEx)
 	else return 0.0;
 }
 
-double ThreeBody::PhaseSpace()	//fully integrated phase space (PS)
+double ProductionRates::PhaseSpace()	//fully integrated phase space (PS)
 {
 	if (IsEnergyConserved())
 	{
 		double xmin, xmax;
 		double dx = xLim(xmin, xmax);
 
-		double (ThreeBody::*pPS)() = &ThreeBody::dPhaseSpace;
+		double (ProductionRates::*pPS)() = &ProductionRates::dPhaseSpace;
 		return Integrate(pPS, xmin, xmax) * GetParentMass() / 2.0;
 	}
 	else return 0.0;
 }
 
-double ThreeBody::M2()		//Unpolarised amplitude
+double ProductionRates::M2()		//Unpolarised amplitude
 {
 	if (IsEnergyConserved() && InLimX() && InLimY())
 	{
@@ -273,7 +273,7 @@ double ThreeBody::M2()		//Unpolarised amplitude
 	else return 0.0;
 }
 
-double ThreeBody::M2IntY()	//Unpolarised amplitude, integrated over Ey
+double ProductionRates::M2IntY()	//Unpolarised amplitude, integrated over Ey
 {
 	if (IsEnergyConserved() && InLimX())
 	{
@@ -304,14 +304,14 @@ double ThreeBody::M2IntY()	//Unpolarised amplitude, integrated over Ey
 	else return 0.0;
 }
 
-double ThreeBody::M2IntXY()	//Unpolarised amplitude, integrated over Ex and Ey
+double ProductionRates::M2IntXY()	//Unpolarised amplitude, integrated over Ex and Ey
 {
 	if (IsEnergyConserved())
 	{
 		double xmin, xmax;
 		double dx = xLim(xmin, xmax);
 
-		double (ThreeBody::*pM2)() = &ThreeBody::M2IntY;
+		double (ProductionRates::*pM2)() = &ProductionRates::M2IntY;
 		return Integrate(pM2, xmin, xmax) * GetParentMass() / 2.0;
 	}
 	else return 0.0;
@@ -319,7 +319,7 @@ double ThreeBody::M2IntXY()	//Unpolarised amplitude, integrated over Ex and Ey
 
 //Unpolarised amplitudes here after
 
-double ThreeBody::M2_Z() //NC N to n l l, Z propagator
+double ProductionRates::M2_Z() //NC N to n l l, Z propagator
 {
 	double gV = -0.5 + 2 * Const::fSin2W;
 	double gA = -0.5;
@@ -329,7 +329,7 @@ double ThreeBody::M2_Z() //NC N to n l l, Z propagator
 		  + (gV*gV - gA*gA) * a()*b() * (2 - x() - y()) );
 }
 
-double ThreeBody::M2_ZIntY() //NC N to n l l, Z propagator
+double ProductionRates::M2_ZIntY() //NC N to n l l, Z propagator
 {
 	double ymin, ymax;
 	double dy = yLim(ymin, ymax);
@@ -344,7 +344,7 @@ double ThreeBody::M2_ZIntY() //NC N to n l l, Z propagator
 		  (ymax*ymax*ymax - ymin*ymin*ymin) / 3.0 * pow((gV-gA), 2) );
 }
 
-double ThreeBody::M2_WZ() //Interference term between Z and W propagator
+double ProductionRates::M2_WZ() //Interference term between Z and W propagator
 {
 	double gV = -0.5 + 2 * Const::fSin2W;
 	double gA = -0.5;
@@ -353,7 +353,7 @@ double ThreeBody::M2_WZ() //Interference term between Z and W propagator
 		 + (gV - gA) * a()*b() * (2 - x() - y()) );
 }
 
-double ThreeBody::M2_WZIntY() //Interference term between Z and W propagator
+double ProductionRates::M2_WZIntY() //Interference term between Z and W propagator
 {
 	double ymin, ymax;
 	double dy = yLim(ymin, ymax);
@@ -367,26 +367,26 @@ double ThreeBody::M2_WZIntY() //Interference term between Z and W propagator
 		 (ymax*ymax - ymin*ymin) / 2.0 * (gV - gA) * a()*b() );
 }
 
-double ThreeBody::M2Lept()	//Pure leptonic decays (like muon or tau) 	//W propagator
+double ProductionRates::M2Lept()	//Pure leptonic decays (like muon or tau) 	//W propagator
 {
 	return 16 * Const::fGF2 * GetUu()*GetUu() *
 	       	pow(GetParentMass(), 4) * x() * (1 + a(2) - b(2) - c(2) - x());
 }
 
-double ThreeBody::M2LeptIntY()	//Leptonic decay, integrated analytically over y
+double ProductionRates::M2LeptIntY()	//Leptonic decay, integrated analytically over y
 {
 	double ymin, ymax;
 	return yLim(ymin, ymax) * M2Lept();
 }
 
-double ThreeBody::M2Kaon()	//Kaon decay
+double ProductionRates::M2Kaon()	//Kaon decay
 {
 	return Const::fGF2 * GetUu()*GetUu() * pow(M_Kaon,4) * pow(GetDecayConst(),2) * 
 		( 4 * fPlus()*fPlus() * ( 1 + a(2) + b(2) - c(2) - x() - y() + x()*y() ) -
 	      	  pow(fPlus() - fMinus(), 2) * ( pow(a(2) - b(2),2) + (a(2)+b(2)) * (1 - c(2) - x() - y()) ) );
 }
 
-double ThreeBody::M2KaonIntY(double Y)	//Kaon decay primitive
+double ProductionRates::M2KaonIntY(double Y)	//Kaon decay primitive
 {
 	double X = 1 - c(2) - x();
 	double AB = a(2)+b(2);
@@ -406,7 +406,7 @@ double ThreeBody::M2KaonIntY(double Y)	//Kaon decay primitive
 	return Const::fGF2 * GetUu()*GetUu() * pow(M_Kaon,4) * pow(GetDecayConst(),2) * (Ret1 - Ret2);
 }
 
-double ThreeBody::M2KaonIntY()	//Kaon decay, integrated analytically over y
+double ProductionRates::M2KaonIntY()	//Kaon decay, integrated analytically over y
 {
 	double ymin, ymax;
 	double dy = yLim(ymin, ymax);
@@ -417,17 +417,17 @@ double ThreeBody::M2KaonIntY()	//Kaon decay, integrated analytically over y
 	else return 0.0;
 }
 
-double ThreeBody::M2Kaon0()	//Kaon 0 decay
+double ProductionRates::M2Kaon0()	//Kaon 0 decay
 {
 	return 2*M2Kaon();
 }
 
-double ThreeBody::M2Kaon0IntY(double Y)	//Kaon0 decay primitive
+double ProductionRates::M2Kaon0IntY(double Y)	//Kaon0 decay primitive
 {
 	return 2*M2KaonIntY(Y);
 }
 
-double ThreeBody::M2Kaon0IntY() //Kaon0 decay, integrated analytically over y
+double ProductionRates::M2Kaon0IntY() //Kaon0 decay, integrated analytically over y
 {
 	double ymin, ymax;
 	double dy = yLim(ymin, ymax);
@@ -446,33 +446,33 @@ double ThreeBody::M2Kaon0IntY() //Kaon0 decay, integrated analytically over y
  * this convention is taken for all M2
  */
 
-double ThreeBody::M2nEE()
+double ProductionRates::M2nEE()
 {
 	return GetUe()*GetUe() * (M2Lept() + M2_WZ() + M2_Z()) + (GetUm()*GetUm() + GetUt()*GetUt()) * M2_Z();
 }
 
-double ThreeBody::M2nEEIntY()
+double ProductionRates::M2nEEIntY()
 {
 	return GetUe()*GetUe() * (M2LeptIntY() + M2_WZIntY() + M2_ZIntY()) + (GetUm()*GetUm() + GetUt()*GetUt()) * M2_ZIntY();
 }
 
-double ThreeBody::M2nMUMU()
+double ProductionRates::M2nMUMU()
 {
 	return GetUm()*GetUm() * (M2Lept() + M2_WZ() + M2_Z()) + (GetUe()*GetUe() + GetUt()*GetUt()) * M2_Z();
 }
 
-double ThreeBody::M2nEMU()
+double ProductionRates::M2nEMU()
 {
 	return GetUm()*GetUm() * M2Lept();
 }
 
-double ThreeBody::M2nMUE()
+double ProductionRates::M2nMUE()
 {
 	return GetUe()*GetUm() * M2Lept();
 }
 
 //Maximum values of ddG for MC purposes
-double ThreeBody::MaxGamma()
+double ProductionRates::MaxGamma()
 {
 	if (IsChanged() && fMax < 0)
 	{
@@ -504,7 +504,7 @@ double ThreeBody::MaxGamma()
 }
 
 //boundaries of phase space
-double ThreeBody::yLim(double &Min, double &Max)	//y integration limits
+double ProductionRates::yLim(double &Min, double &Max)	//y integration limits
 {
 	double X = 1 + a(2) - x();
 	double A = (2 - x())*(X + b(2) - c(2));
@@ -517,7 +517,7 @@ double ThreeBody::yLim(double &Min, double &Max)	//y integration limits
 	return Max-Min;
 }
 
-double ThreeBody::xLim(double &Min, double &Max)	//x integration limits
+double ProductionRates::xLim(double &Min, double &Max)	//x integration limits
 {
 	Min = 2*a();
 	Max = 1 + a(2) - pow((b() + c()),2);
@@ -525,7 +525,7 @@ double ThreeBody::xLim(double &Min, double &Max)	//x integration limits
 	return Max-Min;
 }
 
-double ThreeBody::Integrate(double (ThreeBody::*FF)(), double A, double B)
+double ProductionRates::Integrate(double (ProductionRates::*FF)(), double A, double B)
 {
 	if (A > B)
 	{
@@ -558,14 +558,14 @@ double ThreeBody::Integrate(double (ThreeBody::*FF)(), double A, double B)
 	return Integral * h/90.0;
 }
 
-bool ThreeBody::InLimX()
+bool ProductionRates::InLimX()
 {
 	double xmin, xmax;
 	double dx = xLim(xmin, xmax);
 	return (xmin <= x() && x() <= xmax);
 }
 
-bool ThreeBody::InLimY()
+bool ProductionRates::InLimY()
 {
 	double ymin, ymax;
 	double dy = yLim(ymin, ymax);
@@ -573,7 +573,7 @@ bool ThreeBody::InLimY()
 }
 
 //The most important question, after all
-bool ThreeBody::IsEnergyConserved()
+bool ProductionRates::IsEnergyConserved()
 {
 	if (a()+b()+c() <= 1.0)
 		return true;
@@ -581,46 +581,46 @@ bool ThreeBody::IsEnergyConserved()
 }
 
 //decay constants
-double ThreeBody::fPlus()
+double ProductionRates::fPlus()
 {
 	return 1 - GetLambda1() * (1 + c(2) - x() - y()) / c(2);
 }
 
-double ThreeBody::fMinus()
+double ProductionRates::fMinus()
 {
 	return (GetLambda0()-GetLambda1()) * (1-c(2)) / c(2);
 }
 
 //variables
-double ThreeBody::a(double p)	//mass ratio
+double ProductionRates::a(double p)	//mass ratio
 {
 	return pow(fA,p);
 }
 
-double ThreeBody::b(double p)	//mass ratio
+double ProductionRates::b(double p)	//mass ratio
 {
 	return pow(fB,p);
 }
 
-double ThreeBody::c(double p)	//mass ratio
+double ProductionRates::c(double p)	//mass ratio
 {
 	return pow(fC,p);
 }
 
-double ThreeBody::x(double p)	//energy over mass
+double ProductionRates::x(double p)	//energy over mass
 {
 	double Ret = 2*GetEnergyX()/GetParentMass();
 	return pow(Ret,p);
 }
 
-double ThreeBody::y(double p)	//energy over mass
+double ProductionRates::y(double p)	//energy over mass
 {
 	double Ret = 2*GetEnergyY()/GetParentMass();
 	return pow(Ret,p);
 }
 
 //Channel mode
-void ThreeBody::ElectronChannel()
+void ProductionRates::ElectronChannel()
 {
 	IsElectron = true;
 	IsMuon = false;
@@ -628,7 +628,7 @@ void ThreeBody::ElectronChannel()
 	InitConst();
 }
 
-void ThreeBody::MuonChannel()
+void ProductionRates::MuonChannel()
 {
 	IsElectron = false;
 	IsMuon = true;
@@ -636,7 +636,7 @@ void ThreeBody::MuonChannel()
 	InitConst();
 }
 
-void ThreeBody::TauChannel()
+void ProductionRates::TauChannel()
 {
 	IsElectron = false;
 	IsMuon = false;
@@ -645,47 +645,47 @@ void ThreeBody::TauChannel()
 }
 
 //Getter
-std::string ThreeBody::GetParent()
+std::string ProductionRates::GetParent()
 {
 	return sParent;
 }
 
-double ThreeBody::GetEnergyX()
+double ProductionRates::GetEnergyX()
 {
 	return fEX;
 }
 
-double ThreeBody::GetEnergyY()
+double ProductionRates::GetEnergyY()
 {
 	return fEY;
 }
 
-double ThreeBody::GetParentMass()
+double ProductionRates::GetParentMass()
 {
 	return M_Parent;
 }
 
-double ThreeBody::GetSterileMass()
+double ProductionRates::GetSterileMass()
 {
 	return M_Sterile;
 }
 
-double ThreeBody::GetUe()
+double ProductionRates::GetUe()
 {
 	return U_e;
 }
 
-double ThreeBody::GetUm()
+double ProductionRates::GetUm()
 {
 	return U_m;
 }
 
-double ThreeBody::GetUt()
+double ProductionRates::GetUt()
 {
 	return U_t;
 }
 
-double ThreeBody::GetUu()
+double ProductionRates::GetUu()
 {
 	if (IsElectron)
 		return GetUe();
@@ -696,70 +696,70 @@ double ThreeBody::GetUu()
 	else return 1.0;
 }
 
-double ThreeBody::GetDecayConst()
+double ProductionRates::GetDecayConst()
 {
 	return fKaon;
 }
 
-double ThreeBody::GetLambda1()
+double ProductionRates::GetLambda1()
 {
 	return fLambda1;
 }
 
-double ThreeBody::GetLambda0()
+double ProductionRates::GetLambda0()
 {
 	return fLambda0;
 }
 
 //Setter
-void ThreeBody::SetParent(std::string Name)
+void ProductionRates::SetParent(std::string Name)
 {
 	sParent.assign(Name);
 	InitConst();
 }
 
-void ThreeBody::SetEnergyX(double X)
+void ProductionRates::SetEnergyX(double X)
 {
 	fEX = X;
 }
 
-void ThreeBody::SetEnergyY(double X)
+void ProductionRates::SetEnergyY(double X)
 {
 	fEY = X;
 }
 
-void ThreeBody::SetX(double X)
+void ProductionRates::SetX(double X)
 {
 	fEX = X*GetParentMass()/2;
 }
 
-void ThreeBody::SetY(double X)
+void ProductionRates::SetY(double X)
 {
 	fEY = X*GetParentMass()/2;
 }
 
-void ThreeBody::SetSterileMass(double X)
+void ProductionRates::SetSterileMass(double X)
 {
 	M_Sterile = X;
 	InitConst();
 }
 
-void ThreeBody::SetUe(double X)
+void ProductionRates::SetUe(double X)
 {
 	U_e = X;
 }
 
-void ThreeBody::SetUm(double X)
+void ProductionRates::SetUm(double X)
 {
 	U_m = X;
 }
 
-void ThreeBody::SetUt(double X)
+void ProductionRates::SetUt(double X)
 {
 	U_t = X;
 }
 
-bool ThreeBody::IsChanged()
+bool ProductionRates::IsChanged()
 {
 	bool Ret = ( M_Sterile != M_Sterile_prev || 
 		     M_Parent != M_Parent_prev || 
