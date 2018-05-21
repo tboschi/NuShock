@@ -5,9 +5,10 @@
 #include <cstring>
 #include <getopt.h>
 
-#include "EventGenerator.h"
-#include "FluxDriver.h"
-#include "DecayRates.h"
+//#include "EventGenerator.h"
+#include "Flux/FluxDriver.h"
+#include "Tools/Tools.h"
+//#include "DecayRates.h"
 
 #include "TFile.h"
 #include "TH1D.h"
@@ -59,7 +60,6 @@ int main(int argc, char** argv)
 	//std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
 	FluxDriver * TheFlux = new FluxDriver(FluxConfig);
-	Detector * TheBox = new Detector(DetConfig);
 	
 	std::stringstream ssL;
 	double Mass;
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 
 		std::cout << "m " << Mass << "\t in " << ssL.str() << std::endl;
 		TheFlux->MakeFlux(Mass);
-		TheFlux->SetBaseline(TheBox->GetElement("Baseline"));
+		TheFlux->SetBaseline(574);
 		TheFlux->SetPOT(1e20);
 
 		std::ofstream Out(ssL.str().c_str());

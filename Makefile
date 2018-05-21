@@ -1,110 +1,52 @@
-#
-# Makefile
-#
-# Author: Tommaso Boschi
-#
-
 .PHONY: clean
 
-#SHELL = /bin/sh
-#NAME = all
-#MAKEFILE = Makefile
-SRC_DIR = src
+INCDIR =	include
+APPDIR =	app
+BINDIR =	bin
+LIBDIR =	lib
 
-# Include machine specific flags and locations (inc. files & libs)
-#
-include $(GENIE)/src/make/Make.include
+ROOTLIB		= $(shell root-config --glibs)
+ROOTCXX		= $(shell root-config --cflags)
+GENIELIB	= $(shell genie-config --libs)
+#CUBALIB		= -L$(CUBA)/lib -lcuba
+CUBACXX		= -I$(CUBA)/include 
+#LHAPDFLIB	= -L$(LHAPDF)/lib -lLHAPDF
+LHAPDFCXX	= -I$(LHAPDF)/include
 
+LDFLAGS  := -Wl,--no-as-needed $(LDFLAGS) $(ROOTLIB) $(GENIELIB) $(CUBALIB) $(LHAPDFLIB) -L$(LIBDIR)
+CXXFLAGS := $(CXXFLAGS) -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
-#Main executable to be compiled
-NEW =	MegaExcl	\
-	MegaPlot	\
-	Coupler		\
-	MakeFlux	\
-	FluxDUNE	\
-	#MakeEfficiency	\
-	Rate		\
-	OriginalExclusion	\
-	DecayPlot	\
-	Plotter		\
-	FluxCharm	\
-	Kine		\
-	Width		\
-	#OpenCC		\
-	Rate		\
-	ExcluMix	\
-	Timing		\
-	Simulation	\
-	Probability	\
-	CrossExcl	\
-	EnergyBack	\
-	#RegionSearch	\
-	SearchRegion	\
-	FeldCous	\
-	Plotter		\
-	CosmoBounds
-	#EFTgamma	\
-	EFTexcl		\
-	GammaRequired
-	#XSec		\
-	#PSscatter	\
-	GenBack		\
+#apps and exctuables
+CPP =	MakeFlux	\
 	Eps2Dat		\
-	CLs		\
-	#Eps2Root	\
-	#FakeElectron	\
-	PionMuonFlux	\
-	Kine		\
-	DUNE_FGT
+	Eps2Root	
 
-TGT :=  $(NEW:%=$(SRC_DIR)/Apps/%)
-BIN :=  $(NEW:%=bin/%)
+#header folders
+HPP =	Tools		\
+	Flux		\
+	Pysics		\
+	Detector	\
+	Event		\
 
-#Dependencies of the Main
-DEP =	Tools/Tools		\
-	DecayRates/DecayRates	\
-	DecayRates/ThreeBody	\
-	SterileFlux/Flux	\
-	SterileFlux/FluxDriver	\
-	EventGenerator/EventGenerator	\
-	Detector/Detector	\
-	Detector/Efficiency	\
-	Particle/Particle	\
-	Background/Background	\
-	Scattering/Nucleon	\
-	#Scattering/Hadron	\
+#main target
+TGT :=	$(CPP:%=$(APPDIR)/%)
 
-INC_DIR := $(patsubst %,-I$(SRC_DIR)/%,$(subst /, ,$(DEP)))
-DEP :=  $(DEP:%=$(SRC_DIR)/%.o)
+#dependencies of target
+INCDEP := $(HPP:%=$(INCDIR)/%/*.cpp)
+DEP :=	$(patsubst %.cpp,%.o,$(wildcard $(INCDEP)))
 
-GENIE_LIBS  = $(shell $(GENIE)/src/scripts/setup/genie-config --libs)
-LDFLAGS  := $(LDFLAGS) $(GENIE_LIBS) $(LIBRARIES) $(CERN_LIBRARIES) -L$(CUBA)/lib -L$(LHAPDF)/lib
-LDLIBS   := $(LDLIBS) -lcuba #-lrealLHAPDF
-CXXFLAGS := $(CXXFLAGS) -I$(CUBA)/include -I$(LHAPDF)/include $(INCLUDES) $(INC_DIR) 
-
-#Using implicit rules for G++ and linker
-#Then moves exec into main folder
 all: $(TGT)
-	mv $(TGT) ./bin
-
-#xsec: $(DEP)
-#	$(CC) $(CXXFLAGS) $(INCLUDES) $(SRC_DIR)/Apps/XSec.cpp -o XSec $(LDFLAGS)
-#	mv XSec ./bin
+	@mkdir -p $(BINDIR)
+	@mkdir -p $(LIBDIR)
+	@echo "Moving stuff..."
+	@mv $(TGT) $(BINDIR)
+	@cp $(DEP) $(LIBDIR)
+	@echo "Done!"
 
 $(TGT): $(DEP)
 
-wow:
-	@echo $(GENIE_LIBS)
-	@echo $(LIBRARIES)
-	@echo $(CERN_LIBRARIES)
-	@echo $(LDFLAGS)
-	@echo $(LDLIBS)
-	@echo $(CXXFLAGS)
-
-#################### CLEANING
-
-clean: 
-	find $(SRC_DIR) -name "*.o" -delete
-	find $(SRC_DIR) -name "*~" -delete
-	find $(SRC_DIR) -name "core" -delete
-	$(RM) $(BIN)
+clean:
+	find $(INCDIR) -mindepth 1 -name "*.o" -delete
+	find $(INCDIR) -mindepth 1 -name "*~"  -delete
+	find $(APPDIR) -mindepth 1 -name "*~"  -delete
+	find $(BINDIR) -mindepth 1 -name "*"   -delete
