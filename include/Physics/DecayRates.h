@@ -19,58 +19,51 @@
 #include "Decay/ThreeBody.h"
 
 
-enum Channel
-{
-	_ALL,		//
-	//unclassified
-	_nnn,		//3 body	1		N -> 3 nu
-	_nGAMMA,	//2 body	2		N -> nu photon
-	//pure leptonic
-	_nEE,		//3 body	3		N -> nu e e
-	_nEMU,		//3 body	4		N -> nu e mu (via U_e)
-	_nMUE,		//3 body	5		N -> nu mu e (via U_m)
-	_nMUMU,		//3 body	6		N -> nu mu mu
-	_nET,		//3 body	7		N -> nu e tau (via U_e)
-	_nTE,		//3 body	8		N -> nu tau e (via U_t)
-	_nMUT,		//3 body	9		N -> nu mu tau (via U_m)
-	_nTMU,		//3 body	10		N -> nu tau mu (via U_t)
-	//pion
-	_nPI0,		//2 body	11		N -> nu pi0
-	_EPI,		//2 body	12		N -> e pi
-	_MUPI,		//2 body	13		N -> mu pi
-	_TPI,		//2 body	14		N -> tau pi
-	//kaon
-	_EKA,		//2 body	15		N -> e K
-	_MUKA,		//2 body	16		N -> mu K
-	//rho decay 100% in pions
-	_nRHO0,		//2 body	17		N -> rho0
-	_ERHO,		//2 body	18		N -> e rho
-	_MURHO,		//2 body	19		M -> mu rho
-	//kaon*
-	_EKAx,		//2 body	20		N -> e K*
-	_MUKAx,		//2 body	21		N -> mu K*
-	//other (eta, phi, omega.. )
-	_nOMEGA,	//2 body	22		N -> nu w
-	_nETA,		//2 body	23		N -> nu eta
-	_nETAi,		//2 body	24		N -> nu eta'
-	_nPHI,		//2 body	25		N -> nu phi
-	//charm
-	_ECHARM,	//2 body	26		N -> e D+
-	//Channels for experimental comparison (EPI, MUPI, nEE, nMUE, nMUMU)
-	_ExpALL,	//
-////////////////////////////////
-	//_Muon,		//3 body
-	//_TauE,		//3 body
-	//_TauM,		//3 body
-	//_Kaon,		//3 body
-	//_Kaon0		//3 body
-};
-
-
 class Decay
 {
 	public:
-		DecayRates(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);	//Decay rates calculator
+		DecayRates(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);
+
+		enum Channel
+		{
+			_ALL,
+			//unclassified
+			_nnn,		//3 body	N -> 3 nu
+			_nGAMMA,	//2 body	N -> nu photon
+			//pure leptonic
+			_nEE,		//3 body	N -> nu e e
+			_nEMU,		//3 body	N -> nu e mu (via U_e)
+			_nMUE,		//3 body	N -> nu mu e (via U_m)
+			_nMUMU,		//3 body	N -> nu mu mu
+			_nET,		//3 body	N -> nu e tau (via U_e)
+			_nTE,		//3 body	N -> nu tau e (via U_t)
+			_nMUT,		//3 body	N -> nu mu tau (via U_m)
+			_nTMU,		//3 body	N -> nu tau mu (via U_t)
+			//pion
+			_nPI0,		//2 body	N -> nu pi0
+			_EPI,		//2 body	N -> e pi
+			_MUPI,		//2 body	N -> mu pi
+			_TPI,		//2 body	N -> tau pi
+			//kaon
+			_EKA,		//2 body	N -> e K
+			_MUKA,		//2 body	N -> mu K
+			//rho decay 100% in pions
+			_nRHO0,		//2 body	N -> rho0
+			_ERHO,		//2 body	N -> e rho
+			_MURHO,		//2 body	M -> mu rho
+			//kaon*
+			_EKAx,		//2 body	N -> e K*
+			_MUKAx,		//2 body	N -> mu K*
+			//other (eta, phi, omega.. )
+			_nOMEGA,	//2 body	N -> nu w
+			_nETA,		//2 body	N -> nu eta
+			_nETAi,		//2 body	N -> nu eta'
+			_nPHI,		//2 body	N -> nu phi
+			//charm
+			_ECHARM,	//2 body	N -> e D+
+			//Channels for experimental comparison (EPI, MUPI, nEE, nMUE, nMUMU)
+			_ExpALL,	//
+		};
 
 		//Decay width with A, B, and K the enhancement factors
 		double Gamma(std::string Channel, double B = 1.0);

@@ -31,15 +31,15 @@ Flux::Flux(std::string HistFile) :
 //copy ctor
 Flux::Flux(const Flux & f)
 {
-	CloneCopy(hTotal, f.Get(Hist::Total));
-	CloneCopy(hPion,  f.Get(Hist::Pion));
-	CloneCopy(h2Pion, f.Get(Hist::2Pion));
-	CloneCopy(hKaon,  f.Get(Hist::Kaon));
-	CloneCopy(hKaon0, f.Get(Hist::Kaon0));
-	CloneCopy(hCharm, f.Get(Hist::Charm));
-	CloneCopy(hMuon,  f.Get(Hist::Muon));
-	CloneCopy(hTauE,  f.Get(Hist::TauE));
-	CloneCopy(hTauM,  f.Get(Hist::TauM));
+	CloneCopy(hTotal, f.Get(Total));
+	CloneCopy(hPion,  f.Get(Pion));
+	CloneCopy(h2Pion, f.Get(2Pion));
+	CloneCopy(hKaon,  f.Get(Kaon));
+	CloneCopy(hKaon0, f.Get(Kaon0));
+	CloneCopy(hCharm, f.Get(Charm));
+	CloneCopy(hMuon,  f.Get(Muon));
+	CloneCopy(hTauE,  f.Get(TauE));
+	CloneCopy(hTauM,  f.Get(TauM));
 }
 
 //detor
@@ -86,23 +86,23 @@ TH1D* Flux::Get(Hist KeyName) const
 {
 	switch (KeyName)
 	{
-		case Hist::Total:
+		case Total:
 			return hTotal;
-		case Hist::Pion:
+		case Pion:
 			return hPion;
-		case Hist::2Pion:
+		case 2Pion:
 			return h2Pion;
-		case Hist::Kaon:
+		case Kaon:
 			return hKaon;
-		case Hist::Kaon0:
+		case Kaon0:
 			return hKaon0;
-		case Hist::Charm:
+		case Charm:
 			return hCharm;
-		case Hist::Muon:
+		case Muon:
 			return hMuon;
-		case Hist::TauE:
+		case TauE:
 			return hTauE;
-		case Hist::TauM:
+		case TauM:
 			return hTauM;
 		default:
 			return NULL;

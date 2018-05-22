@@ -10,6 +10,7 @@ Neutrino::Neutrino(double Mass, unsigned int Options) :
 	SetMixings(1.0, 1.0, 1.0);
 
 	TheDecay = new DecayRates();
+	TheProduction = new ProductionRates();
 	//TheCross = new CrossSection();
 }
 
@@ -19,14 +20,26 @@ Neutrino::~Neutrino()
 
 Neutrino::DecayWidth(Channel Name)
 {
-	TheDecay->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity();
+	TheDecay->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity());
 	return TheDecay->Gamma(Channel);
 }
 
 Neutrino::DecayBranch(Channel Name)
 {
-	TheDecay->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity();
+	TheDecay->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity());
 	return TheDecay->Branch(Channel);
+}
+
+Neutrino::ProductionWidth(Channel Name)
+{
+	TheProduction->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity());
+	return TheDecay->Gamma(Channel);
+}
+
+Neutrino::ProductionScale(Channel Name)
+{
+	TheProduction->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity());
+	return TheDecay->Scale(Channel);
 }
 
 //setter
@@ -43,15 +56,15 @@ void Neutrino::SetMixings(double Ue, double Um, double Ut)
 	fMixings[2] = Ut;
 }
 
-void Neutrino::SetHelicity(unsigned int Options)
-{
-	switch (Options & 3)
+void Neutrino::SetHelicity(unsigned int Options)		//Left for particle is -1
+{								//Right for particle is 1
+	switch (Options & 3)					//For antiparticle, reverse
 	{
 		case 0:
-			iHel = -1;
+			iHel = 1-2*GetParticle();
 			break;
 		case 1:
-			iHel = 1;
+			iHel = 2*GetParticle()-1;
 			break;
 		case 2:
 		case 3:
@@ -89,6 +102,7 @@ void Neutrino::SetParticle(unsigned int Options)
 			break;
 		case 8:
 			bParticle = false;	//Antiparticle
+
 			break;
 		default:
 			std::cerr << "SetParticle " << Options << "\t:\t";

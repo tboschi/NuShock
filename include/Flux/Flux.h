@@ -14,19 +14,6 @@
 #include "TFile.h"
 #include "TH1D.h"
 
-enum class Hist
-{
-	Total,
-        Pion,
-        2Pion,
-        Kaon,
-        Kaon0,
-        Charm,
-        Muon,
-        TauE,
-        TauM,
-};
-
 class Flux
 {
 	public:
@@ -37,7 +24,20 @@ class Flux
 		void CloneCopy(TH1D*& T, TObject* X);
 		void CloneCopy(TH1D*& T, TH1D* X);
 
-		TH1D* Get(std::string T) const;
+		TH1D* Get(Hist Name);
+
+		enum Hist
+		{
+			Total,
+			Pion,
+			2Pion,
+			Kaon,
+			Kaon0,
+			Charm,
+			Muon,
+			TauE,
+			TauM,
+		};
 
 	private:
 		TH1D *hTotal;

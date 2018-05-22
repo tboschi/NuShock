@@ -14,13 +14,36 @@
 
 #include "Tools/Tools.h"
 
-class ThreeBody
+
+class ProductionRates
 {
 	public:
-		ThreeBody(std::string Parent, double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);
+		ProductionRates(double MSterile = 0.0, double Ue = 1.0, double Um = 1.0, double Ut = 1.0);
 
-		void InitMap();
-		void InitConst();
+		enum Channel
+		{
+			_ALL,
+			//pure leptonic
+			_MuonE,		//3 body	mu  -> nu N e	(via Ue)
+			_MuonM,		//3 body	mu  -> nu N e	(via Ue)
+			_TauEE,		//3 body	tau -> nu N e	(via Ue)
+			_TauET,		//3 body	tau -> nu N e	(via Ut)
+			_TauME,		//3 body	tau -> nu N mu	(via Um)
+			_TauMT,		//3 body	tau -> nu N mu	(via Ut)
+			//pseudomeson leptonic
+			_PionE,		//2 body	pi -> N e	(via Ue)
+			_PionM,		//2 body	pi -> N mu	(via Um)
+			_KaonE,		//2 body	K  -> N e	(via Ue)
+			_KaonM,		//2 body	K  -> N mu	(via Um)
+			_CharmE,	//2 body	Ds -> N e	(via Ue)
+			_CharmM,	//2 body	Ds -> N mu	(via Um)
+			_CharmT,	//2 body	Ds -> N tau	(via Ut)
+			//pseudomeson semileptonic
+			_Kaon0E,	//3 body	K0 -> pi+ N e	(via Ue)
+			_Kaon0M,	//3 body	K0 -> pi+ N mu	(via Um)
+			_KaonCE,	//3 body	K+ -> pi0 N e	(via Ue)
+			_KaonCM,	//3 body	K+ -> pi0 N mu	(via Um)
+		};
 
 		double ddGamma();
 		double dGamma();
@@ -53,7 +76,7 @@ class ThreeBody
 
 		double yLim(double &Min, double &Max);
 		double xLim(double &Min, double &Max);
-		double Integrate(double (ThreeBody::*FF)(), double A, double B);
+		double Integrate(double (ProductionRates::*FF)(), double A, double B);
 		bool InLimX();
 		bool InLimY();
 
@@ -120,10 +143,24 @@ class ThreeBody
 		double fEX, fEY;
 		double fMax;
 
-		std::map<std::string, ChannelName> mapParent;
-		std::string sParent;
-
-		bool IsElectron, IsMuon, IsTau;
+		double fALL,
+                       fMuonE,
+                       fMuonM,
+                       fTauEE,
+                       fTauET,
+                       fTauME,
+                       fTauMT,
+                       fPionE,
+                       fPionM,
+                       fKaonE,
+                       fKaonM,
+                       fCharmE,
+                       fCharmM,
+                       fCharmT,
+                       fKaon0E,
+                       fKaon0M,
+                       fKaonCE,
+                       fKaonCM;
 };
 
 #endif
