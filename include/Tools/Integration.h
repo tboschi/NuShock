@@ -73,10 +73,9 @@ namespace Inte
 	}	
 
 	template<class TempClass>
-	double MaxMin(TempClass *TempObject, double &Max, double &Min)
+	double Min(TempClass *TempObject)
 	{
 		double Min = DBL_MAX;
-		double Max = -1.0;
 
 		double h = 1.0/(4*Step);
 		for (double a = 0; a < 1.0; a += h)
@@ -85,11 +84,26 @@ namespace Inte
 
 			if (Min > tmp)
 				Min = tmp; 
+		}
+
+		return Min;
+	}	
+
+	template<class TempClass>
+	double Max(TempClass *TempObject)
+	{
+		double Max = -DBL_MAX;
+
+		double h = 1.0/(4*Step);
+		for (double a = 0; a < 1.0; a += h)
+		{
+			double tmp = TempObject->Integrand(a);
+
 			if (Max < tmp)
 				Max = tmp; 
 		}
 
-		return Max - Min;
+		return Max;
 	}	
 }
 

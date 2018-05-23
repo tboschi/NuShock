@@ -1,112 +1,289 @@
 #include "PhaseSpace.h"
 
 PhaseSpace::PhaseSpace(Neutrino *N) :
-	Event(new TGenPhaseSpace)
+	Event(new TGenPhaseSpace),
+	GenMT(new TRandom3(0))
 {
 	DecayRates();
 	SetNeutrino(N);
 
-	Event = new TGenPhaseSpace;
+	TheSpace = new TGenPhaseSpace;
 	N_vec = new TLorentzVector;
 	N_rest = new TLorentzVector;
 }
 
-PhaseSpace::SetDecay(TLorentzVector &Rest, std::vector<double> &vMass)
+double DecayRates::SetMass(Channel Name, std::vector<double> &vMass)	//return the maximum value of phase space
 {
-	double MassArray[10];
-	int nDaughter = vMass.size();
-	for (unsigned int i = 0; i < nDaughter; ++i)
-		MassArray[i] = Masses.at(i);
-
-	int Products;
+	double Max = 0.0;
+	vMass.clear();
 
 	switch(Name)
 	{
 		case _ALL:
 		case _nnn:
-			Mass[0] = M_Neutrino;
-			Result = nnn();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Neutrino);
 			break;
 		case _nGAMMA:
-			Result = nGAMMA();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Photon);
 			break;
 		case _nEE:
-			Result = nEE();
+		case _ExpALL:
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Electron);
+
+			Max = Max_nEEMax();
 			break;
 		case _nEMU:
-			Result = nEMU();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Muon);
+
+			Max = Max_nEMU();
 			break;
 		case _nMUE:
-			Result = nMUE();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Muon);
+
+			Max = Max_nMUE();
 			break;
 		case _nMUMU:
-			Result = nMUMU();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Muon);
+
+			Max = Max_nMUMU();
 			break;
 		case _nET:
-			Result = nET();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Tau);
+
+			Max = Max_nET();
 			break;
 		case _nTE:
-			Result = nTE();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Tau);
+
+			Max = Max_nTE();
 			break;
 		case _nMUT:
-			Result = nMUT();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Tau);
+
+			Max = Max_nMUT();
 			break;
 		case _nTMU:
-			Result = nTMU();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Tau);
+			
+			Max = Max_nTMU();
 			break;
 		case _nPI0:
-			Result = nPI0();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Pion0);
 			break;
 		case _EPI:
-			Result = EPI();
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Pion);
 			break;
 		case _MUPI:
-			Result = MUPI();
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Pion);
 			break;
 		case _TPI:
-			Result = TPI();
+			vMass.push_back(M_Pion);
+			vMass.push_back(M_Tau);
 			break;
 		case _EKA:
-			Result = EKA();
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Kaon);
 			break;
 		case _MUKA:
-			Result = MUKA();
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Kaon);
 			break;
 		case _EKAx:
-			Result = EKAx();
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Kaonx);
 			break;
 		case _MUKAx:
-			Result = MUKAx();
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Kaonx);
 			break;
 		case _nRHO0:
-			Result = nRHO0();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Rho0);
 			break;
 		case _ERHO:
-			Result = ERHO();
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Rho);
 			break;
 		case _MURHO:
-			Result = MURHO();
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Rho0);
 			break;
 		case _nETA:
-			Result = nETA();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Eta);
 			break;
 		case _nETAi:
-			Result = nETAi();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Etai);
 			break;
 		case _nOMEGA:
-			Result = nOMEGA();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Omega);
 			break;
 		case _nPHI:
-			Result = nPHI();
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Phi);
 			break;
 		case _ECHARM:
-			Result = ECHARM();
-			break;
-		case _ExpALL:
-			Result = ExpALL();
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Charm);
 			break;
 		default:
-			Result = 0.0;
 			break;
 	}
+
+	return Max;
 }
+bool PhaseSpace::SetDecay(TLorentzVector &Rest, std::vector<double> &vMass)
+{
+	double MassArray[10];
+	nDaughter = vMass.size();
+	for (unsigned int i = 0; i < nDaughter; ++i)
+		MassArray[i] = Masses.at(i);
+
+	return TheSpace->SetDecay(Rest, nDaughter, MassArray);
+}
+
+double PhaseSpace::LoadPhaseSpace(double Max)
+{
+	double / dMax;
+	return TheSpace->Generate();
+}
+
+void PhaseSpace::Boost()
+{
+	for (unsigned int i = 0; i < nDaughter; ++i)
+		TheSpace->GetDecayProduct
+	N_vec->Boost();
+}
+
+double DecayRates::MaxThreeGamma()
+{
+	SetIntegrand(&I_WZ_s);
+	Inte::MaxMin(this, Max, Min);
+}
+
+
+TLorentzVector *DecayRates::GetNvec()
+{
+	return N_vec;
+}
+
+TLorentzVector DecayRates::GetDecayProduct(int i, int &ID)
+//Particle *DecayRates::GetDecayProduct(int i, int &ID)
+{
+	ID = PdgCode[i];
+	TLorentzVector Daughter = *(Event->GetDecay(i));
+	Daughter.Boost(N_vec->BoostVector());
+
+	return Daughter;
+}
+
+void DecayRates::SetNvec(TLorentzVector &X)
+{
+	*N_vec = X;
+	N_rest->SetPxPyPzE(0, 0, 0, N_vec->M());
+}
+
+
+double DecayRates::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino)
+{
+	SetIntegrand(dNeutrinoLeptonAB);
+}
+
+double DecayRates::dNeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino, double s, double cos0)
+{
+	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
+	double dMA2 = M_LeptonA*M_LeptonB/GetMass()/GetMass();
+	double dMB2 = M_LeptonB*M_LeptonB/GetMass()/GetMass();
+
+	return GetMult() * Const::fGF2 / (16.0 * Const::fPi3) * 
+		pow(GetMass(), 5) * I_WW_s(dMN2, dMA2, dMB2);
+}
+
+double DecayRates::Max_WW(double x, double y, double z)
+{
+	I_var.clear();
+
+	I_var.push_back(x);	//0
+	I_var.push_back(y);	//1
+	I_var.push_back(z);	//2
+
+	SetIntegrand(&I_WW_s);
+	Inte::MaxMin(this, Max, Min);
+
+	return Inte::Max(this);
+}
+
+double PhaseSpace::Max_WW_s(double s)
+{
+	const double &x = I_var.at(0);
+	const double &y = I_var.at(1);
+	const double &z = I_var.at(2);
+
+	SetIntegrand(&I_WW_cos0);
+
+	return Inte::MaxMin(this);
+}
+
+double PhaseSpace::Max_WW_cos0(double cos0)
+{
+	const double &x = I_var.at(0);
+	const double &y = I_var.at(1);
+	const double &z = I_var.at(2);
+	const double &s = I_var.at(3);
+
+	double sInf = x*x + y*y + 2*sqrt(x*y);
+	double sSup = 1 - 2*sqrt(z) + z;
+
+	double S = sInf + (sSup - sInf) * s;
+	double Cos0 = -1 + 2*cos0;
+
+	return I_WW(x, y, z, S, Cos0);
+}
+
+double DecayRates::I_WW(double x, double y, double z, double theta)
+{
+	I_var.clear();
+
+	I_var.push_back(x);	//0
+	I_var.push_back(y);	//1
+	I_var.push_back(z);	//2
+	I_var.push_back(cos0);	//3
+
+	SetIntegrand(&I_WW_s);				//Integrand will fix the integration volume
+	return Inte::BooleIntegration(this); 
+}
+
+double DecayRates::I_WW_s(double s)
+{
+	const double &x = I_var.at(0);
+	const double &y = I_var.at(1);
+	const double &z = I_var.at(2);
+	const double &cos0 = I_var.at(3);
+
+	return I_WW_s(s, cos0, x, y, z);
+}
+

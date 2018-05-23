@@ -392,7 +392,7 @@ double ProductionRates::I_LeptonNeutrino(double x, double y, double z, double th
 	I_var.push_back(z);	//4	//a2
 	I_var.push_back(cos0);	//5	//theta
 
-	SetIntegrand2(&I_LeptonNeutrino_s);
+	SetIntegrand(&I_LeptonNeutrino_s);
 	return fc * (xSup - xInf) * Inte::BooleIntegration(this); 
 }
 
@@ -482,7 +482,7 @@ double ProductionRates::I_LeptonAntineutrino(double x, double y, double z, doubl
 	I_var.push_back(z);	//4	//a2
 	I_var.push_back(cos0);	//5	//theta
 
-	SetIntegrand2(&I_LeptonAntineutrino_s);
+	SetIntegrand(&I_LeptonAntineutrino_s);
 	return fc * (sSup - sInf) * Inte::BooleIntegration(this); 
 }
 
@@ -571,7 +571,7 @@ double ProductionRates::I_MesonThree(double x, double y, double z, double theta)
 	I_var.push_back(z);	//4	//a2
 	I_var.push_back(cos0);	//5	//theta
 
-	SetIntegrand2(&I_MesonThree_s);
+	SetIntegrand(&I_MesonThree_s);
 	return fc * (xSup - xInf) * Inte::BooleIntegration(this); 
 }
 

@@ -1,12 +1,10 @@
 /*
- * PhaseSpace generator for simulation of sterile neutrino decays (it is not needed for production)
- * It also returns correct 
- *
+ * Full decay width calculator for a sterile neutrino below 2GeV in a minimal model
  * Author: Tommaso Boschi
  */
 
-#ifndef PHASESPACE_H
-#define PHASESPACE_H
+#ifndef FULLWIDTH_H
+#define FULLWIDTH_H
 
 #include <iostream>
 #include <fstream>
@@ -21,10 +19,10 @@
 #include "Physics/DecayRates.h"
 
 
-class PhaseSpace : protected DecayRates
+class FullWidth : protected DecayRates
 {
 	public:
-		PhaseSpace(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);
+		FullWidth(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);
 
 		//Decay width with A, B, and K the enhancement factors
 		double Gamma(std::string Channel, double B = 1.0);
@@ -138,56 +136,6 @@ class PhaseSpace : protected DecayRates
                        fnOMEGA,
                        fnPHI,	
                        fECHARM;
-
-	protected:
-
-		//Masses
-		const double M_Neutrino;
-		const double M_Photon;
-		const double M_Electron;
-		const double M_Muon;
-		const double M_Pion;
-		const double M_Pion0;
-		const double M_Kaon;
-		const double M_Kaon0;
-		const double M_Eta;
-		const double M_Rho;
-		const double M_Rho0;
-		const double M_Omega;
-		const double M_Kaonx;
-		const double M_Kaon0x;
-		const double M_Etai;
-		const double M_Phi;
-		const double M_Tau;
-		const double M_Charm;
-};
-
-#endif
-
-#ifndef DECAYRATES_H
-#define DECAYRATES_H
-
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <cstring>
-
-//ROOT include
-#include "TLorentzVector.h"
-#include "TGenPhaseSpace.h"
-
-#include "Tools/Tools.h"
-#include "Decay/ThreeBody.h"
-
-#include "Physics/Neutrino.h"
-
-
-class PhaseSpace
-{
-	public:
-		PhaseSpace();
-
-	private:
 };
 
 #endif
