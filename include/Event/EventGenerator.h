@@ -33,7 +33,7 @@
 class EventGenerator
 {
 	public:
-		EventGenerator();
+		EventGenerator(std::string SMConfig, std::string DetectorConfig, std::string FluxConfig);
 		//~EventGenerator();
 
 		//For a finer handle...it shouldn't be necessary

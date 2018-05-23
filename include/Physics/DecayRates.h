@@ -19,7 +19,7 @@
 #include "Decay/ThreeBody.h"
 
 
-class Decay
+class DecayRates
 {
 	public:
 		DecayRates(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);

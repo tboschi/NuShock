@@ -11,6 +11,7 @@ Neutrino::Neutrino(double Mass, unsigned int Options) :
 
 	TheDecay = new DecayRates();
 	TheProduction = new ProductionRates();
+	TheSpace = new PhaseSpace();
 	//TheCross = new CrossSection();
 }
 

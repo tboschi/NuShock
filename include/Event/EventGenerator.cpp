@@ -1,15 +1,18 @@
 #include "Event/EventGenerator.h"
 
-EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig, std::string FluxConfig)
-//	M_Electron(Const::fMElectron),
-//	M_Muon(Const::fMMuon),
-//	M_Pion(Const::fMPion),        	
-//	M_Kaon(Const::fMKaon)
+EventGenerator::EventGenerator() : 
+	GenMT(new TRandom3(0))
 {
-	GenMT = new TRandom3(0);	//19937 Mersenne Twister generator
-	M_Sterile_prev = -1.0;
-	E_Sterile_prev = -1.0;
+}
 
+EventGenerator::EventGenerator(Neutrino *N, FluxDriver *Driver, Detector *Box) : 
+	GenTM(new TRandom3(0))
+{
+	SetNeutrino(N);
+	SetFluxDriver(Drive);
+	SetDetector(Box);
+
+	/*
 	fUserData = -1.0;
 	fUserData_prev = -1.0;
 
@@ -46,34 +49,45 @@ EventGenerator::EventGenerator(std::string SMConfig, std::string DetectorConfig,
 	ConfigFile.close();
 
 	SetChannel("ALL");			//Channel is not initialised randomly!
+	*/
 }
 
-/*
 EventGenerator::~EventGenerator()
 {
-	delete TheBox;
-	delete TheGamma;
-	delete TheFlux;
-
 	delete GenMT;
 }
-*/
 
-Detector* EventGenerator::GetDetectorPtr()
+void EventGenerator::SetNeutrino(Neutrino* N)
+{
+	TheN = N;
+}
+
+void EventGenerator::SetFluxDriver(FluxDriver* Driver)
+{
+	TheDriver = Driver;
+}
+
+void EventGenerator::SetDetector(Detector* Box)
+{
+	TheBox = Box;
+}
+
+Neutrino* EventGenerator::GetNeutrino()
+{
+	return TheN;
+}
+
+FluxDriver* EventGenerator::GetFluxDriver()
+{
+	return TheDriver;
+}
+
+Detector* EventGenerator::GetDetector()
 {
 	return TheBox;
 }
 
-Decay* EventGenerator::GetDecayPtr()
-{
-	return TheGamma;
-}
-
-FluxDriver* EventGenerator::GetFluxDriverPtr()
-{
-	return TheFlux;
-}
-
+/*
 void EventGenerator::SetUserData(double X)
 {
 	fUserData = X;
@@ -83,6 +97,7 @@ double EventGenerator::GetUserData()
 {
 	return fUserData;
 }
+*/
 
 //MC procedures to detection of event after sampling energy
 
@@ -93,16 +108,17 @@ double EventGenerator::DecayProb()	//reaching the detector and decaying
 	else
 	{
 		//double Total = GetUserData() < 0.0 ? TheGamma->Total() : GetUserData();
-		double Total = TheGamma->Total();
-		double Ratio = TheGamma->Branch(GetChannel()); 
+		double Total = TheN->DecayWidth(DecayRates::_All);
+		double Ratio = TheN->DecayBranch(Channel); 
 		//std::cout << "Ratio " << Ratio << std::endl;
 		double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
 		double Lambda = Const::fM2GeV * TheBox->GetZsize();
-		double Lorentz = sqrt(GetEnergy(2)/GetMass(2) - 1.0);	//betagamma, to invert
+		double Lorentz = sqrt(pow(N->GetEnergy()/N->GetMass(), 2) - 1.0);	//betagamma, to invert
 		return exp(- Total * Length / Lorentz) * (1 - exp(- Total * Lambda / Lorentz)) * Ratio;
 	}
 }
 
+/*
 double EventGenerator::ScatterProb(double Eh)	//decaying inside the detector
 {							//using heavy neutrino energy
 	if (Eh < GetMass())
@@ -140,29 +156,48 @@ double EventGenerator::GetEnhancement()
 //		return (1 - exp(- Total * Lambda / Lorentz)) * Ratio;
 //	}
 //}
-
-
-double EventGenerator::EventEfficiency()
-{
-	////std::cout << "call" << std::endl;
-	return TheBox->Efficiency(GetEnergy(), GetMass());
-}
+*/
 
 //modifications:
 //hMod, hProb
 //even in .h file
-double EventGenerator::DecayNumber(double EnergyKin, bool Efficiency)
+double EventGenerator::DecayNumber(double Ek, bool Efficiency)
 {
-	SetEnergyKin(EnergyKin);
-
-	//std::cout << " I " << FluxIntensity(1) << "\t P " << DecayProb() << std::endl;
-	double Signal = FluxIntensity(1) * DecayProb();
+	double Energy = Ek + TheN->GetMass();
+	double Signal = TheFlux->GetIntensity(N) * DecayProb();
 	if (Efficiency)
-		Signal *= EventEfficiency();
+		Signal *= TheBox->Efficiency(N);
 
 	return Signal;
 }
 
+double EventGenerator::DecayNumber(bool Efficiency)
+{
+	double Start, End;
+	double EnStep = GetRange(Start, End)/GetBinNumber();
+
+	double Sum = 0.0;
+	for (double Energy = Start; Energy < End; Energy += EnStep)
+		Sum += EnStep * DecayNumber(Energy, Efficiency);
+
+	return Sum;
+}
+
+void EventGenerator::MakeSampler()
+{
+	delete hSampler;
+	hSampler = 0;
+	hSampler = new TH1D("sampler", "Neutrinos in detector", GetBinNumber(), Start, End);
+
+	double Start, End;
+	double EnStep = GetRange(Start, End)/GetBinNumber();
+
+	double Sgn;
+	for (double Energy = Start + TheN->GetMass(); Energy < End + TheN->GetMass(); Energy += EnStep)
+		hSampler->Fill(Energy+1e-6, EnStep * DecayNumber(Energy));
+}
+
+/*
 double EventGenerator::ScatterNumber(double Energy, bool Efficiency)	//watchout for units!!! not set
 {
 	SetEnergy(Energy);
@@ -181,9 +216,10 @@ double EventGenerator::ScatterNumber(double Energy, bool Efficiency)	//watchout 
 
 	return Signal;
 }
+*/
 
 //Random generator
-
+/*
 std::string EventGenerator::RandomChannel()	//First step: define decay mode
 {
 	double Num = GenMT->Rndm();
@@ -595,3 +631,4 @@ bool EventGenerator::IsChanged()
 
 	return Ret;
 }
+*/
