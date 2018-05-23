@@ -787,11 +787,14 @@ double DecayRates::NeutrinoPseudoMeson(double M_Meson, double fDecay2)
 
 double DecayRates::I_PseudoMeson(double x, double y, double theta)
 {
-	double Lambda = sqrt(Kine::Kallen(1, x, y)) * cos(theta);
+	double cos0 = theta < 0 ? 0.0 : cos(theta);
+	double fc = theta < 0.0 ? 2.0 : 1.0;
+
+	double Lambda = sqrt(Kine::Kallen(1, x, y)) * cos0;
 	if (GetHelicity() < 0)
-		return Lambda * (pow(1 - x, 2) - y*(1+x) + Lambda);
+		return fc * Lambda * (pow(1 - x, 2) - y*(1+x) + Lambda);
 	else if (GetHelicity() > 0)
-		return Lambda * (pow(1 - x, 2) - y*(1+x) - Lambda);
+		return fc * Lambda * (pow(1 - x, 2) - y*(1+x) - Lambda);
 }
 
 //no helicity version for this one
@@ -840,7 +843,7 @@ double DecayRates::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Lepton)
 }
 
 //CC version also available
-double DecayRates::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB)
+double DecayRates::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino)
 {
 	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
 	double dMA2 = M_LeptonA*M_LeptonB/GetMass()/GetMass();
@@ -852,64 +855,86 @@ double DecayRates::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB)
 
 double DecayRates::I_WW(double x, double y, double z, double theta)
 {
-	double Inf = x*x + y*y + 2*sqrt(x*y);
-	double Sup = 1 - 2*sqrt(z) + z;
+	double sInf = x*x + y*y + 2*sqrt(x*y);
+	double sSup = 1 - 2*sqrt(z) + z;
+	double cos0 = theta < 0 ? 0.0 : cos(theta);
+	double fc = theta < 0.0 ? 2.0 : 1.0;
 
 	I_var.clear();
-	I_var.push_back(Inf);	//0
-	I_var.push_back(Sup);	//1
+	I_var.push_back(sInf);	//0
+	I_var.push_back(sSup);	//1
 
 	I_var.push_back(x);	//2
 	I_var.push_back(y);	//3
 	I_var.push_back(z);	//4
-	I_var.push_back(theta);	//5
+	I_var.push_back(cos0);	//5
 
 	SetIntegrand(&I_WW_s);
-	return (Sup - Inf) * Inte::BooleIntegration(this); 
+	return fc * (sSup - sInf) * Inte::BooleIntegration(this); 
+}
+
+double DecayRates::I_WW_s(double s)
+{
+	const double &sInf = I_var.at(0);
+	const double &sSup = I_var.at(0);
+
+	const double &c2 = I_var.at(2);
+	const double &b2 = I_var.at(3);
+	const double &a2 = I_var.at(4);
+	const double &cos0 = I_var.at(5);
+
+	double S = sInf + (sSup - sInf) * s;
+
+	double Lambda0 = sqrt(Kine::Kallen(1, S, a2));
+	double Lambda1 = sqrt(Kine::Kallen(S, b2, c2));
+
+	if (GetHelicity() < 0)
+		return (S - b2 - c2) * (1 + a2 - S - Lambda0*cos0) * Lambda0 * Lambda1 / S;
+	else if (GetHelicity() > 0)
+		return (S - b2 - c2) * (1 + a2 - S + Lambda0*cos0) * Lambda0 * Lambda1 / S;
 }
 
 double DecayRates::I_WZ(double x, double y, double z, double theta)
 {
-	double Inf = x*x + y*y + 2*sqrt(x*y);
-	double Sup = 1 - 2*sqrt(z) + z;
+	double sInf = x*x + y*y + 2*sqrt(x*y);
+	double sSup = 1 - 2*sqrt(z) + z;
+	double cos0 = theta < 0 ? 0.0 : cos(theta);
+	double fc = theta < 0.0 ? 2.0 : 1.0;
 
 	I_var.clear();
-	I_var.push_back(Inf);	//0
-	I_var.push_back(Sup);	//1
+	I_var.push_back(sInf);	//0
+	I_var.push_back(sSup);	//1
 
 	I_var.push_back(x);	//2
 	I_var.push_back(y);	//3
 	I_var.push_back(z);	//4
-	I_var.push_back(theta);	//5
+	I_var.push_back(cos0);	//5
 
 	SetIntegrand(&I_WZ_s);
-	return (Sup - Inf) * Inte::BooleIntegration(this); 
-}
-
-double DecayRates::I_WW_s(double s)	//2 -> x, 3 -> y, 4 -> z, 0 -> 5
-{
-	double S = I_var.at(0) + (I_var.at(1)-I_var.at(0)) * s;
-
-	double Lambda0 = sqrt(Kine::Kallen(1, S, I_var.at(4)));
-	double Lambda1 = sqrt(Kine::Kallen(S, I_var.at(2), I_var.at(3)));
-
-	return (S - I_var.at(2) - I_var.at(3)) *
-	       	(1 + I_var.at(4) - S + GetHelicity()*Lambda*cos(I_var.at(5))) *
-		Lambda0 * Lambda1 / S;
+	return fc * (sSup - sInf) * Inte::BooleIntegration(this); 
 }
 
 double DecayRates::I_WZ_s(double s)	//2 -> x, 3 -> y, 4 -> z, 0 -> 5
 {
-	double S = I_var.at(0) + (I_var.at(1)-I_var.at(0)) * s;
+	const double &sInf = I_var.at(0);
+	const double &sSup = I_var.at(0);
 
-	double Lambda0 = sqrt(Kine::Kallen(1, S, I_var.at(4)));
-	double Lambda1 = sqrt(Kine::Kallen(S, I_var.at(2), I_var.at(3)));
-	double Sum = S - I_var.at(4) + Lambda0*cos(I_var.at(5));
+	const double &c2 = I_var.at(2);
+	const double &b2 = I_var.at(3);
+	const double &a2 = I_var.at(4);
+	const double &cos0 = I_var.at(5);
 
+	double S = sInf + (sSup - sInf) * s;
+
+	double Lambda0 = sqrt(Kine::Kallen(1, S, a2));
+	double Lambda1 = sqrt(Kine::Kallen(S, b2, c2));
+	double Sum = S - a2 + Lambda0*cos0;
+
+	//not sure here!
 	if (GetHelicity() < 0)
-		return I_var.at(2)*I_var.at(3) * (1 - Sum) * Lambda0 * Lambda1 / S;
+		return b2 * c2 * (S - a2 - Lambda0 * (1 + cos0) / 2.0) * Lambda0 * Lambda1 / S;
 	else if (GetHelicity() > 0)
-		return I_var.at(2)*I_var.at(3) * Sum * Lambda0 * Lambda1 / S;
+		return b2 * c2 * (S - a2 + Lambda0 * (1 + cos0) / 2.0) * Lambda0 * Lambda1 / S;
 }
 
 //Integration set up

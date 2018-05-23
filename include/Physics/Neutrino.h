@@ -50,6 +50,7 @@ class Neutrino:
 
 		void SetMass(double Mass = 0.0);
 		void SetMixings(double Ue, double Um, double Ut);
+		void SetEnergy(double Energy);
 
 		double GetMass();
 		double *GetMixings();

@@ -442,6 +442,11 @@ int FluxDriver::GetBinNumber()
 
 //return the intensity of the flux at given energy
 //
+double FluxDriver::GetIntensity(Neutrino *N)
+{
+	return GetIntensity(N->EnergyKin());
+}
+
 double FluxDriver::GetIntensity(double Energy)	//Return flux intensity, given energy, simple linear interpolation
 {									//NvA == 1 -> Neutrino, NvA == 0 -> Antineutrino
 	double Ue, Um, Ut;						//Uu == 1 -> mixing , Uu == 0 -> maximal (light neutrino)

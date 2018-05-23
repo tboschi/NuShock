@@ -56,6 +56,16 @@ void Neutrino::SetMixings(double Ue, double Um, double Ut)
 	fMixings[2] = Ut;
 }
 
+void Neutrino::SetEnergy(double Energy)
+{
+	fEnergy = Energy;
+}
+
+void Neutrino::SetEnergyKin(double Energy)
+{
+	fEnergy = GetMass() + Energy;
+}
+
 void Neutrino::SetHelicity(unsigned int Options)		//Left for particle is -1
 {								//Right for particle is 1
 	switch (Options & 3)					//For antiparticle, reverse
@@ -122,6 +132,16 @@ double Neutrino::GetMass()
 double* Neutrino::GetMixings()
 {
 	return fMixings;
+}
+
+double Neutrino::GetEnergy()
+{
+	return fEnergy;
+}
+
+double Neutrino::GetEnergyKin()
+{
+	return fEnergy-GetMass();
 }
 
 int Neutrino::GetHelicity()

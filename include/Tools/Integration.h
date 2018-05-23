@@ -8,6 +8,8 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
+#include <limits>
+
 #include "cuba.h"
 
 namespace Inte
@@ -54,7 +56,7 @@ namespace Inte
 	double BooleIntegration(TempClass *TempObject)
 	{
 		double a = 0, b = 0;
-		double h = 1.0/100.0;
+		double h = 1.0/Step;
 		double Integral = 0;
 		for (a = 0; b + 1e-12 < 1.0; a = b)
 		{
@@ -68,6 +70,26 @@ namespace Inte
 		}	
 	
 		return Integral * h/90.0;
+	}	
+
+	template<class TempClass>
+	double MaxMin(TempClass *TempObject, double &Max, double &Min)
+	{
+		double Min = DBL_MAX;
+		double Max = -1.0;
+
+		double h = 1.0/(4*Step);
+		for (double a = 0; a < 1.0; a += h)
+		{
+			double tmp = TempObject->Integrand(a);
+
+			if (Min > tmp)
+				Min = tmp; 
+			if (Max < tmp)
+				Max = tmp; 
+		}
+
+		return Max - Min;
 	}	
 }
 
