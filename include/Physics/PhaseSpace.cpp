@@ -181,7 +181,7 @@ void PhaseSpace::Boost()
 
 double DecayRates::MaxThreeGamma()
 {
-	SetIntegrand(&I_WZ_s);
+	SetFunction(&I_WZ_s);
 	Inte::MaxMin(this, Max, Min);
 }
 
@@ -210,7 +210,7 @@ void DecayRates::SetNvec(TLorentzVector &X)
 
 double DecayRates::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino)
 {
-	SetIntegrand(dNeutrinoLeptonAB);
+	SetFunction(dNeutrinoLeptonAB);
 }
 
 double DecayRates::dNeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino, double s, double cos0)
@@ -223,6 +223,16 @@ double DecayRates::dNeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double 
 		pow(GetMass(), 5) * I_WW_s(dMN2, dMA2, dMB2);
 }
 
+double DecayRates::MaxNeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino)
+{
+	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
+	double dMA2 = M_LeptonA*M_LeptonB/GetMass()/GetMass();
+	double dMB2 = M_LeptonB*M_LeptonB/GetMass()/GetMass();
+
+	return GetMult() * Const::fGF2 / (16.0 * Const::fPi3) * 
+		pow(GetMass(), 5) * Max_WW(dMN2, dMA2, dMB2);
+}
+
 double DecayRates::Max_WW(double x, double y, double z)
 {
 	I_var.clear();
@@ -231,21 +241,21 @@ double DecayRates::Max_WW(double x, double y, double z)
 	I_var.push_back(y);	//1
 	I_var.push_back(z);	//2
 
-	SetIntegrand(&I_WW_s);
-	Inte::MaxMin(this, Max, Min);
+	SetFunction(&I_WW_s);
 
 	return Inte::Max(this);
 }
 
 double PhaseSpace::Max_WW_s(double s)
 {
-	const double &x = I_var.at(0);
-	const double &y = I_var.at(1);
-	const double &z = I_var.at(2);
+	I_var.push_back(s);	//3
 
-	SetIntegrand(&I_WW_cos0);
+	SetFunction(&I_WW_cos0);
+	double Ret = Inte::Max(this);		//max in cos0 for given s
 
-	return Inte::MaxMin(this);
+	I_var.pop_back();
+	SetFunction(&I_WW_s);
+	return Ret;
 }
 
 double PhaseSpace::Max_WW_cos0(double cos0)
@@ -273,7 +283,7 @@ double DecayRates::I_WW(double x, double y, double z, double theta)
 	I_var.push_back(z);	//2
 	I_var.push_back(cos0);	//3
 
-	SetIntegrand(&I_WW_s);				//Integrand will fix the integration volume
+	SetFunction(&I_WW_s);				//Function will fix the integration volume
 	return Inte::BooleIntegration(this); 
 }
 

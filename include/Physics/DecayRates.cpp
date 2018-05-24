@@ -691,14 +691,14 @@ double DecayRates::I_WW_s(double S, double cos0, double x, double y, double z)
 
 //Integration set up
 //
-void DecayRates::SetIntegrand(double (DecayRates::*FF)(double))
+void DecayRates::SetFunction(double (DecayRates::*FF)(double))
 {
-	I_integrand = FF;
+	fFunction = FF;
 }
 
 double DecayRate::Integrand(double x)
 {
-	return (*I_integrand)(x);
+	return (*fFunction)(x);
 }
 
 /////////////////////////

@@ -904,7 +904,7 @@ double DecayRates::I_WW(double x, double y, double z, double theta)
 	I_var.push_back(z);	//2
 	I_var.push_back(cos0);	//3
 
-	SetIntegrand(&I_WW_s);				//Integrand will fix the integration volume
+	SetFunction(&I_WW_s);				//Integrand will fix the integration volume
 	return Inte::BooleIntegration(this); 
 }
 
@@ -948,7 +948,7 @@ double DecayRates::I_WZ(double x, double y, double z, double theta)
 	I_var.push_back(z);	//2
 	I_var.push_back(cos0);	//3
 
-	SetIntegrand(&I_WZ_s);
+	SetFunction(&I_WZ_s);
 	return Inte::BooleIntegration(this); 
 }
 
