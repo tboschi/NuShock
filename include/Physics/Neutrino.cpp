@@ -9,37 +9,50 @@ Neutrino::Neutrino(double Mass, unsigned int Options) :
 
 	SetMixings(1.0, 1.0, 1.0);
 
-	TheDecay = new DecayRates();
+	TheDecay = new FullWidth();
 	TheProduction = new ProductionRates();
-	TheSpace = new PhaseSpace();
 	//TheCross = new CrossSection();
 }
 
 Neutrino::~Neutrino()
 {
+	delete TheDecay;
+	delete TheProduction;
 }
 
-Neutrino::DecayWidth(Channel Name)
+void Neutrino::SetParent(FullWidth *Object)
 {
-	TheDecay->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity());
-	return TheDecay->Gamma(Channel);
+	Object->SetNeutrino(GetMass(), GetMixings(), GetFermion(), GetHelicity());
 }
 
-Neutrino::DecayBranch(Channel Name)
+double Neutrino::DecayWidth(Channel Name)
 {
-	TheDecay->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity());
+	if (IsDirac())
+	{
+	}
+	else if (IsMajorana())
+	{
+	}
+	SetParent(TheDecay);
+	double Ret = TheDecay->Gamma(Channel);
+	return Ret;
+}
+
+double Neutrino::DecayBranch(Channel Name)
+{
+	SetParent(TheDecay);
 	return TheDecay->Branch(Channel);
 }
 
-Neutrino::ProductionWidth(Channel Name)
+double Neutrino::ProductionWidth(Channel Name)
 {
-	TheProduction->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity());
+	SetParent(TheProduction);
 	return TheDecay->Gamma(Channel);
 }
 
-Neutrino::ProductionScale(Channel Name)
+double Neutrino::ProductionScale(Channel Name)
 {
-	TheProduction->SetParent(GetMass(), GetMixings(), GetFermion(), GetHelicity());
+	SetParent(TheProduction);
 	return TheDecay->Scale(Channel);
 }
 

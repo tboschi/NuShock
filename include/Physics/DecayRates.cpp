@@ -1,6 +1,6 @@
 #include "DecayRates.h"
 
-DecayRates::DecayRates(double Mass, double Ue, double Um, double Ut)	: //Decay rates calculator
+DecayRates::DecayRates(Neutrino *N)	: //Decay rates calculator
 	M_Neutrino(0.0),
 	M_Photon(0.0),
 	M_Electron(Const::fMElectron),
@@ -20,14 +20,10 @@ DecayRates::DecayRates(double Mass, double Ue, double Um, double Ut)	: //Decay r
         M_Charm(Const::fMCharm)
 {
 	M_Sterile_prev = -1.0;
-
-	SetMass(Mass);
-	SetUe(Ue);
-	SetUm(Um);
-	SetUt(Ut);
+	Channel_prev = _undefined;
 }
 
-void DecayRates::LoadMass(Channel Name)	//return the maximum value of phase space
+void DecayRates::LoadMass(Channel Name)
 {
 	vMass.clear();
 	switch(Name)
@@ -147,11 +143,76 @@ void DecayRates::LoadMass(Channel Name)	//return the maximum value of phase spac
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Charm);
 			break;
+		case _MuonE:
+		case _MuonM:
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Neutrino);
+			break;
+		case _TauEE:
+		case _TauET:
+			vMass.push_back(M_Tau);
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Neutrino);
+			break;
+		case _TauMM:
+		case _TauMT:
+			vMass.push_back(M_Tau);
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Neutrino);
+			break;
+		case _PionE:
+			vMass.push_back(M_Pion);
+			vMass.push_back(M_Electron);
+			break;
+		case _PionM:
+			vMass.push_back(M_Pion);
+			vMass.push_back(M_Muon);
+			break;
+		case _KaonE:
+			vMass.push_back(M_Kaon);
+			vMass.push_back(M_Electron);
+			break;
+		case _KaonM:
+			vMass.push_back(M_Kaon);
+			vMass.push_back(M_Muon);
+			break;
+		case _CharmE:
+			vMass.push_back(M_CharmS);
+			vMass.push_back(M_Electron);
+			break;
+		case _CharmM:
+			vMass.push_back(M_CharmS);
+			vMass.push_back(M_Muon);
+			break;
+		case _CharmT:
+			vMass.push_back(M_CharmS);
+			vMass.push_back(M_Tau);
+			break;
+		case _Kaon0E:
+			vMass.push_back(M_Kaon0);
+			vMass.push_back(M_Pion);
+			vMass.push_back(M_Electron);
+			break;
+		case _Kaon0M:
+			vMass.push_back(M_Kaon0);
+			vMass.push_back(M_Pion);
+			vMass.push_back(M_Muon);
+			break;
+		case _KaonCE:
+			vMass.push_back(M_Kaon);
+			vMass.push_back(M_Pion0);
+			vMass.push_back(M_Electron);
+			break;
+		case _KaonCM:
+			vMass.push_back(M_Kaon);
+			vMass.push_back(M_Pion0);
+			vMass.push_back(M_Muon);
+			break;
 		default:
+			std::cerr << "Channel not recognised" << std::endl;
 			break;
 	}
-
-	return vMass;
 }
 
 //Check if some decay is allowed (is mass threshold)
@@ -754,28 +815,28 @@ int DecayRates::GetHelicity()
 }
 
 //Set functions
-void DecayRates::SetMass(double X)
+void DecayRates::SetMass(double Mass)
 {
-	M_Sterile = X;
-	TheSpace->SetSterileMass(X);
+	M_Sterile = Mass;
+	TheSpace->SetSterileMass(Mass);
 }
 
-void DecayRates::SetUe(double X)
+void DecayRates::SetUe(double Ue)
 {
-	Ue = X;
-	TheSpace->SetUe(X);
+	fUe = Ue;
+	TheSpace->SetUe(Ue);
 }
 
-void DecayRates::SetUm(double X)
+void DecayRates::SetUm(double Um)
 {
-	Um = X;
-	TheSpace->SetUm(X);
+	fUm = Um;
+	TheSpace->SetUm(Um);
 }
 
-void DecayRates::SetUt(double X)
+void DecayRates::SetUt(double Ut)
 {
-	Ut = X;
-	TheSpace->SetUt(X);
+	fUt = Ut;
+	TheSpace->SetUt(Ut);
 }
 
 void DecayRates::SetFermion(bool Fermion)

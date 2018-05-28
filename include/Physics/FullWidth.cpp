@@ -961,12 +961,13 @@ double DecayRates::I_WZ_s(double s)
 
 	double sInf = x*x + y*y + 2*sqrt(x*y);
 	double sSup = 1 - 2*sqrt(z) + z;
+	double S = sInf + (sSup - sInf) * s;
+
 	double cos0 = theta < 0 ? 0.0 : cos(theta);
 	double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double S = sInf + (sSup - sInf) * s;
-
 	return fc * (sSup - sInf) * I_WZ_s(S, cos0, x, y, z);
+
 }
 /////////////////////////
 //end of generic decays//
@@ -1026,104 +1027,3 @@ bool DecayRates::IsChanged()
 	return Ret;
 }
 
-//Get functions
-TLorentzVector *DecayRates::GetNvec()
-{
-	return N_vec;
-}
-
-TLorentzVector DecayRates::GetDecayProduct(int i, int &ID)
-//Particle *DecayRates::GetDecayProduct(int i, int &ID)
-{
-	ID = PdgCode[i];
-	TLorentzVector Daughter = *(Event->GetDecay(i));
-	Daughter.Boost(N_vec->BoostVector());
-
-	return Daughter;
-}
-
-double DecayRates::GetMass()
-{
-	return M_Sterile;
-}
-
-double DecayRates::GetUe()
-{
-	return Ue;
-}
-
-double DecayRates::GetUm()
-{
-	return Um;
-}
-
-double DecayRates::GetUt()
-{
-	return Ut;
-}
-
-bool DecayRates::GetFermion()
-{
-	return bFermion;
-}
-
-int DecayRates::GetMult()
-{
-	return 2-GetFermion();
-}
-
-int DecayRates::GetHelicity()
-{
-	return iHel;
-}
-
-//Set functions
-void DecayRates::SetNvec(TLorentzVector &X)
-{
-	*N_vec = X;
-	N_rest->SetPxPyPzE(0, 0, 0, N_vec->M());
-}
-
-void DecayRates::SetMass(double X)
-{
-	M_Sterile = X;
-	TheSpace->SetSterileMass(X);
-}
-
-void DecayRates::SetUe(double X)
-{
-	Ue = X;
-	TheSpace->SetUe(X);
-}
-
-void DecayRates::SetUm(double X)
-{
-	Um = X;
-	TheSpace->SetUm(X);
-}
-
-void DecayRates::SetUt(double X)
-{
-	Ut = X;
-	TheSpace->SetUt(X);
-}
-
-void DecayRates::SetFermion(bool Fermion)
-{
-	bFermion = Fermion;	//true for Dirac, false for Majorana
-}
-
-void DecayRates::SetHelicity(int Helicity)
-{
-	iHel = Helicity;	//-1 for Left, +1 for Right, 0 for unpolarised
-}
-
-void DecayRates::SetParent(double Mass, double* Mixings, bool Fermion, bool Helicity)
-{
-	SetMass(Mass);
-	SetUe(Mixings[0]);
-	SetUm(Mixings[1]);
-	SetUt(Mixings[2]);
-	SetFermion(Fermion);
-	SetHelicity(Helicity);
-}

@@ -103,8 +103,10 @@ namespace Const
 	static const double fVCharm   = 0.25-2.0*fSin2W / 3.0;	//Vector constant for Charm meson D and JPsi
 	static const double fVusFKaon = 0.2165;			//From 1607.00299
 
-	static const double fLambdaPlus = 0.0297;	//Linear dependence of f+ in Ke3 (PDG)
-	static const double fLambdaZero = 0.0196;	//Linear dependence of f0 in Km3 (PDG)
+	static const double fK0L_ = 0.0271;	//Linear dependence of f+ in K0m3 (PDG)
+	static const double fK0L0 = 0.0142;	//Linear dependence of f0 in K0m3 (PDG)
+	static const double fK_L_ = 0.0296;	//Linear dependence of f+ in K+m3 (PDG)
+	static const double fK_L0 = 0.0196;	//Linear dependence of f0 in K+m3 (PDG)
 	static const double fMagMuN = -1.9130427345;	//neutron magnetic moment (in nuclear magneton units)
 	static const double fMagMuP = 2.79284735128;	//proton magnetic moment (in nuclear magneton units);
 	static const double fMA = 0.990;		//GeV, axial mass, from GENIE
