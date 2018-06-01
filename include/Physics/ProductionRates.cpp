@@ -408,7 +408,7 @@ double ProductionRates::d_LeptonNeutrino_t(double t)
 	return fc * (xSup - xInf) * (ySup - yInf) * d_LeptonNeutrino(X, Y, x, y, z, cos0);
 }
 
-double ProductionRates::d_LeptonNeutrino(double X, double Y, double x, double y, double z, double cos0);
+double ProductionRates::d_LeptonNeutrino(double X, double Y, double x, double y, double z, double cos0)
 {
 	double kX = sqrt(X*X - 4*z);
 	double kY = sqrt(Y*Y - 4*y)*cos0;

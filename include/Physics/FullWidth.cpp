@@ -1,8 +1,22 @@
 #include "FullWidth.h"
 
-DecayRates::FullWidth(double Mass, double Ue, double Um, double Ut)	: //Decay rates calculator
-	DecayRates(Mass, Ue, Um, Ut)
+DecayRates::FullWidth()	:
 {
+}
+
+bool DecayRates::IsAllowed(Channel Name)
+{
+	if (Channel_prev != Name)
+	{
+		LoadMass(Name);
+		Channel_prev = Name;
+	}
+
+	double Limit = 0.0;
+	for (unsigned int i = 0; i < vMass.size(); ++i)
+		Limit += vMass.at(i);
+
+	return (GetMass() >= Limit);
 }
 
 //return the decay width (Gamma)
@@ -136,151 +150,6 @@ double DecayRates::Branch(Channel Name)
 	else return Gamma(Name)/Gamma(_ALL);
 }
 
-double DecayRates::PhaseSpace(Channel Name, std::vector<double> &vMass)	//return the maximum value of phase space
-{
-	double Max = 0.0;
-	vMass.clear();
-
-	switch(Name)
-	{
-		case _ALL:
-		case _nnn:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Neutrino);
-			break;
-		case _nGAMMA:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Photon);
-			break;
-		case _nEE:
-		case _ExpALL:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Electron);
-
-			Max = Max_nEEMax();
-			break;
-		case _nEMU:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Muon);
-
-			Max = Max_nEMU();
-			break;
-		case _nMUE:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Muon);
-
-			Max = Max_nMUE();
-			break;
-		case _nMUMU:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Muon);
-
-			Max = Max_nMUMU();
-			break;
-		case _nET:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Tau);
-
-			Max = Max_nET();
-			break;
-		case _nTE:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Tau);
-
-			Max = Max_nTE();
-			break;
-		case _nMUT:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Tau);
-
-			Max = Max_nMUT();
-			break;
-		case _nTMU:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Tau);
-			
-			Max = Max_nTMU();
-			break;
-		case _nPI0:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Pion0);
-			break;
-		case _EPI:
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Pion);
-			break;
-		case _MUPI:
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Pion);
-			break;
-		case _TPI:
-			vMass.push_back(M_Pion);
-			vMass.push_back(M_Tau);
-			break;
-		case _EKA:
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Kaon);
-			break;
-		case _MUKA:
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Kaon);
-			break;
-		case _EKAx:
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Kaonx);
-			break;
-		case _MUKAx:
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Kaonx);
-			break;
-		case _nRHO0:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Rho0);
-			break;
-		case _ERHO:
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Rho);
-			break;
-		case _MURHO:
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Rho0);
-			break;
-		case _nETA:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Eta);
-			break;
-		case _nETAi:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Etai);
-			break;
-		case _nOMEGA:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Omega);
-			break;
-		case _nPHI:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Phi);
-			break;
-		case _ECHARM:
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Charm);
-			break;
-		default:
-			break;
-	}
-
-	return Max;
-}
-
 //Compute phase space for 3 body decay channels
 int DecayRates::PhaseSpace(Channel Name, double &Weight)	//Return number of products 
 {								//0 if decay not valid
@@ -401,18 +270,6 @@ int DecayRates::PhaseSpace(Channel Name, double &Weight)	//Return number of prod
 
 //Check if some decay is allowed (is mass threshold)
 //
-bool DecayRates::IsAllowed(Channel Name)
-{
-	std::vector<double> vMass;
-	PhaseSpace(Name, vMass);
-
-	double Limit = 0.0;
-	for (unsigned int i = 0; i < vMass.size(); ++i)
-		Limit += vMass.at(i);
-
-	return (GetMass() >= Limit);
-}
-
 //total decay width
 double DecayRates::Total()
 {
@@ -841,6 +698,7 @@ double DecayRates::I_PseudoMeson(double x, double y, double theta)
 }
 
 //no helicity version for this one
+//must compute!!
 //CC version possible
 double DecayRates::LeptonVectorMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2, double fVector)
 {
@@ -854,6 +712,7 @@ double DecayRates::LeptonVectorMeson(double M_Lepton, double M_Meson, double vCK
 }
 
 //no helicity version for this one
+//must compute!!
 double DecayRates::NeutrinoVectorMeson(double M_Meson, double fDecay2, double fVector)
 {
 	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
@@ -865,7 +724,7 @@ double DecayRates::NeutrinoVectorMeson(double M_Meson, double fDecay2, double fV
 		pow(GetMass(), 3) * (1+2*dMM2) * pow(1-dMM2, 2);
 }
 
-double DecayRates::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Lepton, double s, double cos0)
+double DecayRates::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Lepton, double s, double theta)
 {
 	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
 	double dML2 = M_Lepton*M_Lepton/GetMass()/GetMass();
@@ -873,8 +732,8 @@ double DecayRates::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Lepton,
 	double gL = -0.5 + Const::fSin2W;
 	double gR = Const::fSin2W;
 
-	double IntWW = I_WW(dMN2, dML2, dML2);	//W or Z mediation
-	double IntWZ = I_WZ(dMN2, dML2, dML2);	//cross term for W + Z
+	double IntWW = I_WW(dMN2, dML2, dML2, theta);	//W or Z mediation
+	double IntWZ = I_WZ(dMN2, dML2, dML2, theta);	//cross term for W + Z
 
 	double Amp_AAA = (gL*gL + gR*gR + 1 + 2*gL)*IntWW + (gL*gR + gR) * IntWW;	//both W and Z
 	double Amp_ABB = (gL*gL + gR*gR           )*IntWW + (gL*gR     ) * IntWZ;	//only Z
@@ -886,13 +745,13 @@ double DecayRates::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Lepton,
 }
 
 //CC version also available
-double DecayRates::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino, double s, double cos0)
+double DecayRates::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino, double s, double theta)
 {
 	double dMA2 = M_LeptonA*M_LeptonB/GetMass()/GetMass();
 	double dMB2 = M_LeptonB*M_LeptonB/GetMass()/GetMass();
 
 	return GetMult() * Const::fGF2 / (16.0 * Const::fPi3) * 
-			pow(GetMass(), 5) * I_WW(dMN2, dMA2, dMB2);
+			pow(GetMass(), 5) * I_WW(dMN2, dMA2, dMB2, theta);
 }
 
 double DecayRates::I_WW(double x, double y, double z, double theta)
@@ -902,7 +761,7 @@ double DecayRates::I_WW(double x, double y, double z, double theta)
 	I_var.push_back(x);	//0
 	I_var.push_back(y);	//1
 	I_var.push_back(z);	//2
-	I_var.push_back(cos0);	//3
+	I_var.push_back(theta);	//3
 
 	SetFunction(&I_WW_s);				//Integrand will fix the integration volume
 	return Inte::BooleIntegration(this); 
@@ -913,30 +772,28 @@ double DecayRates::I_WW_s(double s)
 	const double &x = I_var.at(0);
 	const double &y = I_var.at(1);
 	const double &z = I_var.at(2);
-	const double &cos0 = I_var.at(3);
+	const double &theta = I_var.at(3);
 
-	return I_WW_s(s, cos0, x, y, z);
+	double sInf = x*x + y*y + 2*sqrt(x*y);
+	double sSup = 1 - 2*sqrt(z) + z;
+	double S = sInf + (sSup - sInf) * s;
+
+	double cos0 = theta < 0 ? 0.0 : cos(theta);		//means I am integrating on theta only
+	double fc = theta < 0.0 ? 2.0 : 1.0;			//so I remove cos0 terms and multiply by 2
+
+	return fc * (sSup - sInf) * I_WW_s(s, cos0, x, y, z);
 }
 
 //Keep in base!
 double DecayRates::I_WW_s(double s, double cos0, double x, double y, double z)
 {
-	double sInf = x*x + y*y + 2*sqrt(x*y);
-	double sSup = 1 - 2*sqrt(z) + z;
-	double cos0 = theta < 0 ? 0.0 : cos(theta);		//means I am integrating on theta only
-	double fc = theta < 0.0 ? 2.0 : 1.0;			//so I remove cos0 terms and multiply by 2
-
-	double S = sInf + (sSup - sInf) * s;
-
 	double Lambda0 = sqrt(Kine::Kallen(1, S, z));
 	double Lambda1 = sqrt(Kine::Kallen(S, x, y));
 
 	if (GetHelicity() < 0)
-		return fc * (sSup - sInf) * 
-			(S - x - y) * (1 + z - S - Lambda0*cos0) * Lambda0 * Lambda1 / S;
+		return (S - x - y) * (1 + z - S - Lambda0*cos0) * Lambda0 * Lambda1 / S;
 	else if (GetHelicity() > 0)
-		return fc * (sSup - sInf) * 
-			(S - x - y) * (1 + z - S + Lambda0*cos0) * Lambda0 * Lambda1 / S;
+		return (S - x - y) * (1 + z - S + Lambda0*cos0) * Lambda0 * Lambda1 / S;
 }
 
 double DecayRates::I_WZ(double x, double y, double z, double theta)
@@ -946,7 +803,7 @@ double DecayRates::I_WZ(double x, double y, double z, double theta)
 	I_var.push_back(x);	//0
 	I_var.push_back(y);	//1
 	I_var.push_back(z);	//2
-	I_var.push_back(cos0);	//3
+	I_var.push_back(theta);	//3
 
 	SetFunction(&I_WZ_s);
 	return Inte::BooleIntegration(this); 
@@ -957,7 +814,7 @@ double DecayRates::I_WZ_s(double s)
 	const double &x = I_var.at(0);
 	const double &y = I_var.at(1);
 	const double &z = I_var.at(2);
-	const double &cos0 = I_var.at(3);
+	const double &theta = I_var.at(3);
 
 	double sInf = x*x + y*y + 2*sqrt(x*y);
 	double sSup = 1 - 2*sqrt(z) + z;
@@ -969,6 +826,18 @@ double DecayRates::I_WZ_s(double s)
 	return fc * (sSup - sInf) * I_WZ_s(S, cos0, x, y, z);
 
 }
+
+double DecayRates::I_WZ_s(double s, double cos0, double x, double y, double z)
+{
+	double Lambda0 = sqrt(Kine::Kallen(1, S, z));
+	double Lambda1 = sqrt(Kine::Kallen(S, x, y));
+
+	if (GetHelicity() < 0)
+		return x * y * (s - z - Lambda0 * (1 + cos0) / 2.0 ) * Lambda0 * Lambda1 / S;
+	else if (GetHelicity() > 0)
+		return x * y * (s - z + Lambda0 * (1 + cos0) / 2.0 ) * Lambda0 * Lambda1 / S;
+}
+
 /////////////////////////
 //end of generic decays//
 /////////////////////////

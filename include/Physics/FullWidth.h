@@ -22,32 +22,15 @@
 class FullWidth : protected DecayRates
 {
 	public:
-		FullWidth(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);
+		FullWidth();
 
-		//Decay width with A, B, and K the enhancement factors
-		double Gamma(std::string Channel, double B = 1.0);
-		double Other(std::string Channel, double A = 1.0);
-		double Branch(std::string Channel, double A = 1.0, double B = 1.0);
-		int PhaseSpace(std::string Channel, double &Weight);
-		bool IsAllowed(std::string Channel);
+		bool IsAllowed(Channel Name)
+		double Gamma(Channel Name);
+		double Other(Channel Name);
+		double Branch(Channel Name);
 
-		void SetEnhancement(std::string Channel = "ALL", double K = 1.0);
-
-		//M2
-		double yLim(double &Min, double &Max, double Ex);	//y integration limits
-		double xLim(double &Min, double &Max);
-		double M2_W(double x, double y, double a, double b, double c);
-		double M2_Z(double x, double y, double a, double b, double c);
-		double M2_WZ(double x, double y, double a, double b, double c);
-		double M2_nLL(double Ex, double Ey, double M_Lepton);
-		double M2_nEE(double Ex, double Ey);
-		double M2_nMUMU(double Ex, double Ey);
-		double M2_nEMU(double Ex, double Ey);
-		double ddGamma(double (Decay::*M2)(double, double), double Ex, double Ey);
-		double ddGamma(std::string Channel, double Ex, double Ey);
-
-		double Total(double A = 1.0);
-		double ExpALL(double A = 1.0);
+		double Total();
+		double ExpALL();
 
 		double nnn();
 		double nGAMMA();
@@ -78,10 +61,17 @@ class FullWidth : protected DecayRates
 
 		double LeptonPseudoMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2);
 		double NeutrinoPseudoMeson(double M_Meson, double fDecay2);
+		double I_PseudoMeson(double x, double y, double theta = -1.0)
 		double LeptonVectorMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2, double fVector);
 		double NeutrinoVectorMeson(double M_Meson, double fDecay2, double fVector);
-		double NeutrinoLeptonAA(double &fCC, double &fNC, double M_Lepton);
-		double NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB);
+		double NeutrinoLeptonAA(double &fCC, double &fNC, double M_Lepton, double theta = -1.0);
+		double NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double theta = -1.0);
+		double I_WW(double x, double y, double z, double theta);
+		double I_WW_s(double s);
+		double I_WW_s(double s, double cos0, double x, double y, double z);
+		double I_WZ(double x, double y, double z, double theta);
+		double I_WZ_s(double s);
+		double I_WZ_s(double s, double cos0, double x, double y, double z);
 
 		//Set and Get
 		std::vector<std::string> ListChannels();

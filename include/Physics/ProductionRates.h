@@ -20,106 +20,55 @@ class ProductionRates : protected DecayRates
 	public:
 		ProductionRates();
 
-		double ddGamma();
-		double dGamma();
-		double Gamma();
-		double ddPhaseSpace();
-		double dPhaseSpace();
-		double PhaseSpace();
-		double M2();
-		double M2IntY();
-		double M2IntXY();
-		double M2_Z();
-		double M2_ZIntY();
-		double M2_WZ();
-		double M2_WZIntY();
+		bool IsAllowed(Channel Name)
+		double dGamma(Channel Name);
+		double Scale(Channel Name);
 
-		double M2Lept();
-		double M2LeptIntY();
-		double M2Kaon();
-		double M2KaonIntY(double Y);
-		double M2KaonIntY();
-		double M2Kaon0();
-		double M2Kaon0IntY(double Y);
-		double M2Kaon0IntY();
-		double M2nEE();
-		double M2nEEIntY();
-		double M2nMUMU();
-		double M2nEMU();
-		double M2nMUE();
-		double MaxGamma();
+		double Total();
+		double MuonE();
+		double MuonE();
+		double MuonE();
+                double MuonM();
+                double TauEE();
+                double TauET();
+                double TauMM();
+                double TauMT();
+                double PionE();
+                double PionM();
+                double KaonE();
+                double KaonM();
+                double CharmE();
+                double CharmM();
+                double CharmT();
+                double Kaon0E();
+                double Kaon0M();
+		double KaonCE();
+                double KaonCM();
 
-		double yLim(double &Min, double &Max);
-		double xLim(double &Min, double &Max);
-		double Integrate(double (ProductionRates::*FF)(), double A, double B);
-		bool InLimX();
-		bool InLimY();
+		double LeptonNeutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neutrino);
+		double d_LeptonNeutrino(double x, double y, double z, double theta);
+		double d_LeptonNeutrino_s(double s);
+		double d_LeptonNeutrino_t(double t);
+		double d_LeptonNeutrino(double X, double Y, double x, double y, double z, double cos0);
+		double LeptonAntineutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neutrino);
+		double d_LeptonAntineutrino(double x, double y, double z, double theta);
+		double d_LeptonAntineutrino_s(double s);
+		double d_LeptonAntineutrino_s(double S, double x, double y, double z, double cos0);
+		double LeptonMesonDecay(double M_Lepton, double M_Meson, double fDecay2);
+		double d_LeptonMeson(double x, double y);
+		double MesonTwoDecay(double M_Meson, double M_Lepton, double fDecay2);
+		double d_MesonTwo(double x, double y);
+		double MesonThreeDecay(double M_Meson0, double M_Meson1, double M_Lepton, double vCKM, double L_, double L0);
+		double d_MesonThree(double x, double y, double z, double L_, double L0);
+		double d_MesonThree_s(double s);
+		double d_MesonThree_t(double t);
+		double d_MesonThree(double Z, double Y, double x, double y, double cos0, double L_, double L0);
 
-		bool IsEnergyConserved();
-
-		double fPlus();
-		double fMinus();
-		
-		double a(double p = 1.0);
-		double b(double p = 1.0);
-		double c(double p = 1.0);
-		double x(double p = 1.0);
-		double y(double p = 1.0);
-
-		void ElectronChannel();
-		void MuonChannel();
-		void TauChannel();
-
-		std::string GetParent();
-		double GetEnergyX();
-		double GetEnergyY();
-		double GetParentMass();
-		double GetSterileMass();
-		double GetUe();
-		double GetUm();
-		double GetUt();
-		double GetUu();
-		double GetDecayConst();
-		double GetLambda1();
-		double GetLambda0();
-
-		void SetParent(std::string Name);
-		void SetEnergyX(double X);
-		void SetEnergyY(double X);
-		void SetX(double X);
-		void SetY(double X);
-		void SetSterileMass(double X);
-		void SetUe(double X);
-		void SetUm(double X);
-		void SetUt(double X);
-		bool IsChanged();
+		bool IsChanged()
 
 	private:
-		double M_Sterile, M_Parent;
-		double M_Sterile_prev, M_Parent_prev;
-		double U_e, U_m, U_t;
-		double U_e_prev, U_m_prev, U_t_prev;
 
-		const double M_Neutrino;
-		const double M_Photon;
-		const double M_Electron;
-		const double M_Muon;
-		const double M_Tau;
-		const double M_Pion;
-		const double M_Pion0;
-		const double M_Kaon;
-		const double M_Kaon0;
-
-		const double fKaon;
-		const double fLambda1;
-		const double fLambda0;
-
-		double fA, fB, fC;
-		double fEX, fEY;
-		double fMax;
-
-		double fALL,
-                       fMuonE,
+		double fMuonE,
                        fMuonM,
                        fTauEE,
                        fTauET,
