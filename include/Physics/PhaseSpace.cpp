@@ -77,104 +77,104 @@ double PhaseSpace::Ratio(Channel Name)
 			Ret = TMU()/Max_TMU();
 			break;
 		case _nPI0:
-			break;
 			Ret = nPI0()/Max_nPI0();
+			break;
 		case _EPI:
-			break;
 			Ret = EPI()/Max_EPI();
+			break;
 		case _MUPI:
-			break;
 			Ret = MUPI()/Max_MUPI();
+			break;
 		case _TPI:
-			break;
 			Ret = TPI()/Max_TPI();
+			break;
 		case _EKA:
-			break;
 			Ret = EKA()/Max_EKA();
+			break;
 		case _MUKA:
-			break;
 			Ret = MUKA()/Max_MUKA();
+			break;
 		case _nRHO0:
-			break;
 			Ret = nRHO0()/Max_nRHO0();
+			break;
 		case _ERHO:
-			break;
 			Ret = ERHO()/Max_ERHO();
+			break;
 		case _MURHO:
-			break;
 			Ret = MURHO()/Max_MURHO();
+			break;
 		case _EKAx:
-			break;
 			Ret = EKAx()/Max_EKAx();
+			break;
 		case _MUKAx:
-			break;
 			Ret = MUKAx()/Max_MUKAx();
+			break;
 		case _nOMEGA:
-			break;
 			Ret = nOMEGA()/Max_nOMEGA();
+			break;
 		case _nETA:
-			break;
 			Ret = nETA()/Max_nETA();
+			break;
 		case _nETAi:
-			break;
 			Ret = nETAi()/Max_nETAi();
+			break;
 		case _nPHI:
-			break;
 			Ret = nPHI()/Max_nPHI();
+			break;
 		case _ECHARM:
-			break;
 			Ret = ECHARM()/Max_ECHARM();
+			break;
 		case _MuonE:
-			break;
 			Ret = MuonE()/Max_MuonE();
+			break;
 		case _MuonM:
-			break;
 			Ret = MuonM()/Max_MuonM();
+			break;
 		case _TauEE:
-			break;
 			Ret = TauEE()/Max_TauEE();
+			break;
 		case _TauET:
-			break;
 			Ret = TauET()/Max_TauET();
+			break;
 		case _TauME:
-			break;
 			Ret = TauME()/Max_TauME();
+			break;
 		case _TauMT:
-			break;
 			Ret = TauMT()/Max_TauMT();
+			break;
 		case _PionE:
-			break;
 			Ret = PionE()/Max_PionE();
+			break;
 		case _PionM:
-			break;
 			Ret = PionM()/Max_PionM();
+			break;
 		case _KaonE:
-			break;
 			Ret = KaonE()/Max_KaonE();
+			break;
 		case _KaonM:
-			break;
 			Ret = KaonM()/Max_KaonM();
+			break;
 		case _CharmE:
-			break;
 			Ret = CharmE()/Max_CharmE();
+			break;
 		case _CharmM:
-			break;
 			Ret = CharmN()/Max_CharmN();
+			break;
 		case _CharmT:
-			break;
 			Ret = CharmT()/Max_CharmT();
+			break;
 		case _Kaon0E:
-			break;
 			Ret = Kaon0E()/Max_Kaon0E();
+			break;
 		case _Kaon0M:
-			break;
 			Ret = Kaon0M()/Max_Kaon0M();
+			break;
 		case _KaonCE:
-			break;
 			Ret = KaonCE()/Max_KaonCE();
-		case _KaonCM:
 			break;
+		case _KaonCM:
 			Ret = KaonCM()/Max_KaonCM();
+			break;
 		default:
 	}
 }
@@ -294,10 +294,19 @@ double PhaseSpace::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Neutrin
 	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
 	double dML2 = M_Lepton*M_Lepton/GetMass()/GetMass();
 
-	Generate;
-	GetDecayProduct;
-	M2_NeutrinoLeptonAA();
-	while (GenMT->Rndm() < M2_NeutrinoLeptonAA / Max);
+	double gL = -0.5 + Const::fSin2W;
+	double gR = Const::fSin2W;
+
+	double MaxWW = Max_WW(dMN2, dML2, dML2);	//W or Z mediation
+	double MaxWZ = Max_WZ(dMN2, dML2, dML2);	//cross term for W + Z
+
+	double Amp_AAA = (gL*gL + gR*gR + 1 + 2*gL) * MaxWW + (gL*gR + gR) * MaxWW;	//both W and Z
+	double Amp_ABB = (gL*gL + gR*gR           ) * MaxWW + (gL*gR     ) * MaxWZ;	//only Z
+
+	fAAA = Const::fGF2 * pow(GetMass(), 5) * Amp_AAA / (16.0 * Const::fPi3);	//nu flavour is the same of leptons
+	fABB = Const::fGF2 * pow(GetMass(), 5) * Amp_AAA / (16.0 * Const::fPi3);	//nu flavour is different from leptons
+
+	return 0.0;
 }
 
 double PhaseSpace::Max_NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino, double s, double theta)
@@ -312,7 +321,7 @@ double PhaseSpace::Max_NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, doub
 	       pow(GetMass(), 5) * Max_WW(dMN2, dMA2, dMB2, theta);
 }
 
-double DecayRates::Max_WW(double x, double y, double z)
+double DecayRates::Max_WW(double x, double y, double z)	//depends on s, t, cos0, cos1
 {
 	I_var.clear();
 
@@ -329,11 +338,35 @@ double PhaseSpace::Max_WW_s(double s)
 {
 	I_var.push_back(s);	//3
 
-	SetFunction(&I_WW_cos0);
+	SetFunction(&I_WW_t);
 	double Ret = Inte::Max(this);		//max in cos0 for given s
 
 	I_var.pop_back();
 	SetFunction(&I_WW_s);
+	return Ret;
+}
+
+double PhaseSpace::Max_WW_t(double t)
+{
+	I_var.push_back(t);	//3
+
+	SetFunction(&I_WW_cos0);
+	double Ret = Inte::Max(this);		//max in cos0 for given s
+
+	I_var.pop_back();
+	SetFunction(&I_WW_t);
+	return Ret;
+}
+
+double PhaseSpace::Max_WW_t(double t)
+{
+	I_var.push_back(t);	//3
+
+	SetFunction(&I_WW_cos0);
+	double Ret = Inte::Max(this);		//max in cos0 for given s
+
+	I_var.pop_back();
+	SetFunction(&I_WW_t);
 	return Ret;
 }
 
@@ -352,72 +385,57 @@ double PhaseSpace::Max_WW_cos0(double cos0)
 	return M2_WW(x, y, z, s, cos0);		//defined in DecayRates
 }
 
-double PhaseSpace::I_WW(double x, double y, double z, double theta)
+double DecayRates::Max_WZ(double x, double y, double z)	//depends on s, cos0
 {
 	I_var.clear();
 
 	I_var.push_back(x);	//0
 	I_var.push_back(y);	//1
 	I_var.push_back(z);	//2
-	I_var.push_back(cos0);	//3
 
-	SetFunction(&I_WW_s);				//Function will fix the integration volume
-	return Inte::BooleIntegration(this); 
+	SetFunction(&I_WZ_s);
+
+	return Inte::Max(this);
 }
 
-double PhaseSpace::I_WW_s(double s)
+double PhaseSpace::Max_WZ_s(double s)
+{
+	I_var.push_back(s);	//3
+
+	SetFunction(&I_WZ_cos0);
+	double Ret = Inte::Max(this);		//max in cos0 for given s
+
+	I_var.pop_back();
+	SetFunction(&I_WZ_s);
+	return Ret;
+}
+
+double PhaseSpace::Max_WZ_cos0(double cos0)
 {
 	const double &x = I_var.at(0);
 	const double &y = I_var.at(1);
 	const double &z = I_var.at(2);
-	const double &cos0 = I_var.at(3);
+	double s = I_var.at(3);
+	double t = 0;
 
-	return I_WW_s(s, cos0, x, y, z);
+	//define vars
+	double Diff = stLimit(double &s, double &t);
+	cos0 = -1 + 2*cos0;
+
+	return M2_WW(x, y, z, s, cos0);		//defined in DecayRates
 }
 
-double PhaseSpace::LoadPhaseSpace(double Max)
-{
-	double / dMax;
-	return TheSpace->Generate();
-}
+
+//////////
+//	//
+//	//
+//////////
 
 void PhaseSpace::Boost()
 {
 	for (unsigned int i = 0; i < nDaughter; ++i)
 		TheSpace->GetDecayProduct
 	N_vec->Boost();
-}
-
-double PhaseSpace::MaxThreeGamma()
-{
-	SetFunction(&I_WZ_s);
-	Inte::MaxMin(this, Max, Min);
-}
-
-
-double PhaseSpace::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino)
-{
-	SetFunction(dNeutrinoLeptonAB);
-}
-
-double PhaseSpace::dNeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino, double s, double cos0)
-{
-	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
-	double dMA2 = M_LeptonA*M_LeptonB/GetMass()/GetMass();
-	double dMB2 = M_LeptonB*M_LeptonB/GetMass()/GetMass();
-
-	return GetMult() * Const::fGF2 / (16.0 * Const::fPi3) * 
-		pow(GetMass(), 5) * I_WW_s(dMN2, dMA2, dMB2);
-}
-
-double PhaseSpace::MaxNeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino)
-{
-	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
-	double dMA2 = M_LeptonA*M_LeptonB/GetMass()/GetMass();
-	double dMB2 = M_LeptonB*M_LeptonB/GetMass()/GetMass();
-
-	return GetMult() * Const::fGF2 / (16.0 * Const::fPi3) * 
-		pow(GetMass(), 5) * Max_WW(dMN2, dMA2, dMB2);
 }
 
 TLorentzVector *PhaseSpace::GetNvec()
@@ -443,4 +461,3 @@ void PhaseSpace::SetNRest(double Mass)
 {
 	N_rest->SetPxPyPzE(0, 0, 0, Mass);
 }
-

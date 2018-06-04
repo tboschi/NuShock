@@ -106,6 +106,57 @@ namespace Inte
 
 		return Max;
 	}	
+
+	template<class TempClass>
+	double MaxGoldenRatio(TempClass *TempObject)
+	{
+		double Max = -DBL_MAX;
+		double GR = (1 + sqrt(5)) / 2.0;
+
+		double S = 0.0;		//start point
+		double E = 1.0;		//end point
+
+		while (E - S > 1e-3)
+		{
+			double A = E - (E - S)/GR;
+			double B = E - (E - S)/GR;
+			double fA = TempObject->Function(A);
+			double fB = TempObject->Function(B);
+
+			if (fA > fB)
+				E = B;
+			else
+				S = A;
+
+		}
+
+		return (S + E) / 2.0;
+	}	
+
+	template<class TempClass>
+	double MinGoldenRatio(TempClass *TempObject)
+	{
+		double GR = (1 + sqrt(5)) / 2.0;
+
+		double S = 0.0;		//start point
+		double E = 1.0;		//end point
+
+		while (E - S > 1e-3)
+		{
+			double A = E - (E - S)/GR;
+			double B = E - (E - S)/GR;
+			double fA = TempObject->Function(A);
+			double fB = TempObject->Function(B);
+
+			if (fA < fB)
+				E = B;
+			else
+				S = A;
+
+		}
+
+		return (S + E) / 2.0;
+	}	
 }
 
 #endif
