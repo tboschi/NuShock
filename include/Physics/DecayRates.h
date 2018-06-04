@@ -24,10 +24,11 @@ class DecayRates
 	public:
 		enum Channel
 		{
-			_undefined,
+			_undefined = 0,
+
+			_ALL,
 
 			//decay modes
-			_ALL = 0,
 			//unclassified
 			_nnn,		//3 body	N -> 3 nu
 			_nGAMMA,	//2 body	N -> nu photon
@@ -66,7 +67,6 @@ class DecayRates
 			_ExpALL,	//
 
 			//production modes
-			_ALL = 0,		//
 			//pure leptonic
 			_MuonE,		//3 body	mu  -> nu N e	(via Ue)
 			_MuonM,		//3 body	mu  -> nu N e	(via Ue)
@@ -98,6 +98,8 @@ class DecayRates
 		bool GetFermion();
 		int GetMult();
 		int GetHelicity();
+
+		void IsChanged();
 
 		void SetMass(double Mass);
 		void SetUe(double Ue);

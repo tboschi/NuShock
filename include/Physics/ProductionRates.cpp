@@ -596,35 +596,25 @@ double ProductionRates::d_MesonThree(double Z, double Y, double x, double y, dou
 	}
 }
 
-bool ProductionRates::IsChanged()
+void ProductionRates::Reset()
 {
-	bool Ret = (fabs(GetMass() - M_Sterile_prev) > 1e-9);
-
-	M_Sterile_prev = GetMass();
-
-	//Reset decay widths if changed
-	if (Ret)
-	{
-		fMuonE	= -1.0;
-                fMuonM	= -1.0;
-                fTauEE	= -1.0;
-                fTauET	= -1.0;
-                fTauME	= -1.0;
-                fTauMT	= -1.0;
-                fPionE	= -1.0;
-                fPionM	= -1.0;
-                fKaonE	= -1.0;
-                fKaonM	= -1.0;
-                fCharmE	= -1.0;
-                fCharmM	= -1.0;
-                fCharmT	= -1.0;
-                fKaon0E	= -1.0;
-                fKaon0M	= -1.0;
-                fKaonCE	= -1.0;
-                fKaonCM	= -1.0;
-	}
-
-	return Ret;
+	fMuonE	= -1.0;
+	fMuonM	= -1.0;
+	fTauEE	= -1.0;
+	fTauET	= -1.0;
+	fTauME	= -1.0;
+	fTauMT	= -1.0;
+	fPionE	= -1.0;
+	fPionM	= -1.0;
+	fKaonE	= -1.0;
+	fKaonM	= -1.0;
+	fCharmE	= -1.0;
+	fCharmM	= -1.0;
+	fCharmT	= -1.0;
+	fKaon0E	= -1.0;
+	fKaon0M	= -1.0;
+	fKaonCE	= -1.0;
+	fKaonCM	= -1.0;
 }
 
 //Get functions

@@ -20,7 +20,8 @@ namespace Inte
 	{
 		TempClass *TempObject = static_cast<TempClass*>(UserData);
 
-		TempObject->Integrand(nDim, x, nComp, f);
+		if (nComp == 1)
+			f[0] = TempObject->Function(nDim, x);
 	}
 
 	template<class TempClass>
@@ -62,11 +63,11 @@ namespace Inte
 		{
 			b = a + h;
 
-			Integral += 7  * TempObject->Integrand(a);
-			Integral += 32 * TempObject->Integrand((3*a +b) / 4.0);
-			Integral += 12 * TempObject->Integrand((a+b)/2.0 );
-			Integral += 32 * TempObject->Integrand((a+3*b)/4.0 );
-			Integral += 7  * TempObject->Integrand(b);
+			Integral += 7  * TempObject->Function(a);
+			Integral += 32 * TempObject->Function((3*a +b) / 4.0);
+			Integral += 12 * TempObject->Function((a+b)/2.0 );
+			Integral += 32 * TempObject->Function((a+3*b)/4.0 );
+			Integral += 7  * TempObject->Function(b);
 		}	
 	
 		return Integral * h/90.0;
@@ -80,7 +81,7 @@ namespace Inte
 		double h = 1.0/(4*Step);
 		for (double a = 0; a < 1.0; a += h)
 		{
-			double tmp = TempObject->Integrand(a);
+			double tmp = TempObject->Function(a);
 
 			if (Min > tmp)
 				Min = tmp; 
@@ -97,7 +98,7 @@ namespace Inte
 		double h = 1.0/(4*Step);
 		for (double a = 0; a < 1.0; a += h)
 		{
-			double tmp = TempObject->Integrand(a);
+			double tmp = TempObject->Function(a);
 
 			if (Max < tmp)
 				Max = tmp; 

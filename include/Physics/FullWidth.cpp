@@ -1,10 +1,10 @@
 #include "FullWidth.h"
 
-DecayRates::FullWidth()	:
+FullWidth::FullWidth()	:
 {
 }
 
-bool DecayRates::IsAllowed(Channel Name)
+bool FullWidth::IsAllowed(Channel Name)
 {
 	if (Channel_prev != Name)
 	{
@@ -21,7 +21,7 @@ bool DecayRates::IsAllowed(Channel Name)
 
 //return the decay width (Gamma)
 //
-double DecayRates::Gamma(Channel Name)
+double FullWidth::Gamma(Channel Name)
 {
 	double Result = 0.0;
 
@@ -134,7 +134,7 @@ double DecayRates::Gamma(Channel Name)
 
 //Return Gamma_tot - Gamma of interest
 //
-double DecayRates::Other(Channel Name)
+double FullWidth::Other(Channel Name)
 {
 	if (Gamma(Name) < 0.0)
 		return -1.0;
@@ -143,7 +143,7 @@ double DecayRates::Other(Channel Name)
 
 //Return the branching ration
 //
-double DecayRates::Branch(Channel Name)
+double FullWidth::Branch(Channel Name)
 {
 	if (Gamma(Name) < 0.0)
 		return -1.0;
@@ -151,7 +151,7 @@ double DecayRates::Branch(Channel Name)
 }
 
 //Compute phase space for 3 body decay channels
-int DecayRates::PhaseSpace(Channel Name, double &Weight)	//Return number of products 
+int FullWidth::PhaseSpace(Channel Name, double &Weight)	//Return number of products 
 {								//0 if decay not valid
 	TheSpace->SetParent(Channel);
 
@@ -271,7 +271,7 @@ int DecayRates::PhaseSpace(Channel Name, double &Weight)	//Return number of prod
 //Check if some decay is allowed (is mass threshold)
 //
 //total decay width
-double DecayRates::Total()
+double FullWidth::Total()
 {
 	return (nnn() + nGAMMA() +
 		nEE() + nEMU() + nMUE() + nMUMU() + nET() + nTE() + nMUT() + nTMU() +
@@ -284,7 +284,7 @@ double DecayRates::Total()
 }
 
 //special here
-double DecayRates::ExpALL()
+double FullWidth::ExpALL()
 {
 	return (nEE() + nMUE() + nMUMU() +
 		EPI() + MUPI() +
@@ -294,7 +294,7 @@ double DecayRates::ExpALL()
 
 //individual decay channels
 //all mixing factors are factorised out
-double DecayRates::nnn()
+double FullWidth::nnn()
 {
 	if (IsAllowed() && (fnnn < 0 || IsChanged()))
 	{
@@ -307,7 +307,7 @@ double DecayRates::nnn()
 	return fnnn * (Ue*Ue + Um*Um + Ut*Ut);
 }
 
-double DecayRates::nGAMMA()
+double FullWidth::nGAMMA()
 {
 	if (fnGAMMA < 0 || IsChanged())
 	{
@@ -324,7 +324,7 @@ double DecayRates::nGAMMA()
 }
 
 //M_Sterile > 2 M_Electron (always)
-double DecayRates::nEE()
+double FullWidth::nEE()
 {
 	if (fnEE_e < 0 || fnEE_mt < 0 || IsChanged())
 	{
@@ -341,7 +341,7 @@ double DecayRates::nEE()
 }
 
 //M_Sterile > M_Muon + M_Electron
-double DecayRates::nEMU()	//Antiparticle is Elec
+double FullWidth::nEMU()	//Antiparticle is Elec
 {
 	if (fnEMU < 0 || IsChanged())
 	{
@@ -354,7 +354,7 @@ double DecayRates::nEMU()	//Antiparticle is Elec
 	return fnEMU * Ue*Ue;
 }
 
-double DecayRates::nMUE()	//Anti is Muon
+double FullWidth::nMUE()	//Anti is Muon
 {
 	if (fnMUE < 0 || IsChanged())
 	{
@@ -368,7 +368,7 @@ double DecayRates::nMUE()	//Anti is Muon
 }
 
 //M_Sterile > 2 M_Muon
-double DecayRates::nMUMU(double )
+double FullWidth::nMUMU(double )
 {
 	if (fnMUMU_m < 0 || fnMUMU_et < 0 || IsChanged())
 	{
@@ -385,7 +385,7 @@ double DecayRates::nMUMU(double )
 }
 
 //M_Sterile > M_Tau + M_Electron
-double DecayRates::nET()	//Antiparticle is Elec
+double FullWidth::nET()	//Antiparticle is Elec
 {
 	if (fnET < 0 || IsChanged())
 	{
@@ -398,7 +398,7 @@ double DecayRates::nET()	//Antiparticle is Elec
 	return fnET * Ue*Ue;
 }
 
-double DecayRates::nTE()	//Anti is Tau
+double FullWidth::nTE()	//Anti is Tau
 {
 	if (fnTE < 0 || IsChanged())
 	{
@@ -412,7 +412,7 @@ double DecayRates::nTE()	//Anti is Tau
 }
 
 //M_Sterile > M_Tau + M_Muon
-double DecayRates::nMUT()	//Antiparticle is Muon
+double FullWidth::nMUT()	//Antiparticle is Muon
 {
 	if (fnMUT < 0 || IsChanged())
 	{
@@ -425,7 +425,7 @@ double DecayRates::nMUT()	//Antiparticle is Muon
 	return fnMUT * Um*Um;
 }
 
-double DecayRates::nTMU()	//Anti is Tau
+double FullWidth::nTMU()	//Anti is Tau
 {
 	if (fnTMU < 0 || IsChanged())
 	{
@@ -439,7 +439,7 @@ double DecayRates::nTMU()	//Anti is Tau
 }
 
 //M_Sterile > M_Pion0
-double DecayRates::nPI0()
+double FullWidth::nPI0()
 {
 	if (fnPI0 < 0 || IsChanged())
 	{
@@ -453,7 +453,7 @@ double DecayRates::nPI0()
 }
 
 //M_Sterile > M_Pion
-double DecayRates::EPI()
+double FullWidth::EPI()
 {
 	if (fEPI < 0 || IsChanged())
 	{
@@ -467,7 +467,7 @@ double DecayRates::EPI()
 }
 
 //M_Sterile > M_Pion + M_Muon
-double DecayRates::MUPI()
+double FullWidth::MUPI()
 {
 	if (fMUPI < 0 || IsChanged())
 	{
@@ -481,7 +481,7 @@ double DecayRates::MUPI()
 }
 
 //M_Sterile > M_Tau + M_Pion
-double DecayRates::TPI()
+double FullWidth::TPI()
 {
 	if (fTPI < 0 || IsChanged())
 	{
@@ -495,7 +495,7 @@ double DecayRates::TPI()
 }
 
 //M_Sterile > M_Kaon + M_Electron
-double DecayRates::EKA()
+double FullWidth::EKA()
 {
 	if (fEKA < 0 || IsChanged())
 	{
@@ -509,7 +509,7 @@ double DecayRates::EKA()
 }
 
 //M_Sterile > M_Kaon + M_Muon
-double DecayRates::MUKA()
+double FullWidth::MUKA()
 {
 	if (fMUKA < 0 || IsChanged())
 	{
@@ -523,7 +523,7 @@ double DecayRates::MUKA()
 }
 
 //M_Sterile > M_Rho
-double DecayRates::nRHO0()
+double FullWidth::nRHO0()
 {
 	if (fnRHO0 < 0 || IsChanged())
 	{
@@ -537,7 +537,7 @@ double DecayRates::nRHO0()
 }
 
 //M_Sterile > M_Rho + M_Electron 
-double DecayRates::ERHO()
+double FullWidth::ERHO()
 {
 	if (fERHO < 0 || IsChanged())
 	{
@@ -551,7 +551,7 @@ double DecayRates::ERHO()
 }
 
 //M_Sterile > M_Rho + M_Muon 
-double DecayRates::MURHO()
+double FullWidth::MURHO()
 {
 	if (fMURHO < 0 || IsChanged())
 	{
@@ -565,7 +565,7 @@ double DecayRates::MURHO()
 }
 
 //M_Sterile > M_Kaon* + M_Electron 
-double DecayRates::EKAx()
+double FullWidth::EKAx()
 {
 	if (fEKAx < 0 || IsChanged())
 	{
@@ -579,7 +579,7 @@ double DecayRates::EKAx()
 }
 
 //M_Sterile > M_Kaon* + M_Muon 
-double DecayRates::MUKAx()
+double FullWidth::MUKAx()
 {
 	if (fMUKAx < 0 || IsChanged())
 	{
@@ -593,7 +593,7 @@ double DecayRates::MUKAx()
 }
 
 //M_Sterile > M_Eta
-double DecayRates::nETA()
+double FullWidth::nETA()
 {
 	if (fnETA < 0 || IsChanged())
 	{
@@ -607,7 +607,7 @@ double DecayRates::nETA()
 }
 
 //M_Sterile > M_Eta'
-double DecayRates::nETAi()
+double FullWidth::nETAi()
 {
 	if (fnETAi < 0 || IsChanged())
 	{
@@ -621,7 +621,7 @@ double DecayRates::nETAi()
 }
 
 //M_Sterile > M_Omega 
-double DecayRates::nOMEGA()
+double FullWidth::nOMEGA()
 {
 	if (fnOMEGA < 0 || IsChanged())
 	{
@@ -635,7 +635,7 @@ double DecayRates::nOMEGA()
 }
 
 //M_Sterile > M_Phi 
-double DecayRates::nPHI()
+double FullWidth::nPHI()
 {
 	if (fnPHI < 0 || IsChanged())
 	{
@@ -649,7 +649,7 @@ double DecayRates::nPHI()
 }
 
 //M_Sterile > M_Charm + M_Electron
-double DecayRates::ECHARM()
+double FullWidth::ECHARM()
 {
 	if (fECHARM < 0 || IsChanged())
 	{
@@ -667,7 +667,7 @@ double DecayRates::ECHARM()
 /////////////////
 //
 //CC version possible
-double DecayRates::LeptonPseudoMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2)
+double FullWidth::LeptonPseudoMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2)
 {
 	double dML2 = M_Lepton*M_Lepton/GetMass()/GetMass();
 	double dMM2 = M_Meson*M_Meson/GetMass()/GetMass();
@@ -676,7 +676,7 @@ double DecayRates::LeptonPseudoMeson(double M_Lepton, double M_Meson, double vCK
 		pow(GetMass(), 3) * I_PseudoMeson(dML2, dMM2);
 }
 
-double DecayRates::NeutrinoPseudoMeson(double M_Meson, double fDecay2)
+double FullWidth::NeutrinoPseudoMeson(double M_Meson, double fDecay2)
 {
 	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
 	double dMM2 = M_Meson*M_Meson/GetMass()/GetMass();
@@ -685,7 +685,7 @@ double DecayRates::NeutrinoPseudoMeson(double M_Meson, double fDecay2)
 		pow(GetMass(), 3) * I_PseudoMeson(dMN2, dMM2);
 }
 
-double DecayRates::I_PseudoMeson(double x, double y, double theta)
+double FullWidth::I_PseudoMeson(double x, double y, double theta)
 {
 	double cos0 = theta < 0 ? 0.0 : cos(theta);
 	double fc = theta < 0.0 ? 2.0 : 1.0;
@@ -700,7 +700,7 @@ double DecayRates::I_PseudoMeson(double x, double y, double theta)
 //no helicity version for this one
 //must compute!!
 //CC version possible
-double DecayRates::LeptonVectorMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2, double fVector)
+double FullWidth::LeptonVectorMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2, double fVector)
 {
 	double dML2 = M_Lepton*M_Lepton/GetMass()/GetMass();
 	double dMM2 = M_Meson*M_Meson/GetMass()/GetMass();
@@ -713,7 +713,7 @@ double DecayRates::LeptonVectorMeson(double M_Lepton, double M_Meson, double vCK
 
 //no helicity version for this one
 //must compute!!
-double DecayRates::NeutrinoVectorMeson(double M_Meson, double fDecay2, double fVector)
+double FullWidth::NeutrinoVectorMeson(double M_Meson, double fDecay2, double fVector)
 {
 	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
 	double dMM2 = M_Meson*M_Meson/GetMass()/GetMass();
@@ -724,7 +724,7 @@ double DecayRates::NeutrinoVectorMeson(double M_Meson, double fDecay2, double fV
 		pow(GetMass(), 3) * (1+2*dMM2) * pow(1-dMM2, 2);
 }
 
-double DecayRates::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Lepton, double s, double theta)
+double FullWidth::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Lepton, double s, double theta)
 {
 	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
 	double dML2 = M_Lepton*M_Lepton/GetMass()/GetMass();
@@ -745,7 +745,7 @@ double DecayRates::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Lepton,
 }
 
 //CC version also available
-double DecayRates::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino, double s, double theta)
+double FullWidth::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino, double s, double theta)
 {
 	double dMA2 = M_LeptonA*M_LeptonB/GetMass()/GetMass();
 	double dMB2 = M_LeptonB*M_LeptonB/GetMass()/GetMass();
@@ -754,7 +754,7 @@ double DecayRates::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M
 			pow(GetMass(), 5) * I_WW(dMN2, dMA2, dMB2, theta);
 }
 
-double DecayRates::I_WW(double x, double y, double z, double theta)
+double FullWidth::I_WW(double x, double y, double z, double theta)
 {
 	I_var.clear();
 
@@ -767,7 +767,7 @@ double DecayRates::I_WW(double x, double y, double z, double theta)
 	return Inte::BooleIntegration(this); 
 }
 
-double DecayRates::I_WW_s(double s)
+double FullWidth::I_WW_s(double s)
 {
 	const double &x = I_var.at(0);
 	const double &y = I_var.at(1);
@@ -785,7 +785,7 @@ double DecayRates::I_WW_s(double s)
 }
 
 //Keep in base!
-double DecayRates::I_WW_s(double s, double cos0, double x, double y, double z)
+double FullWidth::I_WW_s(double s, double cos0, double x, double y, double z)
 {
 	double Lambda0 = sqrt(Kine::Kallen(1, S, z));
 	double Lambda1 = sqrt(Kine::Kallen(S, x, y));
@@ -796,7 +796,7 @@ double DecayRates::I_WW_s(double s, double cos0, double x, double y, double z)
 		return (S - x - y) * (1 + z - S + Lambda0*cos0) * Lambda0 * Lambda1 / S;
 }
 
-double DecayRates::I_WZ(double x, double y, double z, double theta)
+double FullWidth::I_WZ(double x, double y, double z, double theta)
 {
 	I_var.clear();
 
@@ -809,7 +809,7 @@ double DecayRates::I_WZ(double x, double y, double z, double theta)
 	return Inte::BooleIntegration(this); 
 }
 
-double DecayRates::I_WZ_s(double s)
+double FullWidth::I_WZ_s(double s)
 {
 	const double &x = I_var.at(0);
 	const double &y = I_var.at(1);
@@ -827,7 +827,7 @@ double DecayRates::I_WZ_s(double s)
 
 }
 
-double DecayRates::I_WZ_s(double s, double cos0, double x, double y, double z)
+double FullWidth::I_WZ_s(double s, double cos0, double x, double y, double z)
 {
 	double Lambda0 = sqrt(Kine::Kallen(1, S, z));
 	double Lambda1 = sqrt(Kine::Kallen(S, x, y));
@@ -844,7 +844,7 @@ double DecayRates::I_WZ_s(double s, double cos0, double x, double y, double z)
 
 
 /*
-std::vector<std::string> DecayRates::ListChannels()
+std::vector<std::string> FullWidth::ListChannels()
 {
 	std::map<std::string, ChannelName>::iterator it;
 	std::vector<std::string> vList;
@@ -854,7 +854,7 @@ std::vector<std::string> DecayRates::ListChannels()
 }
 */
 
-bool DecayRates::IsChanged()
+vecbool FullWidth::IsChanged()
 {
 	bool Ret = (fabs(GetMass() - M_Sterile_prev) > 1e-9);
 
