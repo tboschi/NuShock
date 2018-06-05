@@ -321,6 +321,36 @@ double PhaseSpace::Max_NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, doub
 	       pow(GetMass(), 5) * Max_WW(dMN2, dMA2, dMB2, theta);
 }
 
+double PhaseSpace::Max_WW(double x, double y, double z)	//depends on s, t, cos0, cos1
+{
+	I_var.clear();
+
+	I_var.push_back(x);	//0
+	I_var.push_back(y);	//1
+	I_var.push_back(z);	//2
+
+	SetFunction_D(&Max_WW_D);
+	std::vector<double? xPos;
+	return Inte::NeldMedSolver(this, xPos, 4, Inte::Maximum);
+}
+
+double PhaseSpace::Max_WW_D(double *x)
+{
+	const double &x = I_var.at(0);
+	const double &y = I_var.at(1);
+	const double &z = I_var.at(2);
+	double &s = x[0];
+	double &t = x[1];
+	double &cos0 = x[2];
+	double &cos1 = x[3];
+
+	//define vars
+	//double Diff = stLimit(double &s, double &t);
+	//double cos0 = -1 + 2*cos0;
+
+	return M2_WW(x, y, z, s, t, cos0, cos1);		//defined in DecayRates
+}
+
 double DecayRates::Max_WW(double x, double y, double z)	//depends on s, t, cos0, cos1
 {
 	I_var.clear();

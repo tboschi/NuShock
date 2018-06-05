@@ -11,9 +11,17 @@
 #include <limits>
 
 #include "cuba.h"
+#include "asa047.hpp"
 
 namespace Inte
 {
+
+	enum MinMax
+	{
+		Minimum = 0,
+		Maximum = 1,
+	}
+
 	//integration
 	template<class TempClass>
 	int Integrand(const int *nDim, const double x[], const int *nComp, double f[], void *UserData)
@@ -74,43 +82,33 @@ namespace Inte
 	}	
 
 	template<class TempClass>
+	//double MinLinear(TempClass *TempObject)
+	double LinearSolver(TempClass *TempObject, MinMax Type)
+	{
+		int Sign = 1-2*Type;
+		double MM = TempObject->Function(0);
+		double x = 0;
+
+		double h = 1.0/Step;
+		for (double a = 0; a < 1.0; a += h)
+		{
+			double tmp = Sign*TempObject->Function(a);
+
+			if (MM > tmp)
+			{
+				MM = tmp; 
+				x = a;
+			}
+		}
+
+		return x;
+	}	
+
+	template<class TempClass>
 	double Min(TempClass *TempObject)
+	double GoldRationSolver(TempClass *TempObject, MixMax Type)
 	{
-		double Min = DBL_MAX;
-
-		double h = 1.0/(4*Step);
-		for (double a = 0; a < 1.0; a += h)
-		{
-			double tmp = TempObject->Function(a);
-
-			if (Min > tmp)
-				Min = tmp; 
-		}
-
-		return Min;
-	}	
-
-	template<class TempClass>
-	double Max(TempClass *TempObject)
-	{
-		double Max = -DBL_MAX;
-
-		double h = 1.0/(4*Step);
-		for (double a = 0; a < 1.0; a += h)
-		{
-			double tmp = TempObject->Function(a);
-
-			if (Max < tmp)
-				Max = tmp; 
-		}
-
-		return Max;
-	}	
-
-	template<class TempClass>
-	double MaxGoldenRatio(TempClass *TempObject)
-	{
-		double Max = -DBL_MAX;
+		int Sign = 1-2*Type;
 		double GR = (1 + sqrt(5)) / 2.0;
 
 		double S = 0.0;		//start point
@@ -120,33 +118,8 @@ namespace Inte
 		{
 			double A = E - (E - S)/GR;
 			double B = E - (E - S)/GR;
-			double fA = TempObject->Function(A);
-			double fB = TempObject->Function(B);
-
-			if (fA > fB)
-				E = B;
-			else
-				S = A;
-
-		}
-
-		return (S + E) / 2.0;
-	}	
-
-	template<class TempClass>
-	double MinGoldenRatio(TempClass *TempObject)
-	{
-		double GR = (1 + sqrt(5)) / 2.0;
-
-		double S = 0.0;		//start point
-		double E = 1.0;		//end point
-
-		while (E - S > 1e-3)
-		{
-			double A = E - (E - S)/GR;
-			double B = E - (E - S)/GR;
-			double fA = TempObject->Function(A);
-			double fB = TempObject->Function(B);
+			double fA = Sign*TempObject->Function(A);
+			double fB = Sign*TempObject->Function(B);
 
 			if (fA < fB)
 				E = B;
@@ -157,6 +130,48 @@ namespace Inte
 
 		return (S + E) / 2.0;
 	}	
+
+	template<class TempClass>
+	double Function(double x[], void *UserData, int Sign)
+	{
+		TempClass *TempObject = static_cast<TempClass*>(UserData);
+		return Sign*TempObject->Function_D(x);
+	}
+
+	template<class TempClass>
+	double NelMedSolver(TempClass *TempObject, std::vector<double> &minX, unsigned int n, MinMax Type)
+	{
+		minX.clear();
+		void *UserData = TempObject;
+		int Sign = 1-2*Type;
+		function_t FunCast = reinterpret_cast<function_t>(&Function<TempClass>)
+
+		int icount, ifault, numres;
+		int kcount = 500, konvge = 10;
+		double reqmin = 1e-6;;
+		double *xmin = new double[n];
+		double *start = new double[n];	//starting simplex
+		double *step = new double[n];	//
+		for (unsigned int i = 0; i < n; ++i)
+		{
+			start[i] = 1.0;
+			step[i] = 1.0;
+		}
+		double yValue;
+
+		nelmin ( FunCast, n, UserData, Sign, start, xmin, yValue, 
+			 reqmin, step, konvge, kcount, 
+			 &icount, &numres, &ifault );
+
+		if (ifault == 0)
+		{
+			for (unsigned int i = 0; i < n; ++i)
+				minX.push_back(xmin[i]);
+			return Sign*yValue;
+		}
+		else
+			return -1.0;
+	}
 }
 
 #endif
