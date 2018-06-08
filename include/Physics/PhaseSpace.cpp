@@ -473,12 +473,22 @@ TLorentzVector *PhaseSpace::GetNvec()
 	return N_vec;
 }
 
-TLorentzVector PhaseSpace::GetDecayProduct(int i, int &ID)
+TLorentzVector PhaseSpace::GetDaughter(int i)
 {
-	TLorentzVector Daughter = *(Event->GetDecay(i));
-	Daughter.Boost(N_labf->BoostVector());
+	if (i < vMass.size())
+	{
+		TLorentzVector Daughter = *(Event->GetDecay(i));
+		Daughter.Boost(N_labf->BoostVector());
 
-	return Daughter;
+		return Daughter;
+	}
+	else
+		return 0.0;
+}
+
+unsigned int PhaseSpace::GetDaughter()
+{
+	return vMass.size();
 }
 
 void PhaseSpace::SetNLabf(TLorentzVector &Vec)

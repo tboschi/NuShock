@@ -506,9 +506,9 @@ double ThreeBody::MaxGamma()
 //boundaries of phase space
 double ThreeBody::yLim(double &Min, double &Max)	//y integration limits
 {
-	double X = 1 + a(2) - x();
-	double A = (2 - x())*(X + b(2) - c(2));
-	double P = x(2) - 4*a(2);
+	double X = 1 + a(2) - x();	//this is s
+	double A = (2 - x())*(X + b(2) - c(2));	// (M+s-m1)(s+m2-m3) - 2sm2 - 2sm3
+	double P = x(2) - 4*a(2);		// 
 	double L = Kine::Lambda(X, b(2), c(2));
 
 	Min = (A - sqrt(P) * sqrt(L)) / (2*X);

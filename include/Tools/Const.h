@@ -50,63 +50,79 @@ namespace Const
 	static const double fU_t2 = -0.45;
 	static const double fU_t3 = 0.77;
 
-	//Masses in GeV - PDG 2017 -- remove genie dep on Tools
-	static const double fMQuarkU = 2.2e-3;
-	static const double fMQuarkD = 4.7e-3;
-	static const double fMQuarkS = 96e-3;
-	static const double fMQuarkC = 1.28;
-	static const double fMQuarkB = 4.18;
-	static const double fMQuarkT = 173.1;
+	//Masses in GeV - PDG 2017
+	static const double fMQuarkU   = 2.2e-3;
+	static const double fMQuarkD   = 4.7e-3;
+	static const double fMQuarkS   = 96e-3;
+	static const double fMQuarkC   = 1.28;
+	static const double fMQuarkB   = 4.18;
+	static const double fMQuarkT   = 173.1;
 	static const double fMElectron = 0.510999e-3;
-	static const double fMMuon = 105.6583e-3;
-	static const double fMTau = 1776.86e-3;
-	static const double fMPion = 139.57061e-3;
-	static const double fMPion0 = 134.9770e-3;
-	static const double fMKaon = 493.677e-3;
-	static const double fMKaon0 = 497.611e-3;
-	static const double fMEta = 547.862e-3;
-	static const double fMEtai = 957.78e-3;
-	static const double fMRho = 775.11e-3;
-	static const double fMRho0 = 775.26e-3;
-	static const double fMOmega = 782.65e-3;
-	static const double fMKaonx = 891.76e-3;
-	static const double fMKaon0x = 682e-3;
-	static const double fMPhi = 1019.460e-3;
-	static const double fMCharm = 1869.56e-3;
-	static const double fMDs = 1968.28e-3;
-	static const double fMProton = 938.272081e-3;
-	static const double fMNeutron = 939.565143e-3;
-	static const double fMW = 80.385;
-	static const double fMZ = 91.1876;
+	static const double fMMuon     = 105.6583e-3;
+	static const double fMTau      = 1776.86e-3;
+	static const double fMPion     = 139.57061e-3;
+	static const double fMPion0    = 134.9770e-3;
+	static const double fMKaon     = 493.677e-3;
+	static const double fMKaon0    = 497.611e-3;
+	static const double fMEta      = 547.862e-3;
+	static const double fMEtai     = 957.78e-3;
+	static const double fMRho      = 775.11e-3;
+	static const double fMRho0     = 775.26e-3;
+	static const double fMOmega    = 782.65e-3;
+	static const double fMKaonx    = 891.76e-3;
+	static const double fMKaon0x   = 682e-3;
+	static const double fMPhi      = 1019.460e-3;
+	static const double fMCharm    = 1869.56e-3;
+	static const double fMDs       = 1968.28e-3;
+	static const double fMProton   = 938.272081e-3;
+	static const double fMNeutron  = 939.565143e-3;
+	static const double fMW        = 80.385;
+	static const double fMZ        = 91.1876;
 
 	//SM constant - PDG 2016
 	static const double fGF = 1.16637876e-5;	//GeV-2, from PDG
 	static const double fGF2 = fGF*fGF;		//From PDG
 	static const double fSin2W = 0.23129;		//Sin weinberg squared - MSbar scheme
 	
-	//decay constant
-	static const double fDPion2   = pow(0.1307, 2.0);
-	static const double fDPion02  = pow(0.1300, 2.0);
-	static const double fDKaon2   = pow(0.1598, 2.0);
-	static const double fDRho2    = pow(0.2200, 2.0);
-	static const double fDRho02   = pow(0.2200, 2.0);
-	static const double fDEta2    = pow(0.1647, 2.0);
-	static const double fDEtai2   = pow(0.1529, 2.0);
-	static const double fDOmega2  = pow(0.1950, 2.0);
-	static const double fDKaonx2  = pow(0.2170, 2.0);
-	static const double fDKaon0x2 = pow(0.2170, 2.0);	
-	static const double fDPhi2    = pow(0.2290, 2.0);
-	static const double fDCharm2  = pow(0.2226, 2.0);
+	//decay constant - 0901.3789
+	/*
+	static const double fDPion   = 0.1327;
+	static const double fDPion0  = 0.1300;
+	static const double fDKaon   = 0.1598;
+	static const double fDRho    = 0.2200;
+	static const double fDRho0   = 0.2200;
+	static const double fDEta    = 0.1647;
+	static const double fDEtai   = 0.1529;
+	static const double fDOmega  = 0.1950;
+	static const double fDKaonx  = 0.2170;
+	static const double fDKaon0x = 0.2170;	
+	static const double fDPhi    = 0.2290;
+	static const double fDCharm  = 0.2226;
+	*/
 
-	static const double fVLight   = fSin2W / 3.0;		//Vector constant for Rho 0 and Omega
-	static const double fVStrange = -0.25+fSin2W/3.0;	//Vector constant for Kaon star and Phi
-	static const double fVCharm   = 0.25-2.0*fSin2W / 3.0;	//Vector constant for Charm meson D and JPsi
-	static const double fVusFKaon = 0.2165;			//From 1607.00299
+	//decay constant - 1805.08567
+	static const double fDPion   = 0.1302;		//GeV
+	//static const double fDPion0  = 0.1300;	//GeV
+	static const double fDKaon   = 0.1556;		//GeV
+	static const double fDRho    = 0.1620;		//GeV²
+	static const double fVRho    = 1 - 2 * fSin2W;
+	//static const double fDRho0   = 0.2200;	//GeV²
+	static const double fDEta    = 0.0817;		//GeV
+	static const double fDEtai   = 0.0947;		//GeV
+	static const double fDOmega  = 0.1530;		//GeV²
+	static const double fVOmega  = 4 * fSin2W / 3.0;
+	static const double fDKaonx  = 0.1933;	//maybe not possible
+	//static const double fDKaon0x = 0.2170;	
+	static const double fDPhi    = 0.2340;		//GeV²
+	static const double fVPhi    = 4 * fSin2W / 3.0 - 1;
+	static const double fDCharm  = 0.2120;		//GeV
 
-	static const double fK0L_ = 0.0271;	//Linear dependence of f+ in K0m3 (PDG)
-	static const double fK0L0 = 0.0142;	//Linear dependence of f0 in K0m3 (PDG)
-	static const double fK_L_ = 0.0296;	//Linear dependence of f+ in K+m3 (PDG)
-	static const double fK_L0 = 0.0196;	//Linear dependence of f0 in K+m3 (PDG)
+	static const double fKaPi = 0.9700;	//f(0)
+	static const double fK0L_ = 0.0267;	//Linear dependence of f+ in K0m3 (PDG)
+	static const double fK0L0 = 0.0117;	//Linear dependence of f0 in K0m3 (PDG)
+	static const double fK_L_ = 0.0277;	//Linear dependence of f+ in K+m3 (PDG)
+	static const double fK_L0 = 0.0183;	//Linear dependence of f0 in K+m3 (PDG)
+
 	static const double fMagMuN = -1.9130427345;	//neutron magnetic moment (in nuclear magneton units)
 	static const double fMagMuP = 2.79284735128;	//proton magnetic moment (in nuclear magneton units);
 	static const double fMA = 0.990;		//GeV, axial mass, from GENIE

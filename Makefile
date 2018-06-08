@@ -7,9 +7,9 @@ LIBDIR =	lib
 
 ROOTLIB		= $(shell root-config --glibs)
 ROOTCXX		= $(shell root-config --cflags)
-GENIELIB	= $(shell genie-config --libs)
+#GENIELIB	= $(shell genie-config --libs)
 #CUBALIB		= -L$(CUBA)/lib -lcuba
-CUBACXX		= -I$(CUBA)/include 
+#CUBACXX		= -I$(CUBA)/include 
 #LHAPDFLIB	= -L$(LHAPDF)/lib -lLHAPDF
 LHAPDFCXX	= -I$(LHAPDF)/include
 
@@ -45,6 +45,9 @@ all: $(TGT)
 
 $(TGT): $(DEP)
 
+test: app/TestGenPS
+	@mv app/TestGenPS $(BINDIR)
+	
 clean:
 	find $(INCDIR) -mindepth 1 -name "*.o" -delete
 	find $(INCDIR) -mindepth 1 -name "*~"  -delete

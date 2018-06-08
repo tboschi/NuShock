@@ -189,27 +189,28 @@ bool FluxDriver::MakeFlux(Neutrino * N)
 		delete sxHeavyTau;
 		
 		if (sxHeavyElectron = new Flux(*fxNuElectron))
-			MakeElecComponent(sxHeavyElectron);
+			MakeElecComponent(sxHeavyElectron, N);
 
 		if (sxHeavyMuon = new Flux(*fxNuMuon))
-			MakeElecComponent(sxHeavyMuon);
+			MakeElecComponent(sxHeavyMuon, N);
 
 		if (sxHeavyTau = new Flux(*fxNuTau))
-			MakeElecComponent(sxHeavyTau);
+			MakeElecComponent(sxHeavyTau, N);
 
 		return true;
 	}
 }
 
 //Make electronic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void FluxDriver::MakeElecComponent(Flux *sxFlux)
+void FluxDriver::MakeElecComponent(Flux *sxFlux, Neutrino *N)
 {
 	TH1D *hPoint, *hTotal;
 
 	//pi+ -> e+ nu_e
 	if (hPoint = sxFlux->Get(Hist::Pion))
 	{
-		hPoint->Scale(Kine::Unhelicity(M_Pion, M_Electron, GetMass(), GetHelicity()));
+		hPoint->Scale(N->ProductionScale(Amplitude::MUPI));
+		//Kine::Unhelicity(M_Pion, M_Electron, GetMass(), GetHelicity()));
 
 		hTotal->Add(hPoint);
 	}

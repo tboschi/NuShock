@@ -1,10 +1,10 @@
-#include "FullWidth.h"
+#include "Decay.h"
 
-FullWidth::FullWidth()	:
+Decay::Decay()	:
 {
 }
 
-bool FullWidth::IsAllowed(Channel Name)
+bool Decay::IsAllowed(Channel Name)
 {
 	if (Channel_prev != Name)
 	{
@@ -21,7 +21,7 @@ bool FullWidth::IsAllowed(Channel Name)
 
 //return the decay width (Gamma)
 //
-double FullWidth::Gamma(Channel Name)
+double Decay::Gamma(Channel Name)
 {
 	double Result = 0.0;
 
@@ -134,7 +134,7 @@ double FullWidth::Gamma(Channel Name)
 
 //Return Gamma_tot - Gamma of interest
 //
-double FullWidth::Other(Channel Name)
+double Decay::Other(Channel Name)
 {
 	if (Gamma(Name) < 0.0)
 		return -1.0;
@@ -143,7 +143,7 @@ double FullWidth::Other(Channel Name)
 
 //Return the branching ration
 //
-double FullWidth::Branch(Channel Name)
+double Decay::Branch(Channel Name)
 {
 	if (Gamma(Name) < 0.0)
 		return -1.0;
@@ -151,7 +151,7 @@ double FullWidth::Branch(Channel Name)
 }
 
 //total decay width
-double FullWidth::Total()
+double Decay::Total()
 {
 	return (nnn() + nGAMMA() +
 		nEE() + nEMU() + nMUE() + nMUMU() + nET() + nTE() + nMUT() + nTMU() +
@@ -164,7 +164,7 @@ double FullWidth::Total()
 }
 
 //special here
-double FullWidth::ExpALL()
+double Decay::ExpALL()
 {
 	return (nEE() + nMUE() + nMUMU() +
 		EPI() + MUPI() +
@@ -174,7 +174,7 @@ double FullWidth::ExpALL()
 
 //individual decay channels
 //all mixing factors are factorised out
-double FullWidth::nnn()
+double Decay::nnn()
 {
 	if (IsAllowed() && (fnnn < 0 || IsChanged()))
 	{
@@ -187,7 +187,7 @@ double FullWidth::nnn()
 	return fnnn * (Ue*Ue + Um*Um + Ut*Ut);
 }
 
-double FullWidth::nGAMMA()
+double Decay::nGAMMA()
 {
 	if (fnGAMMA < 0 || IsChanged())
 	{
@@ -204,29 +204,29 @@ double FullWidth::nGAMMA()
 }
 
 //M_Sterile > 2 M_Electron (always)
-double FullWidth::nEE()
+double Decay::nEE()
 {
-	if (fnEE_e < 0 || fnEE_mt < 0 || IsChanged())
+	if (fnEE_e < 0 || fnEE_a < 0 || IsChanged())
 	{
 		if (IsAllowed(_nEE))
-			NeutrinoLeptonAA(fnEE_e, fnEE_mt, M_Electron);
+			NeutrinoLeptonAA(fnEE_e, fnEE_a, M_Neutrino, M_Electron);
 		else
 		{
 			fnEE_e  = 0.0;
-			fnEE_mt = 0.0;
+			fnEE_a = 0.0;
 		}
 	}
 
-	return fnEE_e * Ue*Ue + fnEE_mt * (Um*Um + Ut*Ut);
+	return (fnEE_e + fnEE_a) * Ue*Ue + fnEE_a * (Um*Um + Ut*Ut);
 }
 
 //M_Sterile > M_Muon + M_Electron
-double FullWidth::nEMU()	//Antiparticle is Elec
+double Decay::nEMU()	//Antiparticle is Elec
 {
 	if (fnEMU < 0 || IsChanged())
 	{
 		if (IsAllowed(_nEMU))
-			fnEMU = NeutrinoLeptonAB(M_Electron, M_Muon, M_Neutrino);
+			fnEMU = NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Muon);
 		else
 			fnEMU = 0.0;
 	}
@@ -234,12 +234,12 @@ double FullWidth::nEMU()	//Antiparticle is Elec
 	return fnEMU * Ue*Ue;
 }
 
-double FullWidth::nMUE()	//Anti is Muon
+double Decay::nMUE()	//Anti is Muon
 {
 	if (fnMUE < 0 || IsChanged())
 	{
 		if (IsAllowed(_nMUE))
-			fnMUE = NeutrinoLeptonAB(M_Muon, M_Electron, M_Neutrino);
+			fnMUE = NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Electron);
 		else
 			fnMUE = 0.0;
 	}
@@ -248,29 +248,29 @@ double FullWidth::nMUE()	//Anti is Muon
 }
 
 //M_Sterile > 2 M_Muon
-double FullWidth::nMUMU(double )
+double Decay::nMUMU(double )
 {
-	if (fnMUMU_m < 0 || fnMUMU_et < 0 || IsChanged())
+	if (fnMUMU_m < 0 || fnMUMU_a < 0 || IsChanged())
 	{
 		if (IsAllowed(_nMUMU)) 
-			NeutrinoLeptonAA(fnMUMU_m, fnMUMU_et, M_Muon);
+			NeutrinoLeptonAA(fnMUMU_m, fnMUMU_a, M_Neutrino, M_Muon);
 		else
 		{
 			fnMUMU_m  = 0.0;
-			fnMUMU_et = 0.0;
+			fnMUMU_a = 0.0;
 		}
 	}
 
-	return (fnMUMU_m * Um*Um + fnMUMU_et * (Ue*Ue + Ut*Ut));
+	return (fnMUMU_m + fnMUMU_a) * Um*Um + fnMUMU_a * (Ue*Ue + Ut*Ut);
 }
 
 //M_Sterile > M_Tau + M_Electron
-double FullWidth::nET()	//Antiparticle is Elec
+double Decay::nET()	//Antiparticle is Elec
 {
 	if (fnET < 0 || IsChanged())
 	{
 		if (IsAllowed(_nET))
-			fnET = NeutrinoLeptonAB(M_Electron, M_Tau, M_Neutrino);
+			fnET = NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Tau);
 		else
 			fnET = 0.0;
 	}
@@ -278,12 +278,12 @@ double FullWidth::nET()	//Antiparticle is Elec
 	return fnET * Ue*Ue;
 }
 
-double FullWidth::nTE()	//Anti is Tau
+double Decay::nTE()	//Anti is Tau
 {
 	if (fnTE < 0 || IsChanged())
 	{
 		if (IsAllowed(_nTE))
-			fnTE = NeutrinoLeptonAB(M_Tau, M_Electron, M_Neutrino);
+			fnTE = NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Electron);
 		else
 			fnTE = 0.0;
 	}
@@ -292,12 +292,12 @@ double FullWidth::nTE()	//Anti is Tau
 }
 
 //M_Sterile > M_Tau + M_Muon
-double FullWidth::nMUT()	//Antiparticle is Muon
+double Decay::nMUT()	//Antiparticle is Muon
 {
 	if (fnMUT < 0 || IsChanged())
 	{
 		if (IsAllowed(_nMUT))
-			fnMUT = NeutrinoLeptonAB(M_Muon, M_Tau, M_Neutrino);
+			fnMUT = NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Tau);
 		else
 			fnMUT = 0.0;
 	}
@@ -305,12 +305,12 @@ double FullWidth::nMUT()	//Antiparticle is Muon
 	return fnMUT * Um*Um;
 }
 
-double FullWidth::nTMU()	//Anti is Tau
+double Decay::nTMU()	//Anti is Tau
 {
 	if (fnTMU < 0 || IsChanged())
 	{
 		if (IsAllowed(_nTMU))
-			fnTMU = NeutrinoLeptonAB(M_Tau, M_Muon, M_Neutrino);
+			fnTMU = NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Muon);
 		else
 			fnTMU = 0.0;
 	}
@@ -319,12 +319,12 @@ double FullWidth::nTMU()	//Anti is Tau
 }
 
 //M_Sterile > M_Pion0
-double FullWidth::nPI0()
+double Decay::nPI0()
 {
 	if (fnPI0 < 0 || IsChanged())
 	{
 		if (IsAllowed(_nPI0))
-			fnPI0 = NeutrinoPseudoMeson(M_Pion, Const::fDPion02);	//check
+			fnPI0 = pow(Const::fDPion, 2) * NeutrinoPseudoMeson(M_Neutrino, M_Pion);	//check
 		else
 			fnPI0 = 0.0;
 	}
@@ -333,12 +333,12 @@ double FullWidth::nPI0()
 }
 
 //M_Sterile > M_Pion
-double FullWidth::EPI()
+double Decay::EPI()
 {
 	if (fEPI < 0 || IsChanged())
 	{
 		if (IsAllowed(_EPI))
-			fEPI = LeptonPseudoMeson(M_Electron, M_Pion, Const::fU_ud, Const::fDPion2);
+			fEPI =  pow(Const::fU_ud * Const::fDPion, 2) * LeptonPseudoMeson(M_Electron, M_Pion);
 		else
 			fEPI = 0.0;
 	}
@@ -347,12 +347,12 @@ double FullWidth::EPI()
 }
 
 //M_Sterile > M_Pion + M_Muon
-double FullWidth::MUPI()
+double Decay::MUPI()
 {
 	if (fMUPI < 0 || IsChanged())
 	{
 		if (IsAllowed(_MUPI))
-			fMUPI = LeptonPseudoMeson(M_Muon, M_Pion, Const::fU_ud, Const::fDPion2);
+			fMUPI =  pow(Const::fU_ud * Const::fDPion, 2) * LeptonPseudoMeson(M_Muon, M_Pion);
 		else
 			fMUPI = 0.0;
 	}
@@ -361,12 +361,12 @@ double FullWidth::MUPI()
 }
 
 //M_Sterile > M_Tau + M_Pion
-double FullWidth::TPI()
+double Decay::TPI()
 {
 	if (fTPI < 0 || IsChanged())
 	{
 		if (IsAllowed(_TPI))
-			fTPI = LeptonPseudoMeson(M_Tau, M_Pion, Const::fU_ud, Const::fDPion2);
+			fTPI =  pow(Const::fU_ud * Const::fDPion, 2) * LeptonPseudoMeson(M_Tau, M_Pion);
 		else
 			fTPI = 0.0;
 	}
@@ -375,12 +375,12 @@ double FullWidth::TPI()
 }
 
 //M_Sterile > M_Kaon + M_Electron
-double FullWidth::EKA()
+double Decay::EKA()
 {
 	if (fEKA < 0 || IsChanged())
 	{
 		if (IsAllowed(_EKA))
-			fEKA = LeptonPseudoMeson(M_Electron, M_Kaon, Const::fU_us, Const::fDKaon2);
+			fEKA =  pow(Const::fU_us * Const::fDKaon, 2) * LeptonPseudoMeson(M_Electron, M_Kaon);
 		else
 			fEKA = 0.0;
 	}
@@ -389,12 +389,12 @@ double FullWidth::EKA()
 }
 
 //M_Sterile > M_Kaon + M_Muon
-double FullWidth::MUKA()
+double Decay::MUKA()
 {
 	if (fMUKA < 0 || IsChanged())
 	{
 		if (IsAllowed(_MUKA))
-			fMUKA = LeptonPseudoMeson(M_Muon, M_Kaon, Const::fU_us, Const::fDKaon2);
+			fMUKA =  pow(Const::fU_us * Const::fDKaon, 2) * LeptonPseudoMeson(M_Muon, M_Kaon);
 		else
 			fMUKA = 0.0;
 	}
@@ -403,12 +403,12 @@ double FullWidth::MUKA()
 }
 
 //M_Sterile > M_Rho
-double FullWidth::nRHO0()
+double Decay::nRHO0()
 {
 	if (fnRHO0 < 0 || IsChanged())
 	{
 		if (IsAllowed(_nRHO0))
-			fnRHO0 = NeutrinoVectorMeson(M_Rho0, Const::fDRho02, Const::fVLight);	//check
+			fnRHO0 = pow(Const::fDRho * fVRho, 2) * NeutrinoVectorMeson(M_Neutrino, M_Rho0);	//check
 		else
 			fnRHO0 = 0.0;
 	}
@@ -417,12 +417,12 @@ double FullWidth::nRHO0()
 }
 
 //M_Sterile > M_Rho + M_Electron 
-double FullWidth::ERHO()
+double Decay::ERHO()
 {
 	if (fERHO < 0 || IsChanged())
 	{
 		if (IsAllowed(_ERHO))
-			fERHO = LeptonVectorMeson(M_Electron, M_Rho, Const::fU_ud, Const::fDRho2, Const::fVLight);	//check
+			fERHO = pow(Const::fU_ud * Const::fDRho, 2) * LeptonVectorMeson(M_Electron, M_Rho);	//check
 		else
 			fERHO = 0.0;
 	}
@@ -431,12 +431,12 @@ double FullWidth::ERHO()
 }
 
 //M_Sterile > M_Rho + M_Muon 
-double FullWidth::MURHO()
+double Decay::MURHO()
 {
 	if (fMURHO < 0 || IsChanged())
 	{
 		if (IsAllowed(_MURHO))
-			fMURHO = LeptonVectorMeson(M_Muon, M_Rho, Const::fU_ud, Const::fDRho2, Const::fVLight);	//check
+			fMURHO = pow(Const::fU_ud * Const::fDRho, 2) * LeptonVectorMeson(M_Muon, M_Rho);	//check
 		else
 			fMURHO = 0.0;
 	}
@@ -445,12 +445,12 @@ double FullWidth::MURHO()
 }
 
 //M_Sterile > M_Kaon* + M_Electron 
-double FullWidth::EKAx()
+double Decay::EKAx()
 {
 	if (fEKAx < 0 || IsChanged())
 	{
 		if (IsAllowed(_EKAx))
-			fEKAx = LeptonVectorMeson(M_Electron, M_Kaonx, Const::fU_us, Const::fDKaonx2, Const::fVStrange);	//check
+			fEKAx = pow(Const::fU_us * Const::fDKaonx, 2) * LeptonVectorMeson(M_Electron, M_Kaonx);	//check
 		else
 			fEKAx = 0.0;
 	}
@@ -459,12 +459,12 @@ double FullWidth::EKAx()
 }
 
 //M_Sterile > M_Kaon* + M_Muon 
-double FullWidth::MUKAx()
+double Decay::MUKAx()
 {
 	if (fMUKAx < 0 || IsChanged())
 	{
 		if (IsAllowed(_MUKAx))
-			fMUKAx = LeptonVectorMeson(M_Muon, M_Kaonx, Const::fU_us, Const::fDKaonx2, Const::fVStrange);	//check
+			fMUKAx = pow(Const::fU_us * Const::fDKaonx, 2) * LeptonVectorMeson(M_Muon, M_Kaonx);	//check
 		else
 			fMUKAx = 0.0;
 	}
@@ -473,12 +473,12 @@ double FullWidth::MUKAx()
 }
 
 //M_Sterile > M_Eta
-double FullWidth::nETA()
+double Decay::nETA()
 {
 	if (fnETA < 0 || IsChanged())
 	{
 		if (IsAllowed(_nETA))
-			fnETA = NeutrinoPseudoMeson(M_Eta, Const::fDEta2);	//check
+			fnETA = pow(Const::fDEta, 2) * NeutrinoPseudoMeson(M_Neutrino, M_Eta);	//check
 		else
 			fnETA = 0.0;
 	}
@@ -487,12 +487,12 @@ double FullWidth::nETA()
 }
 
 //M_Sterile > M_Eta'
-double FullWidth::nETAi()
+double Decay::nETAi()
 {
 	if (fnETAi < 0 || IsChanged())
 	{
 		if (IsAllowed(_nETAi))
-			fnETAi = NeutrinoPseudoMeson(M_Etai, Const::fDEtai2);	//check
+			fnETAi = pow(Const::fDEtai, 2) * NeutrinoPseudoMeson(M_Neutrino, M_Etai);	//check
 		else
 			fnETAi = 0.0;
 	}
@@ -501,12 +501,12 @@ double FullWidth::nETAi()
 }
 
 //M_Sterile > M_Omega 
-double FullWidth::nOMEGA()
+double Decay::nOMEGA()
 {
 	if (fnOMEGA < 0 || IsChanged())
 	{
 		if (IsAllowed(_nOMEGA))
-			fnOMEGA = NeutrinoVectorMeson(M_Omega, Const::fDOmega2, Const::fVLight);	//check
+			fnOMEGA = pow(Const::fDOmega * Const::fVOmega, 2) * NeutrinoVectorMeson(M_Neutirno, M_Omega);	//check
 		else
 			fnOMEGA = 0.0;
 	}
@@ -515,12 +515,12 @@ double FullWidth::nOMEGA()
 }
 
 //M_Sterile > M_Phi 
-double FullWidth::nPHI()
+double Decay::nPHI()
 {
 	if (fnPHI < 0 || IsChanged())
 	{
 		if (IsAllowed(_nPHI))
-			fnPHI = NeutrinoVectorMeson(M_Phi, Const::fDPhi2, Const::fVStrange);	//check
+			fnPHI = pow(Const::fDPhi * Const::fVPhi, 2) * NeutrinoVectorMeson(M_Neutrino, M_Phi);	//check
 		else
 			fnPHI = 0.0;
 	}
@@ -529,12 +529,12 @@ double FullWidth::nPHI()
 }
 
 //M_Sterile > M_Charm + M_Electron
-double FullWidth::ECHARM()
+double Decay::ECHARM()
 {
 	if (fECHARM < 0 || IsChanged())
 	{
 		if (IsAllowed(_ECHARM))
-			fECHARM = LeptonPseudoMeson(M_Electron, M_Charm, Const::fU_cd, Const::fDCharm2);
+			fECHARM = pow(Const::fU_cd * Const::fDCharm, 2) * LeptonPseudoMeson(M_Electron, M_Charm);
 		else
 			fECHARM = 0.0;
 	}
@@ -547,175 +547,187 @@ double FullWidth::ECHARM()
 /////////////////
 //
 //CC version possible
-double FullWidth::LeptonPseudoMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2)
+double Decay::LeptonPseudoMeson(double M_Lepton, double M_Meson)
 {
 	double dML2 = M_Lepton*M_Lepton/GetMass()/GetMass();
 	double dMM2 = M_Meson*M_Meson/GetMass()/GetMass();
 
-	return GetMult() * Const::fGF2 * pow(vCKM, 2.0) * fDecay2 / (16.0 * Const::fPi) *
-		pow(GetMass(), 3) * I_PseudoMeson(dML2, dMM2);
+	return I_LeptonPseudoMeson(dML2, dMM2);
 }
 
-double FullWidth::NeutrinoPseudoMeson(double M_Meson, double fDecay2)
+//integrated over angular dep.
+double Decay::I_LeptonPseudoMeson(double x, double y)
+{
+	//double cos0 = theta < 0 ? 0.0 : cos(theta);
+	//double fc = theta < 0.0 ? 2.0 : 1.0;
+
+	double M2 = M2_LeptonPseudoMeson(x, y, 0);
+	return dGammad0_2B(M2, x, y);
+}
+
+double Decay::NeutrinoPseudoMeson(double M_Meson, double fDecay2)
 {
 	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
 	double dMM2 = M_Meson*M_Meson/GetMass()/GetMass();
 
-	return Const::fGF2 * fDecay2 * / (64.0 * Const::fPi);
-		pow(GetMass(), 3) * I_PseudoMeson(dMN2, dMM2);
+	return fDecay2 * I_NeutrinoPseudoMeson(dMN2, dMM2);
 }
 
-double FullWidth::I_PseudoMeson(double x, double y, double theta)
+//integrated over angular dep.
+double Decay::I_NeutrinoPseudoMeson(double x, double y)
 {
-	double cos0 = theta < 0 ? 0.0 : cos(theta);
-	double fc = theta < 0.0 ? 2.0 : 1.0;
+	//double cos0 = theta < 0 ? 0.0 : cos(theta);
+	//double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double Lambda = sqrt(Kine::Kallen(1, x, y)) * cos0;
-	if (GetHelicity() < 0)
-		return fc * Lambda * (pow(1 - x, 2) - y*(1+x) + Lambda);
-	else if (GetHelicity() > 0)
-		return fc * Lambda * (pow(1 - x, 2) - y*(1+x) - Lambda);
+	double M2 = M2_NeutrinoPseudoMeson(x, y, 0);
+	return dGammad0_2B(M2, x, y);
 }
 
-//no helicity version for this one
-//must compute!!
 //CC version possible
-double FullWidth::LeptonVectorMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2, double fVector)
+double Decay::LeptonVectorMeson(double M_Lepton, double M_Meson)
 {
 	double dML2 = M_Lepton*M_Lepton/GetMass()/GetMass();
 	double dMM2 = M_Meson*M_Meson/GetMass()/GetMass();
-	double Lambda = sqrt(Kine::Kallen(1, dML2, dMM2));
-	fVector *= fVector;
 
-	return GetMult() * Const::fGF2 * pow(vCKM, 2.0) * fDecay2 * fVector / (16.0 * Const::fPi) *
-	       pow(GetMass(), 3) * Lambda * (pow(1-dML2, 2) + dMM2 * (1 + dML2 - 2*dMM2));
+	return I_LeptonVectorMeson(dMN2, dMM2);
 }
 
-//no helicity version for this one
-//must compute!!
-double FullWidth::NeutrinoVectorMeson(double M_Meson, double fDecay2, double fVector)
+//integrated over angular dep.
+double Decay::I_LeptonVectorMeson(double x, double y)
 {
-	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
+	//double cos0 = theta < 0 ? 0.0 : cos(theta);
+	//double fc = theta < 0.0 ? 2.0 : 1.0;
+
+	double M2 = M2_LeptonVectorMeson(x, y, 0);
+	return dGammad0_2B(M2, x, y);
+}
+
+double Decay::NeutrinoVectorMeson(double M_Neut, double M_Meson)
+{
+	double dMN2 = M_Neut*M_Neut/GetMass()/GetMass();
 	double dMM2 = M_Meson*M_Meson/GetMass()/GetMass();
-	double Lambda = sqrt(Kine::Kallen(1, dML2, dMM2));
-	fVector *= fVector;
 
-	return  Const::fGF2 * fDecay2 * fVector / (2.0 * Const::fPi) * 
-		pow(GetMass(), 3) * (1+2*dMM2) * pow(1-dMM2, 2);
+	return  I_NeutrinoVectorMeson(dMN2, dMM2);
 }
 
-double FullWidth::NeutrinoLeptonAA(double &fAAA, double &fABB, double M_Lepton, double s, double theta)
+//integrated over angular dep.
+double Decay::I_LeptonVectorMeson(double x, double y)
 {
-	double dMN2 = M_Neutrino*M_Neutrino/GetMass()/GetMass();
+	//double cos0 = theta < 0 ? 0.0 : cos(theta);
+	//double fc = theta < 0.0 ? 2.0 : 1.0;
+
+	double M2 = M2_NeutrinoVectorMeson(x, y, 0);
+	return dGammad0_2B(M2, x, y);
+}
+
+double Decay::NeutrinoLeptonAA(double &Amp_Ul, double &Amp_Un, double M_Neut, double M_Lepton)
+{
+	double dMN2 = M_Neut*M_Neut/GetMass()/GetMass();
 	double dML2 = M_Lepton*M_Lepton/GetMass()/GetMass();
 
-	double gL = -0.5 + Const::fSin2W;
-	double gR = Const::fSin2W;
+	//for CCNC
+	double gL_CC = 2 - 4*GetParticle();	//times U(lepton flavour)
+	double gR_CC = 0;
+	double gL_NC = -1 + 2*Const::fSin2W;	//times U(neutrino flavour)
+	double gR_NC = 2*Const::fSin2W;
 
-	double IntWW = I_WW(dMN2, dML2, dML2, theta);	//W or Z mediation
-	double IntWZ = I_WZ(dMN2, dML2, dML2, theta);	//cross term for W + Z
+	double IntWW = I_WW(dMN2, dML2, dML2);	//W or Z mediation
+	double IntWZ = I_WZ(dMN2, dML2, dML2);	//cross term for W + Z
 
-	double Amp_AAA = (gL*gL + gR*gR + 1 + 2*gL)*IntWW + (gL*gR + gR) * IntWW;	//both W and Z
-	double Amp_ABB = (gL*gL + gR*gR           )*IntWW + (gL*gR     ) * IntWZ;	//only Z
-
-	fAAA = Const::fGF2 * pow(GetMass(), 5) * Amp_AAA / (16.0 * Const::fPi3);	//nu flavour is the same of leptons
-	fABB = Const::fGF2 * pow(GetMass(), 5) * Amp_AAA / (16.0 * Const::fPi3);	//nu flavour is different from leptons
+	Amp_Ul = NeutrinoLeptonLepton(dMN2, dML2, dML2, gL_CC, gL_CC);
+	Amp_Un = NeutrinoLeptonLepton(dMN2, dML2, dML2, gL_NC, gL_NC);
 
 	return 0.0;
 }
 
 //CC version also available
-double FullWidth::NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB, double M_Neutrino, double s, double theta)
+double Decay::NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB)
 {
+	double dMN2 = M_Neut*M_Neut/GetMass()/GetMass();
 	double dMA2 = M_LeptonA*M_LeptonB/GetMass()/GetMass();
 	double dMB2 = M_LeptonB*M_LeptonB/GetMass()/GetMass();
 
-	return GetMult() * Const::fGF2 / (16.0 * Const::fPi3) * 
-			pow(GetMass(), 5) * I_WW(dMN2, dMA2, dMB2, theta);
+	//for CC
+	double gL = 2;
+	double gR = 0;
+
+	return NeutrinoLeptonLepton(dMN2, dMA2, dMB2, gL, gR);
 }
 
-double FullWidth::I_WW(double x, double y, double z, double theta)
+double Decay::NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR)
 {
-	I_var.clear();
+	double M2 = (gL * gL + gR * gR) * I_WW(x, y, z) +
+		    (2 * gL * gR) * I_WZ(x, y, z);
 
-	I_var.push_back(x);	//0
-	I_var.push_back(y);	//1
-	I_var.push_back(z);	//2
-	I_var.push_back(theta);	//3
+	return dGammad2_3B(M2, x, y);
+}
+
+double Decay::I_WW(double x, double y, double z)//, double theta)
+{
+	F_var.clear();
+
+	F_var.push_back(x);	//0
+	F_var.push_back(y);	//1
+	F_var.push_back(z);	//2
+	//F_var.push_back(theta);	//3
 
 	SetFunction(&I_WW_s);				//Integrand will fix the integration volume
 	return Inte::BooleIntegration(this); 
 }
 
-double FullWidth::I_WW_s(double s)
+double Decay::I_WW_s(double s)
 {
-	const double &x = I_var.at(0);
-	const double &y = I_var.at(1);
-	const double &z = I_var.at(2);
-	const double &theta = I_var.at(3);
+	const double &x = F_var.at(0);
+	const double &y = F_var.at(1);
+	const double &z = F_var.at(2);
 
-	double sInf = x*x + y*y + 2*sqrt(x*y);
-	double sSup = 1 - 2*sqrt(z) + z;
-	double S = sInf + (sSup - sInf) * s;
+	double t = 0;
+	double fc = Limit(s, t, x, y, z);
 
-	double cos0 = theta < 0 ? 0.0 : cos(theta);		//means I am integrating on theta only
-	double fc = theta < 0.0 ? 2.0 : 1.0;			//so I remove cos0 terms and multiply by 2
+	//double cos0 = theta < 0 ? 0.0 : cos(theta);		//means I am integrating on theta only
+	//double fc = theta < 0.0 ? 2.0 : 1.0;			//so I remove cos0 terms and multiply by 2
 
-	return fc * (sSup - sInf) * I_WW_s(s, cos0, x, y, z);
+	return fc * M2_WW(x, y, z, s, 0);
 }
 
-//Keep in base!
-double FullWidth::I_WW_s(double s, double cos0, double x, double y, double z)
+double Decay::I_WZ(double x, double y, double z)//, double theta)
 {
-	double Lambda0 = sqrt(Kine::Kallen(1, S, z));
-	double Lambda1 = sqrt(Kine::Kallen(S, x, y));
+	F_var.clear();
 
-	if (GetHelicity() < 0)
-		return (S - x - y) * (1 + z - S - Lambda0*cos0) * Lambda0 * Lambda1 / S;
-	else if (GetHelicity() > 0)
-		return (S - x - y) * (1 + z - S + Lambda0*cos0) * Lambda0 * Lambda1 / S;
-}
-
-double FullWidth::I_WZ(double x, double y, double z, double theta)
-{
-	I_var.clear();
-
-	I_var.push_back(x);	//0
-	I_var.push_back(y);	//1
-	I_var.push_back(z);	//2
-	I_var.push_back(theta);	//3
+	F_var.push_back(x);	//0
+	F_var.push_back(y);	//1
+	F_var.push_back(z);	//2
+	//F_var.push_back(theta);	//3
 
 	SetFunction(&I_WZ_s);
 	return Inte::BooleIntegration(this); 
 }
 
-double FullWidth::I_WZ_s(double s)
+double Decay::I_WZ_s(double s)
 {
-	const double &x = I_var.at(0);
-	const double &y = I_var.at(1);
-	const double &z = I_var.at(2);
-	const double &theta = I_var.at(3);
+	F_var.push_back(s);
 
-	double sInf = x*x + y*y + 2*sqrt(x*y);
-	double sSup = 1 - 2*sqrt(z) + z;
-	double S = sInf + (sSup - sInf) * s;
+	SetFunction(&I_WZ_t);
+	double Ret = Inte::BooleIntegration(this);
 
-	double cos0 = theta < 0 ? 0.0 : cos(theta);
-	double fc = theta < 0.0 ? 2.0 : 1.0;
-
-	return fc * (sSup - sInf) * I_WZ_s(S, cos0, x, y, z);
-
+	F_var.pop_back();
+	SetFunction(&I_WZ_s);
+	return Ret;
 }
 
-double FullWidth::I_WZ_s(double s, double cos0, double x, double y, double z)
+double Decay::I_WZ_t(double t)
 {
-	double Lambda0 = sqrt(Kine::Kallen(1, S, z));
-	double Lambda1 = sqrt(Kine::Kallen(S, x, y));
+	const double &x = F_var.at(0);
+	const double &y = F_var.at(1);
+	const double &z = F_var.at(2);
+	//const double &theta = F_var.at(3);
+	double &s = F_var.at(3);
 
-	if (GetHelicity() < 0)
-		return x * y * (s - z - Lambda0 * (1 + cos0) / 2.0 ) * Lambda0 * Lambda1 / S;
-	else if (GetHelicity() > 0)
-		return x * y * (s - z + Lambda0 * (1 + cos0) / 2.0 ) * Lambda0 * Lambda1 / S;
+	double fc = Limit(s, t, x, y, z);
+	//double cos0 = theta < 0 ? 0.0 : cos(theta);
+	//double fc = theta < 0.0 ? 2.0 : 1.0;
+
+	return fc * M2_WZ(x, y, z, s, t, 0, 0);
 }
 
 /////////////////////////
@@ -724,7 +736,7 @@ double FullWidth::I_WZ_s(double s, double cos0, double x, double y, double z)
 
 
 /*
-std::vector<std::string> FullWidth::ListChannels()
+std::vector<std::string> Decay::ListChannels()
 {
 	std::map<std::string, ChannelName>::iterator it;
 	std::vector<std::string> vList;
@@ -734,7 +746,7 @@ std::vector<std::string> FullWidth::ListChannels()
 }
 */
 
-vecbool FullWidth::IsChanged()
+vecbool Decay::IsChanged()
 {
 	bool Ret = (fabs(GetMass() - M_Sterile_prev) > 1e-9);
 
@@ -746,11 +758,11 @@ vecbool FullWidth::IsChanged()
 		fnnn      = -1.0;
                 fnGAMMA   = -1.0;
                 fnEE_e    = -1.0;
-                fnEE_mt   = -1.0;
+                fnEE_a   = -1.0;
                 fnEMU     = -1.0;
                 fnMUE     = -1.0;
                 fnMUMU_m  = -1.0;
-                fnMUMU_et = -1.0;
+                fnMUMU_a = -1.0;
                 fnET      = -1.0;
                 fnTE      = -1.0;
                 fnMUT     = -1.0;

@@ -1,10 +1,10 @@
-#include "ProductionRates.h"
+#include "Production.h"
 
-ProductionRates::ProductionRates() :
+Production::Production() :
 {
 }
 
-bool ProductionRates::IsAllowed(Channel Name)
+bool Production::IsAllowed(Channel Name)
 {
 	if (Channel_prev != Name)
 	{
@@ -19,7 +19,7 @@ bool ProductionRates::IsAllowed(Channel Name)
 	return (Limit >= GetMass());
 }
 
-double ProductionRates::dGamma(Channel Name)
+double Production::dGamma(Channel Name)
 {
 	double Result = 0.0;
 
@@ -100,7 +100,7 @@ double ProductionRates::dGamma(Channel Name)
 	}
 }
 
-double ProductionRates::Scale(Channel Name)
+double Production::Scale(Channel Name)
 {
 	int ih = GetHelicity();
 	double mass = GetMass();
@@ -115,14 +115,14 @@ double ProductionRates::Scale(Channel Name)
 	return Gamma(Name)/Gamma0;
 }
 
-double ProductionRates::Total()
+double Production::Total()
 {
 	return (MuonE() + MuonM() + TauEE() + TauET() + TauME() + TauMT() +
 		PionE() + PionM() + KaonE() + KaonM() + CharmE() + CharmM() + CharmT() +
 		Kaon0E() + Kaon0M() + KaonCE() + KaonCM());
 }
 
-double ProductionRates::MuonE()
+double Production::MuonE()
 {
 	if (fMuonE < 0 || IsChanged())
 	{
@@ -135,7 +135,7 @@ double ProductionRates::MuonE()
 	return fMuonE * Ue*Ue;
 }
 
-double ProductionRates::MuonM()
+double Production::MuonM()
 {
 	if (fMuonM < 0 || IsChanged())
 	{
@@ -148,7 +148,7 @@ double ProductionRates::MuonM()
 	return fMuonM * Um*Um;
 }
 
-double ProductionRates::TauEE()
+double Production::TauEE()
 {
 	if (fTauEE < 0 || IsChanged())
 	{
@@ -161,7 +161,7 @@ double ProductionRates::TauEE()
 	return fTauEE * Ue*Ue;
 }
 
-double ProductionRates::TauET()
+double Production::TauET()
 {
 	if (fTauET < 0 || IsChanged())
 	{
@@ -174,7 +174,7 @@ double ProductionRates::TauET()
 	return fTauET * Ut*Ut;
 }
 
-double ProductionRates::TauMM()
+double Production::TauMM()
 {
 	if (fTauME < 0 || IsChanged())
 	{
@@ -187,7 +187,7 @@ double ProductionRates::TauMM()
 	return fTauME * Um*Um;
 }
 
-double ProductionRates::TauMT()
+double Production::TauMT()
 {
 	if (fTauMT < 0 || IsChanged())
 	{
@@ -200,7 +200,7 @@ double ProductionRates::TauMT()
 	return fTauMT * Ut*Ut;
 }
 
-double ProductionRates::PionE()
+double Production::PionE()
 {
 	if (fPionE < 0 || IsChanged())
 	{
@@ -213,7 +213,7 @@ double ProductionRates::PionE()
 	return fPionE * Ue*Ue;
 }
 
-double ProductionRates::PionM()
+double Production::PionM()
 {
 	if (fPionM < 0 || IsChanged())
 	{
@@ -226,7 +226,7 @@ double ProductionRates::PionM()
 	return fPionM * Um*Um;
 }
 
-double ProductionRates::KaonE()
+double Production::KaonE()
 {
 	if (fKaonE < 0 || IsChanged())
 	{
@@ -239,7 +239,7 @@ double ProductionRates::KaonE()
 	return fKaonE * Ue*Ue;
 }
 
-double ProductionRates::KaonM()
+double Production::KaonM()
 {
 	if (fKaonM < 0 || IsChanged())
 	{
@@ -252,7 +252,7 @@ double ProductionRates::KaonM()
 	return fKaonM * Um*Um;
 }
 
-double ProductionRates::CharmE()
+double Production::CharmE()
 {
 	if (fCharmE < 0 || IsChanged())
 	{
@@ -265,7 +265,7 @@ double ProductionRates::CharmE()
 	return fCharmE * Ue*Ue;
 }
 
-double ProductionRates::CharmM()
+double Production::CharmM()
 {
 	if (fCharmM < 0 || IsChanged())
 	{
@@ -278,7 +278,7 @@ double ProductionRates::CharmM()
 	return fCharmM * Um*Um;
 }
 
-double ProductionRates::CharmT()
+double Production::CharmT()
 {
 	if (fCharmT < 0 || IsChanged())
 	{
@@ -291,7 +291,7 @@ double ProductionRates::CharmT()
 	return fCharmT * Ut*Ut;
 }
 
-double ProductionRates::Kaon0E()
+double Production::Kaon0E()
 {
 	if (fKaon0E < 0 || IsChanged())
 	{
@@ -304,7 +304,7 @@ double ProductionRates::Kaon0E()
 	return fKaon0E * Ue*Ue;
 }
 
-double ProductionRates::Kaon0M()
+double Production::Kaon0M()
 {
 	if (fKaon0M < 0 || IsChanged())
 	{
@@ -317,7 +317,7 @@ double ProductionRates::Kaon0M()
 	return fKaon0M * Ue*Ue;
 }
 
-double ProductionRates::KaonCE()
+double Production::KaonCE()
 {
 	if (fKaonCE < 0 || IsChanged())
 	{
@@ -330,7 +330,7 @@ double ProductionRates::KaonCE()
 	return fKaonCE * Ue*Ue;
 }
 
-double ProductionRates::KaonCM()
+double Production::KaonCM()
 {
 	if (fKaonCM < 0 || IsChanged())
 	{
@@ -348,167 +348,132 @@ double ProductionRates::KaonCM()
 /////////////////
 //
 
-double ProductionRates::LeptonNeutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neutrino)
+double Production::LeptonNeutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neut)
 {
 	double dMB2 = M_LeptonB*M_LeptonB/M_LeptonA/M_LeptonA;
-	double dMn2 = M_Neutrino*M_Neutrino/M_LeptonA/M_LeptonA;
+	double dMn2 = M_Neut*M_Neut/M_LeptonA/M_LeptonA;
 	double dMN2 = GetMass()*GetMass()/M_LeptonA/M_LeptonA;
 
-	return Const::fGF2 / (16.0 * Const::fPi3) *
-		d_LeptonNeutrino(dMB2, dMn2, dMN2);
+	double M2 = I_LeptonNeutrino(dMB2, dMn2, dMN2);
+	return gGamma2_3B(M2);
+	//return Const::fGF2 / (16.0 * Const::fPi3) *
+	//	d_LeptonNeutrino(dMB2, dMn2, dMN2);
 }
+
 //						c	  b	    a
-double ProductionRates::d_LeptonNeutrino(double x, double y, double z, double theta)	//integrate first in y and then in x
+double PFoductionRates::I_LeptonNeutrino(double x, double y, double z)//, double theta)	//integrate first in y and then in x
 {
 	F_var.clear();
 
 	F_var.push_back(x);	//0	//x
 	F_var.push_back(y);	//1	//y
 	F_var.push_back(z);	//2	//z
-	F_var.push_back(cos0);	//3	//theta
+	//F_var.push_back(cos0);	//3	//theta
 
-	SetFunction(&d_LeptonNeutrino_s);
+	SetFunction(&I_LeptonNeutrino_s);
 	return Inte::BooleIntegration(this); 
 }
 
-double ProductionRates::d_LeptonNeutrino_s(double s)	//fixing one variable
+double Production::I_LeptonNeutrino_s(double s)	//fixing one variable
 {
 	F_var.push_back(s)	//4
-	SetFunction(&d_LeptonNeutrino_t);
+	SetFunction(&I_LeptonNeutrino_t);
 	double Ret = Inte::BooleIntegration(this);
 
 	F_var.pop_back();
-	SetFunction(&d_LeptonNeutrino_s);
+	SetFunction(&I_LeptonNeutrino_s);
 
 	return Ret;
 }
 
-double ProductionRates::d_LeptonNeutrino_t(double t)
+double Production::I_LeptonNeutrino_t(double t)
 {
 	//aliases for clarity
 	const double &x = F_var.at(0);
 	const double &y = F_var.at(1);
 	const double &z = F_var.at(2);
-	const double &cos0 = F_var.at(3);
+	//const double &cos0 = F_var.at(3);
 
-	const double &s = F_var(4);
+	double &s = F_var.at(3);
 
-	//create X & Y var
-	double xInf = 2*sqrt(z);
-	double xSup = 1 + z - x - y - 2*sqrt(x*y);
-	double X = xInf + (xSup - xInf) * s;	//this is s
+	double fc = Limit(s, t, x, y, z);
 
-	double Y = yInf + (ySup - yInf) * t;
-	double yInf = ( (2 - X)*(X + y - x) - sqrt(Kine::Kallen(X, y, x)*Kine::Kallen(1, X, z)) ) / (2*X);
-	double ySup = ( (2 - X)*(X + y - x) + sqrt(Kine::Kallen(X, y, x)*Kine::Kallen(1, X, z)) ) / (2*X);
+	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
+	//double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
 
-	double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
-	double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
-
-	return fc * (xSup - xInf) * (ySup - yInf) * d_LeptonNeutrino(X, Y, x, y, z, cos0);
+	return fc * M2_LeptonNeutrino(x, y, z, s, t, 0);
 }
 
-double ProductionRates::d_LeptonNeutrino(double X, double Y, double x, double y, double z, double cos0)
-{
-	double kX = sqrt(X*X - 4*z);
-	double kY = sqrt(Y*Y - 4*y)*cos0;
-
-	if (GetHelicity() < 0)
-		return 1 + y - z - x - Y - (2 - X - Y - kX - kY)*(X - kX)/4.0;
-	else if (GetHelicity() > 0)
-		return  (2 - X - Y - kX - kY)*(X - kX)/4.0;
-}
-
-double ProductionRates::LeptonAntineutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neutrino)
+double Production::LeptonAntineutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neut)
 {
 	double dMB2 = M_LeptonB*M_LeptonB/M_LeptonA/M_LeptonA;
-	double dMn2 = M_Neutrino*M_Neutrino/M_LeptonA/M_LeptonA;
+	double dMn2 = M_Neut*M_Neut/M_LeptonA/M_LeptonA;
 	double dMN2 = GetMass()*GetMass()/M_LeptonA/M_LeptonA;
 
-	return Const::fGF2 / (16.0 * Const::fPi3) *
-		d_LeptonAntineutrino(dMB2, dMn2, dMN2);
+	double M2 = I_LeptonAntineutrino(dMB2, dMn2, dMN2);
+	return dGammad2_3B(M2);
 }
 						//  c	      b		a
-double ProductionRates::d_LeptonAntineutrino(double x, double y, double z, double theta)	//integrate first in y and then in x
+double Production::I_LeptonAntineutrino(double x, double y, double z)//, double theta)	//integrate first in y and then in x
 {
 	F_var.clear();
 
 	F_var.push_back(x);	//0	//x
 	F_var.push_back(y);	//1	//y
 	F_var.push_back(z);	//2	//z
-	F_var.push_back(cos0);	//3	//theta
+	//F_var.push_back(cos0);	//3	//theta
 
-	SetFunction(&d_LeptonAntineutrino_s);
+	SetFunction(&I_LeptonAntineutrino_s);
 	return Inte::BooleIntegration(this); 
 }
 
-double ProductionRates::d_LeptonAntineutrino_s(double s)	//the term is written for a neutrino production
+double Production::I_LeptonAntineutrino_s(double s)	//the term is written for a neutrino production
 {								//therefore with heliciies inverted
 	//aliases for clarity
-	const double &x = F_var.at(2);
-	const double &y = F_var.at(3);
-	const double &z = F_var.at(4);
-	const double &cos0 = F_var.at(5);
+	const double &x = F_var.at(0);
+	const double &y = F_var.at(1);
+	const double &z = F_var.at(2);
+	//const double &cos0 = F_var.at(5);
 
 	//create S var
-	double S = sInf + (sSup - sInf) * s;
-	double sInf = x*x + y*y + 2*sqrt(x*y);
-	double sSup = 1 - 2*sqrt(z) + z;
+	double t = 0;
+	Limit(s, t, x, y, z);
 
-	double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
-	double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
+	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
+	//double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
 
-	return fc * (sSup - sInf) * d_LeptonAntineutrino_s(S, x, y, z, cos0);
+	return fc * M2_LeptonAntineutrino(x, y, z, s, t, 0);
 }
 
-double ProductionRates::d_LeptonAntineutrino_s(double S, double x, double y, double z, double cos0)
-{
-	double Lambda0 = sqrt(Kine::Kallen(1, S, z));
-	double Lambda1 = sqrt(Kine::Kallen(S, y, x));
-
-	if (GetHelicity() < 0)
-		return  (S - y - x) * (1 + z - S + Lambda0*cos0) * Lambda0 * Lambda1 / S;
-	else if (GetHelicity() > 0)
-		return (S - y - x) * (1 + z - S - Lambda0*cos0) * Lambda0 * Lambda1 / S;
-}
-
-double ProductionRates::LeptonMesonDecay(double M_Lepton, double M_Meson, double fDecay2)
+double Production::LeptonMesonDecay(double M_Lepton, double M_Meson)
 {
 	double dMN2 = GetMass()*GetMass()/M_Lepton/M_Lepton;
 	double dMM2 = M_Meson*M_Meson/M_Lepton/M_Lepton;
 
-	return Const::fGF2 * fDecay2 / (16.0 * Const::fPi) *
-		pow(M_Lepton, 3) * d_LeptonMeson(dMN2, dMM2);
+	return I_LeptonMeson(dMN2, dMM2);
 }
 
-double ProductionRates::d_LeptonMeson(double x, double y)	//y is the meson
+double PRoductionRates::I_LeptonMeson(double x, double y)
 {
-	double Lambda = sqrt(Kine::Kallen(1, x, y));
-	if (GetHelicity() < 0)
-		return Lambda * (pow(1 - x, 2) - y * (1 + x) - (x - 1) * Lambda);
-	else if (GetHelicity() > 0)
-		return Lambda * (pow(1 - x, 2) - y * (1 + x) + (x - 1) * Lambda);
+	double M2 = M2_LeptonMeson(x, y, cos0);
+	return dGamma0_2B(M2, x, y);
 }
 
-double ProductionRates::MesonTwoDecay(double M_Meson, double M_Lepton, double fDecay2)
+double Production::MesonTwoDecay(double M_Meson, double M_Lepton)
 {
 	double dMN2 = GetMass()*GetMass()/M_Meson/M_Meson;
 	double dML2 = M_Lepton*M_Lepton/M_Meson/M_Meson;
 
-	return Const::fGF2 * fDecay2 / (16.0 * Const::fPi)
-		pow(M_Meson, 3) * d_MesonTwo(dMN2, dML2);
+	return I_MesonTwo(dMN2, dML2)
 }
 
-double ProductionRates::d_MesonTwo(double x, double y)	//symetric in x and y
+double Production::I_MesonTwo(double x, double y)	//symetric in x and y
 {
-	double Lambda = sqrt(Kine::Kallen(1, x, y));
-	if (GetHelicity() < 0)
-		return Lambda * (x + y - pow(x - y, 2) - (x - y) * Lambda);
-	else if (GetHelicity() > 0)
-		return Lambda * (x + y - pow(x - y, 2) + (x - y) * Lambda);
+	double M2 = M2_MesonTwo(x, y);
+	return dGammad0_2B(M2, x, y);
 }
 
-double ProductionRates::MesonThreeDecay(double M_Meson0, double M_Meson1, double M_Lepton, double vCKM, double L_, double L0)	//decay constant not important
+double Production::MesonThreeDecay(double M_Meson0, double M_Meson1, double M_Lepton, double vCKM, double L_, double L0)	//decay constant not important
 {
 	double dMM2 = M_Meson1*M_Meson1/M_Meson0/M_Meson0;
 	double dML2 = M_Lepton*M_Lepton/M_Meson0/M_Meson0;
@@ -518,7 +483,7 @@ double ProductionRates::MesonThreeDecay(double M_Meson0, double M_Meson1, double
 		pow(M_Meson0, 5) * d_MesonThree(dMM2, dML2, dMN2, L_, L0);
 }
 
-double ProductionRates::d_MesonThree(double x, double y, double z, double L_, double L0)	//no angle dependence
+double Production::d_MesonThree(double x, double y, double z, double L_, double L0)	//no angle dependence
 {
 	F_var.clear();
 
@@ -533,7 +498,7 @@ double ProductionRates::d_MesonThree(double x, double y, double z, double L_, do
 	return Inte::BooleIntegration(this); 
 }
 
-double ProductionRates::d_MesonThree_s(double s)	//fixing one variable
+double Production::d_MesonThree_s(double s)	//fixing one variable
 {
 	F_var.push_back(s);	//6	//x var
 
@@ -545,7 +510,7 @@ double ProductionRates::d_MesonThree_s(double s)	//fixing one variable
 
 	return Ret;
 }
-double ProductionRates::d_MesonThree_t(double t)
+double Production::d_MesonThree_t(double t)
 {
 	//aliases for clarity
 	const double &x = F_var.at(0);
@@ -571,7 +536,7 @@ double ProductionRates::d_MesonThree_t(double t)
 	return fc * (sSup - sInf) * (tSup - tInf) * d_MesonThree(1 + z - S, T, x, y, z, cos0, L_, L0);
 }
 
-double ProductionRates::d_MesonThree(double Z, double Y, double x, double y, double cos0, double L_, double L0)
+double Production::d_MesonThree(double Z, double Y, double x, double y, double cos0, double L_, double L0)
 {
 	double F = 2 * - 2*L_ * (X + Y - 1 + x) / x;
 	double G = F/2.0 - (L0 - L_) * (1 - x) / x;
@@ -596,7 +561,7 @@ double ProductionRates::d_MesonThree(double Z, double Y, double x, double y, dou
 	}
 }
 
-void ProductionRates::Reset()
+void Production::Reset()
 {
 	fMuonE	= -1.0;
 	fMuonM	= -1.0;
