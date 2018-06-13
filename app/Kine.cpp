@@ -5,6 +5,7 @@
 #include <getopt.h>
 
 #include "Tools.h"
+#include "Physics.h"
 
 int main(int argc, char** argv)
 {
@@ -52,28 +53,29 @@ int main(int argc, char** argv)
 
 
 
-	double Elec = Const::fMElectron;
-	double Muon = Const::fMMuon;
-	double Pion = Const::fMPion;
-	double Pion0 = Const::fMPion0;
-	double Kaon = Const::fMKaon;
-	double Kaon0 = Const::fMKaon0;
-	double Charm = Const::fMDs;
 	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
-	for (double t = 0; t < 2.0; t += 0.001)
+	Neutrino *N_up = new Neutrino(0, Neutrino::Polarised | Neutrino::Dirac | Neutrino::Particle | Neutrino::Left );
+	Neutrino *N_do = new Neutrino(0, Neutrino::Polarised | Neutrino::Dirac | Neutrino::Particle | Neutrino::Right);
+
+	//Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
+	for (double t = 0; t < 2.0; t += 0.1)
 	{
 		Out << t << "\t";
-		Out << Kine::ShrockFactor(Pion, Elec, t) << "\t";
-		Out << Kine::ShrockFactor(Kaon, Elec, t) << "\t";
-		Out << Kine::ShrockFactor(Charm, Elec, t) << "\t";
-		Out << Kine::ShrockFactor(Pion, Muon, t) << "\t";
-		Out << Kine::ShrockFactor(Kaon, Muon, t) << "\t";
-		Out << Kine::ShrockFactor(Charm, Muon, t) << "\t";
+		Out << N_up->ProductionScale(Amplitude::_EPI) << "\t";
+		Out << N_do->ProductionScale(Amplitude::_EPI) << "\t";
+		Out << N_up->ProductionScale(Amplitude::_MUPI) << "\t";
+		Out << N_do->ProductionScale(Amplitude::_MUPI) << "\t";
 		Out << std::endl;
 	}
+		//Out << Kine::ShrockFactor(Pion, Elec, t) << "\t";
+		//Out << Kine::ShrockFactor(Kaon, Elec, t) << "\t";
+		//Out << Kine::ShrockFactor(Charm, Elec, t) << "\t";
+		//Out << Kine::ShrockFactor(Pion, Muon, t) << "\t";
+		//Out << Kine::ShrockFactor(Kaon, Muon, t) << "\t";
+		//Out << Kine::ShrockFactor(Charm, Muon, t) << "\t";
+		//Out << std::endl;
 	//Create object from classes
 	//e.g.	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
 

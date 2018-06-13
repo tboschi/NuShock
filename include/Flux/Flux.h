@@ -17,20 +17,11 @@
 class Flux
 {
 	public:
-		Flux(std::string HistFile);
-		Flux(const Flux & f);	//copy ctor
-		~Flux();
-
-		void CloneCopy(TH1D*& T, TObject* X);
-		void CloneCopy(TH1D*& T, TH1D* X);
-
-		TH1D* Get(Hist Name);
-
 		enum Hist
 		{
 			Total,
 			Pion,
-			2Pion,
+			PPion,
 			Kaon,
 			Kaon0,
 			Charm,
@@ -39,10 +30,25 @@ class Flux
 			TauM,
 		};
 
+		Flux(std::string HistFile);
+		Flux(const Flux & f);	//copy ctor
+		~Flux();
+
+		void CloneCopy(TH1D*& T, TObject* X);
+		void CloneCopy(TH1D*& T, TH1D* X);
+
+		TH1D* Get(Hist Name) const;
+
+		void Scale(double X, Hist KeyName = Total);
+		double RangeStart();
+		double RangeEnd();
+		double BinNumber();
+		double BinWidth();
+
 	private:
 		TH1D *hTotal;
 		TH1D *hPion;
-		TH1D *h2Pion;
+		TH1D *hPPion;
 		TH1D *hKaon;
 		TH1D *hKaon0;
 		TH1D *hCharm;

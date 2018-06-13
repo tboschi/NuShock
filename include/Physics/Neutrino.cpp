@@ -160,6 +160,21 @@ double* Neutrino::GetMixings()
 	return fMixings;
 }
 
+double Neutrino::GetUe()
+{
+	return fMixings[0];
+}
+
+double Neutrino::GetUm()
+{
+	return fMixings[1];
+}
+
+double Neutrino::GetUt()
+{
+	return fMixings[2];
+}
+
 double Neutrino::GetEnergy()
 {
 	return fEnergy;

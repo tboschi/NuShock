@@ -402,12 +402,24 @@ double Detector::EnergyLoss(Particle *P, bool &Contained)
 double Detector::BetheLoss(Particle *P, double Target)
 {
 	if (Target == 1)
-		return Kine::Bethe(P->GetP4().Beta(), P->M(), 1.3945, 188.0, 18, 40);	//LAr, code 1
+		return Bethe(P->GetP4().Beta(), P->M(), 1.3945, 188.0, 18, 40);	//LAr, code 1
 	else if (Target== 2)
-		return Kine::Bethe(P->GetP4().Beta(), P->M(), 0.1020, 188.0, 18, 40);	//GasAr, code 2
+		return Bethe(P->GetP4().Beta(), P->M(), 0.1020, 188.0, 18, 40);	//GasAr, code 2
 	else if (Target == 3)
-		return Kine::Bethe(P->GetP4().Beta(), P->M(), 7.874, 286.0, 26, 56);	//Fe, code 3
+		return Bethe(P->GetP4().Beta(), P->M(), 7.874, 286.0, 26, 56);	//Fe, code 3
 	else return 0.0;
+}
+
+double Detector::Bethe(double Beta, double Mass, double Density, double I, int Z, int A)
+{
+	double K = 0.307075;	//From PDG MeV mol-1 cm2
+	double Beta2 = Beta*Beta;
+	double Gamma = 1.0/sqrt(1-Beta2);
+	double Gamma2 = Gamma*Gamma;
+	double e2M = Const::fMElectron / Mass;
+	double Wmax = (2000 * Const::fMElectron * Beta2 * Gamma2) / (1 + 2*Gamma*e2M + e2M*e2M);
+	double LogArg = 2000 * Const::fMElectron * Beta2 * Gamma2 * Wmax / (1e-12*I*I); 	//Everything in MeV
+	return 0.1 * Density * (K * Z) / (A * Beta2) * (0.5 * log (LogArg) - Beta2);	//stopping power in GeV/m (0.1*)
 }
 
 bool Detector::IsDecayed(Particle *P, double dx)	//Threshold check
@@ -511,3 +523,4 @@ double Detector::GetZend()
 {
 	return GetZsize() + GetZstart();
 }
+

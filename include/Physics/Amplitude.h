@@ -66,7 +66,7 @@ class Amplitude
 			_MuonM,		//3 body	mu  -> nu N e	(via Um)
 			_TauEE,		//3 body	tau -> nu N e	(via Ue)
 			_TauET,		//3 body	tau -> nu N e	(via Ut)
-			_TauME,		//3 body	tau -> nu N mu	(via Um)
+			_TauMM,		//3 body	tau -> nu N mu	(via Um)
 			_TauMT,		//3 body	tau -> nu N mu	(via Ut)
 			_TauPion,	//2 body	tau -> N pi	(via Ut)
 			//pseudomeson leptonic
@@ -87,28 +87,42 @@ class Amplitude
 		Amplitude();
 
 		void LoadMass(Channel Name);
+
+		double Kallen(double X, double Y, double Z);
+		double SqrtKallen(double X, double Y, double Z);
+
 		double dGammad5_3B(double M2);
 		double dGammad2_3B(double M2);
 		double dGammad2_2B(double M2, double x, double y);
 		double dGammad0_2B(double M2, double x, double y);
+
+		double Limit(double &s, double x, double y, double z);
 		double Limit(double &s, double &t, double x, double y, double z);
+
 		double M2_LeptonPseudoMeson(double x, double y, double cos0);
 		double M2_NeutrinoPseudoMeson(double x, double y, double cos0);
 		double M2_LeptonVectorMeson(double x, double y, double cos0);
 		double M2_NeutrinoVectorMeson(double x, double y, double cos0);
 		double M2_WW(double x, double y, double z, double s, double cos0);
 		double M2_WZ(double x, double y, double z, double s, double t, double cos0s, double cos0t);
+		double M2_WZ(double x, double y, double z, double u, double cos0u);
+
 		double M2_LeptonNeutrino(double x, double y, double z, double s, double t, double cos0);
+		double M2_LeptonAntineutrino(double x, double y, double z, double s, double cos0);
+		double M2_LeptonMeson(double x, double y);
+		double M2_MesonTwo(double x, double y);
+		double M2_MesonThree(double s, double t, double x, double y, double z, double cos0, double L_, double L0);
 
 		bool IsChanged();
+		void Reset();
 
-		double GetMass();
-		double GetUe();
-		double GetUm();
-		double GetUt();
+		double Mass(int E = 1.0);
+		double Ue(int E = 1.0);
+		double Um(int E = 1.0);
+		double Ut(int E = 1.0);
+		int Helicity();
 		bool GetFermion();
 		bool GetParticle();
-		int GetHelicity();
 
 		void SetMass(double Mass);
 		void SetUe(double Ue);
@@ -119,6 +133,9 @@ class Amplitude
 		void SetHelicity(int Helicity);
 		void SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Particle, bool Helicity);
 
+		double Function(double x);
+		double Function_D(double *x);
+
 	protected:
 		Channel Channel_prev;
 
@@ -127,8 +144,6 @@ class Amplitude
 
 		void SetFunction(double (Amplitude::*FF)(double));
 		void SetFunction_D(double (Amplitude::*FF)(double *));
-		double Function(double x);
-		double Function_D(double *x);
 
 		//Masses
 		const double M_Neutrino;
@@ -144,17 +159,20 @@ class Amplitude
 		const double M_Rho0;
 		const double M_Omega;
 		const double M_Kaonx;
-		const double M_Kaon0x;
 		const double M_Etai;
 		const double M_Phi;
 		const double M_Tau;
 		const double M_Charm;
+		const double M_CharmS;
 
 	private:
 		double M_Sterile, M_Sterile_prev;
 		double fUe, fUm, fUt;
 		bool bFermion, bParticle;
 		int iHel;
+
+		double (Amplitude::*fFunction)(double);
+		double (Amplitude::*fFunction_D)(double*);
 };
 
 #endif

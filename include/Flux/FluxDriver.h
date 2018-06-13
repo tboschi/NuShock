@@ -19,9 +19,8 @@
 #include "TTree.h"
 #include "TMath.h"
 
-#include "Tools/Tools.h"
-#include "Tools/Kine.h"
-#include "Tools/Const.h"
+#include "Tools.h"
+#include "Physics.h"
 #include "Flux/Flux.h"
 
 class FluxDriver
@@ -31,49 +30,38 @@ class FluxDriver
 		~FluxDriver();
 
 		void CloneCopy(TH1D*& T, TObject* X);
-		bool MakeFlux(double M_Sterile);
-		void MakeElecComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
-		void MakeMuonComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
-		void MakeTauComponent(bool Neutrino, Flux &sxFlux, double M_Sterile);
+		bool MakeFlux(Neutrino *N);
+		void MakeElecComponent(Flux *fxFlux, Neutrino *N);
+		void MakeMuonComponent(Flux *fxFlux, Neutrino *N);
+		void MakeTauComponent(Flux *fxFlux, Neutrino *N);
 		//void MakeStandardFlux();
 		//double SampleEnergy();
 
-		double GetRange();
-		double GetRangeStart();
-		double GetRangeEnd();
-		int GetBinNumber();
-		double GetIntensity(double Energy, bool NvA, bool Uu);
+		double Range();
+		double RangeStart();
+		double RangeEnd();
+		int BinNumber();
+
+		double Intensity(Neutrino *N);
+		double InterpolateIntensity(TH1D* Hist, double Energy);
+
 		void SetBaseline(double Baseline);
 		void SetPOT(double POT);
 		void SetArea(double Area);
+		void ScaleAll(double X);
 
-		bool IsChanged(double M_Sterile);
-
-		void SetUe(double X);
-		void SetUm(double X);
-		void SetUt(double X);
-		double GetUe();
-		double GetUm();
-		double GetUt();
+		bool IsChanged(Neutrino* N);
 
 		void Modify(double &xdir, double &ydir, double M_Sterile);
 
 	private:
-		unsigned int BinNumber;
-		double RangeStart, RangeEnd;
-		double U_e, U_m, U_t;
-
 		TFile *SourceFile;
 		TFile *KineFile;
 		bool Kine, Mod;
 
 		//Get fluxes from file
-		Flux* fxNuElectron;
-		Flux* fxNuElectronBar;
-		Flux* fxNuMuon;
-		Flux* fxNuMuonBar;
-		Flux* fxNuTau;
-		Flux* fxNuTauBar;
+		Flux *fxNuElectron, *fxNuMuon, *fxNuTau;
+		Flux *fxHeavyElectron, *fxHeavyMuon, *fxHeavyTau;
 
 		//Kinematic factors
 		TH1D *hTemp; 
@@ -111,7 +99,8 @@ class FluxDriver
 		TH1D* hTauETn,  * hTauETa;
 		TH1D* hTauMTn,  * hTauMTa;
 
-		double M_Sterile_prev;
+		double Mass_prev;
+		int Helicity_prev, Particle_prev;
 
 		const double M_Electron;
 		const double M_Muon;

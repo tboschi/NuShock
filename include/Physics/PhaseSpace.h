@@ -17,9 +17,7 @@
 #include "TLorentzVector.h"
 #include "TGenPhaseSpace.h"
 
-#include "Tools.h"
 #include "Physics/Amplitude.h"
-
 
 class PhaseSpace : protected Amplitude
 {

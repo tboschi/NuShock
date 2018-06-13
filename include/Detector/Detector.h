@@ -49,6 +49,7 @@ class Detector
 		double RadiationLength(bool Nuclear = false);
 		double EnergyLoss(Particle *P, bool &Contained);
 		double BetheLoss(Particle *P, double Target);
+		double Bethe(double Beta, double Mass, double Density, double I, int Z, int A);
 
 		bool IsDecayed(Particle *P, double dx);
 		bool IsDetectable(Particle *P);	

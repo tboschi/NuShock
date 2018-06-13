@@ -23,7 +23,8 @@ Amplitude::Amplitude()	: //Decay rates calculator
         M_Etai(Const::fMEtai),
         M_Phi(Const::fMPhi),
         M_Tau(Const::fMTau),
-        M_Charm(Const::fMCharm)
+        M_Charm(Const::fMCharm),
+        M_CharmS(Const::fMDs)
 {
 	M_Sterile_prev = -1.0;
 	Channel_prev = _undefined;
@@ -50,17 +51,17 @@ void Amplitude::LoadMass(Channel Name)
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Electron);
 			break;
-		case _nEMU:
+		case _nEM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Muon);
 			break;
-		case _nMUE:
+		case _nME:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Muon);
 			break;
-		case _nMUMU:
+		case _nMM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Muon);
@@ -75,12 +76,12 @@ void Amplitude::LoadMass(Channel Name)
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Tau);
 			break;
-		case _nMUT:
+		case _nMT:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Tau);
 			break;
-		case _nTMU:
+		case _nTM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Tau);
@@ -93,7 +94,7 @@ void Amplitude::LoadMass(Channel Name)
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Pion);
 			break;
-		case _MUPI:
+		case _MPI:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Pion);
 			break;
@@ -105,7 +106,7 @@ void Amplitude::LoadMass(Channel Name)
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Kaon);
 			break;
-		case _MUKA:
+		case _MKA:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Kaon);
 			break;
@@ -113,7 +114,7 @@ void Amplitude::LoadMass(Channel Name)
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Kaonx);
 			break;
-		case _MUKAx:
+		case _MKAx:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Kaonx);
 			break;
@@ -125,7 +126,7 @@ void Amplitude::LoadMass(Channel Name)
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Rho);
 			break;
-		case _MURHO:
+		case _MRHO:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Rho0);
 			break;
@@ -227,7 +228,7 @@ double Amplitude::Kallen(double X, double Y, double Z)
 	return X*X + Y*Y + Z*Z - 2*(X*Y + X*Z + Y*Z);
 }
 
-double Amplitude::tKallen(double X, double Y, double Z)
+double Amplitude::SqrtKallen(double X, double Y, double Z)
 {
 	return sqrt(Kallen(X, Y, Z));
 }
@@ -241,7 +242,7 @@ double Amplitude::tKallen(double X, double Y, double Z)
 double Amplitude::dGammad5_3B(double M2)
 {
 	//return M2 / (512 * Const::fPi3 * Const::fPi2 * GetMass());
-	return M2 * GetMass() / (512 * Const::fPi3 * Const::fPi2);	//integration over dsigma dtau
+	return M2 * Mass() / (512 * Const::fPi3 * Const::fPi2);	//integration over dsigma dtau
 }
 
 //	after integrating angular depend., to be integrated over ds, dt
@@ -253,7 +254,7 @@ double Amplitude::dGammad2_3B(double M2)
 //	to be integrated over da, dcosb		(m1/m0)²  (m2/m0)²
 double Amplitude::dGammad2_2B(double M2, double x, double y)
 {
-	return M2 * SqrtKallen(1, x, y) / (64 * Const::fPi2 * GetMass());
+	return M2 * SqrtKallen(1, x, y) / (64 * Const::fPi2 * Mass());
 }
 
 //	constant, after integrating angular depend.
@@ -274,7 +275,7 @@ double Amplitude::Limit(double &s, double &t, double x, double y, double z)
 {
 	double sInf = x + y + 2*sqrt(x*y);
 	double sSup = 1 + z - sqrt(z);
-	s = xInf + (xSup - xInf) * s;	//this is s
+	s = sInf + (sSup - sInf) * s;	//this is s
 
 	double Kal = SqrtKallen(s, y, x) * SqrtKallen(1, s, z);
 	double tInf = z + x + ((1 - s - z) * (s - y + x) - Kal) / (2 * s);
@@ -292,8 +293,8 @@ double Amplitude::Limit(double &s, double &t, double x, double y, double z)
 //					lepton		meson	angle
 double Amplitude::M2_LeptonPseudoMeson(double x, double y, double cos0)
 {
-	return Const::fGF2 * pow(GetMass(), 4) * 
-		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * GetHelicity() * SqrtKallen(1, x, y) * cos0);
+	return Const::fGF2 * Mass(4) * 
+		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y) * cos0);
 }
 
 //					neutrino	meson	angle
@@ -305,8 +306,8 @@ double Amplitude::M2_NeutrinoPseudoMeson(double x, double y, double cos0)
 //					lepton		meson	angle
 double Amplitude::M2_LeptonVectorMeson(double x, double y, double cos0)	//must be divided by vector meson mass
 {
-	return Const::fGF2 * pow(GetMass(), 4) * 
-		(pow(1 - x, 2) + y * (1 + x) - 2*y - (1 - x - 2*y) *  GetHelicity() * SqrtKallen(1, x, y) * cos0);
+	return Const::fGF2 * Mass(4) * 
+		(pow(1 - x, 2) + y * (1 + x) - 2*y - (1 - x - 2*y) *  Helicity() * SqrtKallen(1, x, y) * cos0);
 }
 
 //					lepton		meson	angle
@@ -319,8 +320,8 @@ double Amplitude::M2_NeutrinoVectorMeson(double x, double y, double cos0)
 //			       neutrino, letpon,   lepton
 double Amplitude::M2_WW(double x, double y, double z, double s, double cos0)	//gL^2 + gR^2
 {
-	return 4 * Const::fGF2 * pow(GetMass(), 4) *
-	       (s - x - y) * (1 + z - s - GetHelicity() * SqrtKallen(1, z, s) * cos0);
+	return 4 * Const::fGF2 * Mass(4) *
+	       (s - x - y) * (1 + z - s - Helicity() * SqrtKallen(1, z, s) * cos0);
 }
 
 //			lepton energies are s = (p0-p2)², t = (p0-p3)² and cos0s,t the angles wrt z-axis
@@ -338,8 +339,8 @@ double Amplitude::M2_WZ(double x, double y, double z, double s, double t, double
 //			       neutrino, letpon,   lepton
 double Amplitude::M2_WZ(double x, double y, double z, double u, double cos0u)	//2gL*gR
 {
-	return 4 * Const::fGF2 * pow(GetMass(), 4) *
-		sqrt(y * z) * (1 + x - u - GetHelicity() * SqrtKallen(1, x, u) * cos0u);
+	return 4 * Const::fGF2 * Mass(4) *
+		sqrt(y * z) * (1 + x - u - Helicity() * SqrtKallen(1, x, u) * cos0u);
 }
 
 //
@@ -353,44 +354,44 @@ double Amplitude::M2_LeptonNeutrino(double x, double y, double z, double s, doub
 {
 	double u = 1 + x + y + z - s - t;
 
-	return 16 * Const::fGF2 * pow(GetMass(), 4) *
+	return 16 * Const::fGF2 * Mass(4) *
 		(1 + x - u) * (u + y + z -
-		GetHelicity() * (u + y + z - (1 + y - t + SqrtKallen(1, y, t) * cos0) * (1 + z - s - SqrtKallen(1, z, s)) / 2) );
+		Helicity() * (u + y + z - (1 + y - t + SqrtKallen(1, y, t) * cos0) * (1 + z - s - SqrtKallen(1, z, s)) / 2) );
 }
 
 //		This amplitude is to be used if the mixing comes from the flavour in final state
 //						     neutrino  lepton    neutrino  neutrino  angle betw. lepton and neutr
-double ProductionRates::M2_LeptonAntineutrino(double x, double y, double z, double s, double cos0)
+double Amplitude::M2_LeptonAntineutrino(double x, double y, double z, double s, double cos0)
 {
-	return 16 * Const::fGF2 * pow(GetMass(), 4) * 
-		(s - x - y) * (1 + z - s - GetHelicity() * SqrtKallen(1, s, z));
+	return 16 * Const::fGF2 * Mass(4) * 
+		(s - x - y) * (1 + z - s - Helicity() * SqrtKallen(1, s, z));
 }
 
 //					      neutrino	meson
-double ProductionRates::M2_LeptonMeson(double x, double y)	//y is the meson
+double Amplitude::M2_LeptonMeson(double x, double y)	//y is the meson
 {
-	return Const::fGF2 * pow(GetMass(), 4) * 
-		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * GetHelicity() SqrtKallen(1, x, y));
+	return Const::fGF2 * Mass(4) * 
+		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y));
 }
 
 //					   neutrino  lepton
-double ProductionRates::M2_MesonTwo(double x, double y)
+double Amplitude::M2_MesonTwo(double x, double y)
 {
-	return Const::fGF2 * pow(GetMass(), 4) * 
-		(x + y - pow(x - y, 2) - GetHelicity() * (y - x) * SqrtKallen(1, x, y));
+	return Const::fGF2 * Mass(4) * 
+		(x + y - pow(x - y, 2) - Helicity() * (y - x) * SqrtKallen(1, x, y));
 }
 
-double Production::M2_MesonThree(double s, double t, double x, double y, double cos0, double L_, double L0)
+double Amplitude::M2_MesonThree(double s, double t, double x, double y, double z, double cos0, double L_, double L0)
 {
 	double F = 2 + 2 * (1 + x + y + z - s - t) * L_ / x;
-	double G = 1 + (2 + y + z - s - t) * L_ / x - (1 - x) * L0 / X;
+	double G = 1 + (2 + y + z - s - t) * L_ / x - (1 - x) * L0 / x;
 
 	double A = (1 + z - s) * (1 + y - t) - (1 + x - s - t) -
-		GetHelicity() * ( SqrtKallen(1, z, s) * (1 + y - t) + SqrtKallen(1, y, t) * (1 + z - s) * cos0 ) / 2.0;
+		Helicity() * ( SqrtKallen(1, z, s) * (1 + y - t) + SqrtKallen(1, y, t) * (1 + z - s) * cos0 ) / 2.0;
 	double B = (y + z) * (1 + x - s - t) / + 4 * y * z -
-		GetHelicity() * (y - z) * ( SqrtKallen(1, z, s) * (1 + y - t) - SqrtKallen(1, y, t) * (1 + z - s) * cos0 ) / 2.0;
+		Helicity() * (y - z) * ( SqrtKallen(1, z, s) * (1 + y - t) - SqrtKallen(1, y, t) * (1 + z - s) * cos0 ) / 2.0;
 	double C = y * (1 + z - s) + z * (1 + y - t) -
-	       	GetHelicity() * (y * SqrtKallen(1, z, s) + z * SqrtKallen(1, y, t) * cos0);
+	       	Helicity() * (y * SqrtKallen(1, z, s) + z * SqrtKallen(1, y, t) * cos0);
 
 	return Const::fGF2 * ( (F*F) * A + (G*G) * B - 2*(F*G) * C ) / 2.0;
 }
@@ -409,12 +410,12 @@ void Amplitude::SetFunction_D(double (Amplitude::*FF)(double*))
 
 double Amplitude::Function(double x)
 {
-	return (*fFunction)(x);
+	return (this->*fFunction)(x);
 }
 
 double Amplitude::Function_D(double *x)
 {
-	return (*fFunction_D)(x);
+	return (this->*fFunction_D)(x);
 }
 
 /*
@@ -429,9 +430,9 @@ std::vector<std::string> Amplitude::ListChannels()
 */
 bool Amplitude::IsChanged()
 {
-	bool Ret = (fabs(GetMass() - M_Sterile_prev) > 1e-9);
+	bool Ret = (fabs(Mass() - M_Sterile_prev) > 1e-9);
 
-	M_Sterile_prev = GetMass();
+	M_Sterile_prev = Mass();
 
 	//Reset decay widths if changed
 	if (Ret)
@@ -440,25 +441,34 @@ bool Amplitude::IsChanged()
 	return Ret;
 }
 
+void Amplitude::Reset()	//to be implemented in derived classes
+{
+}
+
 //Get functions
-double Amplitude::GetMass()
+double Amplitude::Mass(int E)
 {
-	return M_Sterile;
+	return pow(M_Sterile, E);
 }
 
-double Amplitude::GetUe()
+double Amplitude::Ue(int E)
 {
-	return Ue;
+	return pow(fUe, E);
 }
 
-double Amplitude::GetUm()
+double Amplitude::Um(int E)
 {
-	return Um;
+	return pow(fUm, E);
 }
 
-double Amplitude::GetUt()
+double Amplitude::Ut(int E)
 {
-	return Ut;
+	return pow(fUt, E);
+}
+
+int Amplitude::Helicity()
+{
+	return iHel;
 }
 
 bool Amplitude::GetFermion()
@@ -469,11 +479,6 @@ bool Amplitude::GetFermion()
 bool Amplitude::GetParticle()
 {
 	return bParticle;
-}
-
-int Amplitude::GetHelicity()
-{
-	return iHel;
 }
 
 //Set functions

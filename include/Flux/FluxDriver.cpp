@@ -167,9 +167,9 @@ void FluxDriver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
 	TH1D *hPoint, *hTotal;
 
 	//pi+ -> e+ nu_e
-	if (hPoint = fxFlux->Get(Hist::Pion))
+	if (hPoint = fxFlux->Get(Flux::Pion))
 	{
-		hPoint->Scale(N->ProductionScale(Amplitude::PionE));
+		hPoint->Scale(N->ProductionScale(Amplitude::_PionE));
 		//Kine::Unhelicity(M_Pion, M_Electron, GetMass(), GetHelicity()));
 
 		hTotal->Add(hPoint);
@@ -177,14 +177,14 @@ void FluxDriver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
 
 	//K+ -> pi0 e+ nu_e	(5.07 %)		//I just assume that both decays are equally probable 
 	//K+ -> e+ nu_e		(1.582e-3)		//for each different energy, so it is a linear combination of the two
-	if (hPoint = fxFlux->Get(Hist::Kaon))
+	if (hPoint = fxFlux->Get(Flux::Kaon))
 	{
 				    //branching ratios
-		double KaonFactor = 1.582e-3/(1.582e-3+5.07) * N->ProductionScale(Amplitude::KaonE);	//Two body
+		double KaonFactor = 1.582e-3/(1.582e-3+5.07) * N->ProductionScale(Amplitude::_KaonE);	//Two body
 		if (Kine)
 		{
 			//double KE = hKaonElec->GetBinContent(hKaonElec->FindBin(GetMass()+1e-9)+1);	//1e-9 to prevent bin error
-			KaonFactor += 5.07/(1.582e-3+5.07) * N->ProductionScale(Amplitude::KaonCE);	//Three body
+			KaonFactor += 5.07/(1.582e-3+5.07) * N->ProductionScale(Amplitude::_KaonCE);	//Three body
 		}
 		else if (N->GetMass() < M_Kaon - M_Pion0 - M_Electron)
 			KaonFactor += 5.07/(1.582e-3+5.07);	//simple scaling
@@ -195,12 +195,12 @@ void FluxDriver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
 	}
 
 	//K0 -> pi+ e+ nu_e
-	if (hPoint = fxFlux->Get(Hist::Kaon0))
+	if (hPoint = fxFlux->Get(Flux::Kaon0))
 	{
 		if (Kine)
 		{
 			//double K0E = hKaon0Elec->GetBinContent(hKaon0Elec->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
-			hPoint->Scale(N->ProductionScale(Amplitude::Kaon0E));
+			hPoint->Scale(N->ProductionScale(Amplitude::_Kaon0E));
 		}
 		else if (N->GetMass() > M_Kaon0 - M_Pion - M_Electron)
 			hPoint->Scale(0);	//simple scaling
@@ -209,12 +209,12 @@ void FluxDriver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
 	}
 
 	//mu+ -> nu_mu_bar e+ nu_e
-	if (hPoint = fxFlux->Get(Hist::Muon))
+	if (hPoint = fxFlux->Get(Flux::Muon))
 	{
 		if (Kine)
 		{
 			//double ME = hMuonElec->GetBinContent(hMuonElec->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
-			hPoint->Scale(N->ProductionScale(Amplitude::MuonE));
+			hPoint->Scale(N->ProductionScale(Amplitude::_MuonE));
 		}
 		else if (N->GetMass() > M_Muon - M_Electron)
 			hPoint->Scale(0);
@@ -223,10 +223,10 @@ void FluxDriver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
 	}
 
 	//Ds+ -> e+ nu_e
-	if (hPoint = fxFlux->Get(Hist::Charm))
+	if (hPoint = fxFlux->Get(Flux::Charm))
 	{
 		//hPoint->Scale(Kine::Unhelicity(M_Charm, M_Electron, GetMass(), GetHelicity()));
-		hPoint->Scale(N->ProductionScale(Amplitude::CharmE));
+		hPoint->Scale(N->ProductionScale(Amplitude::_CharmE));
 
 		hTotal->Add(hPoint);
 	}
@@ -238,25 +238,25 @@ void FluxDriver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
 	TH1D *hPoint, *hTotal;
 
 	//pi+ -> mu+ nu_mu
-	if (hPoint = fxFlux->Get(Hist::Pion))
+	if (hPoint = fxFlux->Get(Flux::Pion))
 	{	
 		//hPoint->Scale(Kine::Unhelicity(M_Pion, M_Muon, GetMass(), GetHelicity()));
-		hPoint->Scale(N->ProdctionScale(Amplitude::PionM));
+		hPoint->Scale(N->ProductionScale(Amplitude::_PionM));
 
 		hTotal->Add(hPoint);
 	}
 
 	//K+ -> mu+ nu_mu	(63.56%)
 	//K+ -> pi0 mu+ nu_mu	(3.53%)
-	if (hPoint = fxFlux->Get(Hist::Kaon))
+	if (hPoint = fxFlux->Get(Flux::Kaon))
 	{
 		//double KaonFactor = 63.56/(63.56+3.35) * Kine::Unhelicity(M_Kaon, M_Muon, GetMass(), GetHelicity());	//Two body
-		double KaonFactor = 63.56/(63.56+3.35) * N->ProductionScale(Amplitude::KaonM);
+		double KaonFactor = 63.56/(63.56+3.35) * N->ProductionScale(Amplitude::_KaonM);
 		if (Kine)
 		{
 			//double KM = hKaonMuon->GetBinContent(hKaonMuon->FindBin(GetMass()+1e-9)+1);	//1e-9 to prevent bin error
 			//KaonFactor += 3.35/(63.56+3.35) * KM;	//Three body
-			KaonFactor += 3.35/(63.56+3.35) * N->ProductionScale(Amplitude::KaonCM);	//Three body
+			KaonFactor += 3.35/(63.56+3.35) * N->ProductionScale(Amplitude::_KaonCM);	//Three body
 		}
 		else if (N->GetMass() < M_Kaon - M_Pion0 - M_Muon)
 			KaonFactor += 3.35/(63.56+3.35);	//simple scaling
@@ -267,13 +267,13 @@ void FluxDriver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
 	}
 
 	//K0 -> pi- mu+ nu_mu
-	if (hPoint = fxFlux->Get(Hist::Kaon0))
+	if (hPoint = fxFlux->Get(Flux::Kaon0))
 	{
 		if (Kine)
 		{
 			//double K0M = hKaon0Muon->GetBinContent(hKaon0Muon->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			//hPoint->Scale(K0M);	//Three body
-			hPoint->Scale(N->ProductionScale(Amplitude::Kaon0M));	//Three body
+			hPoint->Scale(N->ProductionScale(Amplitude::_Kaon0M));	//Three body
 		}
 		else if (N->GetMass() > M_Kaon0 - M_Pion - M_Muon)
 			hPoint->Scale(0);	//simple scaling
@@ -282,13 +282,13 @@ void FluxDriver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
 	}
 
 	//mu- -> nu_mu e- nu_e_bar
-	if (hPoint = fxFlux->Get(Hist::Muon))
+	if (hPoint = fxFlux->Get(Flux::Muon))
 	{
 		if (Kine)
 		{
-			double MM = hMuonMuon->GetBinContent(hMuonMuon->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
+			double MM = hMuonMuon->GetBinContent(hMuonMuon->FindBin(N->GetMass()+1e-9));	//1e-9 to prevent bin error
 			hPoint->Scale(MM);	//Three body
-			hPoint->Scale(N->ProductionScale(Amplitude::MuonM));	//Three body
+			hPoint->Scale(N->ProductionScale(Amplitude::_MuonM));	//Three body
 		}
 		else if (N->GetMass() > M_Muon - M_Electron)
 			hPoint->Scale(0);
@@ -297,10 +297,10 @@ void FluxDriver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
 	}
 
 	//Ds+ -> mu+ nu_mu
-	if (hPoint = fxFlux->Get(Hist::Charm))
+	if (hPoint = fxFlux->Get(Flux::Charm))
 	{
 		//hPoint->Scale(Kine::Unhelicity(M_Charm, M_Muon, GetMass(), GetHelicity()));
-		hPoint->Scale(N->ProductionScale(Amplitude::CharmM));
+		hPoint->Scale(N->ProductionScale(Amplitude::_CharmM));
 
 		hTotal->Add(hPoint);
 	}	
@@ -312,11 +312,11 @@ void FluxDriver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 	TH1D *hPoint, *hTotal;
 
 	//Ds+ -> tau+ nu_tau
-	if (hPoint = fxFlux->Get(Hist::Charm))
+	if (hPoint = fxFlux->Get(Flux::Charm))
 	{
 		//needs special scaling
 		//hPoint->Scale(Kine::Unhelicity(M_Charm, M_Tau, GetMass(), GetHelicity()));
-		hPoint->Scale(N->ProductionScale(Amplitude::CharmT));
+		hPoint->Scale(N->ProductionScale(Amplitude::_CharmT));
 
 		//"manual" modifier from empirical observation
 		//the histogram is stretched and pulled to match the MC simulation spectrum
@@ -332,7 +332,7 @@ void FluxDriver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 			for (double Energy = RangeStart(); Energy < RangeEnd(); Energy += EnStep)
 			{
 				double Flux = hTemp->GetBinContent(hTemp->FindBin(Energy));
-				hPoint->Fill(Energy*xdir, Flux*BinNumber/5000.0);	//fix end point
+				hPoint->Fill(Energy*xdir, Flux*BinNumber()/5000.0);	//fix end point
 			}
 
 			hPoint->Scale(xdir);		//fix peak
@@ -344,20 +344,20 @@ void FluxDriver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 	}
 
 	//tau+ -> pi+ nu_tau
-	if (hPoint = fxFlux->Get(Hist::Pion))
+	if (hPoint = fxFlux->Get(Flux::Pion))
 	{
 		//hPoint->Scale(Kine::Unhelicity(M_Tau, M_Pion, GetMass(), GetHelicity()));
-		hPoint->Scale(N->ProductionScale(Amplitude::TauPion));
+		hPoint->Scale(N->ProductionScale(Amplitude::_TauPion));
 
 		hTotal->Add(hPoint);
 	}
 
 	//tau+ -> pi+ pi0 nu_tau	//crossing simmetries
-	if (hPoint = fxFlux->Get(Hist::2Pion))
+	if (hPoint = fxFlux->Get(Flux::PPion))
 	{
 		if (false)	//not implemented
 		{
-			//double P2 = hTau2Pion->GetBinContent(hTau2Pion->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
+			//double P2 = hTauPPion->GetBinContent(hTauPPion->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			//hPoint->Scale(P2);	//Three body
 		}
 		else if (N->GetMass() > M_Tau - M_Pion - M_Pion0)	//only hard cut threshold
@@ -367,13 +367,13 @@ void FluxDriver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 	}
 
 	//tau+ -> nu_tau_bar e+ nu_e
-	if (hPoint = fxFlux->Get(Hist::TauE))
+	if (hPoint = fxFlux->Get(Flux::TauE))
 	{
 		if (Kine)
 		{
 			//double TE = hTauETau->GetBinContent(hTauETau->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			//hPoint->Scale(TE);	//Three body
-			hPoint->Scale(N->ProductionScale(Amplitude::TauEE));	//Three body
+			hPoint->Scale(N->ProductionScale(Amplitude::_TauEE));	//Three body
 		}
 		else if (N->GetMass() > M_Tau - M_Electron)
 			hPoint->Scale(0);
@@ -382,13 +382,13 @@ void FluxDriver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 	}
 
 	//tau+ -> nu_tau_bar mu+ nu_mu
-	if (hPoint = fxFlux->Get(Hist::TauM))
+	if (hPoint = fxFlux->Get(Flux::TauM))
 	{
 		if (Kine)
 		{
 			//double TM = hTauMTau->GetBinContent(hTauMTau->FindBin(GetMass()+1e-9));	//1e-9 to prevent bin error
 			//hPoint->Scale(TM);	//Three body
-			hPoint->Scale(N->ProductionScale(Amplitude::TauMT));	//Three body
+			hPoint->Scale(N->ProductionScale(Amplitude::_TauMT));	//Three body
 		}
 		else if (N->GetMass() > M_Tau - M_Muon)
 			hPoint->Scale(0);
@@ -397,54 +397,56 @@ void FluxDriver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 	}
 }
 
+double FluxDriver::Range()
+{
+	return RangeEnd() - RangeStart();
+}
+
 double FluxDriver::RangeStart()
 {
-	if (sxHeavyElectron)
-		return sxHeavyElectron->RangeStart();
-	else if (sxHeavyMuon)
-		return sxHeavyMuon->RangeStart();
-	else if (sxHeavyTau)
-		return sxHeavyTau->RangeStart();
+	if (fxHeavyElectron)
+		return fxHeavyElectron->RangeStart();
+	else if (fxHeavyMuon)
+		return fxHeavyMuon->RangeStart();
+	else if (fxHeavyTau)
+		return fxHeavyTau->RangeStart();
 	else
 		return -1.0;
 }
 
 double FluxDriver::RangeEnd()
 {
-	if (sxHeavyElectron)
-		return sxHeavyElectron->RangeEnd();
-	else if (sxHeavyMuon)
-		return sxHeavyMuon->RangeEnd();
-	else if (sxHeavyTau)
-		return sxHeavyTau->RangeEnd();
+	if (fxHeavyElectron)
+		return fxHeavyElectron->RangeEnd();
+	else if (fxHeavyMuon)
+		return fxHeavyMuon->RangeEnd();
+	else if (fxHeavyTau)
+		return fxHeavyTau->RangeEnd();
 	else
 		return -1.0;
 }
 
 int FluxDriver::BinNumber()
 {
-	if (sxHeavyElectron)
-		return sxHeavyElectron->BinNumber();
-	else if (sxHeavyMuon)
-		return sxHeavyMuon->BinNumber();
-	else if (sxHeavyTau)
-		return sxHeavyTau->BinNumber();
+	if (fxHeavyElectron)
+		return fxHeavyElectron->BinNumber();
+	else if (fxHeavyMuon)
+		return fxHeavyMuon->BinNumber();
+	else if (fxHeavyTau)
+		return fxHeavyTau->BinNumber();
 	else
 		return -1.0;
 }
 
 //return the intensity of the flux at given energy
 //
-double FluxDriver::Intensity(Neutrino *N)
-{
-	return Intensity(N->EnergyKin());
-}
 
-double FluxDriver::Intensity(double Energy)	//Return flux intensity, given energy, simple linear interpolation
+double FluxDriver::Intensity(Neutrino *N)	//Return flux intensity, given energy, simple linear interpolation
 {
-	return InterpolateIntensity(fxHeavyElectron->Get(Hist::Total), Energy) +
-	       InterpolateIntensity(fxHeavyMuon->Get(Hist::Total), Energy) +
-	       InterpolateIntensity(fxHeavyTau->Get(Hist::Total), Energy) ;
+	double Energy = N->GetEnergyKin();
+	return pow(N->GetUe(), 2) * InterpolateIntensity(fxHeavyElectron->Get(Flux::Total), Energy) +
+	       pow(N->GetUm(), 2) * InterpolateIntensity(fxHeavyMuon->Get(Flux::Total), Energy) +
+	       pow(N->GetUt(), 2) * InterpolateIntensity(fxHeavyTau->Get(Flux::Total), Energy);
 }
 
 double FluxDriver::InterpolateIntensity(TH1D* Hist, double Energy)
@@ -455,9 +457,9 @@ double FluxDriver::InterpolateIntensity(TH1D* Hist, double Energy)
 	double I2, E2;
 
 	double Ret = 0.0;
-	if (Bin > 2 && Bin < GetBinNumber())
+	if (Bin > 2 && Bin < BinNumber())
 	{
-		if (Energy < Hist->GetBinCenter(Bin) && )
+		if (Energy < Hist->GetBinCenter(Bin))
 		{
 			I2 = Hist->GetBinContent(Bin-1);
 			E2 = Hist->GetBinCenter(Bin-1);

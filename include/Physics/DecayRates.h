@@ -14,12 +14,12 @@
 #include "Tools.h"
 #include "Physics/Amplitude.h"
 
-class DecayRates : protected Amplitude
+class DecayRates : public Amplitude
 {
 	public:
 		DecayRates();
 
-		bool IsAllowed(Channel Name)
+		bool IsAllowed(Channel Name);
 		double Gamma(Channel Name);
 		double Other(Channel Name);
 		double Branch(Channel Name);
@@ -30,24 +30,24 @@ class DecayRates : protected Amplitude
 		double nnn();
 		double nGAMMA();
 		double nEE();
-		double nEMU();
-		double nMUE();
-		double nMUMU();
+		double nEM();
+		double nME();
+		double nMM();
 		double nET();
 		double nTE();
-		double nMUT();
-		double nTMU();
+		double nMT();
+		double nTM();
 		double nPI0();
 		double EPI();
-		double MUPI();
+		double MPI();
 		double TPI();
 		double EKA();
-		double MUKA();
+		double MKA();
 		double EKAx();
-		double MUKAx();
+		double MKAx();
 		double nRHO0();
 		double ERHO();
-		double MURHO();
+		double MRHO();
 		double nOMEGA();
 		double nETA();
 		double nETAi();
@@ -56,49 +56,50 @@ class DecayRates : protected Amplitude
 
 		double LeptonPseudoMeson(double M_Lepton, double M_Meson);
 		double NeutrinoPseudoMeson(double M_Meson, double fDecay2);
-		double I_PseudoMeson(double x, double y);
 		double LeptonVectorMeson(double M_Lepton, double M_Meson);
 		double NeutrinoVectorMeson(double M_Meson, double fDecay2);
+		double I_LeptonPseudoMeson(double x, double y);
+		double I_NeutrinoPseudoMeson(double x, double y);
+		double I_LeptonVectorMeson(double x, double y);
+		double I_NeutrinoVectorMeson(double x, double y);
 
-		double NeutrinoLeptonAA(double &fCC, double &fNC, double M_Lepton);
-		double NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB);
-		double I_WW(double x, double y, double z, double theta);
-		double I_WW_s(double s);
-		double I_WW_s(double s, double cos0, double x, double y, double z);
-		double I_WZ(double x, double y, double z, double theta);
-		double I_WZ_s(double s);
-		double I_WZ_s(double s, double cos0, double x, double y, double z);
+		double NeutrinoLeptonAA(double &fCC, double &fNC, double M_Neut, double M_Lepton);
+		double NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
+		double NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
+		double I_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);//, double theta)
+		double I_NeutrinoLeptonLepton_s(double s);
 
 		//Set and Get
 		//std::vector<std::string> ListChannels();
 		//std::vector<ChannelName> ListNameKeys();
 
 		void Reset();
+		void SetFunction(double (DecayRates::*FF)(double));
 
 	private:
 		double fnnn,
                        fnGAMMA,
                        fnEE_e,	
-                       fnEE_mt,	
-                       fnEMU,	
-                       fnMUE,	
-                       fnMUMU_m,	
-                       fnMUMU_et,	
+                       fnEE_o,	
+                       fnEM,	
+                       fnME,	
+                       fnMM_m,	
+                       fnMM_o,	
                        fnET,	
                        fnTE,	
-                       fnMUT,	
-                       fnTMU,	
+                       fnMT,	
+                       fnTM,	
                        fnPI0,	
                        fEPI,	
-                       fMUPI,	
+                       fMPI,	
                        fTPI,	
                        fEKA,	
-                       fMUKA,	
+                       fMKA,	
                        fnRHO0,	
                        fERHO,	
-                       fMURHO,	
+                       fMRHO,	
                        fEKAx,	
-                       fMUKAx,	
+                       fMKAx,	
                        fnETA,	
                        fnETAi,	
                        fnOMEGA,

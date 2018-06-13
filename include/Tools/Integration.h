@@ -5,8 +5,8 @@
  * Author: Tommaso Boschi
  */
 
-#ifndef TOOLS_H
-#define TOOLS_H
+#ifndef INTEGRATION_H
+#define INTEGRATION_H
 
 #include <limits>
 
@@ -16,11 +16,13 @@
 namespace Inte
 {
 
+	const unsigned int Step = 100;
+
 	enum MinMax
 	{
 		Minimum = 0,
 		Maximum = 1,
-	}
+	};
 
 	//integration
 	template<class TempClass>
@@ -28,7 +30,7 @@ namespace Inte
 	{
 		TempClass *TempObject = static_cast<TempClass*>(UserData);
 
-		if (nComp == 1)
+		if (*nComp == 1)
 			f[0] = TempObject->Function(nDim, x);
 	}
 
@@ -105,8 +107,7 @@ namespace Inte
 	}	
 
 	template<class TempClass>
-	double Min(TempClass *TempObject)
-	double GoldRationSolver(TempClass *TempObject, MixMax Type)
+	double GoldRationSolver(TempClass *TempObject, MinMax Type)
 	{
 		int Sign = 1-2*Type;
 		double GR = (1 + sqrt(5)) / 2.0;
@@ -145,7 +146,7 @@ namespace Inte
 		minX.clear();
 		void *UserData = TempObject;
 		int Sign = 1-2*Type;
-		function_t FunCast = reinterpret_cast<function_t>(&Function<TempClass>)
+		function_t FunCast = reinterpret_cast<function_t>(&Function<TempClass>);
 
 		int icount, ifault, numres;
 		int kcount = 500, konvge = 10;
@@ -158,7 +159,7 @@ namespace Inte
 			start[i] = 1.0;
 			step[i] = 1.0;
 		}
-		double yValue;
+		double *yValue;
 
 		nelmin ( FunCast, n, UserData, Sign, start, xmin, yValue, 
 			 reqmin, step, konvge, kcount, 
@@ -168,7 +169,7 @@ namespace Inte
 		{
 			for (unsigned int i = 0; i < n; ++i)
 				minX.push_back(xmin[i]);
-			return Sign*yValue;
+			return Sign * (*yValue);
 		}
 		else
 			return -1.0;

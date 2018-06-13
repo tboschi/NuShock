@@ -8,8 +8,8 @@ LIBDIR =	lib
 ROOTLIB		= $(shell root-config --glibs)
 ROOTCXX		= $(shell root-config --cflags)
 #GENIELIB	= $(shell genie-config --libs)
-#CUBALIB		= -L$(CUBA)/lib -lcuba
-#CUBACXX		= -I$(CUBA)/include 
+CUBALIB		= -L$(CUBA)/lib -lcuba
+CUBACXX		= -I$(CUBA)/include 
 #LHAPDFLIB	= -L$(LHAPDF)/lib -lLHAPDF
 LHAPDFCXX	= -I$(LHAPDF)/include
 
@@ -17,14 +17,21 @@ LDFLAGS  := -Wl,--no-as-needed $(LDFLAGS) $(ROOTLIB) $(GENIELIB) $(CUBALIB) $(LH
 CXXFLAGS := $(CXXFLAGS) -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
 #apps and exctuables
-CPP =	MakeFlux	\
+CPP =	Kine	\
+	#MakeFlux	\
 	Eps2Dat		\
 	Eps2Root	
 
 #header folders
-HPP =	Tools		\
+HPP =	Tools/Const		\
+	Tools/asa047		\
+	Tools/Integration	\
+	Tools/Particle		\
+	Physics/Amplitude	\
+	Physics/DecayRates	\
+	Physics/Production	\
+	Physics/PhaseSpace	\
 	Flux		\
-	Pysics		\
 	Detector	\
 	Event		\
 
@@ -32,7 +39,8 @@ HPP =	Tools		\
 TGT :=	$(CPP:%=$(APPDIR)/%)
 
 #dependencies of target
-INCDEP := $(HPP:%=$(INCDIR)/%/*.cpp)
+#INCDEP := $(HPP:%=$(INCDIR)/%/*.cpp)
+INCDEP := $(HPP:%=$(INCDIR)/%.cpp)
 DEP :=	$(patsubst %.cpp,%.o,$(wildcard $(INCDEP)))
 
 all: $(TGT)
@@ -48,6 +56,9 @@ $(TGT): $(DEP)
 test: app/TestGenPS
 	@mv app/TestGenPS $(BINDIR)
 	
+dep:
+	echo $(INCDEP)
+
 clean:
 	find $(INCDIR) -mindepth 1 -name "*.o" -delete
 	find $(INCDIR) -mindepth 1 -name "*~"  -delete

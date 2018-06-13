@@ -5,10 +5,10 @@
  * Author: Tommaso Boschi
  */
 
-#ifndef TOOLS_H
-#define TOOLS_H
+#ifndef CONST_H
+#define CONST_H
 
-#include <math>
+#include <cmath>
 
 //Constants
 namespace Const

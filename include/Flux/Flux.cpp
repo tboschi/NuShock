@@ -4,7 +4,7 @@
 Flux::Flux(std::string HistFile) :
 	hTotal(0),
         hPion(0),
-        h2Pion(0),
+        hPPion(0),
         hKaon(0),
         hKaon0(0),
         hCharm(0),
@@ -16,7 +16,7 @@ Flux::Flux(std::string HistFile) :
 
 	CloneCopy(hTotal, InFile->Get("htotal"));
 	CloneCopy(hPion,  InFile->Get("hpion"));
-	CloneCopy(h2Pion, InFile->Get("h2pion"));
+	CloneCopy(hPPion, InFile->Get("h2pion"));
 	CloneCopy(hKaon,  InFile->Get("hkaon"));
 	CloneCopy(hKaon0, InFile->Get("hkaon0"));
 	CloneCopy(hCharm, InFile->Get("hcharm"));
@@ -33,7 +33,7 @@ Flux::Flux(const Flux & f)
 {
 	CloneCopy(hTotal, f.Get(Total));
 	CloneCopy(hPion,  f.Get(Pion));
-	CloneCopy(h2Pion, f.Get(2Pion));
+	CloneCopy(hPPion, f.Get(PPion));
 	CloneCopy(hKaon,  f.Get(Kaon));
 	CloneCopy(hKaon0, f.Get(Kaon0));
 	CloneCopy(hCharm, f.Get(Charm));
@@ -47,7 +47,7 @@ Flux::~Flux()
 {
 	delete hTotal;
 	delete hPion;
-	delete h2Pion;
+	delete hPPion;
 	delete hKaon;
 	delete hKaon0;
 	delete hCharm;
@@ -90,8 +90,8 @@ TH1D* Flux::Get(Hist KeyName) const
 			return hTotal;
 		case Pion:
 			return hPion;
-		case 2Pion:
-			return h2Pion;
+		case PPion:
+			return hPPion;
 		case Kaon:
 			return hKaon;
 		case Kaon0:
@@ -115,7 +115,7 @@ void Flux::Scale(double X, Hist KeyName)
 	{
 		case Total:
 			Scale(X, Hist::Pion);
-			Scale(X, Hist::2Pion);
+			Scale(X, Hist::PPion);
 			Scale(X, Hist::Kaon);
 			Scale(X, Hist::Kaon0);
 			Scale(X, Hist::Charm);
@@ -126,8 +126,8 @@ void Flux::Scale(double X, Hist KeyName)
 		case Pion:
 			hPion->Scale(X);
 			break;
-		case 2Pion:
-			h2Pion->Scale(X);
+		case PPion:
+			hPPion->Scale(X);
 			break;
 		case Kaon:
 			hKaon->Scale(X);
@@ -161,7 +161,7 @@ double Flux::RangeEnd()
 
 double Flux::BinNumber()
 {
-	return Get(Hist::Total)->GetNbinsX(0);
+	return Get(Hist::Total)->GetNbinsX();
 }
 
 double Flux::BinWidth()
