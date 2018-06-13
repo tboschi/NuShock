@@ -3,7 +3,7 @@
 //Majorana can be treated as a neutrino + antineutrino
 //
 Neutrino::Neutrino(double Mass, unsigned int Options) :
-	fMass = Mass
+	fMass(Mass)
 {
 	SetParticle(Options);
 	SetFermion(Options);
@@ -11,42 +11,35 @@ Neutrino::Neutrino(double Mass, unsigned int Options) :
 
 	SetMixings(1.0, 1.0, 1.0);
 
-	TheDecay = new FullWidth();
-	TheProduction = new ProductionRates();
-	TheSpace = new PhaseSpace();
+	TheDecayRates = new DecayRates();
+	TheProduction = new Production();
+	ThePhaseSpace = new PhaseSpace();
+
 	//TheCross = new CrossSection();
 }
 
 Neutrino::~Neutrino()
 {
-	delete TheDecay;
+	delete TheDecayRates;
 	delete TheProduction;
+	delete ThePhaseSpace;
 }
 
 void Neutrino::SetParent(Amplitude *Object)
 {
-	Object->SetNeutrino(GetMass(), GetMixings(), GetFermion(), GetHelicity());
+	Object->SetNeutrino(GetMass(), GetMixings(), GetFermion(), GetParticle(), GetHelicity());
 }
 
 double Neutrino::DecayWidth(Channel Name)
 {
-	if (IsDirac())
-	{
-	}
-	else if (IsMajorana())
-	{
-		SetParticle
-	}
-
-	SetParent(TheDecay);
-	double Ret = TheDecay->Gamma(Channel);
-	return Ret;
+	SetParent(TheDecayRates);
+	return TheDecayRates->Gamma(Name);
 }
 
 double Neutrino::DecayBranch(Channel Name)
 {
-	SetParent(TheDecay);
-	return TheDecay->Branch(Channel);
+	SetParent(TheDecayRates);
+	return TheDecayRates->Branch(Name);
 }
 
 double Neutrino::ProductionWidth(Channel Name)
@@ -63,10 +56,10 @@ double Neutrino::ProductionScale(Channel Name)
 
 std::vector<TLorentzVector> Neutrino::PhaseSpace(Channel Name)
 {
-	SetParent(TheSpace);
+	SetParent(ThePhaseSpace);
 
 	std::vector<TLorentzVector> vDaughter;
-	if (TheSpace->Generate(Name))
+	if (ThePhaseSpace->Generate(Name))
 	{
 		for (unsigned int i = 0; i < TheSpace->GetNdaughter(); ++i)
 			vDaughter.push_back(TheSpace->GetDaughter(i));

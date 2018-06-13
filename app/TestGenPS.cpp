@@ -39,7 +39,7 @@ int main()
 	TGenPhaseSpace event;
 	TLorentzVector neutrino(0.0, 0.0, 0.0, 1.0);
 	std::cout << "Beta " << neutrino.Beta() << std::endl;
-	double masses[3] = {0.0, 0.05, 0.05};
+	double masses[3] = {0.1, 0.15, 0.15};
 	event.SetDecay(neutrino, 3, masses);
 
 	for (unsigned int n = 0; n < 1e5; ++n)

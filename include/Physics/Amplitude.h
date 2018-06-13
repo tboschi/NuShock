@@ -3,21 +3,15 @@
  * Author: Tommaso Boschi
  */
 
-#ifndef DECAYRATES_H
-#define DECAYRATES_H
+#ifndef AMPLITUDE_H
+#define AMPLITUDE_H
 
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <cstring>
 
-//ROOT include
-#include "TLorentzVector.h"
-#include "TGenPhaseSpace.h"
-
-#include "Tools/Tools.h"
-#include "Decay/ThreeBody.h"
-
+#include "Tools.h"
 
 class Amplitude
 {
@@ -34,28 +28,28 @@ class Amplitude
 			_nGAMMA,	//2 body	N -> nu photon
 			//pure leptonic
 			_nEE,		//3 body	N -> nu e e
-			_nEMU,		//3 body	N -> nu e mu (via U_e)
-			_nMUE,		//3 body	N -> nu mu e (via U_m)
-			_nMUMU,		//3 body	N -> nu mu mu
+			_nEM,		//3 body	N -> nu e mu (via U_e)
+			_nME,		//3 body	N -> nu mu e (via U_m)
+			_nMM,		//3 body	N -> nu mu mu
 			_nET,		//3 body	N -> nu e tau (via U_e)
 			_nTE,		//3 body	N -> nu tau e (via U_t)
-			_nMUT,		//3 body	N -> nu mu tau (via U_m)
-			_nTMU,		//3 body	N -> nu tau mu (via U_t)
+			_nMT,		//3 body	N -> nu mu tau (via U_m)
+			_nTM,		//3 body	N -> nu tau mu (via U_t)
 			//pion
 			_nPI0,		//2 body	N -> nu pi0
 			_EPI,		//2 body	N -> e pi
-			_MUPI,		//2 body	N -> mu pi
+			_MPI,		//2 body	N -> mu pi
 			_TPI,		//2 body	N -> tau pi
 			//kaon
 			_EKA,		//2 body	N -> e K
-			_MUKA,		//2 body	N -> mu K
+			_MKA,		//2 body	N -> mu K
 			//rho decay 100% in pions
 			_nRHO0,		//2 body	N -> rho0
 			_ERHO,		//2 body	N -> e rho
-			_MURHO,		//2 body	M -> mu rho
+			_MRHO,		//2 body	M -> mu rho
 			//kaon*
 			_EKAx,		//2 body	N -> e K*
-			_MUKAx,		//2 body	N -> mu K*
+			_MKAx,		//2 body	N -> mu K*
 			//other (eta, phi, omega.. )
 			_nOMEGA,	//2 body	N -> nu w
 			_nETA,		//2 body	N -> nu eta
@@ -63,17 +57,18 @@ class Amplitude
 			_nPHI,		//2 body	N -> nu phi
 			//charm
 			_ECHARM,	//2 body	N -> e D+
-			//Channels for experimental comparison (EPI, MUPI, nEE, nMUE, nMUMU)
+			//Channels for experimental comparison (EPI, MPI, nEE, nME, nMM)
 			_ExpALL,	//
 
 			//production modes
 			//pure leptonic
 			_MuonE,		//3 body	mu  -> nu N e	(via Ue)
-			_MuonM,		//3 body	mu  -> nu N e	(via Ue)
+			_MuonM,		//3 body	mu  -> nu N e	(via Um)
 			_TauEE,		//3 body	tau -> nu N e	(via Ue)
 			_TauET,		//3 body	tau -> nu N e	(via Ut)
 			_TauME,		//3 body	tau -> nu N mu	(via Um)
 			_TauMT,		//3 body	tau -> nu N mu	(via Ut)
+			_TauPion,	//2 body	tau -> N pi	(via Ut)
 			//pseudomeson leptonic
 			_PionE,		//2 body	pi -> N e	(via Ue)
 			_PionM,		//2 body	pi -> N mu	(via Um)
@@ -91,28 +86,45 @@ class Amplitude
 
 		Amplitude();
 
+		void LoadMass(Channel Name);
+		double dGammad5_3B(double M2);
+		double dGammad2_3B(double M2);
+		double dGammad2_2B(double M2, double x, double y);
+		double dGammad0_2B(double M2, double x, double y);
+		double Limit(double &s, double &t, double x, double y, double z);
+		double M2_LeptonPseudoMeson(double x, double y, double cos0);
+		double M2_NeutrinoPseudoMeson(double x, double y, double cos0);
+		double M2_LeptonVectorMeson(double x, double y, double cos0);
+		double M2_NeutrinoVectorMeson(double x, double y, double cos0);
+		double M2_WW(double x, double y, double z, double s, double cos0);
+		double M2_WZ(double x, double y, double z, double s, double t, double cos0s, double cos0t);
+		double M2_LeptonNeutrino(double x, double y, double z, double s, double t, double cos0);
+
+		bool IsChanged();
+
 		double GetMass();
 		double GetUe();
 		double GetUm();
 		double GetUt();
 		bool GetFermion();
-		int GetMult();
+		bool GetParticle();
 		int GetHelicity();
-
-		void IsChanged();
 
 		void SetMass(double Mass);
 		void SetUe(double Ue);
 		void SetUm(double Um);
 		void SetUt(double Ut);
 		void SetFermion(bool Fermion);
+		void SetParticle(bool Particle);
 		void SetHelicity(int Helicity);
-		void SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Helicity);
+		void SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Particle, bool Helicity);
 
 	protected:
-		std::vector<double> vMass;
+		Channel Channel_prev;
 
+		std::vector<double> vMass;
 		std::vector<double> F_var;
+
 		void SetFunction(double (Amplitude::*FF)(double));
 		void SetFunction_D(double (Amplitude::*FF)(double *));
 		double Function(double x);
@@ -139,12 +151,10 @@ class Amplitude
 		const double M_Charm;
 
 	private:
-		Channel Channel_prev;
 		double M_Sterile, M_Sterile_prev;
 		double fUe, fUm, fUt;
-
-		double* fFunction(double);
-		double* fFunction_D(double *);
+		bool bFermion, bParticle;
+		int iHel;
 };
 
 #endif

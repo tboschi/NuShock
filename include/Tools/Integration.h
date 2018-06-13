@@ -128,7 +128,8 @@ namespace Inte
 
 		}
 
-		return (S + E) / 2.0;
+		//return (S + E) / 2.0;
+		return Sign*TempObject->Function((S + E) / 2.0);
 	}	
 
 	template<class TempClass>

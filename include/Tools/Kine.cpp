@@ -17,12 +17,6 @@ double Kine::Unhelicity(double M_Meson, double M_Lepton, double M_Sterile, int H
 }
 
 //kallen triangular function, it should never be negative
-double Kine::Kallen(double X, double Y, double Z)
-{
-	double Lambda = X*X + Y*Y + Z*Z - 2*(X*Y + X*Z + Y*Z);
-	if (Lambda < 0) return -Lambda;
-	else return Lambda;
-}
 
 
 //Bethe blocke radiatio nformula

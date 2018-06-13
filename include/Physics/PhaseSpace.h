@@ -17,99 +17,78 @@
 #include "TLorentzVector.h"
 #include "TGenPhaseSpace.h"
 
-#include "Tools/Tools.h"
-#include "Physics/DecayRates.h"
+#include "Tools.h"
+#include "Physics/Amplitude.h"
 
 
-class PhaseSpace : protected DecayRates
+class PhaseSpace : protected Amplitude
 {
 	public:
-		PhaseSpace(double MSterile = 0.0, double Ue = 0.0, double Um = 0.0, double Ut = 0.0);
+		PhaseSpace();
 
-		//Decay width with A, B, and K the enhancement factors
-		double Gamma(std::string Channel, double B = 1.0);
-		double Other(std::string Channel, double A = 1.0);
-		double Branch(std::string Channel, double A = 1.0, double B = 1.0);
-		int PhaseSpace(std::string Channel, double &Weight);
-		bool IsAllowed(std::string Channel);
+		bool SetDecay(Channel Name, TLorentzVector &Rest);
+		bool Generate(Channel Name);
+		double Ratio(Channel Name);
 
-		void SetEnhancement(std::string Channel = "ALL", double K = 1.0);
+		double nEE_ratio();
+		double nMM_ratio();
+		double nEM_ratio();
+		double nME_ratio();
+		double nET_ratio();
+		double nTE_ratio();
+		double nMT_ratio();
+		double nTM_ratio();
+		double nPI0_ratio();
+		double nETA_ratio();
+		double nETAi_ratio();
+		double EPI_ratio();
+		double TPI_ratio();
+		double EKA_ratio();
+		double MKA_ratio();
+		double ECHARM_ratio();
+		double nRHO0_ratio();
+		double nOMEGA_ratio();
+		double nPHI_ratio();
+		double ERHO_ratio();
+		double MRHO_ratio();
+		double EKAx_ratio();
+		double MKAx_ratio();
 
-		//M2
-		double yLim(double &Min, double &Max, double Ex);	//y integration limits
-		double xLim(double &Min, double &Max);
-		double M2_W(double x, double y, double a, double b, double c);
-		double M2_Z(double x, double y, double a, double b, double c);
-		double M2_WZ(double x, double y, double a, double b, double c);
-		double M2_nLL(double Ex, double Ey, double M_Lepton);
-		double M2_nEE(double Ex, double Ey);
-		double M2_nMUMU(double Ex, double Ey);
-		double M2_nEMU(double Ex, double Ey);
-		double ddGamma(double (Decay::*M2)(double, double), double Ex, double Ey);
-		double ddGamma(std::string Channel, double Ex, double Ey);
+		double NeutrinoLeptonAA(double &d_Ul, double &d_Un, double M_Neut, double M_Lepton);
+		double Max_NeutrinoLeptonAA(double &max_Ul, double &max_Ua, double M_Neut, double M_Lepton);
+		double NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
+		double Max_NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
+		double max_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
+		double max_NeutrinoLeptonLepton_D(double *x);
+		double NeutrinoLeptonLepton(double x, double y, double z, double s, double t, double cos0, double cos1, double gL, double gR);
 
-		double Total(double A = 1.0);
-		double ExpALL(double A = 1.0);
+		double NeutrinoPseudoMeson(double M_Neut, double M_Meson);
+		double Max_LeptonPseudoMeson(double M_Neut, double M_Meson);
+		double LeptonPseudoMeson(double M_Neut, double M_Meson);
+		double Max_NeutrinoPseudoMeson(double M_Neut, double M_Meson);
+		double max_LeptonPseudo(double x, double y);
+		double max_LeptonPseudo_cos0(double cos0);
+		double LeptonPseudo(double x, double y, double cos0);
 
-		double nnn();
-		double nGAMMA();
-		double nEE();
-		double nEMU();
-		double nMUE();
-		double nMUMU();
-		double nET();
-		double nTE();
-		double nMUT();
-		double nTMU();
-		double nPI0();
-		double EPI();
-		double MUPI();
-		double TPI();
-		double EKA();
-		double MUKA();
-		double EKAx();
-		double MUKAx();
-		double nRHO0();
-		double ERHO();
-		double MURHO();
-		double nOMEGA();
-		double nETA();
-		double nETAi();
-		double nPHI();
-		double ECHARM();
+		double NeutrinoVectorMeson(double M_Neut, double M_Meson);
+		double Max_NeutrinoVectorMeson(double M_Neut, double M_Meson);
+		double LeptonVectorMeson(double M_Neut, double M_Meson);
+		double Max_LeptonVectorMeson(double M_Neut, double M_Meson);
+		double max_LeptonVector(double x, double y);
+		double max_LeptonVector_cos0(double cos0);
+		double LeptonVector(double x, double y, double cos0);
 
-		double LeptonPseudoMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2);
-		double NeutrinoPseudoMeson(double M_Meson, double fDecay2);
-		double LeptonVectorMeson(double M_Lepton, double M_Meson, double vCKM, double fDecay2, double fVector);
-		double NeutrinoVectorMeson(double M_Meson, double fDecay2, double fVector);
-		double NeutrinoLeptonAA(double &fCC, double &fNC, double M_Lepton);
-		double NeutrinoLeptonAB(double M_LeptonA, double M_LeptonB);
-
-		//Set and Get
-		std::vector<std::string> ListChannels();
-		std::vector<ChannelName> ListNameKeys();
-
+		void Kinematic_2B(double &cos0);
+		void Kinematic_3B(double &s, double &t, double &cos0, double &cos1);
+		void Boost();
 		TLorentzVector *GetNvec();
-		TLorentzVector GetDecayProduct(int i, int &ID);
-
-		bool IsChanged();
-
-		double GetMass();
-		double GetUe();
-		double GetUm();
-		double GetUt();
-
-		void SetMass(double X);
-		void SetUe(double X);
-		void SetUm(double X);
-		void SetUt(double X);
+		unsigned int GetDaughter();
+		TLorentzVector GetDaughter(int i);
+		void SetNLabf(TLorentzVector &Vec);
+		void SetNRest(double Mass);
+		void Reset();
 
 	private:
-		int PdgCode[3];
-
-		double M_Sterile, M_Sterile_prev;
-		double Ue, Um, Ut;
-
 		double fnnn,
                        fnGAMMA,
                        fnEE_e,	
@@ -139,55 +118,36 @@ class PhaseSpace : protected DecayRates
                        fnPHI,	
                        fECHARM;
 
+		double maxnnn,
+                       maxnGAMMA,
+                       maxnEE_e,	
+                       maxnEE_mt,	
+                       maxnEMU,	
+                       maxnMUE,	
+                       maxnMUMU_m,	
+                       maxnMUMU_et,	
+                       maxnET,	
+                       maxnTE,	
+                       maxnMUT,	
+                       maxnTMU,	
+                       maxnPI0,	
+                       maxEPI,	
+                       maxMUPI,	
+                       maxTPI,	
+                       maxEKA,	
+                       maxMUKA,	
+                       maxnRHO0,	
+                       maxERHO,	
+                       maxMURHO,	
+                       maxEKAx,	
+                       maxMUKAx,	
+                       maxnETA,	
+                       maxnETAi,	
+                       maxnOMEGA,
+                       maxnPHI,	
+                       maxECHARM;
+
 	protected:
-
-		//Masses
-		const double M_Neutrino;
-		const double M_Photon;
-		const double M_Electron;
-		const double M_Muon;
-		const double M_Pion;
-		const double M_Pion0;
-		const double M_Kaon;
-		const double M_Kaon0;
-		const double M_Eta;
-		const double M_Rho;
-		const double M_Rho0;
-		const double M_Omega;
-		const double M_Kaonx;
-		const double M_Kaon0x;
-		const double M_Etai;
-		const double M_Phi;
-		const double M_Tau;
-		const double M_Charm;
-};
-
-#endif
-
-#ifndef DECAYRATES_H
-#define DECAYRATES_H
-
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <cstring>
-
-//ROOT include
-#include "TLorentzVector.h"
-#include "TGenPhaseSpace.h"
-
-#include "Tools/Tools.h"
-#include "Decay/ThreeBody.h"
-
-#include "Physics/Neutrino.h"
-
-
-class PhaseSpace
-{
-	public:
-		PhaseSpace();
-
-	private:
 };
 
 #endif

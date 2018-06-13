@@ -108,3 +108,63 @@ TH1D* Flux::Get(Hist KeyName) const
 			return NULL;
 	}
 }
+
+void Flux::Scale(double X, Hist KeyName)
+{
+	switch (KeyName)
+	{
+		case Total:
+			Scale(X, Hist::Pion);
+			Scale(X, Hist::2Pion);
+			Scale(X, Hist::Kaon);
+			Scale(X, Hist::Kaon0);
+			Scale(X, Hist::Charm);
+			Scale(X, Hist::Muon);
+			Scale(X, Hist::TauE);
+			Scale(X, Hist::TauM);
+			break;
+		case Pion:
+			hPion->Scale(X);
+			break;
+		case 2Pion:
+			h2Pion->Scale(X);
+			break;
+		case Kaon:
+			hKaon->Scale(X);
+			break;
+		case Kaon0:
+			hKaon0->Scale(X);
+			break;
+		case Muon:
+			hMuon->Scale(X);
+			break;
+		case TauE:
+			hTauE->Scale(X);
+			break;
+		case TauM:
+			hTauM->Scale(X);
+			break;
+		deafult:
+			break;
+	}
+}
+
+double Flux::RangeStart()
+{
+	return Get(Hist::Total)->GetBinCenter(0);
+}
+
+double Flux::RangeEnd()
+{
+	return Get(Hist::Total)->GetBinCenter(BinNumber());
+}
+
+double Flux::BinNumber()
+{
+	return Get(Hist::Total)->GetNbinsX(0);
+}
+
+double Flux::BinWidth()
+{
+	return (RangeEnd() - RangeStart()) / BinNumber();
+}
