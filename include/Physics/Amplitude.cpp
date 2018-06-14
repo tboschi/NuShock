@@ -30,6 +30,69 @@ Amplitude::Amplitude()	: //Decay rates calculator
 	Channel_prev = _undefined;
 }
 
+void Amplitude::LoadMap()
+{
+	chMap[_undefined] = "undefined";	//0
+	chMap[_ALL]    = "ALL";			//1
+
+	//decay channels
+	chMap[_nnn]    = "nnn";			//2
+	chMap[_nGAMMA] = "nGAMMA";
+	chMap[_nEE]    = "nEE";
+	chMap[_nEM]    = "nEM";
+	chMap[_nME]    = "nME";
+	chMap[_nMM]    = "nMM";
+	chMap[_nET]    = "nET";
+	chMap[_nTE]    = "nTE";
+	chMap[_nMT]    = "nMT";
+	chMap[_nTM]    = "nTM";
+	chMap[_nPI0]   = "nPI0";
+	chMap[_EPI]    = "EPI";
+	chMap[_MPI]    = "MPI";
+	chMap[_TPI]    = "TPI";
+	chMap[_EKA]    = "EKA";
+	chMap[_MKA]    = "MKA";
+	chMap[_nRHO0]  = "nRHO0";
+	chMap[_ERHO]   = "ERHO";
+	chMap[_MRHO]   = "MRHO";
+	chMap[_EKAx]   = "EKAx";
+	chMap[_MKAx]   = "MKAx";
+	chMap[_nOMEGA] = "nOMEGA";
+	chMap[_nETA]   = "nETA";
+	chMap[_nETAi]  = "nETAi";
+	chMap[_nPHI]   = "nPHI";
+	chMap[_ECHARM] = "ECHARM";
+	chMap[_ExpALL] = "ExpALL";
+
+	//production channels
+	chMap[_MuonE]   = "MuonE";		//29
+	chMap[_MuonM]   = "MuonM";
+	chMap[_TauEE]   = "TauEE";
+	chMap[_TauET]   = "TauET";
+	chMap[_TauMM]   = "TauMM";
+	chMap[_TauMT]   = "TauMT";
+	chMap[_TauPion] = "TauPion";
+	chMap[_PionE]   = "PionE";
+	chMap[_PionM]   = "PionM";
+	chMap[_KaonE]   = "KaonE";
+	chMap[_KaonM]   = "KaonM";
+	chMap[_CharmE]  = "CharmE";
+	chMap[_CharmM]  = "CharmM";
+	chMap[_CharmT]  = "CharmT";
+	chMap[_Kaon0E]  = "Kaon0E";
+	chMap[_Kaon0M]  = "Kaon0M";
+	chMap[_KaonCE]  = "KaonCE";
+	chMap[_KaonCM]  = "KaonCM";
+}
+
+std::string Amplitude::ShowChannel(Channel Name)
+{
+	if (chMap.size() == 0)
+		LoadMap();
+
+	return chMap[Name];
+}
+
 void Amplitude::LoadMass(Channel Name)
 {
 	vMass.clear();
@@ -260,7 +323,7 @@ double Amplitude::dGammad2_2B(double M2, double x, double y)
 //	constant, after integrating angular depend.
 double Amplitude::dGammad0_2B(double M2, double x, double y)
 {
-	return 4 * Const::fPi * dGammad0_2B(M2, x, y);
+	return 4 * Const::fPi * dGammad2_2B(M2, x, y);
 }
 
 //integration limits for three body when is constant wrt to t
@@ -378,7 +441,7 @@ double Amplitude::M2_LeptonMeson(double x, double y)	//y is the meson
 double Amplitude::M2_MesonTwo(double x, double y)
 {
 	return Const::fGF2 * Mass(4) * 
-		(x + y - pow(x - y, 2) - Helicity() * (y - x) * SqrtKallen(1, x, y));
+		(x + y - pow(x - y, 2) + Helicity() * (y - x) * SqrtKallen(1, x, y));
 }
 
 double Amplitude::M2_MesonThree(double s, double t, double x, double y, double z, double cos0, double L_, double L0)
@@ -430,9 +493,11 @@ std::vector<std::string> Amplitude::ListChannels()
 */
 bool Amplitude::IsChanged()
 {
-	bool Ret = (fabs(Mass() - M_Sterile_prev) > 1e-9);
+	bool Ret = (fabs(MassN() - M_Sterile_prev) > 1e-9) ||
+		   (Helicity() != iHel_prev);
 
-	M_Sterile_prev = Mass();
+	M_Sterile_prev = MassN();
+	iHel_prev = Helicity();
 
 	//Reset decay widths if changed
 	if (Ret)
@@ -446,7 +511,12 @@ void Amplitude::Reset()	//to be implemented in derived classes
 }
 
 //Get functions
-double Amplitude::Mass(int E)
+double Amplitude::Mass(int E)		//decaying particle mass
+{
+	return pow(M_Parent, E);
+}
+
+double Amplitude::MassN(int E)		//neutrino mass
 {
 	return pow(M_Sterile, E);
 }
@@ -482,7 +552,12 @@ bool Amplitude::GetParticle()
 }
 
 //Set functions
-void Amplitude::SetMass(double Mass)
+void Amplitude::SetMass(double Mass)		//mass of decaying particle
+{
+	M_Parent = Mass;
+}
+
+void Amplitude::SetMassN(double Mass)		//mass of neutrino
 {
 	M_Sterile = Mass;
 }
@@ -517,13 +592,13 @@ void Amplitude::SetHelicity(int Helicity)
 	iHel = Helicity;	//-1 for Left, +1 for Right, 0 for unpolarised
 }
 
-void Amplitude::SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Particle, bool Helicity)
+void Amplitude::SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Particle, int Helix)
 {
-	SetMass(Mass);
+	SetMassN(Mass);
 	SetUe(Mixings[0]);
 	SetUm(Mixings[1]);
 	SetUt(Mixings[2]);
 	SetFermion(Fermion);
 	SetParticle(Particle);
-	SetHelicity(Helicity);
+	SetHelicity(Helix);
 }

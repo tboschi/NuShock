@@ -38,6 +38,7 @@ class FluxDriver
 		//double SampleEnergy();
 
 		double Range();
+		double Range(double &Start, double &End);
 		double RangeStart();
 		double RangeEnd();
 		int BinNumber();

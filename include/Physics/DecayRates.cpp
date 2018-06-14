@@ -4,6 +4,35 @@ DecayRates::DecayRates()
 {
 }
 
+Amplitude::Channel DecayRates::FindChannel(std::string Name)
+{
+	if (chMap.size() == 0)
+		LoadMap();
+
+	std::map<Amplitude::Channel, std::string>::iterator it = chMap.begin();
+	for (std::advance(it, 2); it != chMap.end(); ++it)
+	{
+		if (it->second == Name)
+			return it->first;
+	}
+
+	return _undefined;
+}
+
+std::vector<std::string> DecayRates::ListChannel()
+{
+	if (chMap.size() == 0)
+		LoadMap();
+
+	std::vector<std::string> vName;
+
+	std::map<Amplitude::Channel, std::string>::iterator it = chMap.begin();
+	for (std::advance(it, 2); it != chMap.end(); ++it)
+		vName.push_back(it->second);
+
+	return vName;
+}
+
 bool DecayRates::IsAllowed(Channel Name)
 {
 	if (Channel_prev != Name)
@@ -16,7 +45,7 @@ bool DecayRates::IsAllowed(Channel Name)
 	for (unsigned int i = 0; i < vMass.size(); ++i)
 		Limit += vMass.at(i);
 
-	return (Mass() >= Limit);
+	return (MassN() >= Limit);
 }
 
 //return the decay width (Gamma)
@@ -112,6 +141,7 @@ double DecayRates::Gamma(Channel Name)
 			Result = ExpALL();
 			break;
 		default:
+			std::cerr << ShowChannel(Name) << ": channel unknown" << std::endl;
 			Result = 0.0;
 			break;
 	}
@@ -536,6 +566,7 @@ double DecayRates::ECHARM()
 //CC version possible
 double DecayRates::LeptonPseudoMeson(double M_Lepton, double M_Meson)
 {
+	SetMass(MassN());
 	double dML2 = M_Lepton*M_Lepton/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
@@ -554,6 +585,7 @@ double DecayRates::I_LeptonPseudoMeson(double x, double y)
 
 double DecayRates::NeutrinoPseudoMeson(double M_Neut, double M_Meson)
 {
+	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
@@ -573,6 +605,7 @@ double DecayRates::I_NeutrinoPseudoMeson(double x, double y)
 //CC version possible
 double DecayRates::LeptonVectorMeson(double M_Lepton, double M_Meson)
 {
+	SetMass(MassN());
 	double dML2 = M_Lepton*M_Lepton/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
@@ -591,6 +624,7 @@ double DecayRates::I_LeptonVectorMeson(double x, double y)
 
 double DecayRates::NeutrinoVectorMeson(double M_Neut, double M_Meson)
 {
+	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
@@ -609,6 +643,7 @@ double DecayRates::I_NeutrinoVectorMeson(double x, double y)
 
 double DecayRates::NeutrinoLeptonAA(double &Amp_Ul, double &Amp_Un, double M_Neut, double M_Lepton)
 {
+	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dML2 = M_Lepton*M_Lepton/Mass(2);
 
@@ -627,6 +662,7 @@ double DecayRates::NeutrinoLeptonAA(double &Amp_Ul, double &Amp_Un, double M_Neu
 //CC version also available
 double DecayRates::NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB)
 {
+	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dMA2 = M_LeptonA*M_LeptonB/Mass(2);
 	double dMB2 = M_LeptonB*M_LeptonB/Mass(2);
@@ -736,4 +772,3 @@ void DecayRates::SetFunction(double (DecayRates::*FF)(double))
 		static_cast<double (Amplitude::*)(double)>(FF); // ok!
 	SetFunction(Function);
 }
-

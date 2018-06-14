@@ -2,6 +2,36 @@
 
 Production::Production()
 {
+	Reset();
+}
+
+Amplitude::Channel Production::FindChannel(std::string Name)
+{
+	if (chMap.size() == 0)
+		LoadMap();
+
+	std::map<Amplitude::Channel, std::string>::iterator it = chMap.begin();
+	for (std::advance(it, 29); it != chMap.end(); ++it)
+	{
+		if (it->second == Name)
+			return it->first;
+	}
+
+	return _undefined;
+}
+
+std::vector<std::string> Production::ListChannel()
+{
+	if (chMap.size() == 0)
+		LoadMap();
+
+	std::vector<std::string> vName;
+
+	std::map<Amplitude::Channel, std::string>::iterator it = chMap.begin();
+	for (std::advance(it, 29); it != chMap.end(); ++it)
+		vName.push_back(it->second);
+
+	return vName;
 }
 
 bool Production::IsAllowed(Channel Name)
@@ -16,7 +46,7 @@ bool Production::IsAllowed(Channel Name)
 	for (unsigned int i = 1; i < vMass.size(); ++i)
 		Limit -= vMass.at(i);
 
-	return (Limit >= Mass());
+	return (Limit >= MassN());
 }
 
 double Production::Gamma(Channel Name)
@@ -83,6 +113,7 @@ double Production::Gamma(Channel Name)
 			Result = KaonCM();
 			break;
 		default:
+			std::cerr << ShowChannel(Name) << ": channel unknown" << std::endl;
 			Result = 0.0;
 			break;
 	}
@@ -92,13 +123,17 @@ double Production::Gamma(Channel Name)
 
 double Production::Scale(Channel Name)
 {
-	double mass = Mass();
+	double mass = MassN();
+	int hel = Helicity();
+	double GammaN = Gamma(Name);
 
-	SetMass(0);
-	double Gamma0 = Gamma(Name);
+	SetMassN(0);
+	SetHelicity(0);
+	double Gamma0 = 2*Gamma(Name);
 
-	SetMass(mass);
-	return Gamma(Name)/Gamma0;
+	SetMassN(mass);
+	SetHelicity(hel);
+	return GammaN/Gamma0;
 }
 
 double Production::Total()
@@ -346,13 +381,14 @@ double Production::KaonCM()
 //Generic decay//
 /////////////////
 //
-double Production::LeptonAntineutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neut)
+double Production::LeptonAntineutrinoDecay(double M_Lepton0, double M_Lepton, double M_Neut)
 {
-	double dMB2 = M_LeptonB*M_LeptonB/M_LeptonA/M_LeptonA;
-	double dMn2 = M_Neut*M_Neut/M_LeptonA/M_LeptonA;
-	double dMN2 = Mass(2)/M_LeptonA/M_LeptonA;
+	SetMass(M_Lepton0);
+	double dML2 = M_Lepton*M_Lepton/Mass(2);
+	double dMn2 = M_Neut*M_Neut/Mass(2);
+	double dMN2 = MassN(2)/Mass(2);
 
-	double M2 = I_LeptonAntineutrino(dMB2, dMn2, dMN2);
+	double M2 = I_LeptonAntineutrino(dML2, dMn2, dMN2);
 	return dGammad2_3B(M2);
 	//return Const::fGF2 / (16.0 * Const::fPi3) *
 	//	I_LeptonAntineutrino(dMB2, dMn2, dMN2);
@@ -402,13 +438,14 @@ double Production::I_LeptonAntineutrino_t(double t)
 	return fc * M2_LeptonAntineutrino(x, y, z, s, 0);
 }
 
-double Production::LeptonNeutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neut)
+double Production::LeptonNeutrinoDecay(double M_Lepton0, double M_Lepton, double M_Neut)
 {
-	double dMB2 = M_LeptonB*M_LeptonB/M_LeptonA/M_LeptonA;
-	double dMn2 = M_Neut*M_Neut/M_LeptonA/M_LeptonA;
-	double dMN2 = Mass(2)/M_LeptonA/M_LeptonA;
+	SetMass(M_Lepton0);
+	double dML2 = M_Lepton*M_Lepton/Mass(2);
+	double dMn2 = M_Neut*M_Neut/Mass(2);
+	double dMN2 = MassN(2)/Mass(2);
 
-	double M2 = I_LeptonNeutrino(dMB2, dMn2, dMN2);
+	double M2 = I_LeptonNeutrino(dML2, dMn2, dMN2);
 	return dGammad2_3B(M2);
 }
 						//  c	      b		a
@@ -445,8 +482,9 @@ double Production::I_LeptonNeutrino_s(double s)	//the term is written for a neut
 
 double Production::LeptonMesonDecay(double M_Lepton, double M_Meson)
 {
-	double dMN2 = Mass(2)/M_Lepton/M_Lepton;
-	double dMM2 = M_Meson*M_Meson/M_Lepton/M_Lepton;
+	SetMass(M_Lepton);
+	double dMN2 = MassN(2)/Mass(2);
+	double dMM2 = M_Meson*M_Meson/Mass(2);
 
 	return I_LeptonMeson(dMN2, dMM2);
 }
@@ -459,8 +497,9 @@ double Production::I_LeptonMeson(double x, double y)
 
 double Production::MesonTwoDecay(double M_Meson, double M_Lepton)
 {
-	double dMN2 = Mass(2)/M_Meson/M_Meson;
-	double dML2 = M_Lepton*M_Lepton/M_Meson/M_Meson;
+	SetMass(M_Meson);
+	double dMN2 = MassN(2)/Mass(2);
+	double dML2 = M_Lepton*M_Lepton/Mass(2);
 
 	return I_MesonTwo(dMN2, dML2);
 }
@@ -471,11 +510,12 @@ double Production::I_MesonTwo(double x, double y)	//symetric in x and y
 	return dGammad0_2B(M2, x, y);
 }
 
-double Production::MesonThreeDecay(double M_Meson0, double M_Meson1, double M_Lepton, double L_, double L0)	//decay constant not important
+double Production::MesonThreeDecay(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0)	//decay constant not important
 {
-	double dMM2 = M_Meson1*M_Meson1/M_Meson0/M_Meson0;
-	double dML2 = M_Lepton*M_Lepton/M_Meson0/M_Meson0;
-	double dMN2 = Mass(2)/M_Meson0/M_Meson0;	
+	SetMass(M_Meson);
+	double dMM2 = M_Meson*M_Meson/Mass(2);
+	double dML2 = M_Lepton*M_Lepton/Mass(2);
+	double dMN2 = MassN(2)/Mass(2);	
 
 	return I_MesonThree(dMM2, dML2, dMN2, L_, L0);
 }

@@ -9,6 +9,7 @@ Neutrino::Neutrino(double Mass, unsigned int Options) :
 	SetFermion(Options);
 	SetHelicity(Options);
 
+	fMixings = new double[3];
 	SetMixings(1.0, 1.0, 1.0);
 
 	TheDecayRates = new DecayRates();
@@ -27,45 +28,130 @@ Neutrino::~Neutrino()
 
 void Neutrino::SetParent(Amplitude *Object)
 {
-	Object->SetNeutrino(GetMass(), GetMixings(), GetFermion(), GetParticle(), GetHelicity());
+	Object->SetNeutrino(Mass(), Mixings(), GetFermion(), GetParticle(), Helicity());
 }
 
-double Neutrino::DecayWidth(Channel Name)
+double Neutrino::DecayTotal()
+{
+	return DecayWidth(Amplitude::_ALL);
+}
+
+double Neutrino::DecayWidth()
+{
+	return DecayWidth(DecayChannel());
+}
+
+double Neutrino::DecayWidth(std::string Name)
+{
+	return DecayWidth(TheDecayRates->FindChannel(Name));
+}
+
+double Neutrino::DecayWidth(Amplitude::Channel Name)
 {
 	SetParent(TheDecayRates);
 	return TheDecayRates->Gamma(Name);
 }
 
-double Neutrino::DecayBranch(Channel Name)
+double Neutrino::DecayBranch()
+{
+	return DecayBranch(DecayChannel());
+}
+
+double Neutrino::DecayBranch(std::string Name)
+{
+	return DecayBranch(TheDecayRates->FindChannel(Name));
+}
+
+double Neutrino::DecayBranch(Amplitude::Channel Name)
 {
 	SetParent(TheDecayRates);
 	return TheDecayRates->Branch(Name);
 }
 
-double Neutrino::ProductionWidth(Channel Name)
+double Neutrino::ProductionWidth()
 {
-	SetParent(TheProduction);
-	return TheProduction->Gamma(Channel);
+	return ProductionWidth(ProductionChannel());
 }
 
-double Neutrino::ProductionScale(Channel Name)
+double Neutrino::ProductionWidth(std::string Name)
 {
-	SetParent(TheProduction);
-	return TheProduction->Scale(Channel);
+	return ProductionWidth(TheProduction->FindChannel(Name));
 }
 
-std::vector<TLorentzVector> Neutrino::PhaseSpace(Channel Name)
+double Neutrino::ProductionWidth(Amplitude::Channel Name)
+{
+	SetParent(TheProduction);
+	return TheProduction->Gamma(Name);
+}
+
+double Neutrino::ProductionScale()
+{
+	return ProductionScale(ProductionChannel());
+}
+
+double Neutrino::ProductionScale(std::string Name)
+{
+	return ProductionScale(TheProduction->FindChannel(Name));
+}
+
+double Neutrino::ProductionScale(Amplitude::Channel Name)
+{
+	SetParent(TheProduction);
+	return TheProduction->Scale(Name);
+}
+
+std::vector<TLorentzVector> Neutrino::DecayPS()
+{
+	return GeneratePS(DecayChannel());
+}
+
+std::vector<TLorentzVector> Neutrino::ProductionPS()
+{
+	return GeneratePS(ProductionChannel());
+}
+
+std::vector<TLorentzVector> Neutrino::GeneratePS(Amplitude::Channel Name)
 {
 	SetParent(ThePhaseSpace);
 
 	std::vector<TLorentzVector> vDaughter;
 	if (ThePhaseSpace->Generate(Name))
 	{
-		for (unsigned int i = 0; i < TheSpace->GetNdaughter(); ++i)
-			vDaughter.push_back(TheSpace->GetDaughter(i));
+		for (unsigned int i = 0; i < ThePhaseSpace->Daughter(); ++i)
+			vDaughter.push_back(ThePhaseSpace->Daughter(i));
 	}
 
 	return vDaughter;
+}
+
+void Neutrino::SetDecayChannel(std::string Name)
+{
+	chDecay = TheDecayRates->FindChannel(Name);
+}
+
+void Neutrino::SetProductionChannel(std::string Name)
+{
+	chProduction = TheProduction->FindChannel(Name);
+}
+
+Amplitude::Channel Neutrino::DecayChannel()
+{
+	return chDecay;
+}
+
+Amplitude::Channel Neutrino::ProductionChannel()
+{
+	return chProduction;
+}
+
+std::string Neutrino::DecayChannelName()
+{
+	return TheDecayRates->ShowChannel(DecayChannel());
+}
+
+std::string Neutrino::ProductionChannelName()
+{
+	return TheProduction->ShowChannel(ProductionChannel());
 }
 
 //setter
@@ -89,7 +175,7 @@ void Neutrino::SetEnergy(double Energy)
 
 void Neutrino::SetEnergyKin(double Energy)
 {
-	fEnergy = GetMass() + Energy;
+	fEnergy = Mass() + Energy;
 }
 
 void Neutrino::SetHelicity(unsigned int Options)		//Left for particle is -1
@@ -150,62 +236,72 @@ void Neutrino::SetParticle(unsigned int Options)
 
 //getter
 //
-double Neutrino::GetMass()
+double Neutrino::Mass()
 {
 	return fMass;
 }
 
-double* Neutrino::GetMixings()
+double* Neutrino::Mixings()
 {
 	return fMixings;
 }
 
-double Neutrino::GetUe()
+double Neutrino::Ue()
 {
 	return fMixings[0];
 }
 
-double Neutrino::GetUm()
+double Neutrino::Um()
 {
 	return fMixings[1];
 }
 
-double Neutrino::GetUt()
+double Neutrino::Ut()
 {
 	return fMixings[2];
 }
 
-double Neutrino::GetEnergy()
+double Neutrino::Energy()
 {
 	return fEnergy;
 }
 
-double Neutrino::GetEnergyKin()
+double Neutrino::EnergyKin()
 {
-	return fEnergy-GetMass();
+	return fEnergy-Mass();
 }
 
-int Neutrino::GetHelicity()
+int Neutrino::Helicity()
 {
 	return iHel;
 }
 
-bool Neutrino::IsDirac()
+bool Neutrino::GetFermion()
 {
 	return bFermion;
 }
 
-bool Neutrino::IsMajorana()
+bool Neutrino::IsDirac()
 {
-	return !bFermion;
+	return GetFermion();
 }
 
-bool Neutrino::IsParticle()
+bool Neutrino::IsMajorana()
+{
+	return !GetFermion();
+}
+
+bool Neutrino::GetParticle()
 {
 	return bParticle;
 }
 
+bool Neutrino::IsParticle()
+{
+	return GetParticle();
+}
+
 bool Neutrino::IsAntiparticle()
 {
-	return !bParticle;
+	return !GetParticle();
 }

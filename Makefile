@@ -31,9 +31,12 @@ HPP =	Tools/Const		\
 	Physics/DecayRates	\
 	Physics/Production	\
 	Physics/PhaseSpace	\
-	Flux		\
-	Detector	\
-	Event		\
+	Physics/Neutrino	\
+	Flux/Flux		\
+	Flux/FluxDriver		\
+	Detector/Detector	\
+	Detector/Efficiency	\
+	Event/EventGenerator	\
 
 #main target
 TGT :=	$(CPP:%=$(APPDIR)/%)

@@ -86,6 +86,9 @@ class Amplitude
 
 		Amplitude();
 
+		void LoadMap();
+		std::string ShowChannel(Channel Name);
+
 		void LoadMass(Channel Name);
 
 		double Kallen(double X, double Y, double Z);
@@ -117,6 +120,7 @@ class Amplitude
 		void Reset();
 
 		double Mass(int E = 1.0);
+		double MassN(int E = 1.0);
 		double Ue(int E = 1.0);
 		double Um(int E = 1.0);
 		double Ut(int E = 1.0);
@@ -125,13 +129,14 @@ class Amplitude
 		bool GetParticle();
 
 		void SetMass(double Mass);
+		void SetMassN(double Mass);
 		void SetUe(double Ue);
 		void SetUm(double Um);
 		void SetUt(double Ut);
 		void SetFermion(bool Fermion);
 		void SetParticle(bool Particle);
 		void SetHelicity(int Helicity);
-		void SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Particle, bool Helicity);
+		void SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Particle, int Helix);
 
 		double Function(double x);
 		double Function_D(double *x);
@@ -141,6 +146,8 @@ class Amplitude
 
 		std::vector<double> vMass;
 		std::vector<double> F_var;
+
+		std::map<Amplitude::Channel, std::string> chMap;
 
 		void SetFunction(double (Amplitude::*FF)(double));
 		void SetFunction_D(double (Amplitude::*FF)(double *));
@@ -167,9 +174,10 @@ class Amplitude
 
 	private:
 		double M_Sterile, M_Sterile_prev;
+		double M_Parent;
 		double fUe, fUm, fUt;
 		bool bFermion, bParticle;
-		int iHel;
+		int iHel, iHel_prev;
 
 		double (Amplitude::*fFunction)(double);
 		double (Amplitude::*fFunction_D)(double*);

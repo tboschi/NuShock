@@ -20,8 +20,8 @@ namespace Inte
 
 	enum MinMax
 	{
-		Minimum = 0,
-		Maximum = 1,
+		Min = 0,
+		Max = 1,
 	};
 
 	//integration
@@ -107,7 +107,7 @@ namespace Inte
 	}	
 
 	template<class TempClass>
-	double GoldRationSolver(TempClass *TempObject, MinMax Type)
+	double GoldRatioSolver(TempClass *TempObject, MinMax Type)
 	{
 		int Sign = 1-2*Type;
 		double GR = (1 + sqrt(5)) / 2.0;
@@ -140,7 +140,7 @@ namespace Inte
 		return Sign*TempObject->Function_D(x);
 	}
 
-	template<class TempClass>
+	template<class TempClass>						//num of vars
 	double NelMedSolver(TempClass *TempObject, std::vector<double> &minX, unsigned int n, MinMax Type)
 	{
 		minX.clear();

@@ -56,17 +56,19 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Neutrino *N_up = new Neutrino(0, Neutrino::Polarised | Neutrino::Dirac | Neutrino::Particle | Neutrino::Left );
-	Neutrino *N_do = new Neutrino(0, Neutrino::Polarised | Neutrino::Dirac | Neutrino::Particle | Neutrino::Right);
+	Neutrino *N_up = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Left );
+	Neutrino *N_do = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Right);
 
 	//Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
-	for (double t = 0; t < 2.0; t += 0.1)
+	for (double t = 0; t < 0.5; t += 0.005)
 	{
+		N_up->SetMass(t);
+		N_do->SetMass(t);
 		Out << t << "\t";
-		Out << N_up->ProductionScale(Amplitude::_EPI) << "\t";
-		Out << N_do->ProductionScale(Amplitude::_EPI) << "\t";
-		Out << N_up->ProductionScale(Amplitude::_MUPI) << "\t";
-		Out << N_do->ProductionScale(Amplitude::_MUPI) << "\t";
+		Out << N_up->ProductionWidth("MuonE") << "\t";
+		Out << N_up->ProductionScale("MuonE") << "\t";
+		Out << N_do->ProductionWidth("MuonE") << "\t";
+		Out << N_do->ProductionScale("MuonE") << "\t";
 		Out << std::endl;
 	}
 		//Out << Kine::ShrockFactor(Pion, Elec, t) << "\t";

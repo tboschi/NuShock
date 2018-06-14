@@ -6,8 +6,8 @@
  * Author: Tommaso Boschi
  */
 
-#ifndef eventgenerator_H
-#define eventgenerator_H
+#ifndef EVENTGENERATOR_H
+#define EVENTGENERATOR_H
 
 #include <iostream>
 #include <fstream>
@@ -26,25 +26,31 @@
 
 #include "Tools.h"
 #include "Flux.h"
-#include "Decay/DecayRates.h"
-#include "Detector/Detector.h"
-#include "Scattering/Nucleon.h"
+#include "Physics.h"
+#include "Detector.h"
+//#include "Scattering/Nucleon.h"
 
 class EventGenerator
 {
 	public:
-		EventGenerator(std::string SMConfig, std::string DetectorConfig, std::string FluxConfig);
-		//~EventGenerator();
+		EventGenerator();
+		EventGenerator(Neutrino *N, FluxDriver *Driver, Detector *Box);
+		~EventGenerator();
 
 		//For a finer handle...it shouldn't be necessary
-		Detector* GetDetectorPtr();
-		Decay* GetDecayPtr();
-		FluxDriver* GetFluxDriverPtr();
+
+		void SetNeutrino(Neutrino* N);
+		void SetFluxDriver(FluxDriver* Driver);
+		void SetDetector(Detector* Box);
+		Neutrino* GetNeutrino();
+		FluxDriver* GetFluxDriver();
+		Detector* GetDetector();
 
 		double DecayProb();
 		double ScatterProb(double Eh);
 		double EventEfficiency();
 		double DecayNumber(double Energy, bool Efficiency = false);
+		double DecayNumber(bool Efficiency = false);
 		double ScatterNumber(double Energy, bool Efficiency = false);
 
 		//Random generators
@@ -74,30 +80,6 @@ class EventGenerator
 		//Statistics
 		//void SmearVector(TLorentzVector* N, int Pdg);
 
-		//Get function
-		std::string GetChannel();
-		double GetMass(int Pow = 1);
-		double GetEnergy(int Pow = 1);
-		double GetEnergyKin(int Pow = 1);
-		double GetMomentum(int Pow = 1);
-		double GetUe(int Pow = 1);
-		double GetUm(int Pow = 1);
-		double GetUt(int Pow = 1);
-		double GetRange(double &Start, double &End);
-		int GetBinNumber();
-
-		//Set function
-		void SetChannel(std::string Ch = "R", bool Efficiency = false, char Couple = 'M');
-		void SetMass(double X);
-		void SetEnergy(double X);
-		void SetEnergyKin(double X);
-		void SetUe(double X, bool GvF = 0);
-		void SetUm(double X, bool GvF = 0);
-		void SetUt(double X, bool GvF = 0);
-		void SyncUu(bool B = 1);
-
-		bool IsChanged();
-
 		void SetEnhancement(double X = 1.0);
 		double GetEnhancement();
 		double SetLambda(double X);
@@ -117,10 +99,10 @@ class EventGenerator
 
 		bool Sync;
 
-		Decay *TheGamma;
-		Detector *TheBox;
+		Neutrino *TheN;
 		FluxDriver *TheFlux;
-		Nucleon *TheProton, *TheNeutron;
+		Detector *TheBox;
+		//Nucleon *TheProton, *TheNeutron;
 		//Nucleon *TheProton_a, *TheNeutron_a;
 
 		TFile *SourceFile;

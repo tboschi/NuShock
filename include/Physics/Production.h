@@ -12,13 +12,15 @@
 #include <map>
 #include <cstring>
 
-#include "Tools.h"
 #include "Physics/Amplitude.h"
 
 class Production : public Amplitude
 {
 	public:
 		Production();
+
+		Amplitude::Channel FindChannel(std::string Name);
+		std::vector<std::string> ListChannel();
 
 		bool IsAllowed(Channel Name);
 		double Gamma(Channel Name);

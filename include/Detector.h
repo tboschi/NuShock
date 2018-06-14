@@ -1,3 +1,3 @@
-#include "Detector.h"
-#include "Efficiency.h"
+#include "Detector/Detector.h"
+#include "Detector/Efficiency.h"
 

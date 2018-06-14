@@ -13,9 +13,7 @@
 
 //ROOT include
 #include "TLorentzVector.h"
-//#include "TGenPhaseSpace.h"
 
-#include "Tools.h"
 #include "Physics/DecayRates.h"
 #include "Physics/Production.h"
 #include "Physics/PhaseSpace.h"
@@ -38,12 +36,31 @@ class Neutrino
 		Neutrino(double Mass, unsigned int Options = 2);
 		~Neutrino();
 
+		void SetParent(Amplitude *Object);
+
+		double DecayTotal();
+		double DecayWidth();
+		double DecayWidth(std::string Name);
 		double DecayWidth(Amplitude::Channel name);
+		double DecayBranch();
+		double DecayBranch(std::string Name);
 		double DecayBranch(Amplitude::Channel name);
+		double ProductionWidth();
+		double ProductionWidth(std::string Name);
 		double ProductionWidth(Amplitude::Channel name);
+		double ProductionScale();
+		double ProductionScale(std::string Name);
 		double ProductionScale(Amplitude::Channel name);
-		double BranchWidth(Amplitude::Channel name);
-		std::vector<TLorentzVector> PhaseSpace(Amplitude::Channel Name);
+		std::vector<TLorentzVector> DecayPS();
+		std::vector<TLorentzVector> ProductionPS();
+		std::vector<TLorentzVector> GeneratePS(Amplitude::Channel Name);
+
+		void SetDecayChannel(std::string Name);
+		void SetProductionChannel(std::string Name);
+		Amplitude::Channel DecayChannel();
+		Amplitude::Channel ProductionChannel();
+		std::string DecayChannelName();
+		std::string ProductionChannelName();
 
 		void SetMass(double Mass = 0.0);
 		void SetMixings(double Ue, double Um, double Ut);
@@ -53,14 +70,16 @@ class Neutrino
 		void SetFermion(unsigned int Options);
 		void SetParticle(unsigned int Options);
 		
-		double GetMass();
-		double* GetMixings();
-		double GetUe();
-		double GetUm();
-		double GetUt();
-		double GetEnergy();
-		double GetEnergyKin();
-		int GetHelicity();
+		double Mass();
+		double* Mixings();
+		double Ue();
+		double Um();
+		double Ut();
+		double Energy();
+		double EnergyKin();
+		int Helicity();
+		bool GetFermion();
+		bool GetParticle();
 
 		bool IsDirac();
 		bool IsMajorana();
@@ -72,11 +91,14 @@ class Neutrino
 		Production *TheProduction;
 		PhaseSpace *ThePhaseSpace;
 
+		Amplitude::Channel chDecay, chProduction;
+
 		double fMass;
+		double fEnergy;
 		double *fMixings;
 		bool bParticle;
 		bool bFermion;
-		int  iHelicity;
+		int  iHel;
 };
 
 #endif

@@ -19,12 +19,12 @@
 
 #include "Physics/Amplitude.h"
 
-class PhaseSpace : protected Amplitude
+class PhaseSpace : public Amplitude
 {
 	public:
 		PhaseSpace();
 
-		bool SetDecay(Channel Name, TLorentzVector &Rest);
+		bool SetDecay(Channel Name);
 		bool Generate(Channel Name);
 		double Ratio(Channel Name);
 
@@ -40,6 +40,7 @@ class PhaseSpace : protected Amplitude
 		double nETA_ratio();
 		double nETAi_ratio();
 		double EPI_ratio();
+		double MPI_ratio();
 		double TPI_ratio();
 		double EKA_ratio();
 		double MKA_ratio();
@@ -53,12 +54,12 @@ class PhaseSpace : protected Amplitude
 		double MKAx_ratio();
 
 		double NeutrinoLeptonAA(double &d_Ul, double &d_Un, double M_Neut, double M_Lepton);
-		double Max_NeutrinoLeptonAA(double &max_Ul, double &max_Ua, double M_Neut, double M_Lepton);
 		double NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
+		double Max_NeutrinoLeptonAA(double &max_Ul, double &max_Ua, double M_Neut, double M_Lepton);
 		double Max_NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
-		double max_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
-		double max_NeutrinoLeptonLepton_D(double *x);
 		double NeutrinoLeptonLepton(double x, double y, double z, double s, double t, double cos0, double cos1, double gL, double gR);
+		double max_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
+		double max_NeutrinoLeptonLepton_D(double *p);
 
 		double NeutrinoPseudoMeson(double M_Neut, double M_Meson);
 		double Max_LeptonPseudoMeson(double M_Neut, double M_Meson);
@@ -78,38 +79,48 @@ class PhaseSpace : protected Amplitude
 
 		void Kinematic_2B(double &cos0);
 		void Kinematic_3B(double &s, double &t, double &cos0, double &cos1);
-		void Boost();
-		TLorentzVector *GetNvec();
-		unsigned int GetDaughter();
-		TLorentzVector GetDaughter(int i);
+
+		unsigned int Daughter();
+		TLorentzVector Daughter(unsigned int i);
+		TLorentzVector *LabF();
+		TLorentzVector *Rest();
+
 		void SetNLabf(TLorentzVector &Vec);
 		void SetNRest(double Mass);
+
 		void Reset();
+		void SetFunction(double (PhaseSpace::*FF)(double));
+		void SetFunction_D(double (PhaseSpace::*FF)(double*));
 
 	private:
+		TGenPhaseSpace *Event;
+		TRandom3 *GenMT;
+		TLorentzVector *N_labf, *N_rest;
+		unsigned int nDaughter;
+
 		double fnnn,
                        fnGAMMA,
                        fnEE_e,	
-                       fnEE_mt,	
-                       fnEMU,	
-                       fnMUE,	
-                       fnMUMU_m,	
-                       fnMUMU_et,	
+                       fnEE_a,	
+                       fnEM,	
+                       fnME,	
+                       fnMM_m,	
+                       fnMM_a,	
                        fnET,	
                        fnTE,	
-                       fnMUT,	
-                       fnTMU,	
+                       fnMT,	
+                       fnTM,	
                        fnPI0,	
                        fEPI,	
-                       fMUPI,	
+                       fMPI,	
                        fTPI,	
                        fEKA,	
-                       fMUKA,	
+                       fMKA,	
                        fnRHO0,	
                        fERHO,	
-                       fMURHO,	
+                       fMRHO,	
                        fEKAx,	
-                       fMUKAx,	
+                       fMKAx,	
                        fnETA,	
                        fnETAi,	
                        fnOMEGA,
@@ -119,26 +130,26 @@ class PhaseSpace : protected Amplitude
 		double maxnnn,
                        maxnGAMMA,
                        maxnEE_e,	
-                       maxnEE_mt,	
-                       maxnEMU,	
-                       maxnMUE,	
-                       maxnMUMU_m,	
-                       maxnMUMU_et,	
+                       maxnEE_a,	
+                       maxnEM,	
+                       maxnME,	
+                       maxnMM_m,	
+                       maxnMM_a,	
                        maxnET,	
                        maxnTE,	
-                       maxnMUT,	
-                       maxnTMU,	
+                       maxnMT,	
+                       maxnTM,	
                        maxnPI0,	
                        maxEPI,	
-                       maxMUPI,	
+                       maxMPI,	
                        maxTPI,	
                        maxEKA,	
-                       maxMUKA,	
+                       maxMKA,	
                        maxnRHO0,	
                        maxERHO,	
-                       maxMURHO,	
+                       maxMRHO,	
                        maxEKAx,	
-                       maxMUKAx,	
+                       maxMKAx,	
                        maxnETA,	
                        maxnETAi,	
                        maxnOMEGA,
