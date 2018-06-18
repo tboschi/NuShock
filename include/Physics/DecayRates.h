@@ -70,14 +70,14 @@ class DecayRates : public Amplitude
 		double NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
 		double NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
 		double I_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);//, double theta)
-		double I_NeutrinoLeptonLepton_s(double s);
+		double I_NeutrinoLeptonLepton_s(const double s);
 
 		//Set and Get
 		//std::vector<std::string> ListChannels();
 		//std::vector<ChannelName> ListNameKeys();
 
 		void Reset();
-		void SetFunction(double (DecayRates::*FF)(double));
+		void SetFunction(double (DecayRates::*FF)(const double));
 
 	private:
 		double fnnn,

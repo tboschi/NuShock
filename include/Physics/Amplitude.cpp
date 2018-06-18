@@ -293,7 +293,11 @@ double Amplitude::Kallen(double X, double Y, double Z)
 
 double Amplitude::SqrtKallen(double X, double Y, double Z)
 {
-	return sqrt(Kallen(X, Y, Z));
+	double Kal = Kallen(X, Y, Z);
+	if (Kal < 0)
+		return sqrt(-Kal);
+	else
+		return sqrt(Kal);
 }
 
 /////////////////////
@@ -336,14 +340,14 @@ double Amplitude::Limit(double &s, double x, double y, double z)
 //integration limits for three body, where z refers to s, y referst to t, and x refers to u
 double Amplitude::Limit(double &s, double &t, double x, double y, double z)
 {
+	double s0 = s;
 	double sInf = x + y + 2*sqrt(x*y);
-	double sSup = 1 + z - sqrt(z);
+	double sSup = 1 + z - 2*sqrt(z);
 	s = sInf + (sSup - sInf) * s;	//this is s
 
 	double Kal = SqrtKallen(s, y, x) * SqrtKallen(1, s, z);
 	double tInf = z + x + ((1 - s - z) * (s - y + x) - Kal) / (2 * s);
 	double tSup = z + x + ((1 - s - z) * (s - y + x) + Kal) / (2 * s);
-	//double tSup = ( (2 - s)*(s + y - x) + sqrt(Kine::Kallen(s, y, x)*Kine::Kallen(1, s, z)) ) / (2*s);
 	t = tInf + (tSup - tInf) * t;	//this is t
 
 	return (sSup - sInf) * (tSup - tInf);
@@ -406,25 +410,83 @@ double Amplitude::M2_WZ(double x, double y, double z, double u, double cos0u)	//
 		sqrt(y * z) * (1 + x - u - Helicity() * SqrtKallen(1, x, u) * cos0u);
 }
 
+double Amplitude::Gauss_V()
+{
+	CC = 0;
+	int Trial, Fail;
+	double Error, Chi2Prob;
+	SetFunction_D(&Amplitude::Gauss_D);
+	double Ret =  Inte::VegasIntegration(this, 2, Trial, Fail, Error, Chi2Prob);
+	std::cout << "vegas count " << CC << std::endl;
+	std::cout << "vegas flag " << Trial << "\t" << Fail << "\t" << Error << "\t" << Chi2Prob << std::endl;
+	return Ret;
+}
+
+double Amplitude::Gauss_D(const double *p)
+{
+	const double x = p[0]; 
+	const double y = p[0]; 
+	return Gauss_xy(x, y);
+}
+
+double Amplitude::Gauss_B()
+{
+	CC = 0;
+	SetFunction(&Amplitude::Gauss_x);
+	double Ret = Inte::BooleIntegration(this);
+
+	std::cout << "boole count " << CC << std::endl;
+	return Ret;
+}
+
+double Amplitude::Gauss_x(const double x)
+{
+	F_var.push_back(x);
+	SetFunction(&Amplitude::Gauss_y);
+
+	double Ret = Inte::BooleIntegration(this);
+	SetFunction(&Amplitude::Gauss_x);
+	F_var.pop_back();
+
+	return Ret;
+}
+
+double Amplitude::Gauss_y(const double y)
+{
+	double x_ = F_var.at(0);
+	double y_ = y;
+	return Gauss_xy(x_, y_);
+}
+
+double Amplitude::Gauss_xy(const double x, const double y)
+{
+	++CC;
+	double x_ = -1 + 2*(fabs(x-1e-9)); 
+	std::cout << "x " << x_ << "\t" << sqrt(1-x_*x_) << std::endl;
+	double y_ = -sqrt(1-x_*x_) + 2*sqrt(1-x_*x_)*y; 
+	//double y_ = -1 + 2*y;
+
+	return 2 * 2*sqrt(1-x_*x_) * 1;
+	//return 4 * exp(-x_*x_ - y_*y_);
+}
 //
 //////////////
 //production//
 //////////////
 //
 //		This amplitude is to be used if the mixing comes from the decaying flavour
-//					   neutrino lepton  neutrino  neutrino  lepton     angle betw. lepton and neutr
-double Amplitude::M2_LeptonNeutrino(double x, double y, double z, double s, double t, double cos0)
+//		   production is from lepton, described in Jackson Frame!
+//				           neutrino  lepton    neutrino
+double Amplitude::M2_LeptonNeutrino(double x, double y, double z, double u)
 {
-	double u = 1 + x + y + z - s - t;
-
 	return 16 * Const::fGF2 * Mass(4) *
-		(1 + x - u) * (u + y + z -
-		Helicity() * (u + y + z - (1 + y - t + SqrtKallen(1, y, t) * cos0) * (1 + z - s - SqrtKallen(1, z, s)) / 2) );
+		(1 + x - u) * (u - y - z - Helicity() * SqrtKallen(u, y, z));
 }
 
-//		This amplitude is to be used if the mixing comes from the flavour in final state
-//						     neutrino  lepton    neutrino  neutrino  angle betw. lepton and neutr
-double Amplitude::M2_LeptonAntineutrino(double x, double y, double z, double s, double cos0)
+//	This amplitude is to be used if the mixing comes from the flavour in final state
+//				     neutrino  lepton    neutrino  neutrino  angle betw. lepton and neutr
+//	production is from antilepeton
+double Amplitude::M2_AntiLeptonNeutrino(double x, double y, double z, double s)
 {
 	return 16 * Const::fGF2 * Mass(4) * 
 		(s - x - y) * (1 + z - s - Helicity() * SqrtKallen(1, s, z));
@@ -441,42 +503,45 @@ double Amplitude::M2_LeptonMeson(double x, double y)	//y is the meson
 double Amplitude::M2_MesonTwo(double x, double y)
 {
 	return Const::fGF2 * Mass(4) * 
-		(x + y - pow(x - y, 2) + Helicity() * (y - x) * SqrtKallen(1, x, y));
+		(x + y - pow(x - y, 2) - Helicity() * (y - x) * SqrtKallen(1, x, y));
 }
 
-double Amplitude::M2_MesonThree(double s, double t, double x, double y, double z, double cos0, double L_, double L0)
+//Jackson frame??
+double Amplitude::M2_MesonThree(double s, double t, double x, double y, double z, double L_, double L0)
 {
-	double F = 2 + 2 * (1 + x + y + z - s - t) * L_ / x;
-	double G = 1 + (2 + y + z - s - t) * L_ / x - (1 - x) * L0 / x;
+	double u = 1 + x + y + z - s - t;
 
-	double A = (1 + z - s) * (1 + y - t) - (1 + x - s - t) -
-		Helicity() * ( SqrtKallen(1, z, s) * (1 + y - t) + SqrtKallen(1, y, t) * (1 + z - s) * cos0 ) / 2.0;
-	double B = (y + z) * (1 + x - s - t) / + 4 * y * z -
-		Helicity() * (y - z) * ( SqrtKallen(1, z, s) * (1 + y - t) - SqrtKallen(1, y, t) * (1 + z - s) * cos0 ) / 2.0;
-	double C = y * (1 + z - s) + z * (1 + y - t) -
-	       	Helicity() * (y * SqrtKallen(1, z, s) + z * SqrtKallen(1, y, t) * cos0);
+	double F = 2 * (1 + L_ * u / x);
+	double G = (1 + L_ * u / x) - (L_ - L0) * (1 + 1 / x);
 
-	return Const::fGF2 * ( (F*F) * A + (G*G) * B - 2*(F*G) * C ) / 2.0;
+	double A = (1 + y - t)*(1 + z - s - Helicity() * SqrtKallen(1, z, s)) -
+	           (u - y - z - Helicity() * SqrtKallen(u, y, z));
+	double B = (y + z) * (u - y - z) + 4 * y * z -
+	           (y - z) * Helicity() * SqrtKallen(u, y, z);
+	double C = (1 + y - t) * 2*z + (1 + z - s) * (2*y + Helicity() * SqrtKallen(u, y, z)) -
+		   Helicity() * (u - z + y) * SqrtKallen(1, z, s);
+
+	return Const::fGF2 * ( (F*F) * A + (G*G) * B - (F*G) * C ) / 2.0;
 }
 
 //Generic function set up for template analysis
 //
-void Amplitude::SetFunction(double (Amplitude::*FF)(double))
+void Amplitude::SetFunction(double (Amplitude::*FF)(const double))
 {
 	fFunction = FF;
 }
 
-void Amplitude::SetFunction_D(double (Amplitude::*FF)(double*))
+void Amplitude::SetFunction_D(double (Amplitude::*FF)(const double*))
 {
 	fFunction_D = FF;
 }
 
-double Amplitude::Function(double x)
+double Amplitude::Function(const double x)
 {
 	return (this->*fFunction)(x);
 }
 
-double Amplitude::Function_D(double *x)
+double Amplitude::Function_D(const double *x)
 {
 	return (this->*fFunction_D)(x);
 }
@@ -504,10 +569,6 @@ bool Amplitude::IsChanged()
 		Reset();
 
 	return Ret;
-}
-
-void Amplitude::Reset()	//to be implemented in derived classes
-{
 }
 
 //Get functions

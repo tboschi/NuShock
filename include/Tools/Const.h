@@ -120,8 +120,8 @@ namespace Const
 	static const double fKaPi = 0.9700;	//f(0)
 	static const double fK0L_ = 0.0267;	//Linear dependence of f+ in K0m3 (PDG)
 	static const double fK0L0 = 0.0117;	//Linear dependence of f0 in K0m3 (PDG)
-	static const double fK_L_ = 0.0277;	//Linear dependence of f+ in K+m3 (PDG)
-	static const double fK_L0 = 0.0183;	//Linear dependence of f0 in K+m3 (PDG)
+	static const double fKCL_ = 0.0277;	//Linear dependence of f+ in K+m3 (PDG)
+	static const double fKCL0 = 0.0183;	//Linear dependence of f0 in K+m3 (PDG)
 
 	static const double fMagMuN = -1.9130427345;	//neutron magnetic moment (in nuclear magneton units)
 	static const double fMagMuP = 2.79284735128;	//proton magnetic moment (in nuclear magneton units);

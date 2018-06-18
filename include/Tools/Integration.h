@@ -11,12 +11,12 @@
 #include <limits>
 
 #include "cuba.h"
-#include "asa047.hpp"
+#include "Tools/asa047.hpp"
 
 namespace Inte
 {
 
-	const unsigned int Step = 100;
+	const unsigned int Step = 50;
 
 	enum MinMax
 	{
@@ -29,22 +29,21 @@ namespace Inte
 	int Integrand(const int *nDim, const double x[], const int *nComp, double f[], void *UserData)
 	{
 		TempClass *TempObject = static_cast<TempClass*>(UserData);
-
-		if (*nComp == 1)
-			f[0] = TempObject->Function(nDim, x);
+		f[0] = TempObject->Function_D(x);
+		return 1;
 	}
 
 	template<class TempClass>
 	double VegasIntegration(TempClass *TempObject, int nDim, int &Trial, int &Fail, double &Error, double &Chi2Prob)
 	{
 		//input
-		double EpsRel = 1.0e-8;		//relative error for each component
-		double EpsAbs = 1.0e-12;	//absolute error
-		int MinEval = 1e5;		//minimum number of evaluation
-		int MaxEval = 1e6;		//maximum number of evaluation
-		int nStart = 1000;
-		int nIncrease = 500;
-		int nBatch = 1000;
+		double EpsRel = 1.0e-3;		//relative error for each component
+		double EpsAbs = 1.0e-6;		//absolute error
+		int MinEval = 100;		//minimum number of evaluation
+		int MaxEval = 1e4;		//maximum number of evaluation
+		int nStart = 10;
+		int nIncrease = 10;
+		int nBatch = 100;
 		void *UserData = TempObject;
 		char *state = NULL;
 		void *spin = NULL;
@@ -55,7 +54,7 @@ namespace Inte
 		double Integral;
 
 		Vegas(nDim, 1, IntCast, UserData, 1, 	//ndim, ncomp, integrand_t, userdata, nvec
-		      EpsRel, EpsAbs, 0, 0, 		//epsrel, epsabs, verbosity, seed
+		      EpsRel, EpsAbs, 1, 0, 		//epsrel, epsabs, verbosity, seed
 		      MinEval, MaxEval, nStart, nIncrease, nBatch,
 		      0, state, spin,			//gridno, statefile, spin
 		      &Trial, &Fail, &Integral, &Error, &Chi2Prob);
@@ -68,19 +67,24 @@ namespace Inte
 	{
 		double a = 0, b = 0;
 		double h = 1.0/Step;
-		double Integral = 0;
+		double Integral = h/90 * 7 * TempObject->Function(0);
+		double First = 0;
 		for (a = 0; b + 1e-12 < 1.0; a = b)
 		{
 			b = a + h;
 
-			Integral += 7  * TempObject->Function(a);
-			Integral += 32 * TempObject->Function((3*a +b) / 4.0);
-			Integral += 12 * TempObject->Function((a+b)/2.0 );
-			Integral += 32 * TempObject->Function((a+3*b)/4.0 );
-			Integral += 7  * TempObject->Function(b);
+			Integral += First;
+
+			Integral += h/90.0 * 32 * TempObject->Function((3*a +   b) / 4.0);
+			Integral += h/90.0 * 12 * TempObject->Function((  a +   b) / 2.0 );
+			Integral += h/90.0 * 32 * TempObject->Function((  a + 3*b) / 4.0 );
+
+			First = h/90.0 * 7 * TempObject->Function(b);
+			Integral += First;
 		}	
 	
-		return Integral * h/90.0;
+		//return Integral * h/90.0;
+		return Integral;
 	}	
 
 	template<class TempClass>

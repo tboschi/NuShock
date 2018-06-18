@@ -13,6 +13,7 @@
 #include <cstring>
 
 #include "Physics/Amplitude.h"
+#include "cuba.h"
 
 class Production : public Amplitude
 {
@@ -46,16 +47,13 @@ class Production : public Amplitude
 		double KaonCE();
                 double KaonCM();
 
+		double AntiLeptonNeutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neut);
+		double I_AntiLeptonNeutrino(double x, double y, double z);
+		double I_AntiLeptonNeutrino_s(const double s);
+
 		double LeptonNeutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neutrino);
 		double I_LeptonNeutrino(double x, double y, double z);
-		double I_LeptonNeutrino_s(double s);
-		double I_LeptonNeutrino_t(double t);
-		double I_LeptonNeutrino(double X, double Y, double x, double y, double z);
-
-		double LeptonAntineutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neut);
-		double I_LeptonAntineutrino(double x, double y, double z);
-		double I_LeptonAntineutrino_s(double s);
-		double I_LeptonAntineutrino_t(double t);
+		double I_LeptonNeutrino_u(const double u);
 
 		double LeptonMesonDecay(double M_Lepton, double M_Meson);
 		double I_LeptonMeson(double x, double y);
@@ -65,11 +63,13 @@ class Production : public Amplitude
 
 		double MesonThreeDecay(double M_Meson0, double M_Meson1, double M_Lepton, double L_, double L0);
 		double I_MesonThree(double x, double y, double z, double L_, double L0);
-		double I_MesonThree_s(double s);
-		double I_MesonThree_t(double t);
+		double I_MesonThree_s(const double s);
+		double I_MesonThree_t(const double t);
+		double I_MesonThree_D(const double *x);
 
 		void Reset();
-		void SetFunction(double (Production::*FF)(double));
+		void SetFunction(double (Production::*FF)(const double));
+		void SetFunction_D(double (Production::*FF)(const double*));
 
 	private:
 
@@ -91,6 +91,25 @@ class Production : public Amplitude
                        fKaon0M,
                        fKaonCE,
                        fKaonCM;
+
+		double lMuonE,
+                       lMuonM,
+                       lTauEE,
+                       lTauET,
+                       lTauMM,
+                       lTauMT,
+		       lTauPion,
+                       lPionE,
+                       lPionM,
+                       lKaonE,
+                       lKaonM,
+                       lCharmE,
+                       lCharmM,
+                       lCharmT,
+                       lKaon0E,
+                       lKaon0M,
+                       lKaonCE,
+                       lKaonCM;
 };
 
 #endif

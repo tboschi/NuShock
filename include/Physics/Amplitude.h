@@ -12,6 +12,8 @@
 #include <cstring>
 
 #include "Tools.h"
+#include "cuba.h"
+#include "Tools/asa047.hpp"
 
 class Amplitude
 {
@@ -110,14 +112,14 @@ class Amplitude
 		double M2_WZ(double x, double y, double z, double s, double t, double cos0s, double cos0t);
 		double M2_WZ(double x, double y, double z, double u, double cos0u);
 
-		double M2_LeptonNeutrino(double x, double y, double z, double s, double t, double cos0);
-		double M2_LeptonAntineutrino(double x, double y, double z, double s, double cos0);
+		double M2_LeptonNeutrino(double x, double y, double z, double s);
+		double M2_AntiLeptonNeutrino(double x, double y, double z, double s);
 		double M2_LeptonMeson(double x, double y);
 		double M2_MesonTwo(double x, double y);
-		double M2_MesonThree(double s, double t, double x, double y, double z, double cos0, double L_, double L0);
+		double M2_MesonThree(double s, double t, double x, double y, double z, double L_, double L0);
 
 		bool IsChanged();
-		void Reset();
+		virtual void Reset() {std::cout << std::endl;}
 
 		double Mass(int E = 1.0);
 		double MassN(int E = 1.0);
@@ -138,8 +140,17 @@ class Amplitude
 		void SetHelicity(int Helicity);
 		void SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Particle, int Helix);
 
-		double Function(double x);
-		double Function_D(double *x);
+		double Function(const double x);
+		double Function_D(const double *x);
+
+		double Gauss_V();
+		double Gauss_D(const double *x);
+		double Gauss_B();
+		double Gauss_x(const double x);
+		double Gauss_y(const double y);
+		double Gauss_xy(const double x, const double y);
+
+		unsigned int CC;
 
 	protected:
 		Channel Channel_prev;
@@ -149,8 +160,8 @@ class Amplitude
 
 		std::map<Amplitude::Channel, std::string> chMap;
 
-		void SetFunction(double (Amplitude::*FF)(double));
-		void SetFunction_D(double (Amplitude::*FF)(double *));
+		void SetFunction(double (Amplitude::*FF)(const double));
+		void SetFunction_D(double (Amplitude::*FF)(const double *));
 
 		//Masses
 		const double M_Neutrino;
@@ -176,11 +187,12 @@ class Amplitude
 		double M_Sterile, M_Sterile_prev;
 		double M_Parent;
 		double fUe, fUm, fUt;
+
 		bool bFermion, bParticle;
 		int iHel, iHel_prev;
 
-		double (Amplitude::*fFunction)(double);
-		double (Amplitude::*fFunction_D)(double*);
+		double (Amplitude::*fFunction)(const double);
+		double (Amplitude::*fFunction_D)(const double*);
 };
 
 #endif

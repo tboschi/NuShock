@@ -697,7 +697,7 @@ double DecayRates::I_NeutrinoLeptonLepton(double x, double y, double z, double g
 	return Inte::BooleIntegration(this); 
 }
 
-double DecayRates::I_NeutrinoLeptonLepton_s(double s)
+double DecayRates::I_NeutrinoLeptonLepton_s(const double s)
 {
 	double &x = F_var.at(0);
 	double &y = F_var.at(1);
@@ -705,17 +705,17 @@ double DecayRates::I_NeutrinoLeptonLepton_s(double s)
 	double &gL = F_var.at(3);
 	double &gR = F_var.at(4);
 
-	double t = s, u = s;
-	double fcu = Limit(u, y, z, x);
-	double fct = Limit(t, z, x, y);
-	double fcs = Limit(s, x, y, z);
+	double s_ = s, t_ = s, u_ = s;
+	double fcu = Limit(u_, y, z, x);
+	double fct = Limit(t_, z, x, y);
+	double fcs = Limit(s_, x, y, z);
 
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);		//means I am integrating on theta only
 	//double fc = theta < 0.0 ? 2.0 : 1.0;			//so I remove cos0 terms and multiply by 2
 
-	return gL * gL * fcs * M2_WW(x, y, z, s, 0) +
-	       gR * gR * fct * M2_WW(x, y, z, t, 0) + 
-	       2 * gL * gR * fcu * M2_WZ(x, y, z, u, 0);
+	return gL * gL * fcs * M2_WW(x, y, z, s_, 0) +
+	       gR * gR * fct * M2_WW(x, y, z, t_, 0) + 
+	       2 * gL * gR * fcu * M2_WZ(x, y, z, u_, 0);
 }
 
 /////////////////////////
@@ -766,9 +766,9 @@ void DecayRates::Reset()
 	fECHARM = -1.0;
 }
 
-void DecayRates::SetFunction(double (DecayRates::*FF)(double))
+void DecayRates::SetFunction(double (DecayRates::*FF)(const double))
 {
-	double (Amplitude::*Function)(double) = 
-		static_cast<double (Amplitude::*)(double)>(FF); // ok!
+	double (Amplitude::*Function)(const double) = 
+		static_cast<double (Amplitude::*)(const double)>(FF); // ok!
 	SetFunction(Function);
 }

@@ -59,14 +59,14 @@ class PhaseSpace : public Amplitude
 		double Max_NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
 		double NeutrinoLeptonLepton(double x, double y, double z, double s, double t, double cos0, double cos1, double gL, double gR);
 		double max_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
-		double max_NeutrinoLeptonLepton_D(double *p);
+		double max_NeutrinoLeptonLepton_D(const double *p);
 
 		double NeutrinoPseudoMeson(double M_Neut, double M_Meson);
 		double Max_LeptonPseudoMeson(double M_Neut, double M_Meson);
 		double LeptonPseudoMeson(double M_Neut, double M_Meson);
 		double Max_NeutrinoPseudoMeson(double M_Neut, double M_Meson);
 		double max_LeptonPseudo(double x, double y);
-		double max_LeptonPseudo_cos0(double cos0);
+		double max_LeptonPseudo_cos0(const double cos0);
 		double LeptonPseudo(double x, double y, double cos0);
 
 		double NeutrinoVectorMeson(double M_Neut, double M_Meson);
@@ -74,7 +74,7 @@ class PhaseSpace : public Amplitude
 		double LeptonVectorMeson(double M_Neut, double M_Meson);
 		double Max_LeptonVectorMeson(double M_Neut, double M_Meson);
 		double max_LeptonVector(double x, double y);
-		double max_LeptonVector_cos0(double cos0);
+		double max_LeptonVector_cos0(const double cos0);
 		double LeptonVector(double x, double y, double cos0);
 
 		void Kinematic_2B(double &cos0);
@@ -89,8 +89,8 @@ class PhaseSpace : public Amplitude
 		void SetNRest(double Mass);
 
 		void Reset();
-		void SetFunction(double (PhaseSpace::*FF)(double));
-		void SetFunction_D(double (PhaseSpace::*FF)(double*));
+		void SetFunction(double (PhaseSpace::*FF)(const double));
+		void SetFunction_D(double (PhaseSpace::*FF)(const double*));
 
 	private:
 		TGenPhaseSpace *Event;

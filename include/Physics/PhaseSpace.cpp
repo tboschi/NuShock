@@ -493,7 +493,7 @@ double PhaseSpace::max_NeutrinoLeptonLepton(double x, double y, double z, double
 	return Inte::NelMedSolver(this, xMin, 4, Inte::Max);
 }
 
-double PhaseSpace::max_NeutrinoLeptonLepton_D(double *p)
+double PhaseSpace::max_NeutrinoLeptonLepton_D(const double *p)
 {
 	double &x  = F_var.at(0);
 	double &y  = F_var.at(1);
@@ -501,12 +501,12 @@ double PhaseSpace::max_NeutrinoLeptonLepton_D(double *p)
 	double &gL = F_var.at(3);
 	double &gR = F_var.at(4);
 
-	double &s    = p[0];
-	double &t    = p[1];
-	double &cos0 = p[2];
-	double &cos1 = p[3];
+	double s_    = p[0];
+	double t_    = p[1];
+	double cos0_ = p[2];
+	double cos1_ = p[3];
 
-	return NeutrinoLeptonLepton(x, y, z, s, t, cos0, cos1, gL, gR);
+	return NeutrinoLeptonLepton(x, y, z, s_, t_, cos0_, cos1_, gL, gR);
 }
 
 double PhaseSpace::NeutrinoLeptonLepton(double x, double y, double z, double s, double t, double cos0, double cos1, double gL, double gR)
@@ -566,12 +566,13 @@ double PhaseSpace::max_LeptonPseudo(double x, double y)
 	return Inte::GoldRatioSolver(this, Inte::Max);
 }
 
-double PhaseSpace::max_LeptonPseudo_cos0(double cos0)
+double PhaseSpace::max_LeptonPseudo_cos0(const double cos0)
 {
 	double &x  = F_var.at(0);
 	double &y  = F_var.at(1);
+	double cos0_ = cos0;
 
-	return LeptonPseudo(x, y, cos0);
+	return LeptonPseudo(x, y, cos0_);
 }
 
 double PhaseSpace::LeptonPseudo(double x, double y, double cos0)
@@ -629,12 +630,13 @@ double PhaseSpace::max_LeptonVector(double x, double y)
 	return Inte::GoldRatioSolver(this, Inte::Max);
 }
 
-double PhaseSpace::max_LeptonVector_cos0(double cos0)
+double PhaseSpace::max_LeptonVector_cos0(const double cos0)
 {
 	double &x  = F_var.at(0);
 	double &y  = F_var.at(1);
+	double cos0_ = cos0;
 
-	return LeptonVector(x, y, cos0);
+	return LeptonVector(x, y, cos0_);
 }
 
 double PhaseSpace::LeptonVector(double x, double y, double cos0)
@@ -773,16 +775,16 @@ void PhaseSpace::Reset()
 	maxECHARM = -1.0;
 }
 
-void PhaseSpace::SetFunction(double (PhaseSpace::*FF)(double))
+void PhaseSpace::SetFunction(double (PhaseSpace::*FF)(const double))
 {
-	double (PhaseSpace::*Function)(double) = 
-		static_cast<double (Amplitude::*)(double)>(FF); // ok!
+	double (PhaseSpace::*Function)(const double) = 
+		static_cast<double (Amplitude::*)(const double)>(FF); // ok!
 	SetFunction(Function);
 }
 
-void PhaseSpace::SetFunction_D(double (PhaseSpace::*FF)(double*))
+void PhaseSpace::SetFunction_D(double (PhaseSpace::*FF)(const double*))
 {
-	double (PhaseSpace::*Function)(double*) = 
-		static_cast<double (Amplitude::*)(double*)>(FF); // ok!
+	double (PhaseSpace::*Function)(const double*) = 
+		static_cast<double (Amplitude::*)(const double*)>(FF); // ok!
 	SetFunction_D(Function);
 }

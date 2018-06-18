@@ -23,8 +23,6 @@ int main(int argc, char** argv)
 	
 	std::ofstream OutFile;
 	
-//Initialize variables
-	
 	while((iarg = getopt_long(argc,argv, "o:h", longopts, &index)) != -1)	
 	{
 		switch(iarg)
@@ -56,36 +54,10 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Neutrino *N_up = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Left );
-	Neutrino *N_do = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Right);
+	Amplitude *test = new Amplitude();
 
-	//Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
-	for (double t = 0.0001; t < 1.0; t += 0.0001)
-	{
-		N_up->SetMass(t);
-		N_do->SetMass(t);
-		Out << t << "\t";
-		Out << N_up->ProductionScale("KaonM") << "\t";
-		Out << N_do->ProductionScale("KaonM") << "\t";
-		Out << N_up->ProductionScale("MuonE") << "\t";
-		Out << N_do->ProductionScale("MuonE") << "\t";
-		Out << N_up->ProductionScale("KaonCM") << "\t";
-		Out << N_do->ProductionScale("KaonCM") << "\t";
-		Out << std::endl;
-	}
-		//Out << Kine::ShrockFactor(Pion, Elec, t) << "\t";
-		//Out << Kine::ShrockFactor(Kaon, Elec, t) << "\t";
-		//Out << Kine::ShrockFactor(Charm, Elec, t) << "\t";
-		//Out << Kine::ShrockFactor(Pion, Muon, t) << "\t";
-		//Out << Kine::ShrockFactor(Kaon, Muon, t) << "\t";
-		//Out << Kine::ShrockFactor(Charm, Muon, t) << "\t";
-		//Out << std::endl;
-	//Create object from classes
-	//e.g.	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
-
-	//Main body
-
-	//Garbage collection
+	std::cout << "vegas " <<test->Gauss_V() << std::endl;
+	std::cout << "boole " <<test->Gauss_B() << std::endl;
 
 	return 0;
 }
