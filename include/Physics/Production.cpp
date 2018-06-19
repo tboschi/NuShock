@@ -821,10 +821,14 @@ double Production::I_MesonThree(double x, double y, double z, double L_, double 
 	int Trial, Fail;
 	double Error, Chi2Prob;
 
-	//SetFunction(&Production::I_MesonThree_s);
-	//return Inte::BooleIntegration(this); 		//switch to Vega
-	SetFunction_D(&Production::I_MesonThree_D);
-	return Inte::VegasIntegration(this, 2, Trial, Fail, Error, Chi2Prob);
+	SetFunction(&Production::I_MesonThree_s);
+	double Boole = Inte::BooleIntegration(this); 		//switch to Vega
+
+	//SetFunction_D(&Production::I_MesonThree_D);
+	//double Vegas = Inte::VegasIntegration(this, 2, Trial, Fail, Error, Chi2Prob);
+	//std::cout << MassN() << "\t" << Boole << "\t" << Vegas << "\t" << Boole-Vegas << std::endl;
+
+	return Boole;
 }
 
 double Production::I_MesonThree_s(const double s)	//fixing one variable
@@ -836,6 +840,7 @@ double Production::I_MesonThree_s(const double s)	//fixing one variable
 
 	F_var.pop_back();
 	SetFunction(&Production::I_MesonThree_s);
+	std::cout << "\n\n";
 
 	return Ret;
 }
@@ -857,6 +862,7 @@ double Production::I_MesonThree_t(const double t)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;              //so an overall factor of 2
 
+	std::cout << s_ << "\t" << t_ << "\t" << fc * M2_MesonThree(s_, t_, x, y, z, L_, L0) << std::endl;
 	return fc * M2_MesonThree(s_, t_, x, y, z, L_, L0);
 }
 
@@ -872,9 +878,7 @@ double Production::I_MesonThree_D(const double *v)
 
 	double s_ = v[0];
 	double t_ = v[1];
-	std::cout << s_ << "\t" << t_ << "\t-\t";
 	double fc = Limit(s_, t_, x, y, z);
-	std::cout << s_ << "\t" << t_ << std::endl;
 
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;              //so an overall factor of 2

@@ -37,11 +37,11 @@ namespace Inte
 	double VegasIntegration(TempClass *TempObject, int nDim, int &Trial, int &Fail, double &Error, double &Chi2Prob)
 	{
 		//input
-		double EpsRel = 1.0e-3;		//relative error for each component
+		double EpsRel = 1.0e-5;		//relative error for each component
 		double EpsAbs = 1.0e-6;		//absolute error
 		int MinEval = 100;		//minimum number of evaluation
-		int MaxEval = 1e4;		//maximum number of evaluation
-		int nStart = 10;
+		int MaxEval = 1e5;		//maximum number of evaluation
+		int nStart = 20;
 		int nIncrease = 10;
 		int nBatch = 100;
 		void *UserData = TempObject;
@@ -54,7 +54,7 @@ namespace Inte
 		double Integral;
 
 		Vegas(nDim, 1, IntCast, UserData, 1, 	//ndim, ncomp, integrand_t, userdata, nvec
-		      EpsRel, EpsAbs, 1, 0, 		//epsrel, epsabs, verbosity, seed
+		      EpsRel, EpsAbs, 0, 0, 		//epsrel, epsabs, verbosity, seed
 		      MinEval, MaxEval, nStart, nIncrease, nBatch,
 		      0, state, spin,			//gridno, statefile, spin
 		      &Trial, &Fail, &Integral, &Error, &Chi2Prob);

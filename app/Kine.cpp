@@ -60,17 +60,17 @@ int main(int argc, char** argv)
 	Neutrino *N_do = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Right);
 
 	//Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
-	for (double t = 0.0001; t < 1.0; t += 0.0001)
+	for (double t = 0.0; t < 1.0; t += 0.01)
 	{
 		N_up->SetMass(t);
 		N_do->SetMass(t);
 		Out << t << "\t";
-		Out << N_up->ProductionScale("KaonM") << "\t";
-		Out << N_do->ProductionScale("KaonM") << "\t";
-		Out << N_up->ProductionScale("MuonE") << "\t";
-		Out << N_do->ProductionScale("MuonE") << "\t";
+		//Out << N_up->ProductionScale("KaonM") << "\t";
+		//Out << N_do->ProductionScale("KaonM") << "\t";
+		//Out << N_up->ProductionScale("MuonE") << "\t";
+		//Out << N_do->ProductionScale("MuonE") << "\t";
 		Out << N_up->ProductionScale("KaonCM") << "\t";
-		Out << N_do->ProductionScale("KaonCM") << "\t";
+		//Out << N_do->ProductionScale("KaonCM") << "\t";
 		Out << std::endl;
 	}
 		//Out << Kine::ShrockFactor(Pion, Elec, t) << "\t";
