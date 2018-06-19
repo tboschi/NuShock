@@ -18,8 +18,9 @@ LDLIBS   := -lcuba
 CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
 #apps and exctuables
-CPP =	Kine	\
-	Gauss
+CPP =	ProductionScale	\
+	DecayBranch	\
+	MakeFlux
 	#MakeFlux	\
 	Eps2Dat		\
 	Eps2Root	

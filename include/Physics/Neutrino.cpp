@@ -12,11 +12,13 @@ Neutrino::Neutrino(double Mass, unsigned int Options) :
 	fMixings = new double[3];
 	SetMixings(1.0, 1.0, 1.0);
 
-	TheDecayRates = new DecayRates();
-	TheProduction = new Production();
-	ThePhaseSpace = new PhaseSpace();
+	TheDecayRates = new DecayRates();	//to compute heavy neutrino decays
+	TheProduction = new Production();	//to compute massive neutrino production widths
+	TheProdLightN = new Production();	//to compute massless neutrino production widths
+	ThePhaseSpace = new PhaseSpace();	//to generate phasespace for neutrino decays
 
 	//TheCross = new CrossSection();
+	TheProdLightN->SetNeutrino(0, Mixings(), 1, 1, 0);	//SM neutrino loaded
 }
 
 Neutrino::~Neutrino()
@@ -29,6 +31,14 @@ Neutrino::~Neutrino()
 void Neutrino::SetParent(Amplitude *Object)
 {
 	Object->SetNeutrino(Mass(), Mixings(), GetFermion(), GetParticle(), Helicity());
+}
+
+//////////
+///DECAY///
+//////////
+void Neutrino::DecayChannel(std::vector<std::string> &vChan)
+{
+	vChan = TheDecayRates->ListChannel();
 }
 
 double Neutrino::DecayTotal()
@@ -68,6 +78,15 @@ double Neutrino::DecayBranch(Amplitude::Channel Name)
 	return TheDecayRates->Branch(Name);
 }
 
+////////////////
+///PRODUCTION///
+////////////////
+//
+void Neutrino::ProductionChannel(std::vector<std::string> &vChan)
+{
+	vChan = TheProduction->ListChannel();
+}
+
 double Neutrino::ProductionWidth()
 {
 	return ProductionWidth(ProductionChannel());
@@ -97,7 +116,7 @@ double Neutrino::ProductionScale(std::string Name)
 double Neutrino::ProductionScale(Amplitude::Channel Name)
 {
 	SetParent(TheProduction);
-	return TheProduction->Scale(Name);
+	return TheProduction->Gamma(Name)/(2*TheProdLightN->Gamma(Name));
 }
 
 std::vector<TLorentzVector> Neutrino::DecayPS()
@@ -246,19 +265,19 @@ double* Neutrino::Mixings()
 	return fMixings;
 }
 
-double Neutrino::Ue()
+double Neutrino::Ue(int E)
 {
-	return fMixings[0];
+	return pow(fMixings[0], E);
 }
 
-double Neutrino::Um()
+double Neutrino::Um(int E)
 {
-	return fMixings[1];
+	return pow(fMixings[1], E);
 }
 
-double Neutrino::Ut()
+double Neutrino::Ut(int E)
 {
-	return fMixings[2];
+	return pow(fMixings[2], E);
 }
 
 double Neutrino::Energy()

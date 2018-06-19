@@ -5,10 +5,10 @@
 #include <cstring>
 #include <getopt.h>
 
-//#include "EventGenerator.h"
+#include "Tools.h"
 #include "Flux.h"
-#include "Tools/Tools.h"
-//#include "DecayRates.h"
+#include "Detector.h"
+#include "Physics.h"
 
 #include "TFile.h"
 #include "TH1D.h"
@@ -31,18 +31,21 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	//Initialize variables
-	std::string DetConfig, FluxConfig;
+	std::string DetConfig, FluxConfig_A, FluxConfig_P;
 	std::string BaseName;
 	
-	while((iarg = getopt_long(argc,argv, "d:f:b:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "d:a:p:b:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
 			case 'd':
 				DetConfig.assign(optarg);
 				break;
-			case 'f':
-				FluxConfig.assign(optarg);
+			case 'a':
+				FluxConfig_A.assign(optarg);
+				break;
+			case 'p':
+				FluxConfig_P.assign(optarg);
 				break;
 			case 'b':
 				BaseName.assign(optarg);
@@ -59,26 +62,48 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 	//std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	FluxDriver * TheFlux = new FluxDriver(FluxConfig);
+	FluxDriver * TheFlux_P = new FluxDriver(FluxConfig_P);
+	FluxDriver * TheFlux_A = new FluxDriver(FluxConfig_A);
+	Detector * TheBox = new Detector(DetConfig);
+
+	Neutrino *N_up = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Left );
+	Neutrino *N_do = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Right);
 	
 	std::stringstream ssL;
 	double Mass;
-	for (double Mass = 0.150; Mass < 0.191; Mass += 0.010)
+	for (double Mass = 0.0; Mass < 2.0; Mass += 0.02)
 	{
+		N_up->SetMass(Mass);
+		N_do->SetMass(Mass);
+
 		ssL.str("");
 		ssL.clear();
-		ssL << BaseName << std::setfill('0') << std::setw(3) << Mass*1000;
+		ssL << BaseName << std::setfill('0') << std::setw(4) << Mass*1000;
 
-		std::cout << "m " << Mass << "\t in " << ssL.str() << std::endl;
-		TheFlux->MakeFlux(Mass);
-		TheFlux->SetBaseline(574);
-		TheFlux->SetPOT(1e20);
+		std::cout << "mass " << Mass << "\t in " << ssL.str() << std::endl;
+
+		TheFlux_P->MakeFlux(N_up);
+		TheFlux_A->MakeFlux(N_do);
+
+		TheFlux_P->SetBaseline(574);
+		TheFlux_A->SetBaseline(574);
+		TheFlux_P->SetPOT(1e20);
+		TheFlux_A->SetPOT(1e20);
 
 		std::ofstream Out(ssL.str().c_str());
 
-		double EnStep = (TheFlux->GetRangeEnd() - TheFlux->GetRangeStart()) / TheFlux->GetBinNumber();
-		for (double E = TheFlux->GetRangeStart(); E < TheFlux->GetRangeEnd(); E += EnStep)
-			Out << E + EnStep/2.0 << "\t" << TheFlux->GetIntensity(E, 1, 0) << std::endl;
+		double Start, End;
+		double EnStep = TheFlux_P->RangeBin(Start, End);
+		for (double Energy = Start+EnStep/2.0; Energy < End+EnStep/2.0; Energy += EnStep)
+		{
+			N_up->SetEnergyKin(Energy);
+			N_do->SetEnergyKin(Energy);
+
+			Out << Energy << "\t"; 
+			Out << TheFlux_P->Intensity(N_up) << "\t"; 
+			Out << TheFlux_A->Intensity(N_do) << "\t"; 
+			Out << std::endl;
+		}
 
 		Out.close();
 	}

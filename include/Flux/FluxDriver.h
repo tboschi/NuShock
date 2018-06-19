@@ -38,7 +38,9 @@ class FluxDriver
 		//double SampleEnergy();
 
 		double Range();
+		double RangeBin();
 		double Range(double &Start, double &End);
+		double RangeBin(double &Start, double &End);
 		double RangeStart();
 		double RangeEnd();
 		int BinNumber();
@@ -53,7 +55,7 @@ class FluxDriver
 
 		bool IsChanged(Neutrino* N);
 
-		void Modify(double &xdir, double &ydir, double M_Sterile);
+		double Modify(double &xdir, double &ydir, double M_Sterile);
 
 	private:
 		TFile *SourceFile;

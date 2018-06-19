@@ -82,9 +82,9 @@ void Flux::CloneCopy(TH1D*& T, TH1D* X)
 
 //Get functions
 
-TH1D* Flux::Get(Hist KeyName) const
+TH1D* Flux::Get(Hist Name) const
 {
-	switch (KeyName)
+	switch (Name)
 	{
 		case Total:
 			return hTotal;
@@ -109,59 +109,61 @@ TH1D* Flux::Get(Hist KeyName) const
 	}
 }
 
-void Flux::Scale(double X, Hist KeyName)
+void Flux::Add()
 {
-	switch (KeyName)
-	{
-		case Total:
-			Scale(X, Hist::Pion);
-			Scale(X, Hist::PPion);
-			Scale(X, Hist::Kaon);
-			Scale(X, Hist::Kaon0);
-			Scale(X, Hist::Charm);
-			Scale(X, Hist::Muon);
-			Scale(X, Hist::TauE);
-			Scale(X, Hist::TauM);
-			break;
-		case Pion:
-			hPion->Scale(X);
-			break;
-		case PPion:
-			hPPion->Scale(X);
-			break;
-		case Kaon:
-			hKaon->Scale(X);
-			break;
-		case Kaon0:
-			hKaon0->Scale(X);
-			break;
-		case Muon:
-			hMuon->Scale(X);
-			break;
-		case TauE:
-			hTauE->Scale(X);
-			break;
-		case TauM:
-			hTauM->Scale(X);
-			break;
-		deafult:
-			break;
-	}
+	Get(Total)->Reset("ICES");
+
+	Add(Pion);
+	Add(PPion);
+	Add(Kaon);
+	Add(Kaon0);
+	Add(Charm);
+	Add(Muon);
+	Add(TauE);
+	Add(TauM);
+}
+
+void Flux::Add(Hist Name)
+{
+	TH1D* hComponent;
+
+	if (hComponent = Get(Name))
+		Get(Total)->Add(hComponent);
+}
+
+void Flux::Scale(double X)
+{
+	Scale(Pion, X);
+	Scale(PPion, X);
+	Scale(Kaon, X);
+	Scale(Kaon0, X);
+	Scale(Charm, X);
+	Scale(Muon, X);
+	Scale(TauE, X);
+	Scale(TauM, X);
+}
+
+void Flux::Scale(Hist Name, double X)
+{
+	TH1D* hComponent;
+
+	if (hComponent = Get(Name))
+		hComponent->Scale(X);
 }
 
 double Flux::RangeStart()
 {
-	return Get(Hist::Total)->GetBinCenter(0);
+	return Get(Total)->GetBinCenter(0);
 }
 
 double Flux::RangeEnd()
 {
-	return Get(Hist::Total)->GetBinCenter(BinNumber());
+	return Get(Total)->GetBinCenter(BinNumber());
 }
 
 double Flux::BinNumber()
 {
-	return Get(Hist::Total)->GetNbinsX();
+	return Get(Total)->GetNbinsX();
 }
 
 double Flux::BinWidth()

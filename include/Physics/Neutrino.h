@@ -38,6 +38,7 @@ class Neutrino
 
 		void SetParent(Amplitude *Object);
 
+		void DecayChannel(std::vector<std::string> &vChan);
 		double DecayTotal();
 		double DecayWidth();
 		double DecayWidth(std::string Name);
@@ -45,12 +46,15 @@ class Neutrino
 		double DecayBranch();
 		double DecayBranch(std::string Name);
 		double DecayBranch(Amplitude::Channel name);
+
+		void ProductionChannel(std::vector<std::string> &vChan);
 		double ProductionWidth();
 		double ProductionWidth(std::string Name);
 		double ProductionWidth(Amplitude::Channel name);
 		double ProductionScale();
 		double ProductionScale(std::string Name);
 		double ProductionScale(Amplitude::Channel name);
+		
 		std::vector<TLorentzVector> DecayPS();
 		std::vector<TLorentzVector> ProductionPS();
 		std::vector<TLorentzVector> GeneratePS(Amplitude::Channel Name);
@@ -72,9 +76,9 @@ class Neutrino
 		
 		double Mass();
 		double* Mixings();
-		double Ue();
-		double Um();
-		double Ut();
+		double Ue(int E = 1.0);
+		double Um(int E = 1.0);
+		double Ut(int E = 1.0);
 		double Energy();
 		double EnergyKin();
 		int Helicity();
@@ -88,7 +92,7 @@ class Neutrino
 
 	private:
 		DecayRates *TheDecayRates;
-		Production *TheProduction;
+		Production *TheProduction, *TheProdLightN;
 		PhaseSpace *ThePhaseSpace;
 
 		Amplitude::Channel chDecay, chProduction;

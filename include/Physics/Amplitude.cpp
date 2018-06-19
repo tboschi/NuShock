@@ -115,10 +115,6 @@ void Amplitude::LoadMass(Channel Name)
 			vMass.push_back(M_Electron);
 			break;
 		case _nEM:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Muon);
-			break;
 		case _nME:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
@@ -130,20 +126,12 @@ void Amplitude::LoadMass(Channel Name)
 			vMass.push_back(M_Muon);
 			break;
 		case _nET:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Tau);
-			break;
 		case _nTE:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Tau);
 			break;
 		case _nMT:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Tau);
-			break;
 		case _nTM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
@@ -380,14 +368,14 @@ double Amplitude::M2_LeptonVectorMeson(double x, double y, double cos0)	//must b
 //					lepton		meson	angle
 double Amplitude::M2_NeutrinoVectorMeson(double x, double y, double cos0)
 {
-	M2_NeutrinoVectorMeson(x, y, cos0) / 2.0;
+	return M2_LeptonVectorMeson(x, y, cos0) / 2.0;
 }
 
 //			lepton energy is s = (p0-p2)² and cos0s the angle wrt z-axis
 //			       neutrino, letpon,   lepton
 double Amplitude::M2_WW(double x, double y, double z, double s, double cos0)	//gL^2 + gR^2
 {
-	return 4 * Const::fGF2 * Mass(4) *
+	return 16 * Const::fGF2 * Mass(4) *
 	       (s - x - y) * (1 + z - s - Helicity() * SqrtKallen(1, z, s) * cos0);
 }
 
@@ -406,69 +394,10 @@ double Amplitude::M2_WZ(double x, double y, double z, double s, double t, double
 //			       neutrino, letpon,   lepton
 double Amplitude::M2_WZ(double x, double y, double z, double u, double cos0u)	//2gL*gR
 {
-	return 4 * Const::fGF2 * Mass(4) *
+	return 16 * Const::fGF2 * Mass(4) *
 		sqrt(y * z) * (1 + x - u - Helicity() * SqrtKallen(1, x, u) * cos0u);
 }
 
-double Amplitude::Gauss_V()
-{
-	CC = 0;
-	int Trial, Fail;
-	double Error, Chi2Prob;
-	SetFunction_D(&Amplitude::Gauss_D);
-	double Ret =  Inte::VegasIntegration(this, 2, Trial, Fail, Error, Chi2Prob);
-	std::cout << "vegas count " << CC << std::endl;
-	std::cout << "vegas flag " << Trial << "\t" << Fail << "\t" << Error << "\t" << Chi2Prob << std::endl;
-	return Ret;
-}
-
-double Amplitude::Gauss_D(const double *p)
-{
-	const double x = p[0]; 
-	const double y = p[0]; 
-	return Gauss_xy(x, y);
-}
-
-double Amplitude::Gauss_B()
-{
-	CC = 0;
-	SetFunction(&Amplitude::Gauss_x);
-	double Ret = Inte::BooleIntegration(this);
-
-	std::cout << "boole count " << CC << std::endl;
-	return Ret;
-}
-
-double Amplitude::Gauss_x(const double x)
-{
-	F_var.push_back(x);
-	SetFunction(&Amplitude::Gauss_y);
-
-	double Ret = Inte::BooleIntegration(this);
-	SetFunction(&Amplitude::Gauss_x);
-	F_var.pop_back();
-
-	return Ret;
-}
-
-double Amplitude::Gauss_y(const double y)
-{
-	double x_ = F_var.at(0);
-	double y_ = y;
-	return Gauss_xy(x_, y_);
-}
-
-double Amplitude::Gauss_xy(const double x, const double y)
-{
-	++CC;
-	double x_ = -1 + 2*(fabs(x-1e-9)); 
-	std::cout << "x " << x_ << "\t" << sqrt(1-x_*x_) << std::endl;
-	double y_ = -sqrt(1-x_*x_) + 2*sqrt(1-x_*x_)*y; 
-	//double y_ = -1 + 2*y;
-
-	return 2 * 2*sqrt(1-x_*x_) * 1;
-	//return 4 * exp(-x_*x_ - y_*y_);
-}
 //
 //////////////
 //production//
@@ -546,16 +475,6 @@ double Amplitude::Function_D(const double *x)
 	return (this->*fFunction_D)(x);
 }
 
-/*
-std::vector<std::string> Amplitude::ListChannels()
-{
-	std::map<std::string, ChannelName>::iterator it;
-	std::vector<std::string> vList;
-	for (it = mapChannel.begin(); it != mapChannel.end(); ++it)
-		vList.push_back(it->first);
-	return vList;
-}
-*/
 bool Amplitude::IsChanged()
 {
 	bool Ret = (fabs(MassN() - M_Sterile_prev) > 1e-9) ||
@@ -663,3 +582,62 @@ void Amplitude::SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Par
 	SetParticle(Particle);
 	SetHelicity(Helix);
 }
+
+
+/*
+double Amplitude::Gauss_V()
+{
+	CC = 0;
+	int Trial, Fail;
+	double Error, Chi2Prob;
+	SetFunction_D(&Amplitude::Gauss_D);
+	double Ret =  Inte::VegasIntegration(this, 2, Trial, Fail, Error, Chi2Prob);
+	return Ret;
+}
+
+double Amplitude::Gauss_D(const double *p)
+{
+	const double x = p[0]; 
+	const double y = p[0]; 
+	return Gauss_xy(x, y);
+}
+
+double Amplitude::Gauss_B()
+{
+	CC = 0;
+	SetFunction(&Amplitude::Gauss_x);
+	double Ret = Inte::BooleIntegration(this);
+
+	return Ret;
+}
+
+double Amplitude::Gauss_x(const double x)
+{
+	F_var.push_back(x);
+	SetFunction(&Amplitude::Gauss_y);
+
+	double Ret = Inte::BooleIntegration(this);
+	SetFunction(&Amplitude::Gauss_x);
+	F_var.pop_back();
+
+	return Ret;
+}
+
+double Amplitude::Gauss_y(const double y)
+{
+	double x_ = F_var.at(0);
+	double y_ = y;
+	return Gauss_xy(x_, y_);
+}
+
+double Amplitude::Gauss_xy(const double x, const double y)
+{
+	++CC;
+	double x_ = -1 + 2*(fabs(x-1e-9)); 
+	double y_ = -sqrt(1-x_*x_) + 2*sqrt(1-x_*x_)*y; 
+	//double y_ = -1 + 2*y;
+
+	return 2 * 2*sqrt(1-x_*x_) * 1;
+	//return 4 * exp(-x_*x_ - y_*y_);
+}
+*/

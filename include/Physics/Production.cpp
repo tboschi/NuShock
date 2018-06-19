@@ -131,7 +131,7 @@ double Production::Scale(Channel Name)
 	{
 		SetMassN(0);
 		SetHelicity(0);
-		double Gamma0 = 2*Gamma(Name);
+		double Gamma0 = Gamma(Name);
 
 		SetMassN(mass);
 		SetHelicity(hel);
@@ -150,529 +150,184 @@ double Production::Total()
 
 double Production::MuonE()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
+	if (fMuonE < 0 || IsChanged())
+		fMuonE = IsAllowed(_MuonE) ? 
+			AntiLeptonNeutrinoDecay(M_Muon, M_Electron, M_Neutrino) : 0;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fMuonE;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lMuonE;
-		if (*fAmp < 0)
-			Cond = true;
-	}
-
-	if (Cond)
-	{
-		if (IsAllowed(_MuonE))
-			*fAmp = AntiLeptonNeutrinoDecay(M_Muon, M_Electron, M_Neutrino);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ue(2);
+	return fMuonE * Ue(2);
 }
 
 double Production::MuonM()
 {
-	double *fAmp = NULL;
+	if (fMuonM < 0 || IsChanged())
+		fMuonM = IsAllowed(_MuonM) ? 
+			LeptonNeutrinoDecay(M_Muon, M_Electron, M_Neutrino) : 0;
 
-	bool Cond = false;
-	if (MassN() > 0)
-	{
-		fAmp = &fMuonM;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lMuonM;
-		if (*fAmp < 0)
-			Cond = true;
-	}
-
-	if (Cond)
-	{
-		if (IsAllowed(_MuonM))
-			*fAmp = LeptonNeutrinoDecay(M_Muon, M_Electron, M_Neutrino);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Um(2);
+	return fMuonM * Um(2);
 }
 
 double Production::TauEE()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fTauEE;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lTauEE;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fTauEE < 0 || IsChanged())
+		fTauEE = IsAllowed(_TauEE) ?
+			AntiLeptonNeutrinoDecay(M_Tau, M_Electron, M_Neutrino) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_TauEE))
-			*fAmp = AntiLeptonNeutrinoDecay(M_Tau, M_Electron, M_Neutrino);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ue(2);
+	return fTauEE * Ue(2);
 }
 
 double Production::TauET()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fTauET;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lTauET;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fTauET < 0 || IsChanged())
+		fTauET = IsAllowed(_TauET) ? 
+			LeptonNeutrinoDecay(M_Tau, M_Electron, M_Neutrino) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_TauET))
-			*fAmp = LeptonNeutrinoDecay(M_Tau, M_Electron, M_Neutrino);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ut(2);
+	return fTauET * Ut(2);
 }
 
 double Production::TauMM()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fTauMM;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lTauMM;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fTauMM < 0 || IsChanged())
+		fTauMM = IsAllowed(_TauMM) ? 
+			AntiLeptonNeutrinoDecay(M_Tau, M_Muon, M_Neutrino) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_TauMM))
-			*fAmp = AntiLeptonNeutrinoDecay(M_Tau, M_Muon, M_Neutrino);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Um(2);
+	return fTauMM * Um(2);
 }
 
 double Production::TauMT()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fTauMT;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lTauMT;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fTauMT < 0 || IsChanged())
+		fTauMT = IsAllowed(_TauMT) ? 
+			LeptonNeutrinoDecay(M_Tau, M_Muon, M_Neutrino) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_TauMT))
-			*fAmp = LeptonNeutrinoDecay(M_Tau, M_Muon, M_Neutrino);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ut(2);
+	return fTauMT * Ut(2);
 }
 
 double Production::TauPion()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fTauPion;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lTauPion;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fTauPion < 0 || IsChanged())
+		fTauPion = IsAllowed(_TauPion) ? 
+			pow(Const::fU_ud * Const::fDPion, 2) * LeptonMesonDecay(M_Tau, M_Pion) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_TauPion))
-			*fAmp = pow(Const::fU_ud * Const::fDPion, 2) * LeptonMesonDecay(M_Tau, M_Pion);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ut(2);
+	return fTauPion * Ut(2);
 }
 
 double Production::PionE()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fPionE;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lPionE;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fPionE < 0 || IsChanged())
+		fPionE = IsAllowed(_PionE) ? 
+			pow(Const::fU_ud * Const::fDPion, 2) * MesonTwoDecay(M_Pion, M_Electron) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_PionE))
-			*fAmp = pow(Const::fU_ud * Const::fDPion, 2) * MesonTwoDecay(M_Pion, M_Electron);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ue(2);
+	return fPionE * Ue(2);
 }
 
 double Production::PionM()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fPionM;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lPionM;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fPionM < 0 || IsChanged())
+		fPionM = IsAllowed(_PionM) ? 
+			pow(Const::fU_ud * Const::fDPion, 2) * MesonTwoDecay(M_Pion, M_Muon) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_PionM))
-			*fAmp = pow(Const::fU_ud * Const::fDPion, 2) * MesonTwoDecay(M_Pion, M_Muon);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Um(2);
+	return fPionM * Um(2);
 }
 
 double Production::KaonE()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fKaonE;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lKaonE;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fKaonE < 0 || IsChanged())
+		fKaonE = IsAllowed(_KaonE) ? 
+			pow(Const::fU_us * Const::fDKaon, 2) * MesonTwoDecay(M_Kaon, M_Electron) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_KaonE))
-			*fAmp = pow(Const::fU_us * Const::fDKaon, 2) * MesonTwoDecay(M_Kaon, M_Electron);
-		else
-			*fAmp  = 0.0;
-	}
-
-	else
-	return *fAmp * Ue(2);
+	return fKaonE * Ue(2);
 }
 
 double Production::KaonM()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fKaonM;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lKaonM;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fKaonM < 0 || IsChanged())
+		fKaonM = IsAllowed(_KaonM) ? 
+			pow(Const::fU_us * Const::fDKaon, 2) * MesonTwoDecay(M_Kaon, M_Muon) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_KaonM))
-			*fAmp = pow(Const::fU_us * Const::fDKaon, 2) * MesonTwoDecay(M_Kaon, M_Muon);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Um(2);
+	return fKaonM * Um(2);
 }
 
 double Production::CharmE()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fCharmE;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lCharmE;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fCharmE < 0 || IsChanged())
+		fCharmE = IsAllowed(_CharmE) ? 
+			pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Electron) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_CharmE))
-			*fAmp = pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Electron);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ue(2);
+	return fCharmE * Ue(2);
 }
 
 double Production::CharmM()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fCharmM;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lCharmM;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fCharmM < 0 || IsChanged())
+		fCharmM = IsAllowed(_CharmM) ? 
+			pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Muon) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_CharmM))
-			*fAmp = pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Muon);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Um(2);
+	return fCharmM * Um(2);
 }
 
 double Production::CharmT()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fCharmT;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lCharmT;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fCharmT < 0 || IsChanged())
+		fCharmT = IsAllowed(_CharmT) ? 
+			pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Tau) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_CharmT))
-			*fAmp = pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Tau);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ut(2);
+	return fCharmT * Ut(2);
 }
 
 double Production::Kaon0E()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fKaon0E;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lKaon0E;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fKaon0E < 0 || IsChanged())
+		fKaon0E = IsAllowed(_Kaon0E) ?
+			pow(Const::fU_us * Const::fKaPi, 2) * 
+			MesonThreeDecay(M_Kaon0, M_Pion, M_Electron, Const::fK0L_, Const::fK0L0) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_Kaon0E))
-			*fAmp = pow(Const::fU_us * Const::fKaPi, 2) * 
-				MesonThreeDecay(M_Kaon0, M_Pion, M_Electron, Const::fK0L_, Const::fK0L0);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ue(2);
+	return fKaon0E * Ue(2);
 }
 
 double Production::Kaon0M()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fKaon0M;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lKaon0M;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fKaon0M < 0 || IsChanged())
+		fKaon0M = IsAllowed(_Kaon0M) ? 
+			pow(Const::fU_us * Const::fKaPi, 2) * 
+			MesonThreeDecay(M_Kaon0, M_Pion, M_Muon, Const::fK0L_, Const::fK0L0) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_Kaon0M))
-			*fAmp = pow(Const::fU_us * Const::fKaPi, 2) * 
-				MesonThreeDecay(M_Kaon0, M_Pion, M_Muon, Const::fK0L_, Const::fK0L0);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Um(2);
+	return fKaon0M * Um(2);
 }
 
 double Production::KaonCE()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fKaonCE;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lKaonCE;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fKaonCE < 0 || IsChanged())
+		fKaonCE = IsAllowed(_KaonCE) ? 
+			pow(Const::fU_us * Const::fKaPi, 2) / 2.0 * 
+			MesonThreeDecay(M_Kaon, M_Pion0, M_Electron, Const::fKCL_, Const::fKCL0) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_KaonCE))
-			*fAmp = pow(Const::fU_us * Const::fKaPi, 2) / 2.0 * 
-				MesonThreeDecay(M_Kaon, M_Pion0, M_Electron, Const::fKCL_, Const::fKCL0);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Ue(2);
+	return fKaonCE * Ue(2);
 }
 
 double Production::KaonCM()
 {
-	double *fAmp = NULL;
-	bool Cond = false;
 
-	if (MassN() > 0)
-	{
-		fAmp = &fKaonCM;
-		if (*fAmp < 0 || IsChanged())
-			Cond = true;
-	}
-	else
-	{
-		fAmp = &lKaonCM;
-		if (*fAmp < 0)
-			Cond = true;
-	}
+	if (fKaonCM < 0 || IsChanged())
+		fKaonCM = IsAllowed(_KaonCM) ? 
+			pow(Const::fU_us * Const::fKaPi, 2) / 2.0 * 
+			MesonThreeDecay(M_Kaon, M_Pion0, M_Muon, Const::fKCL_, Const::fKCL0) : 0;
 
-	if (Cond)
-	{
-		if (IsAllowed(_KaonCM))
-			*fAmp = pow(Const::fU_us * Const::fKaPi, 2) / 2.0 * 
-				MesonThreeDecay(M_Kaon, M_Pion0, M_Muon, Const::fKCL_, Const::fKCL0);
-		else
-			*fAmp  = 0.0;
-	}
-
-	return *fAmp * Um(2);
+	return fKaonCM * Um(2);
 }
 
 /////////////////
@@ -822,13 +477,7 @@ double Production::I_MesonThree(double x, double y, double z, double L_, double 
 	double Error, Chi2Prob;
 
 	SetFunction(&Production::I_MesonThree_s);
-	double Boole = Inte::BooleIntegration(this); 		//switch to Vega
-
-	//SetFunction_D(&Production::I_MesonThree_D);
-	//double Vegas = Inte::VegasIntegration(this, 2, Trial, Fail, Error, Chi2Prob);
-	//std::cout << MassN() << "\t" << Boole << "\t" << Vegas << "\t" << Boole-Vegas << std::endl;
-
-	return Boole;
+	return Inte::BooleIntegration(this); 		//switch to Vega
 }
 
 double Production::I_MesonThree_s(const double s)	//fixing one variable
@@ -840,7 +489,6 @@ double Production::I_MesonThree_s(const double s)	//fixing one variable
 
 	F_var.pop_back();
 	SetFunction(&Production::I_MesonThree_s);
-	std::cout << "\n\n";
 
 	return Ret;
 }
@@ -855,14 +503,13 @@ double Production::I_MesonThree_t(const double t)
 	double &L0 = F_var.at(3);
 	double &L_ = F_var.at(4);
 
-	double &s_ = F_var.at(5);
+	double s_ = F_var.at(5);
 	double t_ = t;
 	double fc = Limit(s_, t_, x, y, z);
 
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;              //so an overall factor of 2
 
-	std::cout << s_ << "\t" << t_ << "\t" << fc * M2_MesonThree(s_, t_, x, y, z, L_, L0) << std::endl;
 	return fc * M2_MesonThree(s_, t_, x, y, z, L_, L0);
 }
 
@@ -888,7 +535,6 @@ double Production::I_MesonThree_D(const double *v)
 
 void Production::Reset()
 {
-	//heavy neutrino f
 	fMuonE	= -1.0;
 	fMuonM	= -1.0;
 	fTauEE	= -1.0;
@@ -906,25 +552,6 @@ void Production::Reset()
 	fKaon0M	= -1.0;
 	fKaonCE	= -1.0;
 	fKaonCM	= -1.0;
-
-	//light neutrino l
-	lMuonE	= -1.0;
-	lMuonM	= -1.0;
-	lTauEE	= -1.0;
-	lTauET	= -1.0;
-	lTauMM	= -1.0;
-	lTauMT	= -1.0;
-	lPionE	= -1.0;
-	lPionM	= -1.0;
-	lKaonE	= -1.0;
-	lKaonM	= -1.0;
-	lCharmE	= -1.0;
-	lCharmM	= -1.0;
-	lCharmT	= -1.0;
-	lKaon0E	= -1.0;
-	lKaon0M	= -1.0;
-	lKaonCE	= -1.0;
-	lKaonCM	= -1.0;
 }
 
 void Production::SetFunction(double (Production::*FF)(const double))

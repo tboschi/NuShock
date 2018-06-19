@@ -91,25 +91,6 @@ class Production : public Amplitude
                        fKaon0M,
                        fKaonCE,
                        fKaonCM;
-
-		double lMuonE,
-                       lMuonM,
-                       lTauEE,
-                       lTauET,
-                       lTauMM,
-                       lTauMT,
-		       lTauPion,
-                       lPionE,
-                       lPionM,
-                       lKaonE,
-                       lKaonM,
-                       lCharmE,
-                       lCharmM,
-                       lCharmT,
-                       lKaon0E,
-                       lKaon0M,
-                       lKaonCE,
-                       lKaonCM;
 };
 
 #endif

@@ -39,7 +39,11 @@ class Flux
 
 		TH1D* Get(Hist Name) const;
 
-		void Scale(double X, Hist KeyName = Total);
+		void Add();
+		void Add(Hist Name);
+		void Scale(double X);
+		void Scale(Hist Name, double X);
+
 		double RangeStart();
 		double RangeEnd();
 		double BinNumber();
