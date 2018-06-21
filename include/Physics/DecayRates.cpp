@@ -1,4 +1,4 @@
-#include "DecayRates.h"
+#include "Physics/DecayRates.h"
 
 DecayRates::DecayRates()
 {
@@ -64,85 +64,85 @@ double DecayRates::Gamma(Channel Name)
 		case _ALL:
 			Result = Total();
 			break;
-		case _nnn:
+		case _nnn:			//majorana gets *2
 			Result = nnn();
 			break;
-		case _nGAMMA:
+		case _nGAMMA:			//Majorana gets *2	
 			Result = nGAMMA();
 			break;
-		case _nEE:
+		case _nEE:			//Majorana gets *2:
 			Result = nEE();
 			break;
-		case _nEM:
+		case _nEM:			//Majorana gets *2:
 			Result = nEM();
 			break;
-		case _nME:
+		case _nME:			//Majorana gets *2:
 			Result = nME();
 			break;
-		case _nMM:
+		case _nMM:			//Majorana gets *2:
 			Result = nMM();
 			break;
-		case _nET:
+		case _nET:			//Majorana gets *2:
 			Result = nET();
 			break;
-		case _nTE:
+		case _nTE:			//Majorana gets *2:
 			Result = nTE();
 			break;
-		case _nMT:
+		case _nMT:			//Majorana gets *2:
 			Result = nMT();
 			break;
-		case _nTM:
+		case _nTM:			//Majorana gets *2:
 			Result = nTM();
 			break;
-		case _nPI0:
+		case _nPI0:			//Majorana gets *2:
 			Result = nPI0();
 			break;
-		case _EPI:
+		case _EPI:			//Majorana gets *2:
 			Result = EPI();
 			break;
-		case _MPI:
+		case _MPI:			//Majorana gets *2:
 			Result = MPI();
 			break;
-		case _TPI:
+		case _TPI:			//Majorana gets *2:
 			Result = TPI();
 			break;
-		case _EKA:
+		case _EKA:			//Majorana gets *2:
 			Result = EKA();
 			break;
-		case _MKA:
+		case _MKA:			//Majorana gets *2:
 			Result = MKA();
 			break;
-		case _EKAx:
+		case _EKAx:			//Majorana gets *2:
 			Result = EKAx();
 			break;
-		case _MKAx:
+		case _MKAx:			//Majorana gets *2:
 			Result = MKAx();
 			break;
-		case _nRHO0:
+		case _nRHO0:			//Majorana gets *2:
 			Result = nRHO0();
 			break;
-		case _ERHO:
+		case _ERHO:			//Majorana gets *2:
 			Result = ERHO();
 			break;
-		case _MRHO:
+		case _MRHO:			//Majorana gets *2:
 			Result = MRHO();
 			break;
-		case _nETA:
+		case _nETA:			//Majorana gets *2:
 			Result = nETA();
 			break;
-		case _nETAi:
+		case _nETAi:			//Majorana gets *2:
 			Result = nETAi();
 			break;
-		case _nOMEGA:
+		case _nOMEGA:			//Majorana gets *2:
 			Result = nOMEGA();
-			break;
-		case _nPHI:
+			break;	
+		case _nPHI:			//Majorana gets *2:
 			Result = nPHI();
 			break;
-		case _ECHARM:
+		case _ECHARM:			//Majorana gets *2:
 			Result = ECHARM();
 			break;
-		case _ExpALL:
+		case _ExpALL:			//Majorana gets *2:
 			Result = ExpALL();
 			break;
 		default:

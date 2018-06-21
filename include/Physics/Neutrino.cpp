@@ -2,9 +2,11 @@
 
 //Majorana can be treated as a neutrino + antineutrino
 //
-Neutrino::Neutrino(double Mass, unsigned int Options) :
-	fMass(Mass)
+Neutrino::Neutrino(double Mass, unsigned int Options) //:
+	//fMass(Mass)
 {
+	SetMass(Mass);		//should initialise correctly
+				//when SetEnergy is called, the neutrino is aligned on the z-axis (theta = 0, phi = 0)
 	SetParticle(Options);
 	SetFermion(Options);
 	SetHelicity(Options);
@@ -25,6 +27,7 @@ Neutrino::~Neutrino()
 {
 	delete TheDecayRates;
 	delete TheProduction;
+	delete TheProdLightN;
 	delete ThePhaseSpace;
 }
 
@@ -36,9 +39,9 @@ void Neutrino::SetParent(Amplitude *Object)
 //////////
 ///DECAY///
 //////////
-void Neutrino::DecayChannel(std::vector<std::string> &vChan)
+void Neutrino::DecayChannels(std::vector<std::string> &vChan)
 {
-	vChan = TheDecayRates->ListChannel();
+	vChan = TheDecayRates->ListChannels();
 }
 
 double Neutrino::DecayTotal()
@@ -82,9 +85,9 @@ double Neutrino::DecayBranch(Amplitude::Channel Name)
 ///PRODUCTION///
 ////////////////
 //
-void Neutrino::ProductionChannel(std::vector<std::string> &vChan)
+void Neutrino::ProductionChannels(std::vector<std::string> &vChan)
 {
-	vChan = TheProduction->ListChannel();
+	vChan = TheProduction->ListChannels();
 }
 
 double Neutrino::ProductionWidth()
@@ -119,21 +122,22 @@ double Neutrino::ProductionScale(Amplitude::Channel Name)
 	return TheProduction->Gamma(Name)/(2*TheProdLightN->Gamma(Name));
 }
 
-std::vector<TLorentzVector> Neutrino::DecayPS()
+std::vector<Particle*> Neutrino::DecayPS()
 {
 	return GeneratePS(DecayChannel());
 }
 
-std::vector<TLorentzVector> Neutrino::ProductionPS()
+std::vector<Particle*> Neutrino::ProductionPS()
 {
 	return GeneratePS(ProductionChannel());
 }
 
-std::vector<TLorentzVector> Neutrino::GeneratePS(Amplitude::Channel Name)
+std::vector<Particle*> Neutrino::GeneratePS(Amplitude::Channel Name)	//boosted frame?
 {
 	SetParent(ThePhaseSpace);
+	ThePhaseSpace->SetNLabf(FourVector());
 
-	std::vector<TLorentzVector> vDaughter;
+	std::vector<Particle*> vDaughter;
 	if (ThePhaseSpace->Generate(Name))
 	{
 		for (unsigned int i = 0; i < ThePhaseSpace->Daughter(); ++i)
@@ -175,10 +179,12 @@ std::string Neutrino::ProductionChannelName()
 
 //setter
 //
+/*
 void Neutrino::SetMass(double Mass)
 {
 	fMass = Mass;
 }
+*/
 
 void Neutrino::SetMixings(double Ue, double Um, double Ut)
 {
@@ -187,6 +193,7 @@ void Neutrino::SetMixings(double Ue, double Um, double Ut)
 	fMixings[2] = Ut;
 }
 
+/*
 void Neutrino::SetEnergy(double Energy)
 {
 	fEnergy = Energy;
@@ -196,6 +203,7 @@ void Neutrino::SetEnergyKin(double Energy)
 {
 	fEnergy = Mass() + Energy;
 }
+*/
 
 void Neutrino::SetHelicity(unsigned int Options)		//Left for particle is -1
 {								//Right for particle is 1
@@ -255,10 +263,12 @@ void Neutrino::SetParticle(unsigned int Options)
 
 //getter
 //
+/*
 double Neutrino::Mass()
 {
 	return fMass;
 }
+*/
 
 double* Neutrino::Mixings()
 {
@@ -280,6 +290,7 @@ double Neutrino::Ut(int E)
 	return pow(fMixings[2], E);
 }
 
+/*
 double Neutrino::Energy()
 {
 	return fEnergy;
@@ -289,6 +300,7 @@ double Neutrino::EnergyKin()
 {
 	return fEnergy-Mass();
 }
+*/
 
 int Neutrino::Helicity()
 {

@@ -18,7 +18,7 @@
 #include "Physics/Production.h"
 #include "Physics/PhaseSpace.h"
 
-class Neutrino
+class Neutrino : public Particle
 {
 	public:
 		enum Neut
@@ -38,7 +38,7 @@ class Neutrino
 
 		void SetParent(Amplitude *Object);
 
-		void DecayChannel(std::vector<std::string> &vChan);
+		void DecayChannels(std::vector<std::string> &vChan);
 		double DecayTotal();
 		double DecayWidth();
 		double DecayWidth(std::string Name);
@@ -47,7 +47,7 @@ class Neutrino
 		double DecayBranch(std::string Name);
 		double DecayBranch(Amplitude::Channel name);
 
-		void ProductionChannel(std::vector<std::string> &vChan);
+		void ProductionChannels(std::vector<std::string> &vChan);
 		double ProductionWidth();
 		double ProductionWidth(std::string Name);
 		double ProductionWidth(Amplitude::Channel name);
@@ -66,21 +66,21 @@ class Neutrino
 		std::string DecayChannelName();
 		std::string ProductionChannelName();
 
-		void SetMass(double Mass = 0.0);
+		//void SetMass(double Mass = 0.0);
 		void SetMixings(double Ue, double Um, double Ut);
-		void SetEnergy(double Energy);
-		void SetEnergyKin(double Energy);
+		//void SetEnergy(double Energy);
+		//void SetEnergyKin(double Energy);
 		void SetHelicity(unsigned int Options);
 		void SetFermion(unsigned int Options);
 		void SetParticle(unsigned int Options);
 		
-		double Mass();
+		//double Mass();
 		double* Mixings();
 		double Ue(int E = 1.0);
 		double Um(int E = 1.0);
 		double Ut(int E = 1.0);
-		double Energy();
-		double EnergyKin();
+		//double Energy();
+		//double EnergyKin();
 		int Helicity();
 		bool GetFermion();
 		bool GetParticle();
@@ -97,8 +97,9 @@ class Neutrino
 
 		Amplitude::Channel chDecay, chProduction;
 
-		double fMass;
-		double fEnergy;
+		//double fMass;
+		//double fEnergy;
+
 		double *fMixings;
 		bool bParticle;
 		bool bFermion;

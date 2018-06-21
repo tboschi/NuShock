@@ -1,5 +1,7 @@
 /*
- * Particle class, homemade
+ * Particle class, it is a wrapper of a TLorentzVector (fourmomentum) and TVector3 (position)
+ * plus some extra details of the particle such as PDG ID code and charge, if it is howering etc..
+ *
  * Author: Tommaso Boschi
  */
 
@@ -17,45 +19,51 @@
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 
+//#include "Tools.h"
+
 class Particle
 {
 	public:
-		Particle(int PdgCode, TLorentzVector &Vector, double PosX, double PosY, double PosZ);
+		Particle();
+		Particle(int PdgCode, double Px, double Py, double Pz, double E, double X, double Y, double Z);
+		Particle(int PdgCode, TLorentzVector *Vector, TVector3 *Position);
 		Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position);
 		Particle(const Particle &P);
 
+
 		int Pdg() const;
-		double Charge() const;
+		int Charge();
+		double LifeTime();
+		double LabLifeTime();
+		double LabSpace();
 		bool IsShower() const;
-		double Tau() const;	//lifetime at rest
-		double LabTau() const;		//lifetime in lab
-		double LabSpace() const;		//space travelled in lab before decay
-		TLorentzVector GetP4() const;
-		TVector3 Direction() const;
+
+		TLorentzVector FourVector() const;
+		double Mass();
+		double Energy();
+		double EnergyKin();
+		double Momentum();
+		double Transverse();
+		double MomentumX();
+		double MomentumY();
+		double MomentumZ();
+		double Theta();
+		double Phi();
+		double Beta();
+		double Gamma();
+		TVector3 Direction();
+
 		TVector3 Position() const;
-		double X() const;
-		double Y() const;
-		double Z() const;
-		double M() const;
-		double E() const;
-		double Ekin() const;
-		double Px() const;
-		double Py() const;
-		double Pz() const;
-		double P() const;
-		double Pt() const;
-		double Theta() const;
-		double Phi() const;
+		double X();
+		double Y();
+		double Z();
 		double TrackIn() const;
 		double TrackOut() const;
 		double TrackTot() const;
-
-		void SetCharge(double Q);
-		void SetP4(TLorentzVector &V);
-		void SetP4(double Px, double Py, double Pz, double E);
+		
 		void SetPdg(int X);
-		void SetCharge();
-		void SetTau();
+		void SetFourVector(TLorentzVector &V);
+		void SetFourVector(double Px, double Py, double Pz, double E);
 		void SetEnergy(double dE);
 		void SetEnergyKin(double dE);
 		void SetMomentum(double dP);
@@ -73,10 +81,10 @@ class Particle
 		void SetShower(bool X);
 
 	private:
-		TLorentzVector P4;
-		TVector3 Pos;
-		int iPdg, iCharge;
-		double dTrackIn, dTrackOut, dTau;
+		TLorentzVector *ParticleVec;
+		TVector3 *ParticlePos;
+		int iPdg;
+		double dTrackIn, dTrackOut;
 		bool bShower;
 };
 

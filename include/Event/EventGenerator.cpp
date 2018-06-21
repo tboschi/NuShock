@@ -5,11 +5,11 @@ EventGenerator::EventGenerator() :
 {
 }
 
-EventGenerator::EventGenerator(Neutrino *N, FluxDriver *Driver, Detector *Box) : 
+EventGenerator::EventGenerator(Neutrino *N, Driver *Driver, Detector *Box) : 
 	GenMT(new TRandom3(0))
 {
 	SetNeutrino(N);
-	SetFluxDriver(Driver);
+	SetDriver(Driver);
 	SetDetector(Box);
 
 	/*
@@ -62,7 +62,7 @@ void EventGenerator::SetNeutrino(Neutrino* N)
 	TheN = N;
 }
 
-void EventGenerator::SetFluxDriver(FluxDriver* Driver)
+void EventGenerator::SetDriver(Driver* Driver)
 {
 	TheFlux= Driver;
 }
@@ -77,7 +77,7 @@ Neutrino* EventGenerator::GetNeutrino()
 	return TheN;
 }
 
-FluxDriver* EventGenerator::GetFluxDriver()
+Driver* EventGenerator::GetDriver()
 {
 	return TheFlux;
 }
@@ -111,8 +111,8 @@ double EventGenerator::DecayProb()	//reaching the detector and decaying
 		double Total = TheN->DecayTotal();
 		double Ratio = TheN->DecayBranch(); 
 		//std::cout << "Ratio " << Ratio << std::endl;
-		double Length = Const::fM2GeV * TheBox->GetElement("Baseline");
-		double Lambda = Const::fM2GeV * TheBox->GetZsize();
+		double Length = Const::fM2GeV * TheBox->Get("Baseline");
+		double Lambda = Const::fM2GeV * TheBox->Zsize();
 		double Lorentz = sqrt(pow(TheN->Energy()/TheN->Mass(), 2) - 1.0);	//betagamma, to invert
 		return exp(- Total * Length / Lorentz) * (1 - exp(- Total * Lambda / Lorentz)) * Ratio;
 	}
@@ -455,7 +455,7 @@ double EventGenerator::ScaleXSec(double IntP, double IntN)	//including probabili
 
 	MolarMass = double(A);	//grams
 	double Area = TheBox->GetElement("Width", 1) * TheBox->GetElement("Height", 1);
-	double RhoTarget = Const::fNa * TheBox->GetElement("Weight", 1) * 1e6 / MolarMass / Area;	//surface density of targets
+	double RhoTarget = Const::fNa * TheBox->GetElement("Weight", 2) * 1e6 / MolarMass / Area;	//surface density of targets
 
 	return RhoTarget * Const::fGeV2cm * (Z * IntP + (A-Z) * IntN);	//xs in cm2
 }

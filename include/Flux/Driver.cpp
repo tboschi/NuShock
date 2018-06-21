@@ -1,14 +1,6 @@
-#include <Flux/FluxDriver.h>
+#include "Flux/Driver.h"
 
-FluxDriver::FluxDriver(std::string FluxConfig) : 
-	M_Electron(Const::fMElectron),
-	M_Muon(Const::fMMuon),
-	M_Tau(Const::fMTau),
-	M_Pion(Const::fMPion),
-	M_Pion0(Const::fMPion0),
-	M_Kaon(Const::fMKaon),
-	M_Kaon0(Const::fMKaon0),
-	M_Charm(Const::fMDs)
+Driver::Driver(std::string FluxConfig, bool FHC)
 {
 	fxNuElectron = 0;
 	fxNuMuon = 0;
@@ -35,38 +27,24 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 		//
 		if (ssL >> Key >> Name)
 		{
-			if (Key.find("Electron_")    != std::string::npos) fxNuElectron = new Flux(Name);
-			if (Key.find("Muon_")	     != std::string::npos) fxNuMuon = new Flux(Name);
-			if (Key.find("Tau_")	     != std::string::npos) fxNuTau = new Flux(Name);
-
-			//histogram details (number of bins, start of range, end of range)
-			//
-			//if (Key.find("BinNumber")    != std::string::npos) BinNumber = std::strtoul(Name.c_str(), NULL, 10);
-			//if (Key.find("RangeStart")   != std::string::npos) RangeStart = std::strtod(Name.c_str(), NULL);
-			//if (Key.find("RangeEnd")     != std::string::npos) RangeEnd = std::strtod(Name.c_str(), NULL);
-
-			//phase space functions for 3body decays are loaded here
-			//hopefully this is not needed
-			/*
-			if (Key.find("Kinematics") != std::string::npos) 
+			if (FHC)
 			{
-				KineFile = new TFile(Name.c_str(), "OPEN");
-				Kine = true;
-
-				CloneCopy(hMuonElec,  KineFile->Get("muonelec"));
-				CloneCopy(hMuonMuon,  KineFile->Get("muonmuon"));
-				CloneCopy(hKaonElec,  KineFile->Get("kaonelec"));
-				CloneCopy(hKaonMuon,  KineFile->Get("kaonmuon"));
-				CloneCopy(hKaon0Elec, KineFile->Get("kaon0elec"));
-				CloneCopy(hKaon0Muon, KineFile->Get("kaon0muon"));
-				CloneCopy(hTauEElec,  KineFile->Get("taueelec"));
-				CloneCopy(hTauETau,   KineFile->Get("tauetau"));
-				CloneCopy(hTauMMuon,  KineFile->Get("taummuon"));
-				CloneCopy(hTauMTau,   KineFile->Get("taumtau"));
-
-				KineFile->Close();
+				if (Key.find("Electron_")    != std::string::npos)
+					fxNuElectron = new Flux(Name);
+				if (Key.find("Muon_")	     != std::string::npos)
+					fxNuMuon = new Flux(Name);
+				if (Key.find("Tau_")	     != std::string::npos)
+					fxNuTau = new Flux(Name);
 			}
-			*/
+			else
+			{
+				if (Key.find("ElectronBar_") != std::string::npos)
+					fxNuElectron = new Flux(Name);
+				if (Key.find("MuonBar_")     != std::string::npos)
+					fxNuMuon = new Flux(Name);
+				if (Key.find("TauBar_")	     != std::string::npos)
+					fxNuTau = new Flux(Name);
+			}
 
 			//correction for charm to tau decay
 			//
@@ -96,25 +74,19 @@ FluxDriver::FluxDriver(std::string FluxConfig) :
 }
 
 //deconstructor
-FluxDriver::~FluxDriver()
+Driver::~Driver()
 {
 	delete fxNuElectron;
-	//delete fxNuElectronBar;
 	delete fxNuMuon;
-	//delete fxNuMuonBar;
 	delete fxNuTau;
-	//delete fxNuTauBar;
 
 	delete fxHeavyElectron;
-	//delete fxHeavyElectronBar;
 	delete fxHeavyMuon;
-	//delete fxHeavyMuonBar;
 	delete fxHeavyTau;
-	//delete fxHeavyTauBar;
 }
 
 //clones the histograms in the kinematic files
-void FluxDriver::CloneCopy(TH1D*& T, TObject* X)
+void Driver::CloneCopy(TH1D*& T, TObject* X)
 {
 	if (X)
 	{
@@ -128,7 +100,7 @@ void FluxDriver::CloneCopy(TH1D*& T, TObject* X)
 //make flux, only input needed is the mass of the neutrino
 //return true if successful
 //
-bool FluxDriver::MakeFlux(Neutrino * N)
+bool Driver::MakeFlux(Neutrino * N)
 {
 	if (!IsChanged(N))	//compute only if particle is changed have changed 
 	{
@@ -159,10 +131,8 @@ bool FluxDriver::MakeFlux(Neutrino * N)
 }
 
 //Make electronic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void FluxDriver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
+void Driver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
 {
-	TH1D *hPoint, *hTotal;
-
 	//pi+ -> e+ nu_e
 	fxFlux->Scale(Flux::Pion, N->ProductionScale("PionE"));
 
@@ -185,7 +155,7 @@ void FluxDriver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
 }
 
 //Make muonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void FluxDriver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
+void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
 {
 	//pi+ -> mu+ nu_mu
 	fxFlux->Scale(Flux::Pion, N->ProductionScale("PionM"));
@@ -209,16 +179,16 @@ void FluxDriver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
 }
 
 //Make tauonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void FluxDriver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
+void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 {
 	//Ds+ -> tau+ nu_tau
 	//"manual" modifier from empirical observation
 	//the histogram is stretched and pulled to match the MC simulation spectrum
-	double Modifier = 0;
+	double Modifier = 1;
 	TH1D *hPoint;
-	if ((hPoint = fxFlux->Get(Flux::Charm)) && 
-	    vMdir.size() && 
-	    (N->Mass() < Const::fMCharm - Const::fMTau) );
+	if (vMdir.size() &&
+	   (hPoint = fxFlux->Get(Flux::Charm)) && 
+	   (N->Mass() < Const::fMDs - Const::fMTau) )
 	{
 		TH1D *hTemp = dynamic_cast<TH1D*> (hPoint->Clone());
 		hPoint->Reset("ICES");
@@ -227,7 +197,7 @@ void FluxDriver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 		Modifier = Modify(xdir ,ydir, N->Mass());
 
 		double Start, End;
-		double EnStep = RangeBin(Start, End)/50;
+		double EnStep = RangeWidth(Start, End)/50;
 		for (double Energy = Start; Energy < End; Energy += EnStep)
 		{
 			double Flux = hTemp->GetBinContent(hTemp->FindBin(Energy));
@@ -257,7 +227,7 @@ void FluxDriver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 //return the intensity of the flux at given energy
 //
 
-double FluxDriver::Intensity(Neutrino *N)	//Return flux intensity, given energy, simple linear interpolation
+double Driver::Intensity(Neutrino *N)	//Return flux intensity, given energy, simple linear interpolation
 {
 	double Energy = N->EnergyKin();
 
@@ -272,7 +242,7 @@ double FluxDriver::Intensity(Neutrino *N)	//Return flux intensity, given energy,
 	return Intensity;
 }
 
-double FluxDriver::InterpolateIntensity(TH1D* Hist, double Energy)
+double Driver::InterpolateIntensity(TH1D* Hist, double Energy)
 {
 	int Bin = Hist->FindBin(Energy);
 	double I1 = Hist->GetBinContent(Bin);
@@ -299,22 +269,7 @@ double FluxDriver::InterpolateIntensity(TH1D* Hist, double Energy)
 		return 0.0;
 }
 
-void FluxDriver::SetBaseline(double Baseline)
-{
-	ScaleAll(1.0/(Baseline*Baseline));
-}
-
-void FluxDriver::SetPOT(double POT)
-{
-	ScaleAll(POT);
-}
-
-void FluxDriver::SetArea(double Area)
-{
-	ScaleAll(Area);
-}
-
-void FluxDriver::ScaleAll(double X)
+void Driver::Scale(double X)
 {
 	if(fxHeavyElectron)
 		fxHeavyElectron->Scale(Flux::Total, X);
@@ -324,7 +279,7 @@ void FluxDriver::ScaleAll(double X)
 		fxHeavyTau->Scale(Flux::Total, X);
 }
 
-bool FluxDriver::IsChanged(Neutrino *N)
+bool Driver::IsChanged(Neutrino *N)
 {
 	bool Ret = (fabs(N->Mass() - Mass_prev) > 1e-9) ||
 	           (N->Helicity() != Helicity_prev) ||
@@ -334,7 +289,7 @@ bool FluxDriver::IsChanged(Neutrino *N)
 }
 
 //Modificator for charm to tau flux
-double FluxDriver::Modify(double &xdir, double &ydir, double M_Sterile)
+double Driver::Modify(double &xdir, double &ydir, double M_Sterile)
 {
 	for (unsigned int i = 0; i < vMdir.size(); ++i)
 	{
@@ -349,62 +304,62 @@ double FluxDriver::Modify(double &xdir, double &ydir, double M_Sterile)
 	return xdir*ydir;
 }
 
-double FluxDriver::RangeBin()
+double Driver::RangeWidth()
 {
 	double Start, End;
-	return RangeBin(Start, End);
+	return RangeWidth(Start, End);
 }
 
-double FluxDriver::RangeBin(double &Start, double &End)
+double Driver::RangeWidth(double &Start, double &End)
 {
 	return Range(Start, End) / BinNumber();
 }
 
-double FluxDriver::Range()
+double Driver::Range()
 {
 	double Start, End;
 	return Range(Start, End);
 }
 
-double FluxDriver::Range(double &Start, double &End)
+double Driver::Range(double &Start, double &End)
 {
 	Start = RangeStart();
 	End = RangeEnd();
 	return End - Start;
 }
 
-double FluxDriver::RangeStart()
+double Driver::RangeStart()
 {
-	if (fxHeavyElectron)
-		return fxHeavyElectron->RangeStart();
-	else if (fxHeavyMuon)
-		return fxHeavyMuon->RangeStart();
-	else if (fxHeavyTau)
-		return fxHeavyTau->RangeStart();
+	if (fxNuElectron)
+		return fxNuElectron->RangeStart();
+	else if (fxNuMuon)
+		return fxNuMuon->RangeStart();
+	else if (fxNuTau)
+		return fxNuTau->RangeStart();
 	else
 		return -1.0;
 }
 
-double FluxDriver::RangeEnd()
+double Driver::RangeEnd()
 {
-	if (fxHeavyElectron)
-		return fxHeavyElectron->RangeEnd();
-	else if (fxHeavyMuon)
-		return fxHeavyMuon->RangeEnd();
-	else if (fxHeavyTau)
-		return fxHeavyTau->RangeEnd();
+	if (fxNuElectron)
+		return fxNuElectron->RangeEnd();
+	else if (fxNuMuon)
+		return fxNuMuon->RangeEnd();
+	else if (fxNuTau)
+		return fxNuTau->RangeEnd();
 	else
 		return -1.0;
 }
 
-int FluxDriver::BinNumber()
+int Driver::BinNumber()
 {
-	if (fxHeavyElectron)
-		return fxHeavyElectron->BinNumber();
-	else if (fxHeavyMuon)
-		return fxHeavyMuon->BinNumber();
-	else if (fxHeavyTau)
-		return fxHeavyTau->BinNumber();
+	if (fxNuElectron)
+		return fxNuElectron->BinNumber();
+	else if (fxNuMuon)
+		return fxNuMuon->BinNumber();
+	else if (fxNuTau)
+		return fxNuTau->BinNumber();
 	else
 		return -1.0;
 }

@@ -156,6 +156,7 @@ class Amplitude
 		Channel Channel_prev;
 
 		std::vector<double> vMass;
+		std::vector<int> vPdg;
 		std::vector<double> F_var;
 
 		std::map<Amplitude::Channel, std::string> chMap;

@@ -239,7 +239,7 @@ double PhaseSpace::nPI0_ratio()
 		maxnPI0 = Max_NeutrinoPseudoMeson(M_Neutrino, M_Pion0);
 
 	if (fnPI0 < 0 || IsChanged())
-		fnPI0 = NeutrinoPseudoMeson(M_Neutrino, M_Pion0);
+		Particle = NeutrinoPseudoMeson(M_Neutrino, M_Pion0);
 
 	return fnPI0 / maxnPI0;
 }
@@ -675,17 +675,18 @@ void PhaseSpace::Kinematic_3B(double &s, double &t, double &cos0, double &cos1)
 //	//
 //////////
 
-TLorentzVector PhaseSpace::Daughter(unsigned int i)
+Particle* PhaseSpace::Daughter(unsigned int i)
 {
-	TLorentzVector D_vec;
+	TVector3 *D_pos = new TVector3(0, 0, 0);
+	TLorentzVector *D_vec;
 
 	if (i < Daughter())
 	{
-		TLorentzVector D_vec = *Event->GetDecay(i);
-		D_vec.Boost(LabF()->BoostVector());
+		D_vec = Event->GetDecay(i);
+		D_vec->Boost(LabF()->BoostVector());
 	}
 
-	return D_vec;
+	return new Particle(vPdg.at(i), D_vec, D_pos);
 }
 
 unsigned int PhaseSpace::Daughter()

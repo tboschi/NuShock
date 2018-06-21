@@ -1,44 +1,55 @@
-#include "Particle.h"
+#include "Tools/Particle.h"
 
 //manual ctor
-Particle::Particle(int PdgCode, TLorentzVector &Vector, double PosX, double PosY, double PosZ)
+
+Particle::Particle() :
+	ParticleVec(new TLorentzVector),
+	ParticlePos(new TVector3),
+	dTrackIn(-1),
+	dTrackOut(-1),
+	bShower(false)
 {
-	SetPdg(abs(PdgCode));
-	SetTau();	//in seconds
-
-	SetP4(Vector);
-
-	SetX(PosX);
-	SetY(PosY);
-	SetZ(PosZ);
-	SetTrackIn(-1);
-	SetTrackOut(-1);
-	SetShower(false);
 }
 
-Particle::Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position)
+Particle::Particle(int PdgCode, double Px, double Py, double Pz, double E, double X, double Y, double Z) :
+	iPdg(PdgCode),
+	ParticleVec(new TLorentzVector(Px, Py, Pz, E)),
+	ParticlePos(new TVector3(X, Y, Z)),
+	dTrackIn(-1),
+	dTrackOut(-1),
+	bShower(false)
 {
-	SetPdg(abs(PdgCode));
-	SetTau();	//in seconds
+}
 
-	SetP4(Vector);
+Particle::Particle(int PdgCode, TLorentzVector *Vector, TVector3 *Position) :
+	iPdg(PdgCode),
+	ParticleVec(Vector),
+	ParticlePos(Position),
+	dTrackIn(-1),
+	dTrackOut(-1),
+	bShower(false)
+{
+}
 
-	SetPosition(Position);
-	SetTrackIn(-1);
-	SetTrackOut(-1);
-	SetShower(false);
+Particle::Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position) :
+	iPdg(PdgCode),
+	ParticleVec(new TLorentzVector(Vector)),
+	ParticlePos(new TVector3(Position)),
+	dTrackIn(-1),
+	dTrackOut(-1),
+	bShower(false)
+{
 }
 
 //copy ctor
-Particle::Particle(const Particle &P)
+Particle::Particle(const Particle &P) :
+	iPdg(P.Pdg()),
+	ParticleVec(new TLorentzVector(P.FourVector())),
+	ParticlePos(new TVector3(P.Position())),
+	dTrackIn(P.TrackIn()),
+	dTrackOut(P.TrackOut()),
+	bShower(P.IsShower())
 {
-	SetP4(P.Px(), P.Py(), P.Pz(), P.E());
-	SetPdg(abs(P.Pdg()));
-	SetTau();
-	SetPosition(P.X(), P.Y(), P.Z());
-	SetTrackIn(-1);
-	SetTrackOut(-1);
-	SetShower(false);
 }
 
 int Particle::Pdg() const
@@ -46,9 +57,75 @@ int Particle::Pdg() const
 	return iPdg;
 }
 
-double Particle::Charge() const
+int Particle::Charge()
 {
-	return iCharge/3.0;
+	switch ( abs(Pdg()) )
+	{
+		case 1:
+		case 3:
+		case 5:
+		case 7:		//down quarks
+			return -1 * ((Pdg() > 0) - (Pdg() < 0));
+		case 2:
+		case 4:
+		case 6:
+		case 8:		//up quarks
+			return  2 * ((Pdg() > 0) - (Pdg() < 0));
+		case 12:
+		case 14:
+		case 16:
+		case 18:
+		case 21:
+		case 22:
+		case 23:
+		case 111:
+		case 221:
+		case 331:
+		case 223:
+		case 333:
+		case 130:
+		case 310:
+		case 311:
+		case 421:
+		case 2112:
+		case 2114:
+		case 3122:
+		case 3212:	//chargeless
+			return 0;
+		case 11:
+		case 13:
+		case 15:
+		case 17:	//negative particles
+			return -3 * ((Pdg() > 0) - (Pdg() < 0));
+		default:	//positive particles
+			return  3 * ((Pdg() > 0) - (Pdg() < 0));
+			break;
+	}
+}
+
+double Particle::LifeTime()
+{
+	switch (Pdg())
+	{
+		case 13:
+			return 2.1969811e-6;	//muon
+		case 211:
+			return 2.6033e-8;	//pion
+		case 111:
+			return 8.52e-17;	//pion0
+		default:
+			return 1e26;		//lifetime of uni
+	}
+}
+
+double Particle::LabLifeTime() 
+{
+	return LifeTime() * Gamma();
+}
+
+double Particle::LabSpace()
+{
+	return LabLifeTime() * Beta();
 }
 
 bool Particle::IsShower() const
@@ -56,99 +133,98 @@ bool Particle::IsShower() const
 	return bShower;
 }
 
-double Particle::Tau() const
+///four momentum stuff
+//
+//
+//
+TLorentzVector Particle::FourVector() const
 {
-	return dTau;
+	return *ParticleVec;
 }
 
-double Particle::LabTau() const
+double Particle::Mass() 
 {
-	return Tau() * P4.Gamma();
+	return ParticleVec->M();
 }
 
-double Particle::LabSpace() const
+double Particle::Energy()
 {
-	return LabTau() * P4.Beta();
+	return ParticleVec->E();
 }
 
-TLorentzVector Particle::GetP4() const
+double Particle::EnergyKin()
 {
-	return P4;
+	return ParticleVec->E() - ParticleVec->M();
 }
 
-double Particle::M() const
+double Particle::Momentum()
 {
-	return P4.M();
+	return ParticleVec->P();
 }
 
-double Particle::E() const
+double Particle::Transverse()
 {
-	return P4.E();
+	return ParticleVec->Pt();
 }
 
-double Particle::Ekin() const
+double Particle::MomentumX()
 {
-	return P4.E() - P4.M();
+	return ParticleVec->Px();
 }
 
-double Particle::P() const
+double Particle::MomentumY()
 {
-	return P4.P();
+	return ParticleVec->Py();
 }
 
-double Particle::Pt() const
+double Particle::MomentumZ()
 {
-	return P4.Pt();
+	return ParticleVec->Pz();
 }
 
-double Particle::Px() const
+double Particle::Theta()
 {
-	return P4.Px();
+	return ParticleVec->Theta();
 }
 
-double Particle::Py() const
+double Particle::Phi()
 {
-	return P4.Py();
+	return ParticleVec->Phi();
 }
 
-double Particle::Pz() const
+double Particle::Beta()
 {
-	return P4.Pz();
+	return ParticleVec->Beta();
 }
 
-double Particle::Theta() const
+double Particle::Gamma()
 {
-	return P4.Theta();
+	return ParticleVec->Gamma();
 }
 
-double Particle::Phi() const
+TVector3 Particle::Direction()
 {
-	return P4.Phi();
-}
-
-TVector3 Particle::Direction() const
-{
-	return GetP4().Vect();
+	return ParticleVec->Vect();
 }
 
 TVector3 Particle::Position() const
 {
-	return Pos;
+	return *ParticlePos;
 }
 
-double Particle::X() const
+double Particle::X()
 {
-	return Pos.X();
+	return ParticlePos->X();
 }
 
-double Particle::Y() const
+double Particle::Y()
 {
-	return Pos.Y();
+	return ParticlePos->Y();
 }
 
-double Particle::Z() const
+double Particle::Z()
 {
-	return Pos.Z();
+	return ParticlePos->Z();
 }
 
 double Particle::TrackIn() const
@@ -172,150 +248,103 @@ void Particle::SetPdg(int X)
 	iPdg = X;
 }
 
-void Particle::SetCharge()
+void Particle::SetFourVector(TLorentzVector &V)
 {
-	switch ((unsigned int) abs(Pdg()))
-	{
-		case 1:
-		case 3:
-		case 5:
-		case 7:
-			iCharge = -1*((Pdg() > 0) - (Pdg() < 0));
-			break;
-		case 2:
-		case 4:
-		case 6:
-		case 8:
-			iCharge = +2*((Pdg() > 0) - (Pdg() < 0));
-		case 12:
-		case 14:
-		case 16:
-		case 18:
-		case 21:
-		case 22:
-		case 23:
-		case 111:
-		case 221:
-		case 331:
-		case 223:
-		case 333:
-		case 130:
-		case 310:
-		case 311:
-		case 421:
-		case 2112:
-		case 2114:
-		case 3122:
-		case 3212:
-			iCharge = 0;
-			break;
-		case 11:
-		case 13:
-		case 15:
-		case 17:
-			iCharge = -3*((Pdg() > 0) - (Pdg() < 0));
-		default:
-			iCharge = 3*((Pdg() > 0) - (Pdg() < 0));
-			break;
-	}
+	ParticleVec->SetE(V.E());
+	ParticleVec->SetPx(V.Px());
+	ParticleVec->SetPy(V.Py());
+	ParticleVec->SetPz(V.Pz());
 }
 
-
-void Particle::SetTau()
+void Particle::SetFourVector(double Px, double Py, double Pz, double E)
 {
-	if (Pdg() == 13)
-		dTau = 2.1969811e-6;
-	else if (Pdg() == 211)
-		dTau = 2.6033e-8;
-	else if (Pdg() == 111)
-		dTau = 8.52e-17;
-	else dTau = 1e26;
+	ParticleVec->SetE(E);
+	ParticleVec->SetPx(Px);
+	ParticleVec->SetPy(Py);
+	ParticleVec->SetPz(Pz);
 }
 
-void Particle::SetP4(TLorentzVector &V)
+void Particle::SetMass(double dM)
 {
-	P4.SetE(V.E());
-	P4.SetPx(V.Px());
-	P4.SetPy(V.Py());
-	P4.SetPz(V.Pz());
-}
+	double dE = Energy();
+	if (dE < dM)
+		dE = dM;
 
-void Particle::SetP4(double Px, double Py, double Pz, double E)
-{
-	P4.SetE(E);
-	P4.SetPx(Px);
-	P4.SetPy(Py);
-	P4.SetPz(Pz);
+	ParticleVec->SetE(dE);
+	SetRho(sqrt(dE*dE - dM*dM));
 }
 
 void Particle::SetEnergy(double dE)
 {
-	double dM = M();
-	P4.SetE(dE);
+	double dM = Mass();
+	if (dE < dM)
+		dE = dM;
+
+	ParticleVec->SetE(dE);
 	SetRho(sqrt(dE*dE - dM*dM));
 }
 
 void Particle::SetEnergyKin(double dE)
 {
-	SetEnergy(dE + M());
+	SetEnergy(dE + Mass());
 }
 
 void Particle::SetMomentum(double dP)
 {
-	double dM = M();
-	P4.SetE(sqrt(dP*dP + dM*dM));
+	double dM = Mass();
+	ParticleVec->SetE(sqrt(dP*dP + dM*dM));
 	SetRho(dP);
-}
-
-void Particle::SetMass(double dM)
-{
-	double dE = E();
-	SetRho(sqrt(dE*dE - dM*dM));
 }
 
 void Particle::SetRho(double dR)
 {
-	if (P() != 0.0)
-		P4.SetRho(dR);
+	if (Momentum() == 0.0)
+	{
+		ParticleVec->SetPx(0);
+		ParticleVec->SetPy(0);
+		ParticleVec->SetPz(1);
+	}
+
+	ParticleVec->SetRho(dR);
 }
 
 void Particle::SetTheta(double Ang)
 {
-	P4.SetTheta(Ang);
+	ParticleVec->SetTheta(Ang);
 }
 
 void Particle::SetPhi(double Ang)
 {
-	P4.SetPhi(Ang);
+	ParticleVec->SetPhi(Ang);
 }
 
 void Particle::SetPosition(TVector3 &V)
 {
-	Pos.SetX(V.X());
-	Pos.SetY(V.Y());
-	Pos.SetZ(V.Z());
+	ParticlePos->SetX(V.X());
+	ParticlePos->SetY(V.Y());
+	ParticlePos->SetZ(V.Z());
 }
 
 void Particle::SetPosition(double X, double Y, double Z)
 {
-	Pos.SetX(X);
-	Pos.SetY(Y);
-	Pos.SetZ(Z);
+	ParticlePos->SetX(X);
+	ParticlePos->SetY(Y);
+	ParticlePos->SetZ(Z);
 }
 
 void Particle::SetX(double X)
 {
-	Pos.SetX(X);
+	ParticlePos->SetX(X);
 }
 
 void Particle::SetY(double X)
 {
-	Pos.SetY(X);
+	ParticlePos->SetY(X);
 }
 
 void Particle::SetZ(double X)
 {
-	Pos.SetZ(X);
+	ParticlePos->SetZ(X);
 }
 
 void Particle::SetTrackIn(double X)

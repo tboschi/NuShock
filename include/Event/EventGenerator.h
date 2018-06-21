@@ -34,16 +34,16 @@ class EventGenerator
 {
 	public:
 		EventGenerator();
-		EventGenerator(Neutrino *N, FluxDriver *Driver, Detector *Box);
+		EventGenerator(Neutrino *N, Driver *Driver, Detector *Box);
 		~EventGenerator();
 
 		//For a finer handle...it shouldn't be necessary
 
 		void SetNeutrino(Neutrino* N);
-		void SetFluxDriver(FluxDriver* Driver);
+		void SetDriver(Driver* Driver);
 		void SetDetector(Detector* Box);
 		Neutrino* GetNeutrino();
-		FluxDriver* GetFluxDriver();
+		Driver* GetDriver();
 		Detector* GetDetector();
 
 		double DecayProb();
@@ -100,7 +100,7 @@ class EventGenerator
 		bool Sync;
 
 		Neutrino *TheN;
-		FluxDriver *TheFlux;
+		Driver *TheFlux;
 		Detector *TheBox;
 		//Nucleon *TheProton, *TheNeutron;
 		//Nucleon *TheProton_a, *TheNeutron_a;

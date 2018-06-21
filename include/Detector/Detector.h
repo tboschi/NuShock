@@ -37,7 +37,7 @@ class Detector
 
 		std::vector<std::string> ListKey();
 		std::vector<std::string> ListChannel();
-		double GetElement(std::string Key, bool S = false);
+		double Get(std::string Key, bool S = false);
 		//double Efficiency(std::string Channel, double Energy);
 		double Efficiency(double Energy, double Mass);
 		void SetEfficiency(std::string Channel, char Couple);
@@ -56,17 +56,20 @@ class Detector
 		//bool IsDetectable(int Pdg, int Charge, double Ekin);	
 		bool IsInside(Particle *P);
 		bool IsContained(Particle *P);	//B2B = 1 can cross z wall, B2B = 0 can't cross z wall
-		double GetXsize();
-		double GetXstart();
-		double GetXend();
-		double GetYsize();
-		double GetYstart();
-		double GetYend();
-		double GetZsize();
-		double GetZstart();
-		double GetZend();
+		double Xsize();
+		double Xstart();
+		double Xend();
+		double Ysize();
+		double Ystart();
+		double Yend();
+		double Zsize();
+		double Zstart();
+		double Zend();
+
+		double DecayProb(Neutrino *N);
+
 	private:
-		TRandom3 *RanGen;
+		TRandom3 *GenMT;
 		TFile *FuncFile;
 		TH2D *hhFunc;
 		TH1D *hTemp, *hEfficiency;

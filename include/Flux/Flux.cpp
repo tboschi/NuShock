@@ -153,12 +153,12 @@ void Flux::Scale(Hist Name, double X)
 
 double Flux::RangeStart()
 {
-	return Get(Total)->GetBinCenter(0);
+	return Get(Total)->GetBinCenter(0) + BinWidth()/2.0;
 }
 
 double Flux::RangeEnd()
 {
-	return Get(Total)->GetBinCenter(BinNumber());
+	return Get(Total)->GetBinCenter(BinNumber()) + BinWidth()/2.0;
 }
 
 double Flux::BinNumber()
@@ -168,5 +168,5 @@ double Flux::BinNumber()
 
 double Flux::BinWidth()
 {
-	return (RangeEnd() - RangeStart()) / BinNumber();
+	return (Get(Total)->GetBinCenter(BinNumber()) - Get(Total)->GetBinCenter(0)) / BinNumber();
 }

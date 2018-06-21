@@ -98,177 +98,274 @@ void Amplitude::LoadMass(Channel Name)
 	vMass.clear();
 	switch(Name)
 	{
+		//masses in ascending order
 		case _ALL:
 		case _nnn:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Neutrino);
+			vPdg.push_back(12);
+			vPdg.push_back(12);
+			vPdg.push_back(12);
 			break;
 		case _nGAMMA:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Photon);
+			vPdg.push_back(12);
+			vPdg.push_back(22);
 			break;
 		case _nEE:
 		case _ExpALL:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Electron);
+			vPdg.push_back(12);
+			vPdg.push_back(11);
+			vPdg.push_back(11);
 			break;
 		case _nEM:
 		case _nME:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Muon);
+			vPdg.push_back(12);
+			vPdg.push_back(11);
+			vPdg.push_back(13);
 			break;
 		case _nMM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Muon);
+			vPdg.push_back(12);
+			vPdg.push_back(13);
+			vPdg.push_back(13);
 			break;
 		case _nET:
 		case _nTE:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Tau);
+			vPdg.push_back(12);
+			vPdg.push_back(11);
+			vPdg.push_back(15);
 			break;
 		case _nMT:
 		case _nTM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Tau);
+			vPdg.push_back(12);
+			vPdg.push_back(13);
+			vPdg.push_back(15);
 			break;
 		case _nPI0:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Pion0);
+			vPdg.push_back(12);
+			vPdg.push_back(111);
 			break;
 		case _EPI:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Pion);
+			vPdg.push_back(11);
+			vPdg.push_back(211);
 			break;
 		case _MPI:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Pion);
+			vPdg.push_back(13);
+			vPdg.push_back(211);
 			break;
 		case _TPI:
 			vMass.push_back(M_Pion);
 			vMass.push_back(M_Tau);
+			vPdg.push_back(211);
+			vPdg.push_back(15);
 			break;
 		case _EKA:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Kaon);
+			vPdg.push_back(11);
+			vPdg.push_back(321);
 			break;
 		case _MKA:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Kaon);
+			vPdg.push_back(13);
+			vPdg.push_back(321);
 			break;
 		case _EKAx:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Kaonx);
+			vPdg.push_back(11);
+			vPdg.push_back(9000321);
 			break;
 		case _MKAx:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Kaonx);
+			vPdg.push_back(13);
+			vPdg.push_back(9000321);
 			break;
 		case _nRHO0:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Rho0);
+			vPdg.push_back(12);
+			vPdg.push_back(113);
 			break;
 		case _ERHO:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Rho);
+			vPdg.push_back(11);
+			vPdg.push_back(213);
 			break;
 		case _MRHO:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Rho0);
+			vPdg.push_back(13);
+			vPdg.push_back(213);
+			break;
 			break;
 		case _nETA:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Eta);
+			vPdg.push_back(12);
+			vPdg.push_back(221);
 			break;
 		case _nETAi:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Etai);
+			vPdg.push_back(12);
+			vPdg.push_back(331);
 			break;
 		case _nOMEGA:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Omega);
+			vPdg.push_back(12);
+			vPdg.push_back(223);
 			break;
 		case _nPHI:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Phi);
+			vPdg.push_back(12);
+			vPdg.push_back(333);
 			break;
 		case _ECHARM:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Charm);
+			vPdg.push_back(12);
+			vPdg.push_back(411);
 			break;
+
+		//Parent first, then in ascending order
 		case _MuonE:
 		case _MuonM:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Neutrino);
+			vPdg.push_back(13);
+			vPdg.push_back(11);
+			vPdg.push_back(12);
 			break;
 		case _TauEE:
 		case _TauET:
 			vMass.push_back(M_Tau);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Neutrino);
+			vPdg.push_back(15);
+			vPdg.push_back(11);
+			vPdg.push_back(12);
 			break;
 		case _TauMM:
 		case _TauMT:
 			vMass.push_back(M_Tau);
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Neutrino);
+			vPdg.push_back(15);
+			vPdg.push_back(13);
+			vPdg.push_back(12);
+			break;
+		case _TauPion:
+			vMass.push_back(M_Tau);
+			vMass.push_back(M_Pion);
+			vPdg.push_back(15);
+			vPdg.push_back(211);
 			break;
 		case _PionE:
 			vMass.push_back(M_Pion);
 			vMass.push_back(M_Electron);
+			vPdg.push_back(211);
+			vPdg.push_back(11);
 			break;
 		case _PionM:
 			vMass.push_back(M_Pion);
 			vMass.push_back(M_Muon);
+			vPdg.push_back(211);
+			vPdg.push_back(13);
 			break;
 		case _KaonE:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Electron);
+			vPdg.push_back(321);
+			vPdg.push_back(11);
 			break;
 		case _KaonM:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Muon);
+			vPdg.push_back(321);
+			vPdg.push_back(13);
 			break;
 		case _CharmE:
 			vMass.push_back(M_CharmS);
 			vMass.push_back(M_Electron);
+			vPdg.push_back(431);
+			vPdg.push_back(11);
 			break;
 		case _CharmM:
 			vMass.push_back(M_CharmS);
 			vMass.push_back(M_Muon);
+			vPdg.push_back(431);
+			vPdg.push_back(13);
 			break;
 		case _CharmT:
 			vMass.push_back(M_CharmS);
 			vMass.push_back(M_Tau);
+			vPdg.push_back(431);
+			vPdg.push_back(15);
 			break;
 		case _Kaon0E:
 			vMass.push_back(M_Kaon0);
 			vMass.push_back(M_Pion);
 			vMass.push_back(M_Electron);
+			vPdg.push_back(130);
+			vPdg.push_back(211);
+			vPdg.push_back(11);
 			break;
 		case _Kaon0M:
 			vMass.push_back(M_Kaon0);
 			vMass.push_back(M_Pion);
 			vMass.push_back(M_Muon);
+			vPdg.push_back(130);
+			vPdg.push_back(211);
+			vPdg.push_back(13);
 			break;
 		case _KaonCE:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Pion0);
 			vMass.push_back(M_Electron);
+			vPdg.push_back(321);
+			vPdg.push_back(111);
+			vPdg.push_back(11);
 			break;
 		case _KaonCM:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Pion0);
 			vMass.push_back(M_Muon);
+			vPdg.push_back(321);
+			vPdg.push_back(111);
+			vPdg.push_back(13);
 			break;
 		default:
-			std::cerr << "Channel not recognised" << std::endl;
+			std::cerr << ShowChannel(Name) << " : Channel not recognised" << std::endl;
 			break;
 	}
 }

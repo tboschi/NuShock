@@ -11,10 +11,8 @@
 #include "TRandom3.h"
 
 #include "Tools.h"
-#include "EventGenerator.h"
-#include "DecayRates.h"
-#include "ThreeBody.h"
-#include "Particle.h"
+#include "Flux.h"
+#include "Physics.h"
 
 void Usage(char* argv0);
 
@@ -89,21 +87,31 @@ int main(int argc, char** argv)
 
 	//std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 	
-	EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
+	Neutrino *TheNu;
+	if (Left)
+		TheNu = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Left );
+	else if (Right)
+		TheNu = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Right );
+	else
+		TheNu = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Unpolarised );
+
+	Detector *TheBox = new Detector(DetConfig);
+	Engine *TheEngine = new Engine(FluxConfig, 2, 2);	//creating 2FHC and 2RHC fluxedrivers
+
+	TheEngine->BindNeutrino(TheNu, Engine::FHC, 0);
+	TheEngine->BindNeutrino(TheNu, Engine::RHC, 0);
+
+	//EventGenerator * EvGen = new EventGenerator(SMConfig, DetConfig, FluxConfig);
 
 	if (Mass)
-		EvGen->SetMass(Mass);
-	UeF *= 1e-5/sqrt(UeF*UeF + UmF*UmF);  //sum^2 is 1e-10
-	UmF *= 1e-5/sqrt(UeF*UeF + UmF*UmF);  
-	EvGen->SetUe(UeF);
-	EvGen->SetUe(UmF);
+		TheNu->SetMass(Mass);
 
-	EvGen->SetChannel(Channel);
-	EvGen->MakeFlux(1);
-	EvGen->MakeSampler();
+	TheNu->SetMixings(1e-5/sqrt(3.0), 1e-5/sqrt(3.0), 1e-5/sqrt(3.0));
+	TheNu->SetDecayChannel(Channel);
 
-	//TH2D *hDalitz = new TH2D("dalitz", "Dalitz", 200,i0,0.2, 200,0,0.2);
-	
+	TheEngine->MakeFlux();
+	TheEngine->MakeSampler(TheBox);
+
 	unsigned int ID = 0;
 	unsigned int ND = 0;
 	unsigned int SaveMe = 0;
@@ -117,16 +125,15 @@ int main(int argc, char** argv)
 	double PhiA, PhiB, PhiC, Phi0;
 	double MassA, MassB, MassC, Mass0;
 	double InA, OutA, InB, OutB;
-	double Angle;	//separation between A & B
+	double Angle;				//separation between A & B
 
-	TRandom3 *Rand = new TRandom3(0);
+	//TRandom3 *Rand = new TRandom3(0);
 	TTree *Data = new TTree("Data", "Particle tracks");
 
 	Data->Branch("ID", &ID, "iID/i");
 	Data->Branch("Real", &Real, "fReal/D");
-	Data->Branch("Delay", &Delay, "fDelay/D");
+	//Data->Branch("Delay", &Delay, "fDelay/D");
 
-	/*
 	Data->Branch("E_A", &EnergyA, "fEnergyA/D");
 	Data->Branch("P_A", &MomentA, "fMomentA/D");
 	Data->Branch("T_A", &TransvA, "fTransvA/D");
@@ -153,17 +160,19 @@ int main(int argc, char** argv)
 	Data->Branch("The0", &Theta0, "fTheta0/D");
 	Data->Branch("Phi0", &Phi0, "fPhi0/D");
 	Data->Branch("M_0", &Mass0, "fMass0/D");
-	*/
 
-	unsigned int nBunch = 80;	//80 bunhces 
-	double tBunch = 20e-9;	//20ns between bunches
-	unsigned int iBunch = 0;
-	double Beta = 1.0;
-	double Lc = EvGen->GetDetectorPtr()->GetElement("Baseline")/Const::fC;
+	//unsigned int nBunch = 80;	//80 bunhces 
+	//double tBunch = 20e-9;	//20ns between bunches
+	//unsigned int iBunch = 0;
+	//double Beta = 1.0;
+	//double Lc = EvGen->GetDetectorPtr()->GetElement("Baseline")/Const::fC;
+	
 	while (ID < Nevent)
 	{
-		Real = EvGen->SampleEnergy(1);
+		RealFHC = TheEngine->SampleEnergy(Engine::FHC, 0);
+		RealRHC = TheEngine->SampleEnergy(Engine::RHC, 0);
 
+		/*
 		iBunch = Rand->Integer(nBunch);
 		if (Rand->Rndm() < 2.99)
 			Beta = sqrt(1 - Mass*Mass / Real/Real);
@@ -176,7 +185,18 @@ int main(int argc, char** argv)
 		Data->Fill();
 		++ID;
 
-		/*
+		*/
+
+		std::vector<Particle*> vParticle = TheNu->DecayPS();
+
+		for (unsigned int i = 0; i < vParticle.size(); ++i)
+		{
+			if (vParticle.at(i)->Pdg() == 11)	//neutrino is invibisle
+				continue;
+			if (vParticle.at(i) == 111)
+				EvGen->Pi0Decay(ParticleA, ParticleA, ParticleB);
+		}
+
 		if (EvGen->EventKinematics())
 		{
 			EvGen->GeneratePosition();

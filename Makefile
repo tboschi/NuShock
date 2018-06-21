@@ -36,7 +36,8 @@ HPP =	Tools/Const		\
 	Physics/PhaseSpace	\
 	Physics/Neutrino	\
 	Flux/Flux		\
-	Flux/FluxDriver		\
+	Flux/Driver		\
+	Flux/Engine		\
 	Detector/Detector	\
 	Detector/Efficiency	\
 	Event/EventGenerator	\
