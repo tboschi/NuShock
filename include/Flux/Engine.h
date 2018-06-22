@@ -28,6 +28,7 @@ class Engine
 		{
 			RHC = 0,
 			FHC = 1,
+			Both = 2,
 		};
 
 		Engine(std::string FluxConfig, unsigned int nFHC, unsigned int nRHC);
@@ -38,6 +39,11 @@ class Engine
 		void MakeFlux();
 		void MakeFlux(Current Horn);
 		void MakeFlux(Current Horn, unsigned int ID);
+
+		std::vector<double> SampleEnergy(bool Set);
+		std::vector<double> SampleEnergy(Current Horn, bool Set);
+		double SampleEnergy(Current Horn, unsigned int ID, bool Set);
+
 		void MakeSampler(Detector *Box);
 		void MakeSampler(Detector *Box, Current Horn);
 		void MakeSampler(Detector *Box, Current Horn, unsigned int ID);
@@ -54,12 +60,14 @@ class Engine
 		void Scale(double X, Current Horn);
 		void Scale(double X, Current Horn, unsigned int ID);
 
+		double BinNumber();
 		double RangeWidth(double &Start, double &End);
 
 		unsigned int vNeutrino(Current Horn);
-		Neutrino* vNeutrino(Current Horn, unsigned int i);
 		unsigned int vDriver(Current Horn);
+		Neutrino* vNeutrino(Current Horn, unsigned int i);
 		Driver* vDriver(Current Horn, unsigned int i);
+		TH1D* vSampleNu(Current Horn, unsigned int i);
 
 	private:
 

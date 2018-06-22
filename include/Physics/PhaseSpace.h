@@ -81,7 +81,7 @@ class PhaseSpace : public Amplitude
 		void Kinematic_3B(double &s, double &t, double &cos0, double &cos1);
 
 		unsigned int Daughter();
-		TLorentzVector Daughter(unsigned int i);
+		Particle* Daughter(unsigned int i);
 		TLorentzVector *LabF();
 		TLorentzVector *Rest();
 

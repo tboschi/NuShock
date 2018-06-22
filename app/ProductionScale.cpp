@@ -59,26 +59,33 @@ int main(int argc, char** argv)
 	Neutrino *N_up = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
 	Neutrino *N_do = new Neutrino(0, Neutrino::Dirac | Neutrino::Right);
 
-	std::vector<std::string> vCh;
-	N_up->DecayChannels(vCh);
-
-	Out << "#Mass\t";
-	for (unsigned int j = 0; j < vCh.size(); ++j)
-			Out << vCh.at(j) << "_u\t" << vCh.at(j) << "_d\t";
-	Out << std::endl;
-
-	for (double t = 0.0; t < 2.0; t += 0.001)
+	//Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
+	for (double t = 0.0; t < 1.0; t += 0.001)
 	{
 		N_up->SetMass(t);
 		N_do->SetMass(t);
 		Out << t << "\t";
-		for (unsigned int j = 0; j < vCh.size(); ++j)
-		{
-			Out << N_up->DecayBranch(vCh.at(j)) << "\t";
-			Out << N_do->DecayBranch(vCh.at(j)) << "\t";
-		}
+		Out << N_up->ProductionScale("KaonM") << "\t";
+		Out << N_do->ProductionScale("KaonM") << "\t";
+		Out << N_up->ProductionScale("MuonE") << "\t";
+		Out << N_do->ProductionScale("MuonE") << "\t";
+		Out << N_up->ProductionScale("KaonCM") << "\t";
+		Out << N_do->ProductionScale("KaonCM") << "\t";
 		Out << std::endl;
 	}
+		//Out << Kine::ShrockFactor(Pion, Elec, t) << "\t";
+		//Out << Kine::ShrockFactor(Kaon, Elec, t) << "\t";
+		//Out << Kine::ShrockFactor(Charm, Elec, t) << "\t";
+		//Out << Kine::ShrockFactor(Pion, Muon, t) << "\t";
+		//Out << Kine::ShrockFactor(Kaon, Muon, t) << "\t";
+		//Out << Kine::ShrockFactor(Charm, Muon, t) << "\t";
+		//Out << std::endl;
+	//Create object from classes
+	//e.g.	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
+
+	//Main body
+
+	//Garbage collection
 
 	return 0;
 }

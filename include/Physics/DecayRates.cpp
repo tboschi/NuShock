@@ -19,7 +19,7 @@ Amplitude::Channel DecayRates::FindChannel(std::string Name)
 	return _undefined;
 }
 
-std::vector<std::string> DecayRates::ListChannel()
+std::vector<std::string> DecayRates::ListChannels()
 {
 	if (chMap.size() == 0)
 		LoadMap();

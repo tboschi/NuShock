@@ -239,7 +239,7 @@ double PhaseSpace::nPI0_ratio()
 		maxnPI0 = Max_NeutrinoPseudoMeson(M_Neutrino, M_Pion0);
 
 	if (fnPI0 < 0 || IsChanged())
-		Particle = NeutrinoPseudoMeson(M_Neutrino, M_Pion0);
+		fnPI0 = NeutrinoPseudoMeson(M_Neutrino, M_Pion0);
 
 	return fnPI0 / maxnPI0;
 }
@@ -648,26 +648,31 @@ double PhaseSpace::LeptonVector(double x, double y, double cos0)
 
 void PhaseSpace::Kinematic_2B(double &cos0)
 {
-	TLorentzVector vec0 = Daughter(0);
-	TLorentzVector vec1 = Daughter(1);
+	//TLorentzVector *vec0 = Daughter(0);
+	Particle *vec1 = Daughter(1);
 
-	cos0 = vec1.CosTheta();
+	cos0 = cos(vec1->Theta());
+
+	delete vec1;
 }
 
 void PhaseSpace::Kinematic_3B(double &s, double &t, double &cos0, double &cos1)
 {
-	TLorentzVector vec0 = Daughter(0);
-	TLorentzVector vec1 = Daughter(1);
-	TLorentzVector vec2 = Daughter(2);
+	//TLorentzVector *vec0 = Daughter(0);
+	Particle *vec1 = Daughter(1);
+	Particle *vec2 = Daughter(2);
 
-	TLorentzVector vec_s = *Rest() - vec1;
-	TLorentzVector vec_t = *Rest() - vec2;
+	TLorentzVector vec_s = *Rest() - vec1->FourVector();
+	TLorentzVector vec_t = *Rest() - vec2->FourVector();
 
 	s = vec_s.M2();
 	t = vec_t.M2();
 
-	cos0 = vec1.CosTheta();
-	cos1 = vec2.CosTheta();
+	cos0 = cos(vec1->Theta());
+	cos1 = cos(vec2->Theta());
+
+	delete vec1;
+	delete vec2;
 }
 
 //////////
@@ -679,6 +684,7 @@ Particle* PhaseSpace::Daughter(unsigned int i)
 {
 	TVector3 *D_pos = new TVector3(0, 0, 0);
 	TLorentzVector *D_vec;
+	std::vector<Particle*> vdddd;
 
 	if (i < Daughter())
 	{

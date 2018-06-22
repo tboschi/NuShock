@@ -1,4 +1,4 @@
-#include "Efficiency.h"
+#include "Detector/Efficiency.h"
 
 Efficiency::Efficiency(std::string InFile, bool Time)
 {
@@ -23,6 +23,8 @@ Efficiency::Efficiency(std::string InFile, bool Time)
 		vCut.push_back(CutFile);
 	}	
 
+	LoopFile();
+
 	Timing = Time;
 }
 
@@ -37,7 +39,6 @@ void Efficiency::LoopFile()
 {
 	for (unsigned int i = 0; i < vMass.size(); ++i)
 	{
-		SetMass(vMass.at(i));
 		TreeFile = new TFile(vSim.at(i).c_str(), "OPEN");
 		TreeFile->cd();
 	 	Data = dynamic_cast<TTree*> (TreeFile->Get("Data"));
@@ -45,7 +46,7 @@ void Efficiency::LoopFile()
 		LoadCut(vCut.at(i));
 
 		LoopTree();
-		MakeFunction();
+		LoadFunction(vMass.at(i));
 
 		TreeFile->Close();
 	}		
@@ -279,11 +280,11 @@ bool Efficiency::SpecialCut()
 	return Ret;
 }
 
-void Efficiency::MakeFunction()
+void Efficiency::LoadFunction(double Mass)
 {
 	for (int Bin = 1; Bin < hAll->GetNbinsX()+1; ++Bin)
 	{
-		int yBin = hhFunc->GetYaxis()->FindBin(GetMass());
+		int yBin = hhFunc->GetYaxis()->FindBin(Mass);
 		double Ratio = hAll->GetBinContent(Bin) == 0 ? 1.0 : hCut->GetBinContent(Bin)/hAll->GetBinContent(Bin);
 
 		hhFunc->SetBinContent(Bin, yBin, Ratio);
@@ -291,7 +292,7 @@ void Efficiency::MakeFunction()
 }
 
 
-void Efficiency::CompleteFunction()
+void Efficiency::MakeFunction()
 {
 	TRandom3 MT;
 	TH1D *ProjX = hhFunc->ProjectionX();	//energies
@@ -385,14 +386,4 @@ TH1D *Efficiency::GetAll()
 TH1D *Efficiency::GetCut()
 {
 	return hCut;
-}
-
-double Efficiency::GetMass()
-{
-	return dMass;
-}
-
-void Efficiency::SetMass(double X)
-{
-	dMass = X;
 }

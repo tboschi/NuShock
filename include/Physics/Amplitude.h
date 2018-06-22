@@ -119,7 +119,7 @@ class Amplitude
 		double M2_MesonThree(double s, double t, double x, double y, double z, double L_, double L0);
 
 		bool IsChanged();
-		virtual void Reset() {std::cout << std::endl;}
+		virtual void Reset() { ; }
 
 		double Mass(int E = 1.0);
 		double MassN(int E = 1.0);

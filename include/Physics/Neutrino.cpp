@@ -1,4 +1,4 @@
-#include "Neutrino.h"
+#include "Physics/Neutrino.h"
 
 //Majorana can be treated as a neutrino + antineutrino
 //
@@ -135,7 +135,8 @@ std::vector<Particle*> Neutrino::ProductionPS()
 std::vector<Particle*> Neutrino::GeneratePS(Amplitude::Channel Name)	//boosted frame?
 {
 	SetParent(ThePhaseSpace);
-	ThePhaseSpace->SetNLabf(FourVector());
+		TLorentzVector Vec = FourVector();
+	ThePhaseSpace->SetNLabf(Vec);
 
 	std::vector<Particle*> vDaughter;
 	if (ThePhaseSpace->Generate(Name))
@@ -242,6 +243,8 @@ void Neutrino::SetFermion(unsigned int Options)
 	}
 }
 
+//this is just a flip of helicity actually
+//if antiparticle -> flip helicity
 void Neutrino::SetParticle(unsigned int Options)
 {
 	switch (Options & 8)

@@ -20,9 +20,9 @@ CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPD
 #apps and exctuables
 CPP =	ProductionScale	\
 	DecayBranch	\
-	MakeFlux
-	#MakeFlux	\
-	Eps2Dat		\
+	MakeFlux	\
+	Simulation	\
+	#Eps2Dat		\
 	Eps2Root	
 
 #header folders
@@ -35,12 +35,13 @@ HPP =	Tools/Const		\
 	Physics/Production	\
 	Physics/PhaseSpace	\
 	Physics/Neutrino	\
+	Detector/Detector	\
+	Detector/Tracker	\
+	Detector/Efficiency	\
 	Flux/Flux		\
 	Flux/Driver		\
 	Flux/Engine		\
-	Detector/Detector	\
-	Detector/Efficiency	\
-	Event/EventGenerator	\
+	#Event/EventGenerator	\
 
 #main target
 TGT :=	$(CPP:%=$(APPDIR)/%)

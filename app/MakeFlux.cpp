@@ -65,8 +65,8 @@ int main(int argc, char** argv)
 
 	//neutrino left has same flux as antineutrino right
 	//neutrino right has same flux as antineutrino left
-	Neutrino *N_L = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Left );
-	Neutrino *N_R = new Neutrino(0, Neutrino::Dirac | Neutrino::Particle | Neutrino::Right);
+	Neutrino *N_L = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
+	Neutrino *N_R = new Neutrino(0, Neutrino::Dirac | Neutrino::Right);
 	
 	TheEngine->BindNeutrino(N_L, Engine::FHC, 0);
 	TheEngine->BindNeutrino(N_R, Engine::FHC, 1);

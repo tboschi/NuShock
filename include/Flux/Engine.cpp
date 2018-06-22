@@ -40,12 +40,31 @@ void Engine::BindNeutrino(Neutrino *N, Current Horn, unsigned int ID)
 	}
 }
 
+std::vector<double> Engine::SampleEnergy(bool Set)
+{
+	std::vector<double> vEnergyF, vEnergyR;
+	vEnergyF = SampleEnergy(FHC, Set);
+	vEnergyR = SampleEnergy(RHC, Set);
+
+	vEnergyF.insert(vEnergyF.end(), vEnergyR.begin(), vEnergyR.end());
+	return vEnergyF;
+}
+
+std::vector<double> Engine::SampleEnergy(Current Horn, bool Set)
+{
+	std::vector<double> vEnergy;
+	for (unsigned int i = 0; i < vDriver(Horn); ++i)
+		vEnergy.push_back(SampleEnergy(Horn, i, Set));
+
+	return vEnergy;
+}
+
 double Engine::SampleEnergy(Current Horn, unsigned int ID, bool Set)
 {
 	double Energy = -1.0;
 	if (vSampleNu(Horn, ID))
 	{
-		Energy = vSampleNu(Horn, ID)->GerRandom();
+		Energy = vSampleNu(Horn, ID)->GetRandom();
 		if (Set)
 			vNeutrino(Horn, ID)->SetEnergy(Energy);
 		return Energy;
@@ -54,19 +73,19 @@ double Engine::SampleEnergy(Current Horn, unsigned int ID, bool Set)
 		return -1.0;
 }
 
-void EventGenerator::MakeSampler(Detector *Box)
+void Engine::MakeSampler(Detector *Box)
 {
 	MakeSampler(Box, FHC);
 	MakeSampler(Box, RHC);
 }
 
-void EventGenerator::MakeSampler(Detector *Box, Current Horn)
+void Engine::MakeSampler(Detector *Box, Current Horn)
 {
 	for (unsigned int i = 0; i < vDriver(Horn); ++i)
 		MakeSampler(Box, Horn, i);
 }
 
-void EventGenerator::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
+void Engine::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
 {
 	TH1D* hSampleNu = vSampleNu(Horn, ID);
 
@@ -81,7 +100,7 @@ void EventGenerator::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
 			ssName << "FHC";
 			break;
 		case RHC:
-			HCName << "RHC";
+			ssName << "RHC";
 			break;
 	}
 	ssName << "_" << ID;
@@ -122,19 +141,19 @@ double Engine::Intensity(Current Horn, unsigned int ID)
 	return vDriver(Horn, ID)->Intensity(vNeutrino(Horn, ID));
 }
 
-void Driver::ScaleBaseline(Detector *Box)
+void Engine::ScaleBaseline(Detector *Box)
 {
-	ScaleBaseline(Get("Baseline"));
+	ScaleBaseline(Box->Get("Baseline"));
 }
 
-void Driver::ScalePOT(Detector *Box)
+void Engine::ScalePOT(Detector *Box)
 {
-	SetPOT(1.0e7 * Box->Get("Years") * Box->Get("POT/s"));
+	ScalePOT(1.0e7 * Box->Get("Years") * Box->Get("POT/s"));
 }
 
-void Driver::ScaleArea(Detector *Box)
+void Engine::ScaleArea(Detector *Box)
 {
-	SetArea(Box->Get("Height") * Box->Get("Width") * 1.0e4);
+	ScaleArea(Box->Get("Height") * Box->Get("Width") * 1.0e4);
 }
 
 void Engine::ScaleBaseline(double Baseline)

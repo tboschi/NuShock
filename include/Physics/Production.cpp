@@ -20,7 +20,7 @@ Amplitude::Channel Production::FindChannel(std::string Name)
 	return _undefined;
 }
 
-std::vector<std::string> Production::ListChannel()
+std::vector<std::string> Production::ListChannels()
 {
 	if (chMap.size() == 0)
 		LoadMap();

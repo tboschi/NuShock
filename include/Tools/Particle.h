@@ -30,7 +30,6 @@ class Particle
 		Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position);
 		Particle(const Particle &P);
 
-
 		int Pdg() const;
 		int Charge();
 		double LifeTime();

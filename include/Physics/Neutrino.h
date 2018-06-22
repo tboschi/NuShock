@@ -14,10 +14,12 @@
 //ROOT include
 #include "TLorentzVector.h"
 
+#include "Tools/Particle.h"
 #include "Physics/DecayRates.h"
 #include "Physics/Production.h"
 #include "Physics/PhaseSpace.h"
 
+class Particle;
 class Neutrino : public Particle
 {
 	public:
@@ -29,7 +31,7 @@ class Neutrino : public Particle
 			Unpolarised  = 2,
 			Dirac	     = 0,
 			Majorana     = 4,
-			Particle     = 0,
+			//Fermion      = 0,
 			Antiparticle = 8
 		};
 
@@ -55,10 +57,10 @@ class Neutrino : public Particle
 		double ProductionScale(std::string Name);
 		double ProductionScale(Amplitude::Channel name);
 		
-		std::vector<TLorentzVector> DecayPS();
-		std::vector<TLorentzVector> ProductionPS();
-		std::vector<TLorentzVector> GeneratePS(Amplitude::Channel Name);
-
+		std::vector<Particle*> DecayPS();
+		std::vector<Particle*> ProductionPS();
+		std::vector<Particle*> GeneratePS(Amplitude::Channel Name);
+		
 		void SetDecayChannel(std::string Name);
 		void SetProductionChannel(std::string Name);
 		Amplitude::Channel DecayChannel();

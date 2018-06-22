@@ -35,13 +35,12 @@ class Efficiency
 		void FillCut();
 		bool PassCut();
 		bool SpecialCut();
+		void LoadFunction(double Mass);
 		void MakeFunction();
-		void CompleteFunction();
+
 		TH2D *GetFunction();
 		TH1D *GetAll();
 		TH1D *GetCut();
-		double GetMass();
-		void SetMass(double X);
 
 	private:
 		TTree *Data, *Back;
