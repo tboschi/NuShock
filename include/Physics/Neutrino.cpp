@@ -140,15 +140,8 @@ std::vector<Particle*> Neutrino::GeneratePS(Amplitude::Channel Name)	//boosted f
 
 	std::vector<Particle*> vDaughter;
 	if (ThePhaseSpace->Generate(Name))
-	{
 		for (unsigned int i = 0; i < ThePhaseSpace->Daughter(); ++i)
-		{
-			Particle *ppp = ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame);
-			std::cout << "nu " << i << "\t" << ppp << std::endl;
-			//vDaughter.push_back(ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame));
-			vDaughter.push_back(ppp);
-		}
-	}
+			vDaughter.push_back(ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame));
 
 	return vDaughter;
 }

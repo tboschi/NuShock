@@ -37,16 +37,13 @@ class Tracker : public Detector
 		double GammaDecay();
 		double CriticalEnergy();
 		double RadiationLength(bool Nuclear = false);
-		double EnergyLoss(Particle *P, bool &Contained);
+		double EnergyLoss(Particle *P, int &Contained);
 		double BetheLoss(Particle *P, Material Target);
 		double Bethe(Particle *P, double Density, double I, int Z, int A);
 
 		bool IsDecayed(Particle *P, double dx);
 		bool IsDetectable(Particle *P);	
 		void Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB);
-
-		bool IsInside(Particle *P);
-		bool IsContained(Particle *P);	//B2B = 1 can cross z wall, B2B = 0 can't cross z wall
 
 		void Focus(Particle *P);
 

@@ -13,7 +13,8 @@ Years		6
 #1: LAr, 2: HP Ar, 3: Fe
 #
 InTarget	LAr
-#BackTarget	2
+BackTarget	GasAr
+BackLength	10.4
 OutTarget	Fe
 
 #Threshold in GeV
@@ -21,7 +22,7 @@ OutTarget	Fe
 #
 Thres_Hadron	0.050
 Angle_Hadron	5.0
-Energ_Hadron	0.30	
+Energ_Hadron	0.30
 Ebias_Hadron	0.05
 Range_Hadron	0.0
 Exiti_Hadron	0.0
@@ -59,16 +60,16 @@ ResPi0Mass	0.040
 
 #Efficiency file
 #
-#$MUPI	Efficiency/LAr/eff_MUPI_M.root
-$MUPI	Efficiency/LAr/eff_MUPI_M.root
-$nMUMU	Efficiency/LAr/eff_nMUMU_M.root
-$nMUE	Efficiency/LAr/eff_nMUE_M.root
-$nEE	Efficiency/LAr/eff_nEE_M.root
-$nGAMMA	Efficiency/LAr/eff_nGAMMA_M.root
-$nPI0	Efficiency/LAr/eff_nPI0_M.root
-&EPI	Efficiency/LAr/eff_EPI_E.root
-&nMUMU	Efficiency/LAr/eff_nMUMU_E.root
-&nEMU	Efficiency/LAr/eff_nMUE_E.root
-&nEE	Efficiency/LAr/eff_nEE_E.root
-&nGAMMA	Efficiency/LAr/eff_nGAMMA_E.root
-&nPI0	Efficiency/LAr/eff_nPI0_E.root
+E	EPI		Efficiency/LAr/eff_EPI_E.root
+E	nMM		Efficiency/LAr/eff_nMUMU_E.root
+E	nEM		Efficiency/LAr/eff_nMUE_E.root
+E	nEE		Efficiency/LAr/eff_nEE_E.root
+E	nGAMMA	Efficiency/LAr/eff_nGAMMA_E.root
+E	nPI0		Efficiency/LAr/eff_nPI0_E.root
+
+M	MPI		Efficiency/LAr/eff_MUPI_M.root
+M	nMM		Efficiency/LAr/eff_nMUMU_M.root
+M	nME		Efficiency/LAr/eff_nMUE_M.root
+M	nEE		Efficiency/LAr/eff_nEE_M.root
+M	nGAMMA	Efficiency/LAr/eff_nGAMMA_M.root
+M	nPI0		Efficiency/LAr/eff_nPI0_M.root

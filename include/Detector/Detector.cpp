@@ -5,7 +5,7 @@ Detector::Detector(std::string ConfigName) :
 {
 	std::ifstream ConfigFile(ConfigName.c_str());
 
-	std::string Line, Key, Name, Id;
+	std::string Line, Key, Name, Channel;
 	std::stringstream ssL;
 	double Element;
 
@@ -17,26 +17,27 @@ Detector::Detector(std::string ConfigName) :
 		ssL.clear();
 		ssL << Line;
 
-		if (ssL >> Key >> Element)
+		if (ssL >> Key)
 		{
-			std::cout << "here 0" << std::endl;
-			mDetector[Key] = Element;
-		}
-		else if (ssL >> Key >> Name)
-		{
-			std::cout << "here 1" << std::endl;
-			if (Key.find("Target") != std::string::npos)
+			if (Key == "E")			//electon channels
+			{
+				ssL >> Channel >> Name;
+				mEfficiencyE[Channel] = Name;
+			}
+			else if (Key == "M")
+			{
+				ssL >> Channel >> Name;
+				mEfficiencyM[Channel] = Name;
+			}
+			else if (Key == "T")
+			{
+				ssL >> Channel >> Name;
+				mEfficiencyT[Channel] = Name;
+			}
+			else if (Key.find("Target") != std::string::npos && ssL >> Name)
 				mMaterial[Key] = FindMaterial(Name);
-		}
-		else if (ssL >> Id >> Key >> Name)
-		{
-			std::cout << "here 2" << std::endl;
-			if (Id == "E")			//electon channels
-				mEfficiencyE[Key] = Name;
-			else if (Id == "M")
-				mEfficiencyM[Key] = Name;
-			else if (Id == "T")
-				mEfficiencyT[Key] = Name;
+			else if (ssL >> Element)
+				mDetector[Key] = Element;
 		}
 	}
 
@@ -81,22 +82,12 @@ Detector::Material Detector::GetMaterial(std::string Key)
 
 Detector::Material Detector::FindMaterial(std::string Name)
 {
-	std::cout << "found " << Name << std::endl;
 	if (Name == "LAr" || Name == "LiquidArgon")
-	{
-		std::cout << "return LAr" << std::endl;
 		return LAr;
-	}
 	else if (Name == "GasAr" || Name == "GasseousArgon")
-	{
-		std::cout << "return GasAr" << std::endl;
 		return GasAr;
-	}
 	else if (Name == "Fe" || Name == "Iron")
-	{
-		std::cout << "return Fe" << std::endl;
 		return Fe;
-	}
 }
 
 double Detector::Efficiency(double Energy, double Mass)
@@ -239,6 +230,29 @@ double Detector::Zstart()
 double Detector::Zend()
 {
 	return Zsize() + Zstart();
+}
+
+double Detector::Zback()
+{
+	return Zstart() + (Get("BackLength") ? Get("BackLength") : 2 * Zsize());
+}
+
+bool Detector::IsContained(Particle *P)
+{
+	if (P->X() > Xstart() && P->X() < Xend() &&
+	    P->Y() > Ystart() && P->Y() < Yend() &&
+	    P->Z() > Zstart() && P->Z() < Zback())
+		return true;
+	else
+		return false;
+}
+
+bool Detector::IsInside(Particle *P)
+{
+	if (IsContained(P) && P->Z() < Zend())
+		return true;
+	else
+		return false;
 }
 
 //special, neutrino class required

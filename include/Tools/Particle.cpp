@@ -18,6 +18,7 @@ Particle::Particle(int PdgCode, double Px, double Py, double Pz, double E, doubl
 Particle::Particle(int PdgCode, TLorentzVector *Vector, TVector3 *Position) :
 	iPdg(PdgCode),
 	dTrackIn(-1),
+	dTrackBack(-1),
 	dTrackOut(-1),
 	bShower(false)
 {
@@ -28,6 +29,7 @@ Particle::Particle(int PdgCode, TLorentzVector *Vector, TVector3 *Position) :
 Particle::Particle(int PdgCode, TLorentzVector *Vector) :
 	iPdg(PdgCode),
 	dTrackIn(-1),
+	dTrackBack(-1),
 	dTrackOut(-1),
 	bShower(false)
 {
@@ -37,6 +39,7 @@ Particle::Particle(int PdgCode, TLorentzVector *Vector) :
 Particle::Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position) :
 	iPdg(PdgCode),
 	dTrackIn(-1),
+	dTrackBack(-1),
 	dTrackOut(-1),
 	bShower(false)
 {
@@ -47,6 +50,7 @@ Particle::Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position) :
 Particle::Particle(int PdgCode, TLorentzVector &Vector) :
 	iPdg(PdgCode),
 	dTrackIn(-1),
+	dTrackBack(-1),
 	dTrackOut(-1),
 	bShower(false)
 {
@@ -59,6 +63,7 @@ Particle::Particle(const Particle &P) :
 	ParticleVec(new TLorentzVector(P.FourVector())),
 	ParticlePos(new TVector3(P.Position())),
 	dTrackIn(P.TrackIn()),
+	dTrackBack(P.TrackBack()),
 	dTrackOut(P.TrackOut()),
 	bShower(P.IsShower())
 {
@@ -67,9 +72,6 @@ Particle::Particle(const Particle &P) :
 //destructor
 Particle::~Particle()
 {
-	std::cout << "this " << this << std::endl;
-	std::cout << "pvec " << ParticleVec << std::endl;
-	std::cout << "ppos " << ParticlePos << std::endl;
 	delete ParticleVec; 
 	delete ParticlePos; 
 	ParticleVec = 0;
@@ -262,6 +264,11 @@ double Particle::TrackIn() const
 	return dTrackIn;
 }
 
+double Particle::TrackBack() const
+{
+	return dTrackBack;
+}
+
 double Particle::TrackOut() const
 {
 	return dTrackOut;
@@ -269,7 +276,7 @@ double Particle::TrackOut() const
 
 double Particle::TrackTot() const
 {
-	return TrackIn() + TrackOut();
+	return TrackIn() + TrackBack() + TrackOut();
 }
 
 ////////
@@ -380,6 +387,11 @@ void Particle::SetZ(double X)
 void Particle::SetTrackIn(double X)
 {
 	dTrackIn = X;
+}
+
+void Particle::SetTrackBack(double X)
+{
+	dTrackBack = X;
 }
 
 void Particle::SetTrackOut(double X)

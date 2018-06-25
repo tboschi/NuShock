@@ -62,6 +62,7 @@ class Particle
 		double Y();
 		double Z();
 		double TrackIn() const;
+		double TrackBack() const;
 		double TrackOut() const;
 		double TrackTot() const;
 		
@@ -81,6 +82,7 @@ class Particle
 		void SetY(double X);
 		void SetZ(double X);
 		void SetTrackIn(double X);
+		void SetTrackBack(double X);
 		void SetTrackOut(double X);
 		void SetShower(bool X);
 
@@ -88,7 +90,7 @@ class Particle
 		TLorentzVector *ParticleVec;
 		TVector3 *ParticlePos;
 		int iPdg;
-		double dTrackIn, dTrackOut;
+		double dTrackIn, dTrackBack, dTrackOut;
 		bool bShower;
 };
 

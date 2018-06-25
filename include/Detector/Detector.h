@@ -69,6 +69,10 @@ class Detector
 		double Zsize();
 		double Zstart();
 		double Zend();
+		double Zback();
+
+		bool IsInside(Particle *P);
+		bool IsContained(Particle *P);
 
 		double DecayProb(Neutrino *N);
 		double DecayProb(Particle *N, double Total, double Branch);

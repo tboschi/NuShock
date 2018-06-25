@@ -58,7 +58,7 @@ void Tracker::TrackSmearing(Particle *&P)
 			break;
 		case 13:
 			SigmaA = Get("Angle_Muon") / Const::fDeg;
-			Ratio = P->TrackIn()/(P->TrackIn()+P->TrackOut());
+			Ratio = P->TrackIn()/P->TrackTot();
 
 			if (Ratio > Get("Containment"))	//90% of track inside
 				SigmaP = Get("Range_Muon");
@@ -76,7 +76,7 @@ void Tracker::TrackSmearing(Particle *&P)
 			break;
 		case 211:
 			SigmaA = Get("Angle_Pion") / Const::fDeg;
-			Ratio = P->TrackIn()/(P->TrackIn()+P->TrackOut());
+			Ratio = P->TrackIn()/P->TrackTot();
 
 			if (!P->IsShower() && Ratio > Get("Containment"))	//pion track, not shower
 				SigmaP = Get("Range_Pion");
@@ -123,7 +123,7 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 	double tmax, Depth;
 	double iE, iM, dE;
 	double dStep = 0.01, dx;
-	double LengthIn = 0.0, LengthOut = 0.0;
+	double LengthIn = 0.0, LengthBack = 0.0, LengthOut = 0.0;
 	double TotTrack = 0, Layer = 0;
 
 	TVector3 Step(P->Direction().Unit());
@@ -146,12 +146,14 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 			
 			while (IsDetectable(P) && !IsDecayed(P, dStep))		//this should quit when particle decays too!
 			{
-				bool InOut;
+				int InOut;
 				double dx = GenMT->Gaus(dStep, Get("Vertex"));
 				double dE = dx * EnergyLoss(P, InOut);	//inside material
 
-				if (InOut)
+				if (InOut > 0)
 					LengthIn += dx;			//even b2b det?
+				else if (InOut == 0)
+					LengthBack += dx;			//even b2b det?
 				else
 					LengthOut += dx;
 
@@ -161,6 +163,7 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 			}
 
 			P->SetTrackIn(LengthIn);
+			P->SetTrackBack(LengthBack);
 			P->SetTrackOut(LengthOut);
 			P->SetEnergy(iE);		//reset to original energy
 			P->SetPosition(Start);		//reset to original position
@@ -176,15 +179,17 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 
 				while (IsDetectable(P) && !IsDecayed(P, dStep) && Cover < Length)	//this should quit when particle decays too!
 				{
-					bool InOut;
+					int InOut;
 					double dx = GenMT->Gaus(dStep, Get("Vertex"));
 					double dE = dx * EnergyLoss(P, InOut);	//inside material
 					Cover += dx;
 
-					if (InOut)
-						LengthIn += dx;			//even b2b det?
+					if (InOut > 0)
+						LengthIn   += dx;			//even b2b det?
+					if (InOut == 0)
+						LengthBack += dx;			//even b2b det?
 					else
-						LengthOut += dx;
+						LengthOut  += dx;
 
 					Pos += Step*dx;		//move by dx
 					P->SetEnergy(P->Energy() - dE);
@@ -204,6 +209,7 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 			else P->SetShower(false);
 
 			P->SetTrackIn(LengthIn);
+			P->SetTrackBack(LengthBack);
 			P->SetTrackOut(LengthOut);
 			P->SetEnergy(iE);			//reset to original energy
 			P->SetPosition(Start);		//reset to original position
@@ -262,63 +268,54 @@ double Tracker::RadiationLength(bool Nuclear)
 		}
 }
 
-double Tracker::EnergyLoss(Particle *P, bool &Contained)
+double Tracker::EnergyLoss(Particle *P, int &Contained)
 {
-	std::cout << "Eloss " << P->Pdg() << "\t" << P->Energy() << std::endl;
-	if (IsContained(P) && IsInside(P))
+	if (IsInside(P))
 	{
-		std::cout << "Eloss 1" << std::endl;
-		Contained = true;
+		Contained = 1;
 		return BetheLoss(P, GetMaterial("InTarget"));
 	}
 	else if (IsContained(P) && GetMaterial("BackTarget") != 0)
 	{
-		std::cout << "Eloss 2" << std::endl;
-		Contained = true;
+		Contained = 0;
 		return BetheLoss(P, GetMaterial("BackTarget"));
 	}
 	else
 	{
-		std::cout << "Eloss 3" << std::endl;
-		Contained = false;
+		Contained = -1;
 		return BetheLoss(P, GetMaterial("OutTarget"));
 	}
 }
 
 double Tracker::BetheLoss(Particle *P, Material Target)
 {
-	std::cout << "loss " << Target << std::endl;
 	switch (Target)
 	{
 		case LAr:
-			std::cout << "Bethe 1" << std::endl;
 			return Bethe(P, 1.3945, 188.0, 18, 40);
 		case GasAr:
-			std::cout << "Bethe 2" << std::endl;
 			return Bethe(P, 0.1020, 188.0, 18, 40);
 		case Fe:
-			std::cout << "Bethe 3" << std::endl;
 			return Bethe(P, 7.874, 286.0, 26, 56);
 		default:
-			std::cout << "Bethe d" << std::endl;
 			0;
 	}
 }
-
-double Tracker::Bethe(Particle *P, double Density, double I, int Z, int A)
+							//I is in eV
+double Tracker::Bethe(Particle *P, double Density, double I, int Z, int A)	//GeV/m
 {
-	std::cout << "BLoss " << P->Pdg() << "\t" << P->Energy() << std::endl;
 	double K = 0.307075;		//From PDG MeV mol-1 cm2
 	double e2M = Const::fMElectron / P->Mass();
 	double Beta2 = pow(P->Beta(), 2);
 	double Gamma2 = pow(P->Gamma(), 2);
-
+			//electron mass in MeV -> *1000
 	double Wmax = (2000 * Const::fMElectron * Beta2 * Gamma2) / 
 		(1 + 2 * P->Gamma() * e2M + e2M * e2M);
+
 	double LogArg = 2000 * Const::fMElectron * Beta2 * Gamma2 * Wmax /
 		(1e-12 * I * I); 	//Everything in MeV
 
-	return 0.1 * Density * (K * Z) / (A * Beta2 * (0.5 * log (LogArg) - Beta2));	//stopping power in GeV/m (0.1*)
+	return 0.1 * Density * K * Z / (A * Beta2) * (0.5 * log (LogArg) - Beta2);	//stopping power in GeV/m (0.1*)
 }
 
 bool Tracker::IsDecayed(Particle *P, double dx)	//Threshold check
@@ -394,22 +391,4 @@ void Tracker::Focus(Particle *P)
 
 	P->SetTheta( abs(GenMT->Gaus(0, SigmaT)) );	
 	P->SetPhi( GenMT->Uniform(-Const::fPi, Const::fPi) );
-}
-
-bool Tracker::IsContained(Particle *P)
-{
-	if (P->X() > Xstart() && P->X() < Xend() &&
-	    P->Y() > Ystart() && P->Y() < Yend() &&
-	    P->Z() > Zstart() )
-		return true;
-	else return false;
-}
-
-bool Tracker::IsInside(Particle *P)
-{
-	if (P->X() > Xstart() && P->X() < Xend() &&
-	    P->Y() > Ystart() && P->Y() < Yend() &&
-	    P->Z() > Zstart() && P->Z() < Zend() )
-		return true;
-	else return false;
 }

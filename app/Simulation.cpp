@@ -120,7 +120,8 @@ int main(int argc, char** argv)
 	double ThetaA, ThetaB, ThetaC, Theta0;
 	double PhiA, PhiB, PhiC, Phi0;
 	double MassA, MassB, MassC, Mass0;
-	double InA, OutA, InB, OutB;
+	double InnA, BakA, OutA;
+	double InnB, BakB, OutB;
 	double Angle;				//separation between A & B
 
 	//TRandom3 *Rand = new TRandom3(0);
@@ -135,7 +136,8 @@ int main(int argc, char** argv)
 	Data->Branch("TheA",  &ThetaA,  "fThetaA/D" );
 	Data->Branch("PhiA",  &PhiA,    "fPhiA/D"   );
 	Data->Branch("M_A",   &MassA,   "fMassA/D"  );
-	Data->Branch("In_A",  &InA,     "fInA/D"    );
+	Data->Branch("Inn_A", &InnA,    "fInnA/D"   );
+	Data->Branch("Bak_A", &BakA,    "fBakA/D"   );
 	Data->Branch("Out_A", &OutA,    "fOutA/D"   );
 
 	Data->Branch("E_B",   &EnergyB, "fEnergyB/D");
@@ -144,7 +146,8 @@ int main(int argc, char** argv)
 	Data->Branch("TheB",  &ThetaB,  "fThetaB/D" );
 	Data->Branch("PhiB",  &PhiB,    "fPhiB/D"   );
 	Data->Branch("M_B",   &MassB,   "fMassB/D"  );
-	Data->Branch("In_B",  &InB,     "fInB/D"    );
+	Data->Branch("Inn_B", &InnB,    "fInnB/D"   );
+	Data->Branch("Bak_B", &BakB,    "fBakB/D"   );
 	Data->Branch("Out_B", &OutB,    "fOutB/D"   );
 
 	Data->Branch("Angle", &Angle,   "fAngle/D"  );
@@ -162,7 +165,8 @@ int main(int argc, char** argv)
 	//double Beta = 1.0;
 	//double Lc = EvGen->GetDetectorPtr()->GetElement("Baseline")/Const::fC;
 	
-	for (unsigned int k = 0; k < Nevent; ++k)
+	unsigned int ND = 0, ID;
+	for (ID = 0; ID < Nevent; ++ND)
 	{
 		//RealFHC = TheEngine->SampleEnergy(Engine::FHC, 0, 1);
 		Real = TheEngine->SampleEnergy(Engine::FHC, 0, 1);
@@ -177,7 +181,6 @@ int main(int argc, char** argv)
 		//Delay = Lc * (1.0/Beta - 1) + iBunch*tBunch;
 		Delay = Rand->Gaus(Lc * (1.0/Beta - 1) + iBunch*tBunch, 1e-9);
 
-		Data->Fill();
 
 		*/
 
@@ -213,14 +216,14 @@ int main(int argc, char** argv)
 		TheBox->TrackReconstruct(ParticleB);
 		if (ParticleA != 0 && ParticleB != 0)
 		{
-
 			EnergyA = ParticleA->Energy();
 			MomentA = ParticleA->Momentum();
 			TransvA = ParticleA->Transverse();
 			ThetaA  = ParticleA->Theta();
 			PhiA    = ParticleA->Phi();
 			MassA   = ParticleA->Mass();
-			InA     = ParticleA->TrackIn();
+			InnA    = ParticleA->TrackIn();
+			BakA    = ParticleA->TrackBack();
 			OutA    = ParticleA->TrackOut();
 		
 			EnergyB = ParticleB->Energy();
@@ -229,7 +232,8 @@ int main(int argc, char** argv)
 			ThetaB  = ParticleB->Theta();
 			PhiB    = ParticleB->Phi();
 			MassB   = ParticleB->Mass();
-			InB     = ParticleB->TrackIn();
+			InnB    = ParticleB->TrackIn();
+			BakB    = ParticleB->TrackBack();
 			OutB    = ParticleB->TrackOut();
 	
 			Angle = ParticleA->Direction().Angle(ParticleB->Direction());
@@ -242,6 +246,9 @@ int main(int argc, char** argv)
 			Theta0  = Reco.Theta();
 			Phi0    = Reco.Phi();
 			Mass0   = Reco.M();
+
+			Data->Fill();
+			++ID;
 		}
 
 		if (SaveMe++ > 10000)
@@ -253,16 +260,9 @@ int main(int argc, char** argv)
 
 		delete ParticleA, ParticleB;
 		ParticleA = 0, ParticleB = 0;
-		/*
-		for (unsigned int i = 0; i < vParticle.size(); ++i)
-		{
-			std::cout << "vpart " << vParticle.at(i) << "\t" << vParticle.at(i)->Pdg() << std::endl;
-			delete vParticle.at(i);
-		}
-		std::cout << "P3" << std::endl;
-		*/
 	}
 
+	std::cout << "Above detection thresholds there are " << (100.0*ID)/ND << "\% of simulated particles" << std::endl;
 	OutFile->cd();
         Data->Write();
 	OutFile->Close();
