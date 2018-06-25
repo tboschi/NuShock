@@ -12,7 +12,7 @@ Engine::Engine(std::string FluxConfig, unsigned int nFHC, unsigned int nRHC)
 	vNeutrinoRHC.resize(vDriver(RHC));
 
 	vSampleNuFHC.resize(vDriver(FHC));
-	vSampleNuFHC.resize(vDriver(RHC));
+	vSampleNuRHC.resize(vDriver(RHC));
 }
 
 Engine::~Engine()
@@ -87,11 +87,6 @@ void Engine::MakeSampler(Detector *Box, Current Horn)
 
 void Engine::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
 {
-	TH1D* hSampleNu = vSampleNu(Horn, ID);
-
-	delete hSampleNu;
-	hSampleNu = 0;
-
 	std::stringstream ssName;
 	ssName << "sample_";
 	switch (Horn)
@@ -107,7 +102,7 @@ void Engine::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
 
 	double Start, End;
 	double EnStep = RangeWidth(Start, End);
-	hSampleNu = new TH1D(ssName.str().c_str(), "Neutrinos in detector", BinNumber(), Start, End);
+	TH1D *hSampleNu = new TH1D(ssName.str().c_str(), "Neutrinos in detector", BinNumber(), Start, End);
 
 	double Weight;
 	for (double Energy = Start; Energy < End; Energy += EnStep)
@@ -115,7 +110,18 @@ void Engine::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
 		vNeutrino(Horn, ID)->SetEnergy(Energy);
 
 		Weight = EnStep * Intensity(Horn, ID) * Box->DecayProb(vNeutrino(Horn, ID));
-		hSampleNu->Fill(Energy+EnStep, Weight);
+		hSampleNu->Fill(Energy + EnStep, Weight);
+	}
+
+	delete vSampleNu(Horn, ID);
+	switch (Horn)
+	{
+		case FHC:
+			vSampleNuFHC.at(ID) = hSampleNu;
+			break;
+		case RHC:
+			vSampleNuRHC.at(ID) = hSampleNu;
+			break;
 	}
 }
 

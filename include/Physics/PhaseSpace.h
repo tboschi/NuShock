@@ -22,6 +22,12 @@
 class PhaseSpace : public Amplitude
 {
 	public:
+		enum Reference
+		{
+			RestFrame = 0,
+			LabFrame = 1,
+		};
+
 		PhaseSpace();
 
 		bool SetDecay(Channel Name);
@@ -65,25 +71,27 @@ class PhaseSpace : public Amplitude
 		double Max_LeptonPseudoMeson(double M_Neut, double M_Meson);
 		double LeptonPseudoMeson(double M_Neut, double M_Meson);
 		double Max_NeutrinoPseudoMeson(double M_Neut, double M_Meson);
-		double max_LeptonPseudo(double x, double y);
-		double max_LeptonPseudo_cos0(const double cos0);
-		double LeptonPseudo(double x, double y, double cos0);
+		double max_ToPseudoMeson(double x, double y);
+		double max_ToPseudoMeson_cos0(const double cos0);
+		double ToPseudoMeson(double x, double y, double cos0);
 
 		double NeutrinoVectorMeson(double M_Neut, double M_Meson);
 		double Max_NeutrinoVectorMeson(double M_Neut, double M_Meson);
 		double LeptonVectorMeson(double M_Neut, double M_Meson);
 		double Max_LeptonVectorMeson(double M_Neut, double M_Meson);
-		double max_LeptonVector(double x, double y);
-		double max_LeptonVector_cos0(const double cos0);
-		double LeptonVector(double x, double y, double cos0);
+		double max_ToVectorMeson(double x, double y);
+		double max_ToVectorMeson_cos0(const double cos0);
+		double ToVectorMeson(double x, double y, double cos0);
 
 		void Kinematic_2B(double &cos0);
 		void Kinematic_3B(double &s, double &t, double &cos0, double &cos1);
 
 		unsigned int Daughter();
-		Particle* Daughter(unsigned int i);
+		TLorentzVector* DaughterVector(unsigned int i, Reference Frame = RestFrame);
+		Particle* Daughter(unsigned int i, Reference Frame = RestFrame);
 		TLorentzVector *LabF();
 		TLorentzVector *Rest();
+		TLorentzVector *NuVector(Reference Frame = RestFrame);
 
 		void SetNLabf(TLorentzVector &Vec);
 		void SetNRest(double Mass);
@@ -97,6 +105,8 @@ class PhaseSpace : public Amplitude
 		TRandom3 *GenMT;
 		TLorentzVector *N_labf, *N_rest;
 		unsigned int nDaughter;
+
+		double (Amplitude::*M2_Function)(double, double, double);
 
 		double fnnn,
                        fnGAMMA,

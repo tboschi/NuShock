@@ -3,42 +3,54 @@
 //manual ctor
 
 Particle::Particle() :
-	ParticleVec(new TLorentzVector),
-	ParticlePos(new TVector3),
-	dTrackIn(-1),
-	dTrackOut(-1),
+	iPdg(0),
 	bShower(false)
 {
+	Init(0, 0, 0, 0, 0, 0, 0);
 }
 
 Particle::Particle(int PdgCode, double Px, double Py, double Pz, double E, double X, double Y, double Z) :
-	iPdg(PdgCode),
-	ParticleVec(new TLorentzVector(Px, Py, Pz, E)),
-	ParticlePos(new TVector3(X, Y, Z)),
-	dTrackIn(-1),
-	dTrackOut(-1),
-	bShower(false)
+	iPdg(PdgCode)
 {
+	Init(Px, Py, Pz, E, X, Y, Z);
 }
 
 Particle::Particle(int PdgCode, TLorentzVector *Vector, TVector3 *Position) :
 	iPdg(PdgCode),
-	ParticleVec(Vector),
-	ParticlePos(Position),
 	dTrackIn(-1),
 	dTrackOut(-1),
 	bShower(false)
 {
+	Init(Vector->Px(), Vector->Py(), Vector->Pz(), Vector->E(), 
+	     Position->X(), Position->Y(), Position->Z());
+}
+
+Particle::Particle(int PdgCode, TLorentzVector *Vector) :
+	iPdg(PdgCode),
+	dTrackIn(-1),
+	dTrackOut(-1),
+	bShower(false)
+{
+	Init(Vector->Px(), Vector->Py(), Vector->Pz(), Vector->E(), 0, 0, 0);
 }
 
 Particle::Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position) :
 	iPdg(PdgCode),
-	ParticleVec(new TLorentzVector(Vector)),
-	ParticlePos(new TVector3(Position)),
 	dTrackIn(-1),
 	dTrackOut(-1),
 	bShower(false)
 {
+	Init(Vector.Px(), Vector.Py(), Vector.Pz(), Vector.E(), 
+	     Position.X(), Position.Y(), Position.Z());
+}
+
+Particle::Particle(int PdgCode, TLorentzVector &Vector) :
+	iPdg(PdgCode),
+	dTrackIn(-1),
+	dTrackOut(-1),
+	bShower(false)
+{
+	Init(Vector.Px(), Vector.Py(), Vector.Pz(), Vector.E(), 0, 0, 0);
 }
 
 //copy ctor
@@ -50,6 +62,24 @@ Particle::Particle(const Particle &P) :
 	dTrackOut(P.TrackOut()),
 	bShower(P.IsShower())
 {
+}
+
+//destructor
+Particle::~Particle()
+{
+	std::cout << "this " << this << std::endl;
+	std::cout << "pvec " << ParticleVec << std::endl;
+	std::cout << "ppos " << ParticlePos << std::endl;
+	delete ParticleVec; 
+	delete ParticlePos; 
+	ParticleVec = 0;
+	ParticlePos = 0;
+}
+
+void Particle::Init(double Px, double Py, double Pz, double E, double X, double Y, double Z)
+{
+	ParticleVec = new TLorentzVector(Px, Py, Pz, E);
+	ParticlePos = new TVector3(X, Y, Z);
 }
 
 int Particle::Pdg() const

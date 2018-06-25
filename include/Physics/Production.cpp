@@ -362,10 +362,10 @@ double Production::I_LeptonNeutrino(double x, double y, double z)//, double thet
 
 double Production::I_LeptonNeutrino_u(const double u)	//fixing one variable
 {
-	//aliases for clarity
-	double &x = F_var.at(0);	//light neutrino	u
-	double &y = F_var.at(1);	//lepton
-	double &z = F_var.at(2);	//heavy neutrino
+	//shouldnt use alias for clarity
+	double x = F_var.at(0);	//light neutrino	u
+	double y = F_var.at(1);	//lepton
+	double z = F_var.at(2);	//heavy neutrino
 	//const double &cos0 = F_var.at(3);
 
 	double u_ = u;
@@ -406,9 +406,9 @@ double Production::I_AntiLeptonNeutrino(double x, double y, double z)//, double 
 double Production::I_AntiLeptonNeutrino_s(double s)	//the term is written for a neutrino production
 {								//therefore with heliciies inverted
 	//aliases for clarity
-	double &x = F_var.at(0);
-	double &y = F_var.at(1);
-	double &z = F_var.at(2);
+	double x = F_var.at(0);
+	double y = F_var.at(1);
+	double z = F_var.at(2);
 	//const double &cos0 = F_var.at(5);
 
 	//create S var
@@ -496,12 +496,12 @@ double Production::I_MesonThree_s(const double s)	//fixing one variable
 double Production::I_MesonThree_t(const double t)
 {
 	//aliases for clarity
-	double &x = F_var.at(0);
-	double &y = F_var.at(1);
-	double &z = F_var.at(2);
+	double x = F_var.at(0);
+	double y = F_var.at(1);
+	double z = F_var.at(2);
 	//const double &cos0 = F_var.at(3);
-	double &L0 = F_var.at(3);
-	double &L_ = F_var.at(4);
+	double L0 = F_var.at(3);
+	double L_ = F_var.at(4);
 
 	double s_ = F_var.at(5);
 	double t_ = t;
@@ -516,12 +516,12 @@ double Production::I_MesonThree_t(const double t)
 double Production::I_MesonThree_D(const double *v)
 {
 	//aliases for clarity
-	double &x = F_var.at(0);
-	double &y = F_var.at(1);
-	double &z = F_var.at(2);
+	double x = F_var.at(0);
+	double y = F_var.at(1);
+	double z = F_var.at(2);
 	//const double &cos0 = F_var.at(3);
-	double &L0 = F_var.at(3);
-	double &L_ = F_var.at(4);
+	double L0 = F_var.at(3);
+	double L_ = F_var.at(4);
 
 	double s_ = v[0];
 	double t_ = v[1];

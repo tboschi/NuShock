@@ -30,9 +30,10 @@ class Tracker : public Detector
 	public:
 		Tracker(std::string ConfigFile);
 
-		void TrackProcess(Particle *&P);
-		void TrackSmearing(Particle *P);
-		void TrackLength(Particle *P);
+		void TrackReconstruct(Particle *&P);
+		void TrackVertex(Particle *&P);
+		void TrackSmearing(Particle *&P);
+		void TrackLength(Particle *&P);
 		double GammaDecay();
 		double CriticalEnergy();
 		double RadiationLength(bool Nuclear = false);
@@ -50,7 +51,7 @@ class Tracker : public Detector
 		void Focus(Particle *P);
 
 	private:
-		TRandom3 *GenMT;
+		//TRandom3 *GenMT;
 		TFile *FuncFile;
 		TH2D *hhFunc;
 		TH1D *hTemp, *hEfficiency;

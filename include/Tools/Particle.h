@@ -27,8 +27,13 @@ class Particle
 		Particle();
 		Particle(int PdgCode, double Px, double Py, double Pz, double E, double X, double Y, double Z);
 		Particle(int PdgCode, TLorentzVector *Vector, TVector3 *Position);
+		Particle(int PdgCode, TLorentzVector *Vector);
 		Particle(int PdgCode, TLorentzVector &Vector, TVector3 &Position);
+		Particle(int PdgCode, TLorentzVector &Vector);
 		Particle(const Particle &P);
+		~Particle();
+		void Init(double Px = 0.0, double Py = 0.0, double Pz = 0.0, double E = 0.0,
+			  double X = 0.0, double Y = 0.0, double Z = 0.0);
 
 		int Pdg() const;
 		int Charge();

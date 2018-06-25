@@ -18,14 +18,19 @@ Detector::Detector(std::string ConfigName) :
 		ssL << Line;
 
 		if (ssL >> Key >> Element)
+		{
+			std::cout << "here 0" << std::endl;
 			mDetector[Key] = Element;
+		}
 		else if (ssL >> Key >> Name)
 		{
+			std::cout << "here 1" << std::endl;
 			if (Key.find("Target") != std::string::npos)
 				mMaterial[Key] = FindMaterial(Name);
 		}
 		else if (ssL >> Id >> Key >> Name)
 		{
+			std::cout << "here 2" << std::endl;
 			if (Id == "E")			//electon channels
 				mEfficiencyE[Key] = Name;
 			else if (Id == "M")
@@ -76,12 +81,22 @@ Detector::Material Detector::GetMaterial(std::string Key)
 
 Detector::Material Detector::FindMaterial(std::string Name)
 {
+	std::cout << "found " << Name << std::endl;
 	if (Name == "LAr" || Name == "LiquidArgon")
+	{
+		std::cout << "return LAr" << std::endl;
 		return LAr;
+	}
 	else if (Name == "GasAr" || Name == "GasseousArgon")
+	{
+		std::cout << "return GasAr" << std::endl;
 		return GasAr;
+	}
 	else if (Name == "Fe" || Name == "Iron")
+	{
+		std::cout << "return Fe" << std::endl;
 		return Fe;
+	}
 }
 
 double Detector::Efficiency(double Energy, double Mass)
@@ -177,14 +192,14 @@ double Detector::Efficiency(std::string Channel, double Energy)
 
 double Detector::Xsize()
 {
-	double F = Get("Fiducial");
-	return F > 0.0 ? F *Get("Width") : Get("Width");
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return Get("Width") * (F > 0.0 ?  F : 1.0);
 }
 
 double Detector::Xstart()
 {
-	double F = Get("Fiducial");
-	return F > 0.0 ? 0.5*Get("Width")*(1-F) : 0.0;
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return - 0.5 * Get("Width") * (F > 0.0 ? F : 1.0);
 }
 
 double Detector::Xend()
@@ -194,14 +209,14 @@ double Detector::Xend()
 
 double Detector::Ysize()
 {
-	double F = Get("Fiducial");
-	return F > 0.0 ? F * Get("Height") : Get("Height");
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return Get("Height") * (F > 0.0 ? F : 1.0);
 }
 
 double Detector::Ystart()
 {
-	double F = Get("Fiducial");
-	return F > 0.0 ? 0.5*Get("Height")*(1-F) : 0.0;
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return - 0.5 * Get("Height") * (F > 0.0 ? F : 1.0);
 }
 
 double Detector::Yend()
@@ -211,14 +226,14 @@ double Detector::Yend()
 
 double Detector::Zsize()
 {
-	double F = Get("Fiducial");
-	return F > 0.0 ? F * Get("Length") : Get("Length");
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return Get("Length") * (F > 0.0 ? F : 1.0);
 }
 
 double Detector::Zstart()
 {
-	double F = Get("Fiducial");
-	return F > 0.0 ? 0.5*Get("Length")*(1-F) : 0.0;
+	double F = (1 - pow(Get("Fiducial"), 1.0/3.0)) / 2.0;
+	return F > 0.0 ? F * Get("Length") : 0.0;
 }
 
 double Detector::Zend()

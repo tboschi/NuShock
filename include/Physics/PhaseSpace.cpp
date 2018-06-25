@@ -20,16 +20,20 @@ bool PhaseSpace::SetDecay(Channel Name)
 	for (unsigned int i = 0; i < Daughter(); ++i)
 		MassArray[i] = vMass.at(i);
 
-	return Event->SetDecay(*Rest(), Daughter(), MassArray);
+	return Event->SetDecay(*NuVector(RestFrame), Daughter(), MassArray);
 }
 
 bool PhaseSpace::Generate(Channel Name)
 {
+	unsigned int cc = 0;
 	if (SetDecay(Name))
 	{
 		do
+		{
+			++cc;
 			Event->Generate();
-		while (GenMT->Rndm() > Ratio(Name));
+		}
+		while (GenMT->Rndm() < Ratio(Name));
 
 		return true;
 	}
@@ -148,8 +152,8 @@ double PhaseSpace::nEE_ratio()
 	if (maxnEE_e < 0 || maxnEE_a || IsChanged())
 		Max_NeutrinoLeptonAA(maxnEE_e, maxnEE_a, M_Neutrino, M_Electron);
 
-	if (fnEE_e < 0 || fnEE_a < 0 || IsChanged())
-		NeutrinoLeptonAA(fnEE_e, fnEE_a, M_Neutrino, M_Electron);
+	double fnEE_e, fnEE_a;
+	NeutrinoLeptonAA(fnEE_e, fnEE_a, M_Neutrino, M_Electron);
 
 	return ( (fnEE_e + fnEE_a) * Ue(2) + fnEE_a * (Um(2) + Ut(2)) ) / 
 	       ( (maxnEE_e + maxnEE_a) * Ue(2) + maxnEE_a * (Um(2) + Ut(2)) );
@@ -160,8 +164,8 @@ double PhaseSpace::nMM_ratio()
 	if (maxnMM_m < 0 || maxnMM_a || IsChanged())
 		Max_NeutrinoLeptonAA(maxnMM_m, maxnMM_a, M_Neutrino, M_Electron);
 
-	if (fnMM_m < 0 || fnMM_a < 0 || IsChanged())
-		NeutrinoLeptonAA(fnMM_m, fnMM_a, M_Neutrino, M_Electron);
+	double fnMM_m, fnMM_a;
+	NeutrinoLeptonAA(fnMM_m, fnMM_a, M_Neutrino, M_Electron);
 
 	return ( (fnMM_m + fnMM_a) * Um(2) + fnMM_a * (Ue(2) + Ut(2)) ) / 
 	       ( (maxnMM_m + maxnMM_a) * Um(2) + maxnMM_a * (Ue(2) + Ut(2)) );
@@ -172,10 +176,7 @@ double PhaseSpace::nEM_ratio()
 	if (maxnEM || IsChanged())
 		maxnEM = Max_NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Muon);
 
-	if (fnEM < 0 || IsChanged())
-		fnEM = NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Muon);
-
-	return fnEM / maxnEM;
+	return NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Muon) / maxnEM;
 }
 
 double PhaseSpace::nME_ratio()
@@ -183,10 +184,7 @@ double PhaseSpace::nME_ratio()
 	if (maxnME || IsChanged())
 		maxnME = Max_NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Electron);
 
-	if (fnME < 0 || IsChanged())
-		fnME = NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Electron);
-
-	return fnME / maxnME;
+	return NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Electron) / maxnME;
 }
 
 double PhaseSpace::nET_ratio()
@@ -194,10 +192,7 @@ double PhaseSpace::nET_ratio()
 	if (maxnET || IsChanged())
 		maxnET = Max_NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Tau);
 
-	if (fnET < 0 || IsChanged())
-		fnET = NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Tau);
-
-	return fnET / maxnET;
+	return NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Tau) / maxnET;
 }
 
 double PhaseSpace::nTE_ratio()
@@ -205,10 +200,7 @@ double PhaseSpace::nTE_ratio()
 	if (maxnTE || IsChanged())
 		maxnTE = Max_NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Electron);
 
-	if (fnTE < 0 || IsChanged())
-		fnTE = NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Electron);
-
-	return fnET / maxnET;
+	return NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Electron) / maxnET;
 }
 
 double PhaseSpace::nMT_ratio()
@@ -216,10 +208,7 @@ double PhaseSpace::nMT_ratio()
 	if (maxnMT || IsChanged())
 		maxnMT = Max_NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Tau);
 
-	if (fnMT < 0 || IsChanged())
-		fnMT = NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Tau);
-
-	return fnMT / maxnMT;
+	return NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Tau) / maxnMT;
 }
 
 double PhaseSpace::nTM_ratio()
@@ -227,10 +216,7 @@ double PhaseSpace::nTM_ratio()
 	if (maxnTM || IsChanged())
 		maxnTM = Max_NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Muon);
 
-	if (fnTM < 0 || IsChanged())
-		fnTM = NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Muon);
-
-	return fnET / maxnET;
+	return NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Muon) / maxnET;
 }
 
 double PhaseSpace::nPI0_ratio()
@@ -238,10 +224,7 @@ double PhaseSpace::nPI0_ratio()
 	if (maxnPI0 || IsChanged())
 		maxnPI0 = Max_NeutrinoPseudoMeson(M_Neutrino, M_Pion0);
 
-	if (fnPI0 < 0 || IsChanged())
-		fnPI0 = NeutrinoPseudoMeson(M_Neutrino, M_Pion0);
-
-	return fnPI0 / maxnPI0;
+	return NeutrinoPseudoMeson(M_Neutrino, M_Pion0) / maxnPI0;
 }
 
 double PhaseSpace::nETA_ratio()
@@ -249,10 +232,7 @@ double PhaseSpace::nETA_ratio()
 	if (maxnETA || IsChanged())
 		maxnETA = Max_NeutrinoPseudoMeson(M_Neutrino, M_Eta);
 
-	if (fnETA < 0 || IsChanged())
-		fnETA = NeutrinoPseudoMeson(M_Neutrino, M_Eta);
-
-	return fnETA / maxnETA;
+	return NeutrinoPseudoMeson(M_Neutrino, M_Eta) / maxnETA;
 }
 
 double PhaseSpace::nETAi_ratio()
@@ -260,10 +240,7 @@ double PhaseSpace::nETAi_ratio()
 	if (maxnETAi || IsChanged())
 		maxnETAi = Max_NeutrinoPseudoMeson(M_Neutrino, M_Etai);
 
-	if (fnETAi < 0 || IsChanged())
-		fnETAi = NeutrinoPseudoMeson(M_Neutrino, M_Etai);
-
-	return fnETAi / maxnETAi;
+	return NeutrinoPseudoMeson(M_Neutrino, M_Etai) / maxnETAi;
 }
 
 double PhaseSpace::EPI_ratio()
@@ -271,21 +248,15 @@ double PhaseSpace::EPI_ratio()
 	if (maxEPI || IsChanged())
 		maxEPI = Max_LeptonPseudoMeson(M_Electron, M_Pion);
 
-	if (fEPI < 0 || IsChanged())
-		fEPI = LeptonPseudoMeson(M_Electron, M_Pion);
-
-	return fEPI / maxEPI;
+	return LeptonPseudoMeson(M_Electron, M_Pion) / maxEPI;
 }
 
 double PhaseSpace::MPI_ratio()
 {
-	if (maxMPI || IsChanged())
+	if (maxMPI < 0 || IsChanged())
 		maxMPI = Max_LeptonPseudoMeson(M_Muon, M_Pion);
 
-	if (fMPI < 0 || IsChanged())
-		fMPI = LeptonPseudoMeson(M_Muon, M_Pion);
-
-	return fMPI / maxMPI;
+	return LeptonPseudoMeson(M_Muon, M_Pion) / maxMPI;
 }
 
 double PhaseSpace::TPI_ratio()
@@ -293,10 +264,7 @@ double PhaseSpace::TPI_ratio()
 	if (maxTPI || IsChanged())
 		maxTPI = Max_LeptonPseudoMeson(M_Tau, M_Pion);
 
-	if (fTPI < 0 || IsChanged())
-		fTPI = LeptonPseudoMeson(M_Tau, M_Pion);
-
-	return fTPI / maxTPI;
+	return LeptonPseudoMeson(M_Tau, M_Pion) / maxTPI;
 }
 
 double PhaseSpace::EKA_ratio()
@@ -304,10 +272,7 @@ double PhaseSpace::EKA_ratio()
 	if (maxEKA || IsChanged())
 		maxEKA = Max_LeptonPseudoMeson(M_Electron, M_Kaon);
 
-	if (fEKA < 0 || IsChanged())
-		fEKA = LeptonPseudoMeson(M_Electron, M_Kaon);
-
-	return fEKA / maxEKA;
+	return LeptonPseudoMeson(M_Electron, M_Kaon) / maxEKA;
 }
 
 double PhaseSpace::MKA_ratio()
@@ -315,10 +280,7 @@ double PhaseSpace::MKA_ratio()
 	if (maxMKA || IsChanged())
 		maxMKA = Max_LeptonPseudoMeson(M_Muon, M_Kaon);
 
-	if (fMKA < 0 || IsChanged())
-		fMKA = LeptonPseudoMeson(M_Muon, M_Kaon);
-
-	return fMKA / maxMKA;
+	return LeptonPseudoMeson(M_Muon, M_Kaon) / maxMKA;
 }
 
 double PhaseSpace::ECHARM_ratio()
@@ -326,10 +288,7 @@ double PhaseSpace::ECHARM_ratio()
 	if (maxECHARM || IsChanged())
 		maxECHARM = Max_LeptonPseudoMeson(M_Electron, M_Charm);
 
-	if (fECHARM < 0 || IsChanged())
-		fECHARM = LeptonPseudoMeson(M_Electron, M_Charm);
-
-	return fECHARM / maxECHARM;
+	return LeptonPseudoMeson(M_Electron, M_Charm) / maxECHARM;
 }
 
 double PhaseSpace::nRHO0_ratio()
@@ -337,10 +296,7 @@ double PhaseSpace::nRHO0_ratio()
 	if (maxnRHO0 || IsChanged())
 		maxnRHO0 = Max_NeutrinoVectorMeson(M_Neutrino, M_Rho0);
 
-	if (fnRHO0 < 0 || IsChanged())
-		fnRHO0 = NeutrinoVectorMeson(M_Neutrino, M_Rho0);
-
-	return fnRHO0 / maxnRHO0;
+	return NeutrinoVectorMeson(M_Neutrino, M_Rho0) / maxnRHO0;
 }
 
 double PhaseSpace::nOMEGA_ratio()
@@ -348,10 +304,7 @@ double PhaseSpace::nOMEGA_ratio()
 	if (maxnOMEGA || IsChanged())
 		maxnOMEGA = Max_NeutrinoVectorMeson(M_Neutrino, M_Omega);
 
-	if (fnOMEGA < 0 || IsChanged())
-		fnOMEGA = NeutrinoVectorMeson(M_Neutrino, M_Omega);
-
-	return fnOMEGA / maxnOMEGA;
+	return NeutrinoVectorMeson(M_Neutrino, M_Omega) / maxnOMEGA;
 }
 
 double PhaseSpace::nPHI_ratio()
@@ -359,10 +312,7 @@ double PhaseSpace::nPHI_ratio()
 	if (maxnPHI || IsChanged())
 		maxnPHI = Max_NeutrinoVectorMeson(M_Neutrino, M_Phi);
 
-	if (fnPHI < 0 || IsChanged())
-		fnPHI = NeutrinoVectorMeson(M_Neutrino, M_Phi);
-
-	return fnPHI / maxnPHI;
+	return NeutrinoVectorMeson(M_Neutrino, M_Phi) / maxnPHI;
 }
 
 double PhaseSpace::ERHO_ratio()
@@ -370,10 +320,7 @@ double PhaseSpace::ERHO_ratio()
 	if (maxERHO || IsChanged())
 		maxERHO = Max_LeptonVectorMeson(M_Electron, M_Rho);
 
-	if (fERHO < 0 || IsChanged())
-		fERHO = LeptonVectorMeson(M_Electron, M_Rho);
-
-	return fERHO / maxERHO;
+	return LeptonVectorMeson(M_Electron, M_Rho) / maxERHO;
 }
 
 double PhaseSpace::MRHO_ratio()
@@ -381,10 +328,7 @@ double PhaseSpace::MRHO_ratio()
 	if (maxMRHO || IsChanged())
 		maxMRHO = Max_LeptonVectorMeson(M_Muon, M_Rho);
 
-	if (fMRHO < 0 || IsChanged())
-		fMRHO = LeptonVectorMeson(M_Muon, M_Rho);
-
-	return fMRHO / maxMRHO;
+	return LeptonVectorMeson(M_Muon, M_Rho) / maxMRHO;
 }
 
 double PhaseSpace::EKAx_ratio()
@@ -392,10 +336,7 @@ double PhaseSpace::EKAx_ratio()
 	if (maxEKAx || IsChanged())
 		maxEKAx = Max_LeptonVectorMeson(M_Electron, M_Kaonx);
 
-	if (fEKAx < 0 || IsChanged())
-		fEKAx = LeptonVectorMeson(M_Electron, M_Kaonx);
-
-	return fEKAx / maxEKAx;
+	return LeptonVectorMeson(M_Electron, M_Kaonx) / maxEKAx;
 }
 
 double PhaseSpace::MKAx_ratio()
@@ -403,10 +344,7 @@ double PhaseSpace::MKAx_ratio()
 	if (maxMKAx || IsChanged())
 		maxMKAx = Max_LeptonVectorMeson(M_Muon, M_Kaonx);
 
-	if (fMKAx < 0 || IsChanged())
-		fMKAx = LeptonVectorMeson(M_Muon, M_Kaonx);
-
-	return fMKAx / maxMKAx;
+	return LeptonVectorMeson(M_Muon, M_Kaonx) / maxMKAx;
 }
 
 
@@ -495,11 +433,11 @@ double PhaseSpace::max_NeutrinoLeptonLepton(double x, double y, double z, double
 
 double PhaseSpace::max_NeutrinoLeptonLepton_D(const double *p)
 {
-	double &x  = F_var.at(0);
-	double &y  = F_var.at(1);
-	double &z  = F_var.at(2);
-	double &gL = F_var.at(3);
-	double &gR = F_var.at(4);
+	double x  = F_var.at(0);
+	double y  = F_var.at(1);
+	double z  = F_var.at(2);
+	double gL = F_var.at(3);
+	double gR = F_var.at(4);
 
 	double s_    = p[0];
 	double t_    = p[1];
@@ -517,70 +455,82 @@ double PhaseSpace::NeutrinoLeptonLepton(double x, double y, double z, double s, 
 	return dGammad5_3B(M2);
 }
 
+/////lepton and pseudomeson
+//
 double PhaseSpace::NeutrinoPseudoMeson(double M_Neut, double M_Meson)
 {
+	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
 	double cos0;
 	Kinematic_2B(cos0);
 
-	return 2 * LeptonPseudo(dMN2, dMM2, cos0);
+	M2_Function = &Amplitude::M2_NeutrinoPseudoMeson;
+	return ToPseudoMeson(dMN2, dMM2, cos0);
 }	//     2 is factor from decay constant which is sqrt(2) wrt to charged meson
 
 double PhaseSpace::Max_NeutrinoPseudoMeson(double M_Neut, double M_Meson)
 {
+	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
-	return 2 * max_LeptonPseudo(dMN2, dMM2);
+	M2_Function = &Amplitude::M2_NeutrinoPseudoMeson;
+	return max_ToPseudoMeson(dMN2, dMM2);
 }
 
-double PhaseSpace::LeptonPseudoMeson(double M_Neut, double M_Meson)
+double PhaseSpace::LeptonPseudoMeson(double M_Lepton, double M_Meson)
 {
-	double dMN2 = M_Neut*M_Neut/Mass(2);
+	SetMass(MassN());
+	double dML2 = M_Lepton*M_Lepton/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
 	double cos0;
 	Kinematic_2B(cos0);
 
-	return LeptonPseudo(dMN2, dMM2, cos0);
+	M2_Function = &Amplitude::M2_LeptonPseudoMeson;
+	return ToPseudoMeson(dML2, dMM2, cos0);
 }
 
-double PhaseSpace::Max_LeptonPseudoMeson(double M_Neut, double M_Meson)
+double PhaseSpace::Max_LeptonPseudoMeson(double M_Lepton, double M_Meson)
 {
-	double dMN2 = M_Neut*M_Neut/Mass(2);
+	SetMass(MassN());
+	double dML2 = M_Lepton*M_Lepton/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
-	return max_LeptonPseudo(dMN2, dMM2);
+	M2_Function = &Amplitude::M2_LeptonPseudoMeson;
+	return max_ToPseudoMeson(dML2, dMM2);
 }
 
-double PhaseSpace::max_LeptonPseudo(double x, double y)
+double PhaseSpace::max_ToPseudoMeson(double x, double y)
 {
 	F_var.clear();
 
 	F_var.push_back(x);
 	F_var.push_back(y);
 
-	SetFunction(&PhaseSpace::max_LeptonPseudo_cos0);
+	SetFunction(&PhaseSpace::max_ToPseudoMeson_cos0);
 	return Inte::GoldRatioSolver(this, Inte::Max);
 }
 
-double PhaseSpace::max_LeptonPseudo_cos0(const double cos0)
+double PhaseSpace::max_ToPseudoMeson_cos0(const double cos0)
 {
-	double &x  = F_var.at(0);
-	double &y  = F_var.at(1);
-	double cos0_ = cos0;
+	double x = F_var.at(0);
+	double y = F_var.at(1);
+	double cos0_ = -1 + 2 * cos0;
 
-	return LeptonPseudo(x, y, cos0_);
+	return ToPseudoMeson(x, y, cos0_);
 }
 
-double PhaseSpace::LeptonPseudo(double x, double y, double cos0)
+double PhaseSpace::ToPseudoMeson(double x, double y, double cos0)
 {
-	double M2 = M2_LeptonPseudoMeson(x, y, cos0);
-	return dGammad2_2B(M2, x, y); 
+	double M2 = (this->*M2_Function)(x, y, cos0);	//either M2_NeutrinoPseudoMeson 
+	return dGammad2_2B(M2, x, y);			//or	 M2_LeptonPseudoMeson
 }
 
+/////vector meson
+//
 double PhaseSpace::NeutrinoVectorMeson(double M_Neut, double M_Meson)
 {
 	double dMN2 = M_Neut*M_Neut/Mass(2);
@@ -589,15 +539,17 @@ double PhaseSpace::NeutrinoVectorMeson(double M_Neut, double M_Meson)
 	double cos0;
 	Kinematic_2B(cos0);
 
-	return 2 * LeptonVector(dMN2, dMM2, cos0);
-}	//     2 is factor from decay constant which is sqrt(2) wrt to charged meson
+	M2_Function = &Amplitude::M2_NeutrinoVectorMeson;
+	return ToVectorMeson(dMN2, dMM2, cos0);
+}
 
 double PhaseSpace::Max_NeutrinoVectorMeson(double M_Neut, double M_Meson)
 {
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
-	return 2 * max_LeptonVector(dMN2, dMM2);
+	M2_Function = &Amplitude::M2_NeutrinoVectorMeson;
+	return max_ToVectorMeson(dMN2, dMM2);
 }
 
 double PhaseSpace::LeptonVectorMeson(double M_Neut, double M_Meson)
@@ -608,7 +560,8 @@ double PhaseSpace::LeptonVectorMeson(double M_Neut, double M_Meson)
 	double cos0;
 	Kinematic_2B(cos0);
 
-	return LeptonVector(dMN2, dMM2, cos0);
+	M2_Function = &Amplitude::M2_LeptonVectorMeson;
+	return ToVectorMeson(dMN2, dMM2, cos0);
 }
 
 double PhaseSpace::Max_LeptonVectorMeson(double M_Neut, double M_Meson)
@@ -616,54 +569,57 @@ double PhaseSpace::Max_LeptonVectorMeson(double M_Neut, double M_Meson)
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
-	return max_LeptonVector(dMN2, dMM2);
+	M2_Function = &Amplitude::M2_LeptonVectorMeson;
+	return max_ToVectorMeson(dMN2, dMM2);
 }
 
-double PhaseSpace::max_LeptonVector(double x, double y)
+double PhaseSpace::max_ToVectorMeson(double x, double y)
 {
 	F_var.clear();
 
 	F_var.push_back(x);
 	F_var.push_back(y);
 
-	SetFunction(&PhaseSpace::max_LeptonVector_cos0);
+	SetFunction(&PhaseSpace::max_ToVectorMeson_cos0);
 	return Inte::GoldRatioSolver(this, Inte::Max);
 }
 
-double PhaseSpace::max_LeptonVector_cos0(const double cos0)
+double PhaseSpace::max_ToVectorMeson_cos0(const double cos0)
 {
-	double &x  = F_var.at(0);
-	double &y  = F_var.at(1);
-	double cos0_ = cos0;
+	double x = F_var.at(0);
+	double y = F_var.at(1);
+	double cos0_ = -1 + 2 * cos0;
 
-	return LeptonVector(x, y, cos0_);
+	std::cout << "cos0 " << cos0_ << std::endl;
+	return ToVectorMeson(x, y, cos0_);
 }
 
-double PhaseSpace::LeptonVector(double x, double y, double cos0)
+double PhaseSpace::ToVectorMeson(double x, double y, double cos0)
 {
-	double M2 = M2_LeptonVectorMeson(x, y, cos0);
+	double M2 = (this->*M2_Function)(x, y, cos0);
 	return dGammad2_2B(M2, x, y); 
 }
 
-
+/////obtaining kinematics from decay products
+//
 void PhaseSpace::Kinematic_2B(double &cos0)
 {
 	//TLorentzVector *vec0 = Daughter(0);
-	Particle *vec1 = Daughter(1);
+	TLorentzVector *vec1 = DaughterVector(1, RestFrame);
 
 	cos0 = cos(vec1->Theta());
 
-	delete vec1;
+	//delete vec1;
 }
 
 void PhaseSpace::Kinematic_3B(double &s, double &t, double &cos0, double &cos1)
 {
 	//TLorentzVector *vec0 = Daughter(0);
-	Particle *vec1 = Daughter(1);
-	Particle *vec2 = Daughter(2);
+	TLorentzVector *vec1 = DaughterVector(1, RestFrame);
+	TLorentzVector *vec2 = DaughterVector(2, RestFrame);
 
-	TLorentzVector vec_s = *Rest() - vec1->FourVector();
-	TLorentzVector vec_t = *Rest() - vec2->FourVector();
+	TLorentzVector vec_s = *NuVector(RestFrame) - *vec1;
+	TLorentzVector vec_t = *NuVector(RestFrame) - *vec2;
 
 	s = vec_s.M2();
 	t = vec_t.M2();
@@ -671,8 +627,8 @@ void PhaseSpace::Kinematic_3B(double &s, double &t, double &cos0, double &cos1)
 	cos0 = cos(vec1->Theta());
 	cos1 = cos(vec2->Theta());
 
-	delete vec1;
-	delete vec2;
+	//delete vec1;
+	//delete vec2;
 }
 
 //////////
@@ -680,24 +636,43 @@ void PhaseSpace::Kinematic_3B(double &s, double &t, double &cos0, double &cos1)
 //	//
 //////////
 
-Particle* PhaseSpace::Daughter(unsigned int i)
+TLorentzVector* PhaseSpace::DaughterVector(unsigned int i, Reference Frame)
 {
-	TVector3 *D_pos = new TVector3(0, 0, 0);
-	TLorentzVector *D_vec;
-	std::vector<Particle*> vdddd;
-
 	if (i < Daughter())
 	{
-		D_vec = Event->GetDecay(i);
-		D_vec->Boost(LabF()->BoostVector());
-	}
+		TLorentzVector *D_vec = Event->GetDecay(i);
+		D_vec->Boost(NuVector(Frame)->BoostVector());
 
-	return new Particle(vPdg.at(i), D_vec, D_pos);
+		return D_vec;
+	}
+	else
+		return 0;
+}
+
+Particle* PhaseSpace::Daughter(unsigned int i, Reference Frame)
+{
+	if (i < Daughter())
+		return new Particle(vPdg.at(i), DaughterVector(i, Frame));
+	else
+		return 0;
 }
 
 unsigned int PhaseSpace::Daughter()
 {
 	return vMass.size();
+}
+
+TLorentzVector* PhaseSpace::NuVector(Reference Frame)
+{
+	switch (Frame)
+	{
+		case RestFrame:
+			return Rest();
+		case LabFrame:
+			return LabF();
+		default:
+			return 0;
+	}
 }
 
 TLorentzVector* PhaseSpace::Rest()
@@ -752,6 +727,7 @@ void PhaseSpace::Reset()
 	fnPHI   = -1.0;
 	fECHARM = -1.0;
 
+	/*
 	maxnnn    = -1.0;
 	maxnGAMMA = -1.0;
 	maxnEE_e  = -1.0;
@@ -780,18 +756,19 @@ void PhaseSpace::Reset()
 	maxnOMEGA = -1.0;
 	maxnPHI   = -1.0;
 	maxECHARM = -1.0;
+	*/
 }
 
 void PhaseSpace::SetFunction(double (PhaseSpace::*FF)(const double))
 {
-	double (PhaseSpace::*Function)(const double) = 
+	double (Amplitude::*Function)(const double) = 
 		static_cast<double (Amplitude::*)(const double)>(FF); // ok!
-	SetFunction(Function);
+	Amplitude::SetFunction(Function);
 }
 
 void PhaseSpace::SetFunction_D(double (PhaseSpace::*FF)(const double*))
 {
-	double (PhaseSpace::*Function)(const double*) = 
+	double (Amplitude::*Function)(const double*) = 
 		static_cast<double (Amplitude::*)(const double*)>(FF); // ok!
-	SetFunction_D(Function);
+	Amplitude::SetFunction_D(Function);
 }

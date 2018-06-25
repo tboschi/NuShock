@@ -616,11 +616,11 @@ double DecayRates::I_NeutrinoLeptonLepton(double x, double y, double z, double g
 
 double DecayRates::I_NeutrinoLeptonLepton_s(const double s)
 {
-	double &x = F_var.at(0);
-	double &y = F_var.at(1);
-	double &z = F_var.at(2);
-	double &gL = F_var.at(3);
-	double &gR = F_var.at(4);
+	double x = F_var.at(0);
+	double y = F_var.at(1);
+	double z = F_var.at(2);
+	double gL = F_var.at(3);
+	double gR = F_var.at(4);
 
 	double s_ = s, t_ = s, u_ = s;
 	double fcu = Limit(u_, y, z, x);

@@ -4,20 +4,34 @@ Tracker::Tracker(std::string ConfigName) : Detector(ConfigName)
 {
 }
 
-void Tracker::TrackProcess(Particle *&P)
+void Tracker::TrackReconstruct(Particle *&P)
 {
-	if (P->TrackIn() < 0)
-		TrackLength(P);
-	TrackSmearing(P);
-
-	if (!IsDetectable(P))
+	if (P)
 	{
-		delete P;
-		P = 0;
+		TrackVertex(P);
+
+		if (P->TrackIn() < 0)
+			TrackLength(P);
+		TrackSmearing(P);
+
+		if (!IsDetectable(P))
+		{
+			delete P;
+			P = 0;
+		}
 	}
 }
 
-void Tracker::TrackSmearing(Particle *P)
+void Tracker::TrackVertex(Particle *&P)
+{
+	double X = GenMT->Uniform(Xstart(), Xend());
+	double Y = GenMT->Uniform(Ystart(), Yend());
+	double Z = GenMT->Uniform(Zstart(), Zend());
+
+	P->SetPosition(X, Y, Z);
+}
+
+void Tracker::TrackSmearing(Particle *&P)
 {
 	double iM = P->Mass();
 	double iEkin = P->EnergyKin();
@@ -25,108 +39,116 @@ void Tracker::TrackSmearing(Particle *P)
 	double iTheta = P->Theta();
 	double iPhi = P->Phi();
 	double SigmaE, SigmaP, SigmaA; 
+	double StatE, SystE;
+	double Ratio;
 
-	if (P->Pdg() == 11 || P->Pdg() == 22)
+	switch (abs(P->Pdg()))
 	{
-		SigmaA = Get("Angle_Gamma") / Const::fDeg;
-		double StatE = Get("Energ_Gamma") / sqrt(iEkin);
-		double SystE = Get("Ebias_Gamma");
-		SigmaE = sqrt(pow(StatE, 2)+pow(SystE, 2)) * iEkin;
+		case 11:
+		case 22:
+			SigmaA = Get("Angle_Gamma") / Const::fDeg;
+			StatE = Get("Energ_Gamma") / sqrt(iEkin);
+			SystE = Get("Ebias_Gamma");
+			SigmaE = sqrt(pow(StatE, 2)+pow(SystE, 2)) * iEkin;
 
-		P->SetEnergyKin(GenMT->Gaus(iEkin, SigmaE));
-		P->SetTheta(GenMT->Gaus(iTheta, SigmaA));
-		P->SetPhi(GenMT->Gaus(iPhi, SigmaA));
-	}
-	else if (P->Pdg() == 13)
-	{
-		SigmaA = Get("Angle_Muon") / Const::fDeg;
-		double Ratio = P->TrackIn()/(P->TrackIn()+P->TrackOut());
-		//std::cout << "13  " << Ratio << "\t" << P->TrackIn() << "\t" << P->TrackOut() << std::endl;
-		if (Ratio > Get("Containment"))	//90% of track inside
-		{
-			double StatP = Get("Range_Muon") / iP;
-			SigmaP = StatP * iP;
-		}
-		else
-		{
-			double StatP = Get("Exiti_Muon");
-			SigmaP = StatP * iP;
-		}
+			P->SetEnergyKin(GenMT->Gaus(iEkin, SigmaE));
+			P->SetTheta(GenMT->Gaus(iTheta, SigmaA));
+			P->SetPhi(GenMT->Gaus(iPhi, SigmaA));
 
+			break;
+		case 13:
+			SigmaA = Get("Angle_Muon") / Const::fDeg;
+			Ratio = P->TrackIn()/(P->TrackIn()+P->TrackOut());
 
-		P->SetMomentum(GenMT->Gaus(iP, SigmaP));
-		P->SetTheta(GenMT->Gaus(iTheta, SigmaA));
-		P->SetPhi(GenMT->Gaus(iPhi, SigmaA));
-	}
-	else if (P->Pdg() == 211)
-	{
-		SigmaA = Get("Angle_Pion") / Const::fDeg;
-		double Ratio = P->TrackIn()/(P->TrackIn()+P->TrackOut());
-		//std::cout << "211 " << Ratio << "\t" << P->TrackIn() << "\t" << P->TrackOut() << std::endl;
-		if (!P->IsShower() && Ratio > Get("Containment"))	//pion track, not shower
-		{
-			double StatP = Get("Range_Pion") / iP;
-			SigmaP = StatP * iP;
-		}
-		else
-		{
-			double StatP = Get("Exiti_Pion");
-			SigmaP = StatP * iP;
-		}
+			if (Ratio > Get("Containment"))	//90% of track inside
+				SigmaP = Get("Range_Muon");
+				//double StatP = Get("Range_Muon") / iP;
+				//SigmaP = StatP * iP;
+			else
+				SigmaP = Get("Exiti_Muon") * iP;
+				//double StatP = Get("Exiti_Muon");
+				//SigmaP = StatP * iP;
 
-		P->SetMomentum(GenMT->Gaus(iP, SigmaP));
-		P->SetTheta(GenMT->Gaus(iTheta, SigmaA));
-		P->SetPhi(GenMT->Gaus(iPhi, SigmaA));
-	}
-	else if (P->Charge() != 0)	//other and protons?
-	{
-		SigmaA = Get("Angle_Hadron") / Const::fDeg;
-		double StatE = Get("Energ_Hadron") / sqrt(iEkin);
-		double SystE = Get("Ebias_Hadron");
-		SigmaE = sqrt(pow(StatE, 2)+pow(SystE, 2)) * iEkin;
+			P->SetMomentum(GenMT->Gaus(iP, SigmaP));
+			P->SetTheta(GenMT->Gaus(iTheta, SigmaA));
+			P->SetPhi(GenMT->Gaus(iPhi, SigmaA));
 
-		P->SetEnergyKin(GenMT->Gaus(iEkin, SigmaE));
-		P->SetTheta(GenMT->Gaus(iTheta, SigmaA));
-		P->SetPhi(GenMT->Gaus(iPhi, SigmaA));
+			break;
+		case 211:
+			SigmaA = Get("Angle_Pion") / Const::fDeg;
+			Ratio = P->TrackIn()/(P->TrackIn()+P->TrackOut());
+
+			if (!P->IsShower() && Ratio > Get("Containment"))	//pion track, not shower
+				SigmaP = Get("Range_Pion");
+				//double StatP = Get("Range_Pion") / iP;
+				//SigmaP = StatP * iP;
+			else
+				SigmaP = Get("Exiti_Pion") * iP;
+				//double StatP = Get("Exiti_Pion");
+				//SigmaP = StatP * iP;
+
+			P->SetMomentum(GenMT->Gaus(iP, SigmaP));
+			P->SetTheta(GenMT->Gaus(iTheta, SigmaA));
+			P->SetPhi(GenMT->Gaus(iPhi, SigmaA));
+
+			break;
+		default:
+			if (P->Charge() != 0)	//other and protons?
+			{
+				SigmaA = Get("Angle_Hadron") / Const::fDeg;
+				StatE = Get("Energ_Hadron") / sqrt(iEkin);
+				SystE = Get("Ebias_Hadron");
+				SigmaE = sqrt(pow(StatE, 2)+pow(SystE, 2)) * iEkin;
+			
+				P->SetEnergyKin(GenMT->Gaus(iEkin, SigmaE));
+				P->SetTheta(GenMT->Gaus(iTheta, SigmaA));
+				P->SetPhi(GenMT->Gaus(iPhi, SigmaA));
+			}
+			break;
 	}
 
 	P->SetTrackIn(GenMT->Gaus(P->TrackIn(), Get("Vertex")));
+
 	if (P->TrackIn() < 0)
 		P->SetTrackIn(0);
+
 	P->SetTrackOut(GenMT->Gaus(P->TrackOut(), Get("Vertex")));
+
 	if (P->TrackOut() < 0)
 		P->SetTrackOut(0);
 }
 
-void Tracker::TrackLength(Particle *P)	//This should not change *P
+void Tracker::TrackLength(Particle *&P)	//This should not change *P
 {
+	double tmax, Depth;
+	double iE, iM, dE;
+	double dStep = 0.01, dx;
+	double LengthIn = 0.0, LengthOut = 0.0;
+	double TotTrack = 0, Layer = 0;
+
+	TVector3 Step(P->Direction().Unit());
+	TVector3 Pos(P->Position());
+	TVector3 Start(P->Position());
+
 	switch (abs(P->Pdg()))
 	{
-		case 11: {
-			double tmax = log(P->Energy()/CriticalEnergy()) - 1.0;
-			double Depth = RadiationLength() * GenMT->Gaus(tmax, 0.3*tmax);	//justify this
+		case 11:
+			tmax = log(P->Energy()/CriticalEnergy()) - 1.0;
+			Depth = RadiationLength() * GenMT->Gaus(tmax, 0.3*tmax);
+
 			P->SetTrackIn(Depth);
-			break; }
-		case 22: {
+			break;
+		case 22:
 			P->SetTrackIn(GammaDecay());
-			break; }
-		case 13: {
-			double iE = P->Energy();
-			double dE;
-			double dStep = 0.01;	//cm step
-			double dx, LengthIn = 0, LengthOut = 0;
+			break;
+		case 13:
+			iE = P->Energy();
 			
-			TVector3 Step(P->Direction().Unit());
-			TVector3 Pos(P->Position());
-			TVector3 Start(P->Position());
-
-
-			bool InOut;
 			while (IsDetectable(P) && !IsDecayed(P, dStep))		//this should quit when particle decays too!
 			{
-				dx = GenMT->Gaus(dStep, Get("Vertex"));
-
-				dE = dx * EnergyLoss(P, InOut);	//inside material
+				bool InOut;
+				double dx = GenMT->Gaus(dStep, Get("Vertex"));
+				double dE = dx * EnergyLoss(P, InOut);	//inside material
 
 				if (InOut)
 					LengthIn += dx;			//even b2b det?
@@ -142,32 +164,21 @@ void Tracker::TrackLength(Particle *P)	//This should not change *P
 			P->SetTrackOut(LengthOut);
 			P->SetEnergy(iE);		//reset to original energy
 			P->SetPosition(Start);		//reset to original position
-			break; }
-		case 211: {
-			double iE = P->Energy();
-			double iM = P->Mass();
-			double dE;
-			double dStep = 0.01;	//cm step
-			double dx, LengthIn = 0, LengthOut = 0;
+			break;
+		case 211:
+			iE = P->Energy();
+			iM = P->Mass();
 			
-			TVector3 Step(P->Direction().Unit());
-			TVector3 Pos(P->Position());
-			TVector3 Start(P->Position());
-
-			double TotTrack = 0;
-			int Layer = 0;
-			bool InOut;
 			while (IsDetectable(P) && !IsDecayed(P, dStep))		//this should quit when particle decays too!
 			{
-				dx = GenMT->Gaus(dStep, Get("Vertex"));
 				double Length = GenMT->Exp(RadiationLength(1));
 				double Cover = 0;
 
 				while (IsDetectable(P) && !IsDecayed(P, dStep) && Cover < Length)	//this should quit when particle decays too!
 				{
-					dx = GenMT->Gaus(dStep, Get("Vertex"));
-
-					dE = dx * EnergyLoss(P, InOut);	//inside material
+					bool InOut;
+					double dx = GenMT->Gaus(dStep, Get("Vertex"));
+					double dE = dx * EnergyLoss(P, InOut);	//inside material
 					Cover += dx;
 
 					if (InOut)
@@ -196,7 +207,7 @@ void Tracker::TrackLength(Particle *P)	//This should not change *P
 			P->SetTrackOut(LengthOut);
 			P->SetEnergy(iE);			//reset to original energy
 			P->SetPosition(Start);		//reset to original position
-			break; }
+			break;
 		default:
 			break;
 	}
@@ -253,18 +264,22 @@ double Tracker::RadiationLength(bool Nuclear)
 
 double Tracker::EnergyLoss(Particle *P, bool &Contained)
 {
+	std::cout << "Eloss " << P->Pdg() << "\t" << P->Energy() << std::endl;
 	if (IsContained(P) && IsInside(P))
 	{
+		std::cout << "Eloss 1" << std::endl;
 		Contained = true;
 		return BetheLoss(P, GetMaterial("InTarget"));
 	}
 	else if (IsContained(P) && GetMaterial("BackTarget") != 0)
 	{
+		std::cout << "Eloss 2" << std::endl;
 		Contained = true;
 		return BetheLoss(P, GetMaterial("BackTarget"));
 	}
 	else
 	{
+		std::cout << "Eloss 3" << std::endl;
 		Contained = false;
 		return BetheLoss(P, GetMaterial("OutTarget"));
 	}
@@ -272,21 +287,27 @@ double Tracker::EnergyLoss(Particle *P, bool &Contained)
 
 double Tracker::BetheLoss(Particle *P, Material Target)
 {
+	std::cout << "loss " << Target << std::endl;
 	switch (Target)
 	{
-		case 1:
-			return Bethe(P, 1.3945, 188.0, 18, 40);	//LAr, code 1
-		case 2:
-			return Bethe(P, 0.1020, 188.0, 18, 40);	//GasAr, code 2
-		case 3:
-			return Bethe(P, 7.874, 286.0, 26, 56);	//Fe, code 3
+		case LAr:
+			std::cout << "Bethe 1" << std::endl;
+			return Bethe(P, 1.3945, 188.0, 18, 40);
+		case GasAr:
+			std::cout << "Bethe 2" << std::endl;
+			return Bethe(P, 0.1020, 188.0, 18, 40);
+		case Fe:
+			std::cout << "Bethe 3" << std::endl;
+			return Bethe(P, 7.874, 286.0, 26, 56);
 		default:
+			std::cout << "Bethe d" << std::endl;
 			0;
 	}
 }
 
 double Tracker::Bethe(Particle *P, double Density, double I, int Z, int A)
 {
+	std::cout << "BLoss " << P->Pdg() << "\t" << P->Energy() << std::endl;
 	double K = 0.307075;		//From PDG MeV mol-1 cm2
 	double e2M = Const::fMElectron / P->Mass();
 	double Beta2 = pow(P->Beta(), 2);

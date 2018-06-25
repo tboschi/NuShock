@@ -12,9 +12,9 @@ Years		6
 
 #1: LAr, 2: HP Ar, 3: Fe
 #
-InTarget	1
+InTarget	LAr
 #BackTarget	2
-OutTarget	3
+OutTarget	Fe
 
 #Threshold in GeV
 #Resolution in [0:1]

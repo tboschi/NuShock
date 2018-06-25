@@ -20,8 +20,8 @@ namespace Inte
 
 	enum MinMax
 	{
-		Min = 0,
-		Max = 1,
+		Min = 1,
+		Max = -1,
 	};
 
 	//integration
@@ -89,9 +89,8 @@ namespace Inte
 
 	template<class TempClass>
 	//double MinLinear(TempClass *TempObject)
-	double LinearSolver(TempClass *TempObject, MinMax Type)
+	double LinearSolver(TempClass *TempObject, MinMax Sign)
 	{
-		int Sign = 1-2*Type;
 		double MM = TempObject->Function(0);
 		double x = 0;
 
@@ -111,18 +110,17 @@ namespace Inte
 	}	
 
 	template<class TempClass>
-	double GoldRatioSolver(TempClass *TempObject, MinMax Type)
+	double GoldRatioSolver(TempClass *TempObject, MinMax Sign)
 	{
-		int Sign = 1-2*Type;
 		double GR = (1 + sqrt(5)) / 2.0;
 
 		double S = 0.0;		//start point
 		double E = 1.0;		//end point
 
-		while (E - S > 1e-3)
+		while (E - S > 1e-6)
 		{
 			double A = E - (E - S)/GR;
-			double B = E - (E - S)/GR;
+			double B = S + (E - S)/GR;
 			double fA = Sign*TempObject->Function(A);
 			double fB = Sign*TempObject->Function(B);
 
@@ -133,9 +131,8 @@ namespace Inte
 
 		}
 
-		//return (S + E) / 2.0;
-		return Sign*TempObject->Function((S + E) / 2.0);
-	}	
+		return TempObject->Function(Sign*(E - S) <= 0? S : E);
+	}
 
 	template<class TempClass>
 	double Function(double x[], void *UserData, int Sign)
@@ -145,11 +142,10 @@ namespace Inte
 	}
 
 	template<class TempClass>						//num of vars
-	double NelMedSolver(TempClass *TempObject, std::vector<double> &minX, unsigned int n, MinMax Type)
+	double NelMedSolver(TempClass *TempObject, std::vector<double> &minX, unsigned int n, MinMax Sign)
 	{
 		minX.clear();
 		void *UserData = TempObject;
-		int Sign = 1-2*Type;
 		function_t FunCast = reinterpret_cast<function_t>(&Function<TempClass>);
 
 		int icount, ifault, numres;

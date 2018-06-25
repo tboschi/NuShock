@@ -73,8 +73,10 @@ class Detector
 		double DecayProb(Neutrino *N);
 		double DecayProb(Particle *N, double Total, double Branch);
 
-	private:
+	protected:
 		TRandom3 *GenMT;
+
+	private:
 		TFile *FuncFile;
 		TH2D *hhFunc;
 

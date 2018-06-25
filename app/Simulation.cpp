@@ -109,8 +109,7 @@ int main(int argc, char** argv)
 	TheEngine->MakeSampler(TheBox);
 
 	Particle *ParticleA, *ParticleB;
-	unsigned int ID = 0;
-	unsigned int ND = 0;
+	int iA, iB;
 	unsigned int SaveMe = 0;
 
 	double Real, Delay;
@@ -127,7 +126,6 @@ int main(int argc, char** argv)
 	//TRandom3 *Rand = new TRandom3(0);
 	TTree *Data = new TTree("Data", "Particle tracks");
 
-	Data->Branch("ID",    &ID,      "iID/i"     );
 	Data->Branch("Real",  &Real, "  fReal/D"    );
 	//Data->Branch("Delay", &Delay, "fDelay/D");
 
@@ -164,10 +162,10 @@ int main(int argc, char** argv)
 	//double Beta = 1.0;
 	//double Lc = EvGen->GetDetectorPtr()->GetElement("Baseline")/Const::fC;
 	
-	for (unsigned int i = 0; i < Nevent; ++i)
+	for (unsigned int k = 0; k < Nevent; ++k)
 	{
 		//RealFHC = TheEngine->SampleEnergy(Engine::FHC, 0, 1);
-		Real = TheEngine->SampleEnergy(Engine::RHC, 0, 1);
+		Real = TheEngine->SampleEnergy(Engine::FHC, 0, 1);
 
 		/*
 		iBunch = Rand->Integer(nBunch);
@@ -180,36 +178,41 @@ int main(int argc, char** argv)
 		Delay = Rand->Gaus(Lc * (1.0/Beta - 1) + iBunch*tBunch, 1e-9);
 
 		Data->Fill();
-		++ID;
 
 		*/
+
 
 		std::vector<Particle*> vParticle = TheNu->DecayPS();		//it should not be empty
 
 		ParticleA = 0, ParticleB = 0;
+		iA = -1, iB = -1;
 		for (unsigned int i = 0; i < vParticle.size(); ++i)
 		{
 			if (vParticle.at(i)->Pdg() == 11)	//neutrino is invibisle
 				continue;
-
 			else if (vParticle.at(i)->Pdg() == 111)		//pi0, must decay rn
 				TheBox->Pi0Decay(vParticle.at(i), ParticleA, ParticleB);
 			else if (vParticle.at(i)->Pdg() == 22)		//nu gamma decay
 				ParticleA = ParticleB = vParticle.at(i);
 			else
 			{
+				//if (iA < 0)
 				if (!ParticleA)
 					ParticleA = vParticle.at(i);
 				else if (!ParticleB)
 					ParticleB = vParticle.at(i);
+				else
+				{
+					delete vParticle.at(i);
+					vParticle.at(i) = 0;
+				}
 			}
 		}
 
+		TheBox->TrackReconstruct(ParticleA);
+		TheBox->TrackReconstruct(ParticleB);
 		if (ParticleA != 0 && ParticleB != 0)
 		{
-			TheBox->TrackSmearing(ParticleA);
-			TheBox->TrackSmearing(ParticleB);
-			ID = i;
 
 			EnergyA = ParticleA->Energy();
 			MomentA = ParticleA->Momentum();
@@ -239,25 +242,30 @@ int main(int argc, char** argv)
 			Theta0  = Reco.Theta();
 			Phi0    = Reco.Phi();
 			Mass0   = Reco.M();
-
-			Data->Fill();
 		}
 
-		Data->Fill();
 		if (SaveMe++ > 10000)
 		{
-			std::cout << "Saving... " << std::endl;
 			OutFile->cd();
 			Data->Write();
 			SaveMe = 0;
 		}
 
+		delete ParticleA, ParticleB;
+		ParticleA = 0, ParticleB = 0;
+		/*
 		for (unsigned int i = 0; i < vParticle.size(); ++i)
+		{
+			std::cout << "vpart " << vParticle.at(i) << "\t" << vParticle.at(i)->Pdg() << std::endl;
 			delete vParticle.at(i);
+		}
+		std::cout << "P3" << std::endl;
+		*/
 	}
 
 	OutFile->cd();
         Data->Write();
+	OutFile->Close();
 
 	return 0;
 }
