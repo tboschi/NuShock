@@ -76,8 +76,8 @@ double Production::Gamma(Channel Name)
 		case _TauMT:
 			Result = TauMT();
 			break;
-		case _TauPion:
-			Result = TauPion();
+		case _TauPI:
+			Result = TauPI();
 			break;
 		case _PionE:
 			Result = PionE();
@@ -206,14 +206,14 @@ double Production::TauMT()
 	return fTauMT * Ut(2);
 }
 
-double Production::TauPion()
+double Production::TauPI()
 {
 
-	if (fTauPion < 0 || IsChanged())
-		fTauPion = IsAllowed(_TauPion) ? 
+	if (fTauPI < 0 || IsChanged())
+		fTauPI = IsAllowed(_TauPI) ? 
 			pow(Const::fU_ud * Const::fDPion, 2) * LeptonMesonDecay(M_Tau, M_Pion) : 0;
 
-	return fTauPion * Ut(2);
+	return fTauPI * Ut(2);
 }
 
 double Production::PionE()
@@ -472,9 +472,8 @@ double Production::I_MesonThree(double x, double y, double z, double L_, double 
 	F_var.push_back(L_);	//4	//linear dep for decay constant
 	F_var.push_back(L0);	//5	//linear dep for decay constant
 
-
-	int Trial, Fail;
-	double Error, Chi2Prob;
+	//int Trial, Fail;
+	//double Error, Chi2Prob;
 
 	SetFunction(&Production::I_MesonThree_s);
 	return Inte::BooleIntegration(this); 		//switch to Vega
@@ -541,6 +540,7 @@ void Production::Reset()
 	fTauET	= -1.0;
 	fTauMM	= -1.0;
 	fTauMT	= -1.0;
+	fTauPI  = -1.0;
 	fPionE	= -1.0;
 	fPionM	= -1.0;
 	fKaonE	= -1.0;

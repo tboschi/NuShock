@@ -70,7 +70,8 @@ class Amplitude
 			_TauET,		//3 body	tau -> nu N e	(via Ut)
 			_TauMM,		//3 body	tau -> nu N mu	(via Um)
 			_TauMT,		//3 body	tau -> nu N mu	(via Ut)
-			_TauPion,	//2 body	tau -> N pi	(via Ut)
+			_TauPI,		//2 body	tau -> N pi	(via Ut)
+			_Tau2PI,	//3 body	tau -> N pi pi	(via Ut)
 			//pseudomeson leptonic
 			_PionE,		//2 body	pi -> N e	(via Ue)
 			_PionM,		//2 body	pi -> N mu	(via Um)
@@ -91,7 +92,7 @@ class Amplitude
 		void LoadMap();
 		std::string ShowChannel(Channel Name);
 
-		void LoadMass(Channel Name);
+		bool LoadMass(Channel Name);
 
 		double Kallen(double X, double Y, double Z);
 		double SqrtKallen(double X, double Y, double Z);

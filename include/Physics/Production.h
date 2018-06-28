@@ -34,7 +34,7 @@ class Production : public Amplitude
                 double TauET();
                 double TauMM();
                 double TauMT();
-		double TauPion();
+		double TauPI();
                 double PionE();
                 double PionM();
                 double KaonE();
@@ -79,7 +79,7 @@ class Production : public Amplitude
                        fTauET,
                        fTauMM,
                        fTauMT,
-		       fTauPion,
+		       fTauPI,
                        fPionE,
                        fPionM,
                        fKaonE,

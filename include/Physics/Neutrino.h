@@ -58,8 +58,9 @@ class Neutrino : public Particle
 		double ProductionScale(Amplitude::Channel name);
 		
 		std::vector<Particle*> DecayPS();
-		std::vector<Particle*> ProductionPS();
-		std::vector<Particle*> GeneratePS(Amplitude::Channel Name);
+		std::vector<Particle*> DecayPS(Amplitude::Channel Name);
+		std::vector<Particle*> ProductionPS(TLorentzVector &Vec);
+		std::vector<Particle*> ProductionPS(Amplitude::Channel Name, TLorentzVector &Vec);
 		
 		void SetDecayChannel(std::string Name);
 		void SetProductionChannel(std::string Name);

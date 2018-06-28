@@ -122,21 +122,34 @@ double Neutrino::ProductionScale(Amplitude::Channel Name)
 	return TheProduction->Gamma(Name)/(2*TheProdLightN->Gamma(Name));
 }
 
-std::vector<Particle*> Neutrino::DecayPS()
+std::vector<Particle*> Neutrino::DecayPS()	//neutrino is labframe
 {
-	return GeneratePS(DecayChannel());
+	return DecayPS(DecayChannel());
 }
 
-std::vector<Particle*> Neutrino::ProductionPS()
-{
-	return GeneratePS(ProductionChannel());
-}
-
-std::vector<Particle*> Neutrino::GeneratePS(Amplitude::Channel Name)	//boosted frame?
+std::vector<Particle*> Neutrino::DecayPS(Amplitude::Channel Name)	//neutrino is labframe
 {
 	SetParent(ThePhaseSpace);
 	TLorentzVector Vec = FourVector();
-	ThePhaseSpace->SetNLabf(Vec);
+	ThePhaseSpace->SetLabf(Vec);
+
+	std::vector<Particle*> vDaughter;
+	if (ThePhaseSpace->Generate(Name))
+		for (unsigned int i = 0; i < ThePhaseSpace->Daughter(); ++i)
+			vDaughter.push_back(ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame));
+
+	return vDaughter;
+}
+
+std::vector<Particle*> Neutrino::ProductionPS(TLorentzVector &Vec)	//other particle is labframe
+{
+	return ProductionPS(ProductionChannel(), Vec);
+}
+
+std::vector<Particle*> Neutrino::ProductionPS(Amplitude::Channel Name, TLorentzVector &Vec)	//other is labframe
+{
+	SetParent(ThePhaseSpace);
+	ThePhaseSpace->SetLabf(Vec);
 
 	std::vector<Particle*> vDaughter;
 	if (ThePhaseSpace->Generate(Name))

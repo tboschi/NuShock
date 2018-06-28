@@ -65,24 +65,25 @@ void Amplitude::LoadMap()
 	chMap[_ExpALL] = "ExpALL";
 
 	//production channels
-	chMap[_MuonE]   = "MuonE";		//29
-	chMap[_MuonM]   = "MuonM";
-	chMap[_TauEE]   = "TauEE";
-	chMap[_TauET]   = "TauET";
-	chMap[_TauMM]   = "TauMM";
-	chMap[_TauMT]   = "TauMT";
-	chMap[_TauPion] = "TauPion";
-	chMap[_PionE]   = "PionE";
-	chMap[_PionM]   = "PionM";
-	chMap[_KaonE]   = "KaonE";
-	chMap[_KaonM]   = "KaonM";
-	chMap[_CharmE]  = "CharmE";
-	chMap[_CharmM]  = "CharmM";
-	chMap[_CharmT]  = "CharmT";
-	chMap[_Kaon0E]  = "Kaon0E";
-	chMap[_Kaon0M]  = "Kaon0M";
-	chMap[_KaonCE]  = "KaonCE";
-	chMap[_KaonCM]  = "KaonCM";
+	chMap[_MuonE]  = "MuonE";		//29
+	chMap[_MuonM]  = "MuonM";
+	chMap[_TauEE]  = "TauEE";
+	chMap[_TauET]  = "TauET";
+	chMap[_TauMM]  = "TauMM";
+	chMap[_TauMT]  = "TauMT";
+	chMap[_TauPI]  = "TauPI";
+	chMap[_Tau2PI] = "Tau2PI";
+	chMap[_PionE]  = "PionE";
+	chMap[_PionM]  = "PionM";
+	chMap[_KaonE]  = "KaonE";
+	chMap[_KaonM]  = "KaonM";
+	chMap[_CharmE] = "CharmE";
+	chMap[_CharmM] = "CharmM";
+	chMap[_CharmT] = "CharmT";
+	chMap[_Kaon0E] = "Kaon0E";
+	chMap[_Kaon0M] = "Kaon0M";
+	chMap[_KaonCE] = "KaonCE";
+	chMap[_KaonCM] = "KaonCM";
 }
 
 std::string Amplitude::ShowChannel(Channel Name)
@@ -93,12 +94,12 @@ std::string Amplitude::ShowChannel(Channel Name)
 	return chMap[Name];
 }
 
-void Amplitude::LoadMass(Channel Name)
+bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Production
 {
 	vMass.clear();
 	switch(Name)
 	{
-		//masses in ascending order
+		//masses in channelname order
 		case _ALL:
 		case _nnn:
 			vMass.push_back(M_Neutrino);
@@ -107,31 +108,23 @@ void Amplitude::LoadMass(Channel Name)
 			vPdg.push_back(12);
 			vPdg.push_back(12);
 			vPdg.push_back(12);
-			break;
+			return true;
 		case _nGAMMA:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Photon);
 			vPdg.push_back(12);
 			vPdg.push_back(22);
-			break;
-		case _nEE:
+			return true;
 		case _ExpALL:
+			//neutrino lepton lepton AA
+		case _nEE:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Electron);
 			vPdg.push_back(12);
 			vPdg.push_back(11);
 			vPdg.push_back(11);
-			break;
-		case _nEM:
-		case _nME:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Muon);
-			vPdg.push_back(12);
-			vPdg.push_back(11);
-			vPdg.push_back(13);
-			break;
+			return true;
 		case _nMM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
@@ -139,124 +132,158 @@ void Amplitude::LoadMass(Channel Name)
 			vPdg.push_back(12);
 			vPdg.push_back(13);
 			vPdg.push_back(13);
-			break;
+			return true;
+			//neutrino lepton lepton AB
+		case _nEM:
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Muon);
+			vPdg.push_back(12);
+			vPdg.push_back(11);
+			vPdg.push_back(13);
+			return true;
+		case _nME:
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Electron);
+			vPdg.push_back(12);
+			vPdg.push_back(13);
+			vPdg.push_back(11);
+			return true;
 		case _nET:
-		case _nTE:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Tau);
 			vPdg.push_back(12);
 			vPdg.push_back(11);
 			vPdg.push_back(15);
-			break;
+			return true;
+		case _nTE:
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Tau);
+			vMass.push_back(M_Electron);
+			vPdg.push_back(12);
+			vPdg.push_back(15);
+			vPdg.push_back(11);
+			return true;
 		case _nMT:
-		case _nTM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Tau);
 			vPdg.push_back(12);
 			vPdg.push_back(13);
 			vPdg.push_back(15);
-			break;
+			return true;
+		case _nTM:
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Tau);
+			vMass.push_back(M_Muon);
+			vPdg.push_back(12);
+			vPdg.push_back(15);
+			vPdg.push_back(13);
+			return true;
+			//neutrino psuedomeson
 		case _nPI0:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Pion0);
 			vPdg.push_back(12);
 			vPdg.push_back(111);
-			break;
-		case _EPI:
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Pion);
-			vPdg.push_back(11);
-			vPdg.push_back(211);
-			break;
-		case _MPI:
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Pion);
-			vPdg.push_back(13);
-			vPdg.push_back(211);
-			break;
-		case _TPI:
-			vMass.push_back(M_Pion);
-			vMass.push_back(M_Tau);
-			vPdg.push_back(211);
-			vPdg.push_back(15);
-			break;
-		case _EKA:
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Kaon);
-			vPdg.push_back(11);
-			vPdg.push_back(321);
-			break;
-		case _MKA:
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Kaon);
-			vPdg.push_back(13);
-			vPdg.push_back(321);
-			break;
-		case _EKAx:
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Kaonx);
-			vPdg.push_back(11);
-			vPdg.push_back(9000321);
-			break;
-		case _MKAx:
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Kaonx);
-			vPdg.push_back(13);
-			vPdg.push_back(9000321);
-			break;
-		case _nRHO0:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Rho0);
-			vPdg.push_back(12);
-			vPdg.push_back(113);
-			break;
-		case _ERHO:
-			vMass.push_back(M_Electron);
-			vMass.push_back(M_Rho);
-			vPdg.push_back(11);
-			vPdg.push_back(213);
-			break;
-		case _MRHO:
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Rho0);
-			vPdg.push_back(13);
-			vPdg.push_back(213);
-			break;
-			break;
+			return true;
 		case _nETA:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Eta);
 			vPdg.push_back(12);
 			vPdg.push_back(221);
-			break;
+			return true;
 		case _nETAi:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Etai);
 			vPdg.push_back(12);
 			vPdg.push_back(331);
-			break;
-		case _nOMEGA:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Omega);
-			vPdg.push_back(12);
-			vPdg.push_back(223);
-			break;
-		case _nPHI:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Phi);
-			vPdg.push_back(12);
-			vPdg.push_back(333);
-			break;
+			return true;
+			//lepton psuedomeson
+		case _EPI:
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Pion);
+			vPdg.push_back(11);
+			vPdg.push_back(211);
+			return true;
+		case _MPI:
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Pion);
+			vPdg.push_back(13);
+			vPdg.push_back(211);
+			return true;
+		case _TPI:
+			vMass.push_back(M_Tau);
+			vMass.push_back(M_Pion);
+			vPdg.push_back(211);
+			vPdg.push_back(15);
+			return true;
+		case _EKA:
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Kaon);
+			vPdg.push_back(11);
+			vPdg.push_back(321);
+			return true;
+		case _MKA:
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Kaon);
+			vPdg.push_back(13);
+			vPdg.push_back(321);
+			return true;
 		case _ECHARM:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Charm);
 			vPdg.push_back(12);
 			vPdg.push_back(411);
-			break;
-
-		//Parent first, then in ascending order
+			return true;
+			//neutrino vectormeson
+		case _nRHO0:
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Rho0);
+			vPdg.push_back(12);
+			vPdg.push_back(113);
+			return true;
+		case _nOMEGA:
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Omega);
+			vPdg.push_back(12);
+			vPdg.push_back(223);
+			return true;
+		case _nPHI:
+			vMass.push_back(M_Neutrino);
+			vMass.push_back(M_Phi);
+			vPdg.push_back(12);
+			vPdg.push_back(333);
+			return true;
+			//lepton vectormeson
+		case _ERHO:
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Rho);
+			vPdg.push_back(11);
+			vPdg.push_back(213);
+			return true;
+		case _MRHO:
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Rho0);
+			vPdg.push_back(13);
+			vPdg.push_back(213);
+			return true;
+		case _EKAx:
+			vMass.push_back(M_Electron);
+			vMass.push_back(M_Kaonx);
+			vPdg.push_back(11);
+			vPdg.push_back(9000321);
+			return true;
+		case _MKAx:
+			vMass.push_back(M_Muon);
+			vMass.push_back(M_Kaonx);
+			vPdg.push_back(13);
+			vPdg.push_back(9000321);
+			return true;
+		//PRODUCTION
+		//Parent first
 		case _MuonE:
 		case _MuonM:
 			vMass.push_back(M_Muon);
@@ -265,7 +292,7 @@ void Amplitude::LoadMass(Channel Name)
 			vPdg.push_back(13);
 			vPdg.push_back(11);
 			vPdg.push_back(12);
-			break;
+			return false;
 		case _TauEE:
 		case _TauET:
 			vMass.push_back(M_Tau);
@@ -274,7 +301,7 @@ void Amplitude::LoadMass(Channel Name)
 			vPdg.push_back(15);
 			vPdg.push_back(11);
 			vPdg.push_back(12);
-			break;
+			return false;
 		case _TauMM:
 		case _TauMT:
 			vMass.push_back(M_Tau);
@@ -283,55 +310,63 @@ void Amplitude::LoadMass(Channel Name)
 			vPdg.push_back(15);
 			vPdg.push_back(13);
 			vPdg.push_back(12);
-			break;
-		case _TauPion:
+			return false;
+		case _TauPI:
 			vMass.push_back(M_Tau);
 			vMass.push_back(M_Pion);
 			vPdg.push_back(15);
 			vPdg.push_back(211);
-			break;
+			return false;
+		case _Tau2PI:
+			vMass.push_back(M_Tau);
+			vMass.push_back(M_Pion);
+			vMass.push_back(M_Pion);
+			vPdg.push_back(15);
+			vPdg.push_back(211);
+			vPdg.push_back(211);
+			return false;
 		case _PionE:
 			vMass.push_back(M_Pion);
 			vMass.push_back(M_Electron);
 			vPdg.push_back(211);
 			vPdg.push_back(11);
-			break;
+			return false;
 		case _PionM:
 			vMass.push_back(M_Pion);
 			vMass.push_back(M_Muon);
 			vPdg.push_back(211);
 			vPdg.push_back(13);
-			break;
+			return false;
 		case _KaonE:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Electron);
 			vPdg.push_back(321);
 			vPdg.push_back(11);
-			break;
+			return false;
 		case _KaonM:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Muon);
 			vPdg.push_back(321);
 			vPdg.push_back(13);
-			break;
+			return false;
 		case _CharmE:
 			vMass.push_back(M_CharmS);
 			vMass.push_back(M_Electron);
 			vPdg.push_back(431);
 			vPdg.push_back(11);
-			break;
+			return false;
 		case _CharmM:
 			vMass.push_back(M_CharmS);
 			vMass.push_back(M_Muon);
 			vPdg.push_back(431);
 			vPdg.push_back(13);
-			break;
+			return false;
 		case _CharmT:
 			vMass.push_back(M_CharmS);
 			vMass.push_back(M_Tau);
 			vPdg.push_back(431);
 			vPdg.push_back(15);
-			break;
+			return false;
 		case _Kaon0E:
 			vMass.push_back(M_Kaon0);
 			vMass.push_back(M_Pion);
@@ -339,7 +374,7 @@ void Amplitude::LoadMass(Channel Name)
 			vPdg.push_back(130);
 			vPdg.push_back(211);
 			vPdg.push_back(11);
-			break;
+			return false;
 		case _Kaon0M:
 			vMass.push_back(M_Kaon0);
 			vMass.push_back(M_Pion);
@@ -347,7 +382,7 @@ void Amplitude::LoadMass(Channel Name)
 			vPdg.push_back(130);
 			vPdg.push_back(211);
 			vPdg.push_back(13);
-			break;
+			return false;
 		case _KaonCE:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Pion0);
@@ -355,7 +390,7 @@ void Amplitude::LoadMass(Channel Name)
 			vPdg.push_back(321);
 			vPdg.push_back(111);
 			vPdg.push_back(11);
-			break;
+			return false;
 		case _KaonCM:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Pion0);
@@ -363,10 +398,10 @@ void Amplitude::LoadMass(Channel Name)
 			vPdg.push_back(321);
 			vPdg.push_back(111);
 			vPdg.push_back(13);
-			break;
+			return false;
 		default:
 			std::cerr << ShowChannel(Name) << " : Channel not recognised" << std::endl;
-			break;
+			return false;
 	}
 }
 
@@ -679,7 +714,6 @@ void Amplitude::SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Par
 	SetParticle(Particle);
 	SetHelicity(Helix);
 }
-
 
 /*
 double Amplitude::Gauss_V()
