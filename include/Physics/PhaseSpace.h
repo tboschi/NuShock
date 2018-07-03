@@ -89,23 +89,23 @@ class PhaseSpace : public Amplitude
 		double Max_NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
 		double NeutrinoLeptonLepton(double s, double t, double cos0, double cos1, double x, double y, double z, double gL, double gR);
 		double max_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
-		double max_NeutrinoLeptonLepton_D(const double *p);
+		double max_NeutrinoLeptonLepton_D(double *p);
 
 		double NeutrinoPseudoMeson(double M_Neut, double M_Meson);
 		double Max_LeptonPseudoMeson(double M_Neut, double M_Meson);
 		double LeptonPseudoMeson(double M_Neut, double M_Meson);
 		double Max_NeutrinoPseudoMeson(double M_Neut, double M_Meson);
 		double max_ToPseudoMeson(double x, double y);
-		double max_ToPseudoMeson_cos0(const double cos0);
-		double ToPseudoMeson(double x, double y, double cos0);
+		double max_ToPseudoMeson_cos0(double cos0);
+		double ToPseudoMeson(double cos0, double x, double y);
 
 		double NeutrinoVectorMeson(double M_Neut, double M_Meson);
 		double Max_NeutrinoVectorMeson(double M_Neut, double M_Meson);
 		double LeptonVectorMeson(double M_Neut, double M_Meson);
 		double Max_LeptonVectorMeson(double M_Neut, double M_Meson);
 		double max_ToVectorMeson(double x, double y);
-		double max_ToVectorMeson_cos0(const double cos0);
-		double ToVectorMeson(double x, double y, double cos0);
+		double max_ToVectorMeson_cos0(double cos0);
+		double ToVectorMeson(double cos0, double x, double y);
 
 		//PRODUCTION
 
@@ -121,7 +121,7 @@ class PhaseSpace : public Amplitude
 		double MesonThree(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0);
 		double Max_MesonThree(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0);
 		double max_MesonThree(double x, double y, double z, double L_, double L0);
-		double max_MesonThree_D(const double *p);
+		double max_MesonThree_D(double *p);
 
 		//KINEMATICS
 
@@ -139,8 +139,8 @@ class PhaseSpace : public Amplitude
 		void SetRest(double Mass);
 
 		void Reset();
-		void SetFunction(double (PhaseSpace::*FF)(const double));
-		void SetFunction_D(double (PhaseSpace::*FF)(const double*));
+		void SetFunction(double (PhaseSpace::*FF)(double));
+		void SetFunction_D(double (PhaseSpace::*FF)(double*));
 
 	private:
 		TGenPhaseSpace *Event;

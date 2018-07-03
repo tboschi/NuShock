@@ -11,10 +11,8 @@ Amplitude::Channel DecayRates::FindChannel(std::string Name)
 
 	std::map<Amplitude::Channel, std::string>::iterator it = chMap.begin();
 	for (std::advance(it, 2); it != chMap.end(); ++it)
-	{
 		if (it->second == Name)
 			return it->first;
-	}
 
 	return _undefined;
 }
@@ -496,7 +494,7 @@ double DecayRates::I_LeptonPseudoMeson(double x, double y)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);
 	//double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double M2 = M2_LeptonPseudoMeson(x, y, 0);
+	double M2 = M2_LeptonPseudoMeson(0, x, y);
 	return dGammad0_2B(M2, x, y);
 }
 
@@ -515,7 +513,7 @@ double DecayRates::I_NeutrinoPseudoMeson(double x, double y)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);
 	//double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double M2 = M2_NeutrinoPseudoMeson(x, y, 0);
+	double M2 = M2_NeutrinoPseudoMeson(0, x, y);
 	return dGammad0_2B(M2, x, y);
 }
 
@@ -535,7 +533,7 @@ double DecayRates::I_LeptonVectorMeson(double x, double y)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);
 	//double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double M2 = M2_LeptonVectorMeson(x, y, 0);
+	double M2 = M2_LeptonVectorMeson(0, x, y);
 	return dGammad0_2B(M2, x, y);
 }
 
@@ -554,7 +552,7 @@ double DecayRates::I_NeutrinoVectorMeson(double x, double y)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);
 	//double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double M2 = M2_NeutrinoVectorMeson(x, y, 0);
+	double M2 = M2_NeutrinoVectorMeson(0, x, y);
 	return dGammad0_2B(M2, x, y);
 }
 
@@ -614,7 +612,7 @@ double DecayRates::I_NeutrinoLeptonLepton(double x, double y, double z, double g
 	return Inte::BooleIntegration(this); 
 }
 
-double DecayRates::I_NeutrinoLeptonLepton_s(const double s)
+double DecayRates::I_NeutrinoLeptonLepton_s(double s)
 {
 	double x = F_var.at(0);
 	double y = F_var.at(1);
@@ -630,9 +628,9 @@ double DecayRates::I_NeutrinoLeptonLepton_s(const double s)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);		//means I am integrating on theta only
 	//double fc = theta < 0.0 ? 2.0 : 1.0;			//so I remove cos0 terms and multiply by 2
 
-	return gL * gL * fcs * M2_WW(x, y, z, s_, 0) +
-	       gR * gR * fct * M2_WW(x, y, z, t_, 0) + 
-	       2 * gL * gR * fcu * M2_WZ(x, y, z, u_, 0);
+	return gL * gL * fcs * M2_WW(s_, 0, x, y, z) +
+	       gR * gR * fct * M2_WW(t_, 0, x, y, z) + 
+	       2 * gL * gR * fcu * M2_WZ(u_, 0, x, y, z);
 }
 
 /////////////////////////
@@ -671,9 +669,9 @@ void DecayRates::Reset()
 	fECHARM = -1.0;
 }
 
-void DecayRates::SetFunction(double (DecayRates::*FF)(const double))
+void DecayRates::SetFunction(double (DecayRates::*FF)(double))
 {
-	double (Amplitude::*Function)(const double) = 
-		static_cast<double (Amplitude::*)(const double)>(FF); // ok!
+	double (Amplitude::*Function)(double) = 
+		static_cast<double (Amplitude::*)(double)>(FF); // ok!
 	Amplitude::SetFunction(Function);
 }

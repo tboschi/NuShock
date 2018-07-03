@@ -360,7 +360,7 @@ double Production::I_LeptonNeutrino(double x, double y, double z)//, double thet
 	return Inte::BooleIntegration(this); 
 }
 
-double Production::I_LeptonNeutrino_u(const double u)	//fixing one variable
+double Production::I_LeptonNeutrino_u(double u)	//fixing one variable
 {
 	//shouldnt use alias for clarity
 	double x = F_var.at(0);	//light neutrino	u
@@ -374,7 +374,7 @@ double Production::I_LeptonNeutrino_u(const double u)	//fixing one variable
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
 
-	return fc * M2_LeptonNeutrino(x, y, z, u_);
+	return fc * M2_LeptonNeutrino(u_, x, y, z);
 }
 
 
@@ -418,7 +418,7 @@ double Production::I_AntiLeptonNeutrino_s(double s)	//the term is written for a 
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
 
-	return fc * M2_AntiLeptonNeutrino(x, y, z, s_);
+	return fc * M2_AntiLeptonNeutrino(s_, x, y, z);
 }
 
 double Production::LeptonMesonDecay(double M_Lepton, double M_Meson)
@@ -479,7 +479,7 @@ double Production::I_MesonThree(double x, double y, double z, double L_, double 
 	return Inte::BooleIntegration(this); 		//switch to Vega
 }
 
-double Production::I_MesonThree_s(const double s)	//fixing one variable
+double Production::I_MesonThree_s(double s)	//fixing one variable
 {
 	F_var.push_back(s);	//6	//x var
 
@@ -492,7 +492,7 @@ double Production::I_MesonThree_s(const double s)	//fixing one variable
 	return Ret;
 }
 
-double Production::I_MesonThree_t(const double t)
+double Production::I_MesonThree_t(double t)
 {
 	//aliases for clarity
 	double x = F_var.at(0);
@@ -512,7 +512,7 @@ double Production::I_MesonThree_t(const double t)
 	return fc * M2_MesonThree(s_, t_, x, y, z, L_, L0);
 }
 
-double Production::I_MesonThree_D(const double *v)
+double Production::I_MesonThree_D(double *v)
 {
 	//aliases for clarity
 	double x = F_var.at(0);
@@ -554,16 +554,16 @@ void Production::Reset()
 	fKaonCM	= -1.0;
 }
 
-void Production::SetFunction(double (Production::*FF)(const double))
+void Production::SetFunction(double (Production::*FF)(double))
 {
-	double (Amplitude::*Function)(const double) = 
-		static_cast<double (Amplitude::*)(const double)>(FF); // ok!
+	double (Amplitude::*Function)(double) = 
+		static_cast<double (Amplitude::*)(double)>(FF); // ok!
 	Amplitude::SetFunction(Function);
 }
 
-void Production::SetFunction_D(double (Production::*FF)(const double*))
+void Production::SetFunction_D(double (Production::*FF)(double*))
 {
-	double (Amplitude::*Function)(const double*) = 
-		static_cast<double (Amplitude::*)(const double*)>(FF); // ok!
+	double (Amplitude::*Function)(double*) = 
+		static_cast<double (Amplitude::*)(double*)>(FF); // ok!
 	Amplitude::SetFunction_D(Function);
 }

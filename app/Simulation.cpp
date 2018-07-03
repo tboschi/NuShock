@@ -23,10 +23,10 @@ int main(int argc, char** argv)
 	{
 		{"detconfig", 	required_argument,	0, 'd'},
 		{"fluxconfig", 	required_argument,	0, 'f'},
-		{"number", 	required_argument,	0, 'n'},
 		{"channel", 	required_argument,	0, 'c'},
-		{"output", 	required_argument,	0, 'o'},
 		{"mass", 	required_argument,	0, 'm'},
+		{"number", 	required_argument,	0, 'n'},
+		{"output", 	required_argument,	0, 'o'},
 		{"left", 	no_argument,		0, 'L'},
 		{"right", 	no_argument,		0, 'R'},
 		{"help", 	no_argument,		0, 'h'},
@@ -39,13 +39,13 @@ int main(int argc, char** argv)
 	
 	std::string SMConfig, DetConfig, FluxConfig;
 	TFile *OutFile;
-	unsigned int Nevent;
+	unsigned int Nevent = 1000;
 	double Mass = 0.0;
-	bool Left = false, Right = false;
+	bool Left = false, Right = false;	//default unpolarised
 
 	std::string Channel = "ALL";
 	
-	while((iarg = getopt_long(argc,argv, "s:d:f:m:n:c:o:LRh", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "d:f:m:n:c:o:LRh", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
@@ -96,6 +96,7 @@ int main(int argc, char** argv)
 	Tracker *TheBox = new Tracker(DetConfig);
 	Engine *TheEngine = new Engine(FluxConfig, 1, 1);	//creating 1FHC and 1RHC fluxedrivers
 
+	//Binding neutrino to driver
 	TheEngine->BindNeutrino(TheNu, Engine::FHC, 0);
 	TheEngine->BindNeutrino(TheNu, Engine::RHC, 0);
 
@@ -168,6 +169,7 @@ int main(int argc, char** argv)
 	unsigned int ND = 0, ID;
 	for (ID = 0; ID < Nevent; ++ND)
 	{
+		std::cout << "Sampling " << ND << std::endl;
 		//RealFHC = TheEngine->SampleEnergy(Engine::FHC, 0, 1);
 		Real = TheEngine->SampleEnergy(Engine::FHC, 0, 1);
 
@@ -189,25 +191,27 @@ int main(int argc, char** argv)
 
 		ParticleA = 0, ParticleB = 0;
 		iA = -1, iB = -1;
-		for (unsigned int i = 0; i < vParticle.size(); ++i)
+		std::vector<Particle*>::iterator iP;
+		//for (unsigned int i = 0; i < vParticle.size(); ++i)
+		for (iP = vParticle.begin(); iP != vParticle.end(); ++iP)
 		{
-			if (vParticle.at(i)->Pdg() == 11)	//neutrino is invibisle
+			if ((*iP)->Pdg() == 12)	//neutrino is invibisle
 				continue;
-			else if (vParticle.at(i)->Pdg() == 111)		//pi0, must decay rn
-				TheBox->Pi0Decay(vParticle.at(i), ParticleA, ParticleB);
-			else if (vParticle.at(i)->Pdg() == 22)		//nu gamma decay
-				ParticleA = ParticleB = vParticle.at(i);
+			else if ((*iP)->Pdg() == 111)		//pi0, must decay rn
+				TheBox->Pi0Decay(*iP, ParticleA, ParticleB);
+			else if ((*iP)->Pdg() == 22)		//nu gamma decay
+				ParticleA = ParticleB = *iP;
 			else
 			{
 				//if (iA < 0)
 				if (!ParticleA)
-					ParticleA = vParticle.at(i);
+					ParticleA = *iP;
 				else if (!ParticleB)
-					ParticleB = vParticle.at(i);
+					ParticleB = *iP;
 				else
 				{
-					delete vParticle.at(i);
-					vParticle.at(i) = 0;
+					delete *iP;
+					*iP = 0;
 				}
 			}
 		}
@@ -216,6 +220,7 @@ int main(int argc, char** argv)
 		TheBox->TrackReconstruct(ParticleB);
 		if (ParticleA != 0 && ParticleB != 0)
 		{
+			std::cout << "\tParticle " << ID << std::endl;
 			EnergyA = ParticleA->Energy();
 			MomentA = ParticleA->Momentum();
 			TransvA = ParticleA->Transverse();
@@ -275,18 +280,22 @@ void Usage(char* argv0)
 	std::cout << "Description" << std::endl;
 	std::cout << "Usage : " << std::endl;
 	std::cout << argv0 << " [OPTIONS]" << std::endl;
-	std::cout <<"\n  -s,  --smconfig" << std::endl;
-	std::cout << "\t\tStandard Model configuration file" << std::endl;
 	std::cout <<"\n  -d,  --detconfig" << std::endl;
 	std::cout << "\t\tDetector configuration file" << std::endl;
 	std::cout <<"\n  -f,  --fluxconfig" << std::endl;
 	std::cout << "\t\tFlux configuration file" << std::endl;
+	std::cout <<"\n  -m,  --mass" << std::endl;
+	std::cout << "\t\tNeutrino mass" << std::endl;
 	std::cout <<"\n  -c,  --channel" << std::endl;
 	std::cout << "\t\tDecay channel, defaul ALL" << std::endl;
 	std::cout <<"\n  -n,  --number" << std::endl;
 	std::cout << "\t\tNumber of events" << std::endl;
 	std::cout <<"\n  -o,  --output" << std::endl;
-	std::cout << "\t\tOutput file" << std::endl;
+	std::cout << "\t\tOutput root file" << std::endl;
+	std::cout <<"\n  -L,  --left" << std::endl;
+	std::cout << "\t\tNeutrino polarisation left, default unpolarised" << std::endl;
+	std::cout <<"\n  -R,  --right" << std::endl;
+	std::cout << "\t\tNeutrino polarisation right, default unpolarised" << std::endl;
 	std::cout <<"\n  -h,  --help" << std::endl;
 	std::cout << "\t\tPrint this message and exit" << std::endl;
 }

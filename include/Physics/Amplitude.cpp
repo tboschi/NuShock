@@ -474,38 +474,38 @@ double Amplitude::Limit(double &s, double &t, double x, double y, double z)
 }
 
 //////////////////////
-//Generic amplitudes//	//check prefactors!
+//Generic amplitudes//
 //////////////////////
 
 //					lepton		meson	angle
-double Amplitude::M2_LeptonPseudoMeson(double x, double y, double cos0)
+double Amplitude::M2_LeptonPseudoMeson(double cos0, double x, double y)
 {
 	return Const::fGF2 * Mass(4) * 
 		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y) * cos0);
 }
 
 //					neutrino	meson	angle
-double Amplitude::M2_NeutrinoPseudoMeson(double x, double y, double cos0)
+double Amplitude::M2_NeutrinoPseudoMeson(double cos0, double x, double y)
 {
 	return M2_LeptonPseudoMeson(x, y, cos0) / 2.0;
 }
 
 //					lepton		meson	angle
-double Amplitude::M2_LeptonVectorMeson(double x, double y, double cos0)	//must be divided by vector meson mass
+double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)	//must be divided by vector meson mass
 {
 	return Const::fGF2 * Mass(4) * 
 		(pow(1 - x, 2) + y * (1 + x) - 2*y - (1 - x - 2*y) *  Helicity() * SqrtKallen(1, x, y) * cos0);
 }
 
 //					lepton		meson	angle
-double Amplitude::M2_NeutrinoVectorMeson(double x, double y, double cos0)
+double Amplitude::M2_NeutrinoVectorMeson(double cos0, double x, double y)
 {
-	return M2_LeptonVectorMeson(x, y, cos0) / 2.0;
+	return M2_LeptonVectorMeson(cos0, x, y) / 2.0;
 }
 
 //			lepton energy is s = (p0-p2)² and cos0s the angle wrt z-axis
 //			       neutrino, letpon,   lepton
-double Amplitude::M2_WW(double x, double y, double z, double s, double cos0)	//gL^2 + gR^2
+double Amplitude::M2_WW(double s, double cos0, double x, double y, double z)	//gL^2 + gR^2
 {
 	return 16 * Const::fGF2 * Mass(4) *
 	       (s - x - y) * (1 + z - s - Helicity() * SqrtKallen(1, z, s) * cos0);
@@ -513,7 +513,7 @@ double Amplitude::M2_WW(double x, double y, double z, double s, double cos0)	//g
 
 //			lepton energies are s = (p0-p2)², t = (p0-p3)² and cos0s,t the angles wrt z-axis
 //			       neutrino, letpon,   lepton
-double Amplitude::M2_WZ(double x, double y, double z, double s, double t, double cos0s, double cos0t)	//2gL*gR
+double Amplitude::M2_WZ(double s, double t, double cos0s, double cos0t, double x, double y, double z)	//2gL*gR
 {
 	double u = 1 + x + y + z - s - t;
 	double cos0u = (SqrtKallen(1, y, s) * cos0s + SqrtKallen(1, z, t) * cos0t) / 
@@ -524,7 +524,7 @@ double Amplitude::M2_WZ(double x, double y, double z, double s, double t, double
 
 //			lepton energiy is u = (p0-p1)² and cos0u the angle wrt z-axis
 //			       neutrino, letpon,   lepton
-double Amplitude::M2_WZ(double x, double y, double z, double u, double cos0u)	//2gL*gR
+double Amplitude::M2_WZ(double u, double cos0u, double x, double y, double z)	//2gL*gR
 {
 	return 16 * Const::fGF2 * Mass(4) *
 		sqrt(y * z) * (1 + x - u - Helicity() * SqrtKallen(1, x, u) * cos0u);
@@ -538,7 +538,7 @@ double Amplitude::M2_WZ(double x, double y, double z, double u, double cos0u)	//
 //		This amplitude is to be used if the mixing comes from the decaying flavour
 //		   production is from lepton, described in Jackson Frame!
 //				           neutrino  lepton    neutrino
-double Amplitude::M2_LeptonNeutrino(double x, double y, double z, double u)
+double Amplitude::M2_LeptonNeutrino(double u, double x, double y, double z)
 {
 	return 16 * Const::fGF2 * Mass(4) *
 		(1 + x - u) * (u - y - z - Helicity() * SqrtKallen(u, y, z));
@@ -547,7 +547,7 @@ double Amplitude::M2_LeptonNeutrino(double x, double y, double z, double u)
 //	This amplitude is to be used if the mixing comes from the flavour in final state
 //				     neutrino  lepton    neutrino  neutrino  angle betw. lepton and neutr
 //	production is from antilepeton
-double Amplitude::M2_AntiLeptonNeutrino(double x, double y, double z, double s)
+double Amplitude::M2_AntiLeptonNeutrino(double s, double x, double y, double z)
 {
 	return 16 * Const::fGF2 * Mass(4) * 
 		(s - x - y) * (1 + z - s - Helicity() * SqrtKallen(1, s, z));
@@ -587,22 +587,22 @@ double Amplitude::M2_MesonThree(double s, double t, double x, double y, double z
 
 //Generic function set up for template analysis
 //
-void Amplitude::SetFunction(double (Amplitude::*FF)(const double))
+void Amplitude::SetFunction(double (Amplitude::*FF)(double))
 {
 	fFunction = FF;
 }
 
-void Amplitude::SetFunction_D(double (Amplitude::*FF)(const double*))
+void Amplitude::SetFunction_D(double (Amplitude::*FF)(double*))
 {
 	fFunction_D = FF;
 }
 
-double Amplitude::Function(const double x)
+double Amplitude::Function(double x)
 {
 	return (this->*fFunction)(x);
 }
 
-double Amplitude::Function_D(const double *x)
+double Amplitude::Function_D(double *x)
 {
 	return (this->*fFunction_D)(x);
 }
@@ -714,61 +714,3 @@ void Amplitude::SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Par
 	SetParticle(Particle);
 	SetHelicity(Helix);
 }
-
-/*
-double Amplitude::Gauss_V()
-{
-	CC = 0;
-	int Trial, Fail;
-	double Error, Chi2Prob;
-	SetFunction_D(&Amplitude::Gauss_D);
-	double Ret =  Inte::VegasIntegration(this, 2, Trial, Fail, Error, Chi2Prob);
-	return Ret;
-}
-
-double Amplitude::Gauss_D(const double *p)
-{
-	const double x = p[0]; 
-	const double y = p[0]; 
-	return Gauss_xy(x, y);
-}
-
-double Amplitude::Gauss_B()
-{
-	CC = 0;
-	SetFunction(&Amplitude::Gauss_x);
-	double Ret = Inte::BooleIntegration(this);
-
-	return Ret;
-}
-
-double Amplitude::Gauss_x(const double x)
-{
-	F_var.push_back(x);
-	SetFunction(&Amplitude::Gauss_y);
-
-	double Ret = Inte::BooleIntegration(this);
-	SetFunction(&Amplitude::Gauss_x);
-	F_var.pop_back();
-
-	return Ret;
-}
-
-double Amplitude::Gauss_y(const double y)
-{
-	double x_ = F_var.at(0);
-	double y_ = y;
-	return Gauss_xy(x_, y_);
-}
-
-double Amplitude::Gauss_xy(const double x, const double y)
-{
-	++CC;
-	double x_ = -1 + 2*(fabs(x-1e-9)); 
-	double y_ = -sqrt(1-x_*x_) + 2*sqrt(1-x_*x_)*y; 
-	//double y_ = -1 + 2*y;
-
-	return 2 * 2*sqrt(1-x_*x_) * 1;
-	//return 4 * exp(-x_*x_ - y_*y_);
-}
-*/

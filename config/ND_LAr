@@ -54,7 +54,7 @@ Vertex		0.001
 #
 ConversionEM	0.020
 LengthMIP	2.0
-Containment	0.95
+Containment	0.80
 PairAngle	3.0
 ResPi0Mass	0.040
 

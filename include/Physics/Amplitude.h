@@ -105,16 +105,16 @@ class Amplitude
 		double Limit(double &s, double x, double y, double z);
 		double Limit(double &s, double &t, double x, double y, double z);
 
-		double M2_LeptonPseudoMeson(double x, double y, double cos0);
-		double M2_NeutrinoPseudoMeson(double x, double y, double cos0);
-		double M2_LeptonVectorMeson(double x, double y, double cos0);
-		double M2_NeutrinoVectorMeson(double x, double y, double cos0);
-		double M2_WW(double x, double y, double z, double s, double cos0);
-		double M2_WZ(double x, double y, double z, double s, double t, double cos0s, double cos0t);
-		double M2_WZ(double x, double y, double z, double u, double cos0u);
+		double M2_LeptonPseudoMeson(double cos0, double x, double y);
+		double M2_NeutrinoPseudoMeson(double cos0, double x, double y);
+		double M2_LeptonVectorMeson(double cos0, double x, double y);
+		double M2_NeutrinoVectorMeson(double cos0, double x, double y);
+		double M2_WW(double s, double cos0, double x, double y, double z);
+		double M2_WZ(double s, double t, double cos0s, double cos0t, double x, double y, double z);
+		double M2_WZ(double u, double cos0u, double x, double y, double z);
 
-		double M2_LeptonNeutrino(double x, double y, double z, double s);
-		double M2_AntiLeptonNeutrino(double x, double y, double z, double s);
+		double M2_LeptonNeutrino(double s, double x, double y, double z);
+		double M2_AntiLeptonNeutrino(double s, double x, double y, double z);
 		double M2_LeptonMeson(double x, double y);
 		double M2_MesonTwo(double x, double y);
 		double M2_MesonThree(double s, double t, double x, double y, double z, double L_, double L0);
@@ -141,15 +141,8 @@ class Amplitude
 		void SetHelicity(int Helicity);
 		void SetNeutrino(double Mass, double* Mixings, bool Fermion, bool Particle, int Helix);
 
-		double Function(const double x);
-		double Function_D(const double *x);
-
-		double Gauss_V();
-		double Gauss_D(const double *x);
-		double Gauss_B();
-		double Gauss_x(const double x);
-		double Gauss_y(const double y);
-		double Gauss_xy(const double x, const double y);
+		double Function(double x);
+		double Function_D(double *x);
 
 		unsigned int CC;
 
@@ -162,8 +155,8 @@ class Amplitude
 
 		std::map<Amplitude::Channel, std::string> chMap;
 
-		void SetFunction(double (Amplitude::*FF)(const double));
-		void SetFunction_D(double (Amplitude::*FF)(const double *));
+		void SetFunction(double (Amplitude::*FF)(double));
+		void SetFunction_D(double (Amplitude::*FF)(double *));
 
 		//Masses
 		const double M_Neutrino;
@@ -193,8 +186,8 @@ class Amplitude
 		bool bFermion, bParticle;
 		int iHel, iHel_prev;
 
-		double (Amplitude::*fFunction)(const double);
-		double (Amplitude::*fFunction_D)(const double*);
+		double (Amplitude::*fFunction)(double);
+		double (Amplitude::*fFunction_D)(double*);
 };
 
 #endif

@@ -20,6 +20,7 @@ namespace Inte
 
 	enum MinMax
 	{
+		True = 1,
 		Min = 1,
 		Max = -1,
 	};
@@ -128,7 +129,6 @@ namespace Inte
 				E = B;
 			else
 				S = A;
-
 		}
 
 		return TempObject->Function(Sign*(E - S) <= 0? S : E);
@@ -142,34 +142,40 @@ namespace Inte
 	}
 
 	template<class TempClass>						//num of vars
-	double NelMedSolver(TempClass *TempObject, std::vector<double> &minX, unsigned int n, MinMax Sign)
+	double NelMedSolver(TempClass *TempObject, unsigned int n, MinMax Sign)
+	//double NelMedSolver(TempClass *TempObject, std::vector<double> &minX, unsigned int n, MinMax Sign)
 	{
-		minX.clear();
+		//minX.clear();
 		void *UserData = TempObject;
 		function_t FunCast = reinterpret_cast<function_t>(&Function<TempClass>);
 
 		int icount, ifault, numres;
-		int kcount = 500, konvge = 10;
-		double reqmin = 1e-6;;
+		int kcount = 1000, konvge = 10;
+		double reqmin = 1e-5;;
 		double *xmin = new double[n];
 		double *start = new double[n];	//starting simplex
 		double *step = new double[n];	//
 		for (unsigned int i = 0; i < n; ++i)
 		{
-			start[i] = 1.0;
-			step[i] = 1.0;
+			step[i]  = 0.5;
 		}
-		double *yValue;
+		start[0] = 0.5;
+		start[1] = 0.5;
+		start[2] = 0.5;
+		start[3] = 0.5;
 
-		nelmin ( FunCast, n, UserData, Sign, start, xmin, yValue, 
+		double yValue;
+
+		nelmin ( FunCast, n, UserData, Sign, start, xmin, &yValue, 
 			 reqmin, step, konvge, kcount, 
 			 &icount, &numres, &ifault );
 
 		if (ifault == 0)
 		{
-			for (unsigned int i = 0; i < n; ++i)
-				minX.push_back(xmin[i]);
-			return Sign * (*yValue);
+			//for (unsigned int i = 0; i < n; ++i)
+			//	minX.push_back(xmin[i]);
+			return Function<TempClass>(xmin, UserData, True);
+			//return Sign * yValue;
 		}
 		else
 			return -1.0;

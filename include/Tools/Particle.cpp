@@ -317,6 +317,7 @@ void Particle::SetEnergy(double dE)
 	if (dE < dM)
 		dE = dM;
 
+
 	ParticleVec->SetE(dE);
 	SetRho(sqrt(dE*dE - dM*dM));
 }

@@ -209,7 +209,7 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmT") * Modifier);
 
 	//tau+ -> pi+ nu_tau
-	fxFlux->Scale(Flux::Pion, N->ProductionScale("TauPion"));
+	fxFlux->Scale(Flux::Pion, N->ProductionScale("TauPI"));
 
 	//tau+ -> pi+ pi0 nu_tau	//crossing simmetries
 	fxFlux->Scale(Flux::PPion, N->Mass() > Const::fMTau - Const::fMPion - Const::fMPion0 ? 0.0 : 1.0);
