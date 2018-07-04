@@ -96,8 +96,9 @@ int main(int argc, char** argv)
 	TH1D * hPion  = new TH1D("hpion",  "pion",   100, 0, 20);
 	TH1D * h2Pion = new TH1D("h2pion", "2 pion", 100, 0, 20);
 
+	//generous angular acceptance of detector
 	Detector *TheBox = new Detector(DetConfig);
-	double Th0 = atan2(2*TheBox->Get("Height"), TheBox->Get("Baseline"));	//angular acceptance of detector
+	double Th0 = atan2(2*TheBox->Get("Height"), TheBox->Get("Baseline"));
 
 	TRandom3 *Gen = new TRandom3(0);
 
@@ -111,22 +112,21 @@ int main(int argc, char** argv)
 	
 	//find max of Ds param
 	double ptmax = sqrts;
-	double maxF = lDparam(-1, 0);
+	double maxF = lDparam(0, 0);
 	double minF = lDparam(1, ptmax);
 
+	std::ofstream Dist("distribution.dat");
 	std::vector<Particle*> vProducts;
-	unsigned int nIter = 0;
-	while (nIter < nMAX)
+	unsigned int nIter = 0, iIter = 0;
+	while (iIter < nMAX)
 	{
-		std::cout << "Simulating " << nIter << std::endl;
+		++nIter;
 		vProducts.clear();
 		double pt = Gen->Uniform(0, ptmax);
 		double xf = Gen->Uniform(-1.0, 1.0);
-		std::cout << minF << "\t" << maxF << "\t" << lDparam(xf, pt) << std::endl;
-		std::cout << "H0" << std::endl;
-		if (Gen->Uniform(0, pow(10,maxF)) < pow(10, lDparam(xf, pt)))
+		if (Gen->Uniform(0, pow(10, maxF)) < pow(10, lDparam(xf, pt)))
 		{
-		std::cout << "H1" << std::endl;
+			Dist << xf << "\t" << pt << "\t" << lDparam(xf, pt) << std::endl;
 			double px, py;
 			double pz = sqrts*xf*0.5;
 			Gen->Circle(px, py, pt);
@@ -134,17 +134,16 @@ int main(int argc, char** argv)
 			TLorentzVector Ds_vec(px, py, pz, sqrt(pt*pt + pz*pz + pow(Const::fMDs, 2)));
 			Ds_vec.Boost(S.BoostVector());	//parent lab frame
 
-		std::cout << "H2" << std::endl;
 			vProducts = Nu_->ProductionPS(Amplitude::_CharmT, Ds_vec);
-		std::cout << "H3" << std::endl;
+
+			if(!vProducts.size())
+				continue;
 
 			if (vProducts.at(0)->Theta() < Th0)	//neutrino
 				hCharm->Fill(vProducts.at(0)->Energy());
 
-		std::cout << "H4" << std::endl;
 			TLorentzVector Tau_vec = vProducts.at(1)->FourVector();
 
-		std::cout << "H5" << std::endl;
 			for (unsigned int i = 0; i < 4; ++i)
 			{
 				Amplitude::Channel Name;
@@ -152,22 +151,18 @@ int main(int argc, char** argv)
 				switch (i)
 				{
 					case 0:
-		std::cout << "C0" << std::endl;
 						Name = Amplitude::_TauET;
 						hFill = hTauE;
 						break;
 					case 1:
-		std::cout << "C1" << std::endl;
 						Name = Amplitude::_TauMT;
 						hFill = hTauM;
 						break;
 					case 2:
-		std::cout << "C2" << std::endl;
 						Name = Amplitude::_TauPI;
 						hFill = hPion;
 						break;
 					case 3:
-		std::cout << "C3" << std::endl;
 						Name = Amplitude::_Tau2PI;
 						hFill = h2Pion;
 						break;
@@ -175,17 +170,14 @@ int main(int argc, char** argv)
 						break;
 				}
 
-		std::cout << "H6" << std::endl;
 				vProducts.clear();
 				vProducts = NuB->ProductionPS(Name, Tau_vec);
 
-		std::cout << "H7" << std::endl;
 				if (vProducts.at(0)->Theta() < Th0)	//neutrino
 					hFill->Fill(vProducts.at(0)->Energy());
 			}
 
-		std::cout << "H8" << std::endl;
-			++nIter;
+			++iIter;
 		}
 	}
 	//		cc	pC	fDs	Br	Tot evts  
@@ -211,10 +203,17 @@ int main(int argc, char** argv)
 
 	FileOutB->cd();
 
+	hTotalB->Write();
 	hTauE->Write();
 	hTauM->Write();
 	hPion->Write();
 	h2Pion->Write();
+
+	std::cout << "Simulated Ds meson producing succesful neutrinos are " << (100.0 * iIter) / nIter << " % of the total" << std::endl;
+	std::cout << hTotal_->GetEntries() << " neutrinos simulated, saved in ";
+	std::cout << FileOut_->GetName() << std::endl;
+	std::cout << hTotalB->GetEntries() << " antineutrinos simulated" << std::endl;
+	std::cout << FileOutB->GetName() << std::endl;
 
 	FileOut_->Close();
 	FileOutB->Close();

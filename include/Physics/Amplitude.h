@@ -18,6 +18,13 @@
 class Amplitude
 {
 	public:
+		enum Process
+		{
+			DecayRates,
+			Production,
+			Undefined,
+		};
+
 		enum Channel
 		{
 			_undefined = 0,
@@ -92,7 +99,7 @@ class Amplitude
 		void LoadMap();
 		std::string ShowChannel(Channel Name);
 
-		bool LoadMass(Channel Name);
+		Process LoadMass(Channel Name);
 
 		double Kallen(double X, double Y, double Z);
 		double SqrtKallen(double X, double Y, double Z);

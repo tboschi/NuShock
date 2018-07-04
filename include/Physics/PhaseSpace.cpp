@@ -10,7 +10,7 @@ PhaseSpace::PhaseSpace() :
 
 bool PhaseSpace::SetDecay(Channel Name)
 {
-	bool Type;
+	Amplitude::Process Type;
 	if (Channel_prev != Name)
 	{
 		Type = LoadMass(Name);
@@ -18,10 +18,17 @@ bool PhaseSpace::SetDecay(Channel Name)
 	}
 
 	double MassArray[10];
-	if (Type)			//it is decay, first entry is lightest child
-		MassArray[0] = vMass.at(0);
-	else				//it is production, first entry is neutrino
-		MassArray[0] = MassN();
+	switch (Type)
+	{
+		case DecayRates:
+			MassArray[0] = vMass.at(0);
+			break;
+		case Production:
+			MassArray[0] = MassN();
+			break;
+		case Undefined:
+			return false;
+	}
 
 	for (unsigned int i = 1; i < Daughter(); ++i)
 		MassArray[i] = vMass.at(i);
@@ -32,17 +39,14 @@ bool PhaseSpace::SetDecay(Channel Name)
 bool PhaseSpace::Generate(Channel Name)
 {
 	unsigned int cc = 0;
-	std::cout << "Gen0" << std::endl;
 	if (SetDecay(Name))
 	{
 		{
 			++cc;
 			Event->Generate();
-			std::cout << "Gen1 " << Ratio(Name) << std::endl;
 		}
 		while (GenMT->Rndm() > Ratio(Name));
 
-	std::cout << "Gen2" << std::endl;
 
 		return true;
 	}
@@ -141,7 +145,6 @@ double PhaseSpace::Ratio(Channel Name)
 			Ret = TauEE_ratio();
 			break;
 		case _TauET:
-			std::cout << "here" << std::endl;
 			Ret = TauET_ratio();
 			break;
 		case _TauMM:
@@ -409,7 +412,6 @@ double PhaseSpace::TauET_ratio()
 {
 	if (maxTauET < 0 || IsChanged())
 		maxTauET = Max_LeptonNeutrino(M_Tau, M_Electron, M_Neutrino);
-	std::cout << "tauet " << maxTauET << "\t" << LeptonNeutrino(M_Tau, M_Electron, M_Neutrino) << std::endl;
 
 	return LeptonNeutrino(M_Tau, M_Electron, M_Neutrino) / maxTauET;
 }
@@ -978,15 +980,15 @@ void PhaseSpace::Kinematic_2B(double &cos0)
 
 void PhaseSpace::Kinematic_3B(double &s, double &t, double &cos0, double &cos1)
 {
-	//TLorentzVector *vec0 = Daughter(0);
+	//TLorentzVector *vec0 = DaughterVector(0, RestFrame);
 	TLorentzVector *vec1 = DaughterVector(1, RestFrame);
 	TLorentzVector *vec2 = DaughterVector(2, RestFrame);
 
 	TLorentzVector vec_s = *Parent(RestFrame) - *vec1;
 	TLorentzVector vec_t = *Parent(RestFrame) - *vec2;
 
-	s = vec_s.M2();
-	t = vec_t.M2();
+	s = vec_s.M2()/Mass(2);
+	t = vec_t.M2()/Mass(2);
 
 	cos0 = cos(vec1->Theta());
 	cos1 = cos(vec2->Theta());

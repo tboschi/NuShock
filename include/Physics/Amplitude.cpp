@@ -94,7 +94,7 @@ std::string Amplitude::ShowChannel(Channel Name)
 	return chMap[Name];
 }
 
-bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Production
+Amplitude::Process Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Production
 {
 	vMass.clear();
 	switch(Name)
@@ -108,13 +108,13 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(12);
 			vPdg.push_back(12);
 			vPdg.push_back(12);
-			return true;
+			return DecayRates;
 		case _nGAMMA:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Photon);
 			vPdg.push_back(12);
 			vPdg.push_back(22);
-			return true;
+			return DecayRates;
 		case _ExpALL:
 			//neutrino lepton lepton AA
 		case _nEE:
@@ -124,7 +124,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(12);
 			vPdg.push_back(11);
 			vPdg.push_back(11);
-			return true;
+			return DecayRates;
 		case _nMM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
@@ -132,7 +132,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(12);
 			vPdg.push_back(13);
 			vPdg.push_back(13);
-			return true;
+			return DecayRates;
 			//neutrino lepton lepton AB
 		case _nEM:
 			vMass.push_back(M_Neutrino);
@@ -141,7 +141,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(12);
 			vPdg.push_back(11);
 			vPdg.push_back(13);
-			return true;
+			return DecayRates;
 		case _nME:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
@@ -149,7 +149,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(12);
 			vPdg.push_back(13);
 			vPdg.push_back(11);
-			return true;
+			return DecayRates;
 		case _nET:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
@@ -157,7 +157,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(12);
 			vPdg.push_back(11);
 			vPdg.push_back(15);
-			return true;
+			return DecayRates;
 		case _nTE:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Tau);
@@ -165,7 +165,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(12);
 			vPdg.push_back(15);
 			vPdg.push_back(11);
-			return true;
+			return DecayRates;
 		case _nMT:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
@@ -173,7 +173,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(12);
 			vPdg.push_back(13);
 			vPdg.push_back(15);
-			return true;
+			return DecayRates;
 		case _nTM:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Tau);
@@ -181,107 +181,107 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(12);
 			vPdg.push_back(15);
 			vPdg.push_back(13);
-			return true;
+			return DecayRates;
 			//neutrino psuedomeson
 		case _nPI0:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Pion0);
 			vPdg.push_back(12);
 			vPdg.push_back(111);
-			return true;
+			return DecayRates;
 		case _nETA:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Eta);
 			vPdg.push_back(12);
 			vPdg.push_back(221);
-			return true;
+			return DecayRates;
 		case _nETAi:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Etai);
 			vPdg.push_back(12);
 			vPdg.push_back(331);
-			return true;
+			return DecayRates;
 			//lepton psuedomeson
 		case _EPI:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Pion);
 			vPdg.push_back(11);
 			vPdg.push_back(211);
-			return true;
+			return DecayRates;
 		case _MPI:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Pion);
 			vPdg.push_back(13);
 			vPdg.push_back(211);
-			return true;
+			return DecayRates;
 		case _TPI:
 			vMass.push_back(M_Tau);
 			vMass.push_back(M_Pion);
 			vPdg.push_back(211);
 			vPdg.push_back(15);
-			return true;
+			return DecayRates;
 		case _EKA:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Kaon);
 			vPdg.push_back(11);
 			vPdg.push_back(321);
-			return true;
+			return DecayRates;
 		case _MKA:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Kaon);
 			vPdg.push_back(13);
 			vPdg.push_back(321);
-			return true;
+			return DecayRates;
 		case _ECHARM:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Charm);
 			vPdg.push_back(12);
 			vPdg.push_back(411);
-			return true;
+			return DecayRates;
 			//neutrino vectormeson
 		case _nRHO0:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Rho0);
 			vPdg.push_back(12);
 			vPdg.push_back(113);
-			return true;
+			return DecayRates;
 		case _nOMEGA:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Omega);
 			vPdg.push_back(12);
 			vPdg.push_back(223);
-			return true;
+			return DecayRates;
 		case _nPHI:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Phi);
 			vPdg.push_back(12);
 			vPdg.push_back(333);
-			return true;
+			return DecayRates;
 			//lepton vectormeson
 		case _ERHO:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Rho);
 			vPdg.push_back(11);
 			vPdg.push_back(213);
-			return true;
+			return DecayRates;
 		case _MRHO:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Rho0);
 			vPdg.push_back(13);
 			vPdg.push_back(213);
-			return true;
+			return DecayRates;
 		case _EKAx:
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Kaonx);
 			vPdg.push_back(11);
 			vPdg.push_back(9000321);
-			return true;
+			return DecayRates;
 		case _MKAx:
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Kaonx);
 			vPdg.push_back(13);
 			vPdg.push_back(9000321);
-			return true;
+			return DecayRates;
 		//PRODUCTION
 		//Parent first
 		case _MuonE:
@@ -292,7 +292,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(13);
 			vPdg.push_back(11);
 			vPdg.push_back(12);
-			return false;
+			return Production;
 		case _TauEE:
 		case _TauET:
 			vMass.push_back(M_Tau);
@@ -301,7 +301,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(15);
 			vPdg.push_back(11);
 			vPdg.push_back(12);
-			return false;
+			return Production;
 		case _TauMM:
 		case _TauMT:
 			vMass.push_back(M_Tau);
@@ -310,13 +310,13 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(15);
 			vPdg.push_back(13);
 			vPdg.push_back(12);
-			return false;
+			return Production;
 		case _TauPI:
 			vMass.push_back(M_Tau);
 			vMass.push_back(M_Pion);
 			vPdg.push_back(15);
 			vPdg.push_back(211);
-			return false;
+			return Production;
 		case _Tau2PI:
 			vMass.push_back(M_Tau);
 			vMass.push_back(M_Pion);
@@ -324,49 +324,49 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(15);
 			vPdg.push_back(211);
 			vPdg.push_back(211);
-			return false;
+			return Production;
 		case _PionE:
 			vMass.push_back(M_Pion);
 			vMass.push_back(M_Electron);
 			vPdg.push_back(211);
 			vPdg.push_back(11);
-			return false;
+			return Production;
 		case _PionM:
 			vMass.push_back(M_Pion);
 			vMass.push_back(M_Muon);
 			vPdg.push_back(211);
 			vPdg.push_back(13);
-			return false;
+			return Production;
 		case _KaonE:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Electron);
 			vPdg.push_back(321);
 			vPdg.push_back(11);
-			return false;
+			return Production;
 		case _KaonM:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Muon);
 			vPdg.push_back(321);
 			vPdg.push_back(13);
-			return false;
+			return Production;
 		case _CharmE:
 			vMass.push_back(M_CharmS);
 			vMass.push_back(M_Electron);
 			vPdg.push_back(431);
 			vPdg.push_back(11);
-			return false;
+			return Production;
 		case _CharmM:
 			vMass.push_back(M_CharmS);
 			vMass.push_back(M_Muon);
 			vPdg.push_back(431);
 			vPdg.push_back(13);
-			return false;
+			return Production;
 		case _CharmT:
 			vMass.push_back(M_CharmS);
 			vMass.push_back(M_Tau);
 			vPdg.push_back(431);
 			vPdg.push_back(15);
-			return false;
+			return Production;
 		case _Kaon0E:
 			vMass.push_back(M_Kaon0);
 			vMass.push_back(M_Pion);
@@ -374,7 +374,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(130);
 			vPdg.push_back(211);
 			vPdg.push_back(11);
-			return false;
+			return Production;
 		case _Kaon0M:
 			vMass.push_back(M_Kaon0);
 			vMass.push_back(M_Pion);
@@ -382,7 +382,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(130);
 			vPdg.push_back(211);
 			vPdg.push_back(13);
-			return false;
+			return Production;
 		case _KaonCE:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Pion0);
@@ -390,7 +390,7 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(321);
 			vPdg.push_back(111);
 			vPdg.push_back(11);
-			return false;
+			return Production;
 		case _KaonCM:
 			vMass.push_back(M_Kaon);
 			vMass.push_back(M_Pion0);
@@ -398,10 +398,10 @@ bool Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Producti
 			vPdg.push_back(321);
 			vPdg.push_back(111);
 			vPdg.push_back(13);
-			return false;
+			return Production;
 		default:
 			std::cerr << ShowChannel(Name) << " : Channel not recognised" << std::endl;
-			return false;
+			return Undefined;
 	}
 }
 

@@ -148,19 +148,14 @@ std::vector<Particle*> Neutrino::ProductionPS(TLorentzVector &Vec)	//other parti
 
 std::vector<Particle*> Neutrino::ProductionPS(Amplitude::Channel Name, TLorentzVector &Vec)	//other is labframe
 {
-	std::cout << "Ps0" << std::endl;
 	SetParent(ThePhaseSpace);
-	std::cout << "Ps1" << std::endl;
 	ThePhaseSpace->SetLabf(Vec);
 
-	std::cout << "Ps2" << std::endl;
 	std::vector<Particle*> vDaughter;
-	std::cout << "Ps3" << std::endl;
 	if (ThePhaseSpace->Generate(Name))
 		for (unsigned int i = 0; i < ThePhaseSpace->Daughter(); ++i)
 			vDaughter.push_back(ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame));
 
-	std::cout << "Ps4" << std::endl;
 	return vDaughter;
 }
 
