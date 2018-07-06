@@ -25,6 +25,8 @@ Neutrino::Neutrino(double Mass, unsigned int Options) //:
 
 Neutrino::~Neutrino()
 {
+	delete fMixings;
+
 	delete TheDecayRates;
 	delete TheProduction;
 	delete TheProdLightN;
@@ -135,7 +137,7 @@ std::vector<Particle*> Neutrino::DecayPS(Amplitude::Channel Name)	//neutrino is 
 
 	std::vector<Particle*> vDaughter;
 	if (ThePhaseSpace->Generate(Name))
-		for (unsigned int i = 0; i < ThePhaseSpace->Daughter(); ++i)
+		for (unsigned int i = 0; i < ThePhaseSpace->Daughters(); ++i)
 			vDaughter.push_back(ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame));
 
 	return vDaughter;
@@ -152,8 +154,9 @@ std::vector<Particle*> Neutrino::ProductionPS(Amplitude::Channel Name, TLorentzV
 	ThePhaseSpace->SetLabf(Vec);
 
 	std::vector<Particle*> vDaughter;
+	Particle *pp;
 	if (ThePhaseSpace->Generate(Name))
-		for (unsigned int i = 0; i < ThePhaseSpace->Daughter(); ++i)
+		for (unsigned int i = 0; i < ThePhaseSpace->Daughters(); ++i)
 			vDaughter.push_back(ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame));
 
 	return vDaughter;

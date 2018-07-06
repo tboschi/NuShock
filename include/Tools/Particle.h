@@ -35,14 +35,15 @@ class Particle
 		void Init(double Px = 0.0, double Py = 0.0, double Pz = 0.0, double E = 0.0,
 			  double X = 0.0, double Y = 0.0, double Z = 0.0);
 
-		int Pdg() const;
+		int Pdg() ;
 		int Charge();
 		double LifeTime();
 		double LabLifeTime();
 		double LabSpace();
-		bool IsShower() const;
+		bool IsShower();
 
-		TLorentzVector FourVector() const;
+		//TLorentzVector FourVectorPtr();
+		TLorentzVector FourVector() ;
 		double Mass();
 		double Energy();
 		double EnergyKin();
@@ -57,14 +58,14 @@ class Particle
 		double Gamma();
 		TVector3 Direction();
 
-		TVector3 Position() const;
+		TVector3 Position();
 		double X();
 		double Y();
 		double Z();
-		double TrackIn() const;
-		double TrackBack() const;
-		double TrackOut() const;
-		double TrackTot() const;
+		double TrackIn();
+		double TrackBack();
+		double TrackOut();
+		double TrackTot();
 		
 		void SetPdg(int X);
 		void SetFourVector(TLorentzVector &V);
@@ -87,8 +88,8 @@ class Particle
 		void SetShower(bool X);
 
 	private:
-		TLorentzVector *ParticleVec;
-		TVector3 *ParticlePos;
+		TLorentzVector ParticleVec;
+		TVector3 ParticlePos;
 		int iPdg;
 		double dTrackIn, dTrackBack, dTrackOut;
 		bool bShower;

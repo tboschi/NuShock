@@ -29,6 +29,7 @@ class PhaseSpace : public Amplitude
 		};
 
 		PhaseSpace();
+		~PhaseSpace();
 
 		bool SetDecay(Channel Name);
 		bool Generate(Channel Name);
@@ -128,7 +129,7 @@ class PhaseSpace : public Amplitude
 		void Kinematic_2B(double &cos0);
 		void Kinematic_3B(double &s, double &t, double &cos0, double &cos1);
 
-		unsigned int Daughter();
+		unsigned int Daughters();
 		TLorentzVector* DaughterVector(unsigned int i, Reference Frame = RestFrame);
 		Particle* Daughter(unsigned int i, Reference Frame = RestFrame);
 		TLorentzVector *LabF();

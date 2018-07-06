@@ -8,6 +8,14 @@ PhaseSpace::PhaseSpace() :
 {
 }
 
+PhaseSpace::~PhaseSpace()
+{
+	delete Event;
+	delete GenMT;
+	delete P_labf;
+	delete P_rest;
+}
+
 bool PhaseSpace::SetDecay(Channel Name)
 {
 	Amplitude::Process Type;
@@ -30,10 +38,10 @@ bool PhaseSpace::SetDecay(Channel Name)
 			return false;
 	}
 
-	for (unsigned int i = 1; i < Daughter(); ++i)
+	for (unsigned int i = 1; i < Daughters(); ++i)
 		MassArray[i] = vMass.at(i);
 
-	return Event->SetDecay(*Parent(RestFrame), Daughter(), MassArray);
+	return Event->SetDecay(*Parent(RestFrame), Daughters(), MassArray);
 }
 
 bool PhaseSpace::Generate(Channel Name)
@@ -1004,7 +1012,7 @@ void PhaseSpace::Kinematic_3B(double &s, double &t, double &cos0, double &cos1)
 
 TLorentzVector* PhaseSpace::DaughterVector(unsigned int i, Reference Frame)
 {
-	if (i < Daughter())
+	if (i < Daughters())
 	{
 		TLorentzVector *D_vec = Event->GetDecay(i);
 		D_vec->Boost(Parent(Frame)->BoostVector());
@@ -1017,13 +1025,13 @@ TLorentzVector* PhaseSpace::DaughterVector(unsigned int i, Reference Frame)
 
 Particle* PhaseSpace::Daughter(unsigned int i, Reference Frame)
 {
-	if (i < Daughter())
+	if (i < Daughters())
 		return new Particle(vPdg.at(i), DaughterVector(i, Frame));
 	else
 		return 0;
 }
 
-unsigned int PhaseSpace::Daughter()
+unsigned int PhaseSpace::Daughters()
 {
 	return vMass.size();
 }
@@ -1054,6 +1062,7 @@ TLorentzVector* PhaseSpace::LabF()
 void PhaseSpace::SetLabf(TLorentzVector &Vec)	//parent labframe
 {
 	P_labf = &Vec;
+	//P_labf->SetPxPyPzE(Vec.Px(), Vec.Py(), Vec.Pz(), Vec.E());		///maybe this is the mistake!!
 	SetRest(P_labf->M());
 }
 

@@ -96,10 +96,10 @@ int main(int argc, char** argv)
 	TH1D * hPion  = new TH1D("hpion",  "pion",   100, 0, 20);
 	TH1D * h2Pion = new TH1D("h2pion", "2 pion", 100, 0, 20);
 
-	//hTotal_->SetDirectory(FileOut_);
+	hTotal_->SetDirectory(0);
 	hCharm->SetDirectory(FileOut_);
 
-	//hTotalB->SetDirectory(FileOutB);
+	hTotalB->SetDirectory(0);
 	hTauE->SetDirectory(FileOutB);
 	hTauM->SetDirectory(FileOutB);
 	hPion->SetDirectory(FileOutB);
@@ -124,18 +124,14 @@ int main(int argc, char** argv)
 	double maxF = lDparam(0, 0);
 	double minF = lDparam(1, ptmax);
 
-	double SF = 12.1e-3 / 331.4 * 0.077 * 0.0548 / double(nMAX);
+	double SF = 12.1e-3 / 331.4 * 0.077 * 0.0548 / nMAX;
 
 	std::vector<Particle*> vProductDs, vProductTau;
 	std::vector<Particle*>::iterator iP;
 
-	unsigned int nIter = 0, iIter = 0;
-	while (iIter < nMAX)
+	unsigned int nIter = 0;
+	while (nIter < nMAX)
 	{
-		for (iP = vProductDs.begin(); iP != vProductDs.end(
-		vProductDs.clear();k
-
-		++nIter;
 		double pt = Gen->Uniform(0, ptmax);
 		double xf = Gen->Uniform(-1.0, 1.0);
 		if (Gen->Uniform(0, pow(10, maxF)) < pow(10, lDparam(xf, pt)))
@@ -144,19 +140,19 @@ int main(int argc, char** argv)
 			double pz = sqrts*xf*0.5;
 			Gen->Circle(px, py, pt);
 
+			TLorentzVector TT(0, 0, 5, 5);
 			TLorentzVector Ds_vec(px, py, pz, sqrt(pt*pt + pz*pz + pow(Const::fMDs, 2)));
 			Ds_vec.Boost(S.BoostVector());	//parent lab frame
 
-			vProducts = Nu_->ProductionPS(Amplitude::_CharmT, Ds_vec);
+			vProductDs = Nu_->ProductionPS(Amplitude::_CharmT, Ds_vec);
 
-			if(!vProducts.size())
+			if(!vProductDs.size())
 				continue;
 
-			if (vProducts.at(0)->Theta() < Th0)	//neutrino
-				hCharm->Fill(vProducts.at(0)->Energy(), SF);
+			if (vProductDs.at(0)->Theta() < Th0)	//neutrino
+				hCharm->Fill(vProductDs.at(0)->Energy(), SF);
 
-			TLorentzVector Tau_vec = vProducts.at(1)->FourVector();
-
+			TLorentzVector Tau_vec(vProductDs.at(1)->FourVector());
 			for (unsigned int i = 0; i < 4; ++i)
 			{
 				Amplitude::Channel Name;
@@ -167,51 +163,60 @@ int main(int argc, char** argv)
 					case 0:
 						Name = Amplitude::_TauET;
 						hFill = hTauE;
-						Br = SF * 0.1785;
+						Br = SF * 0.1785;	//tau->e (17.85 %)
 						break;
 					case 1:
 						Name = Amplitude::_TauMT;
 						hFill = hTauM;
-						Br = SF * 0.1736;
+						Br = SF * 0.1736;	//tau->mu (17.36 %)
 						break;
 					case 2:
 						Name = Amplitude::_TauPI;
 						hFill = hPion;
-                                                Br = SF * 0.1082;
+                                                Br = SF * 0.1082;	//tau->pi (10.82 %)
 						break;
 					case 3:
 						Name = Amplitude::_Tau2PI;
 						hFill = h2Pion;
-                                                Br = SF * 0.2551;
-						break;
+                                                Br = SF * 0.2551;	//tau->2pi (25.62 %)
+						break;			//Phase space only!!
 					default:
 						break;
 				}
 
-				vProducts.clear();
-				vProducts = NuB->ProductionPS(Name, Tau_vec);
+				vProductTau = NuB->ProductionPS(Name, Tau_vec);
+				if (!vProductTau.size())
+					continue;
 
-				if (vProducts.at(0)->Theta() < Th0)	//neutrino
-					hFill->Fill(vProducts.at(0)->Energy(), Br);
+				if (vProductTau.at(0)->Theta() < Th0)	//neutrino
+					hFill->Fill(vProductTau.at(0)->Energy(), Br);
+
+				for (iP = vProductTau.begin(); iP != vProductTau.end(); ++iP)
+					delete *iP;
+				vProductTau.clear();
 			}
 
-			++iIter;
+			++nIter;
+			//++iIter;
 
-			if (iIter % 100000 == 0)
+			if (nIter % 1000000 == 0)
 			{
 				FileOut_->Write();
 				FileOutB->Write();
 			}
 		}
-	}
-	//		cc	pC	fDs	Br	Tot evts  
-	//double SF = 12.1e-3 / 331.4 * 0.077 * 0.0548 / double(nMAX);
 
-	//hCharm->Scale(SF);
-	//hTauE->Scale(SF * 0.1785);	//tau->e (17.85 %)
-	//hTauM->Scale(SF * 0.1736);	//tau->mu (17.36 %)
-	//hPion->Scale(SF * 0.1082);	//tau->pi (10.82 %)
-	//h2Pion->Scale(SF * 0.2551);	//tau->2pi (25.62 %)	Phase space only!!
+		for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+			delete *iP;
+		vProductDs.clear();
+
+	}
+
+	//hCharm->Scale(1.0);
+	//hTauE->Scale(1.0);
+	//hTauM->Scale(1.0);
+	//hPion->Scale(1.0);
+	//h2Pion->Scale(1.0);
 
 	hTotal_->Add(hCharm);
 
@@ -235,11 +240,12 @@ int main(int argc, char** argv)
 	//hPion->Write();
 	//h2Pion->Write();
 
-	std::cout << "Simulated Ds meson producing succesful neutrinos are " << (100.0 * iIter) / nIter << " % of the total" << std::endl;
-	std::cout << hTotal_->GetEntries() << " neutrinos simulated, saved in ";
-	std::cout << FileOut_->GetName() << std::endl;
-	std::cout << hTotalB->GetEntries() << " antineutrinos simulated" << std::endl;
-	std::cout << FileOutB->GetName() << std::endl;
+	std::cout  << "Neutrinos simulated " << hTotal_->GetEntries();
+	std::cout << " (" << hTotal_->GetEntries()*100.0/double(nMAX) << " %)";
+	std::cout << ", saved in " << FileOut_->GetName() << std::endl;
+	std::cout  << "Antineutrinos simulated " << hTotalB->GetEntries();
+	std::cout << " (" << hTotalB->GetEntries()*100.0/double(nMAX) << " %)";
+	std::cout << ", saved in " << FileOutB->GetName() << std::endl;
 
 	FileOut_->Close();
 	FileOutB->Close();

@@ -59,32 +59,37 @@ Particle::Particle(int PdgCode, TLorentzVector &Vector) :
 
 //copy ctor
 Particle::Particle(const Particle &P) :
-	iPdg(P.Pdg()),
-	ParticleVec(new TLorentzVector(P.FourVector())),
-	ParticlePos(new TVector3(P.Position())),
-	dTrackIn(P.TrackIn()),
-	dTrackBack(P.TrackBack()),
-	dTrackOut(P.TrackOut()),
-	bShower(P.IsShower())
+	iPdg(P.iPdg),
+	//ParticleVec(new TLorentzVector(P.FourVector())),
+	//ParticlePos(new TVector3(P.Position())),
+	ParticleVec(P.ParticleVec),
+	ParticlePos(P.ParticlePos),
+	dTrackIn(P.dTrackIn),
+	dTrackBack(P.dTrackBack),
+	dTrackOut(P.dTrackOut),
+	bShower(P.bShower)
 {
 }
 
 //destructor
 Particle::~Particle()
 {
-	delete ParticleVec; 
-	delete ParticlePos; 
-	ParticleVec = 0;
-	ParticlePos = 0;
+	//std::cout << "P delete " << ParticleVec << std::endl;
+	//delete ParticleVec; 
+	//delete ParticlePos; 
+	//ParticleVec = 0;
+	//ParticlePos = 0;
 }
 
 void Particle::Init(double Px, double Py, double Pz, double E, double X, double Y, double Z)
 {
-	ParticleVec = new TLorentzVector(Px, Py, Pz, E);
-	ParticlePos = new TVector3(X, Y, Z);
+	//ParticleVec = new TLorentzVector(Px, Py, Pz, E);
+	//ParticlePos = new TVector3(X, Y, Z);
+	ParticleVec = TLorentzVector(Px, Py, Pz, E);
+	ParticlePos = TVector3(X, Y, Z);
 }
 
-int Particle::Pdg() const
+int Particle::Pdg() //const
 {
 	return iPdg;
 }
@@ -160,7 +165,7 @@ double Particle::LabSpace()
 	return LabLifeTime() * Beta();
 }
 
-bool Particle::IsShower() const
+bool Particle::IsShower() //const
 {
 	return bShower;
 }
@@ -169,112 +174,119 @@ bool Particle::IsShower() const
 //
 //
 //
-TLorentzVector Particle::FourVector() const
+/*
+TLorentzVector* Particle::FourVectorPtr()
 {
-	return *ParticleVec;
+	return ParticleVec;
+}
+*/
+
+TLorentzVector Particle::FourVector() //const
+{
+	return ParticleVec;
 }
 
 double Particle::Mass() 
 {
-	return ParticleVec->M();
+	return ParticleVec.M();
 }
 
 double Particle::Energy()
 {
-	return ParticleVec->E();
+	return ParticleVec.E();
 }
 
 double Particle::EnergyKin()
 {
-	return ParticleVec->E() - ParticleVec->M();
+	return ParticleVec.E() - ParticleVec.M();
 }
 
 double Particle::Momentum()
 {
-	return ParticleVec->P();
+	return ParticleVec.P();
 }
 
 double Particle::Transverse()
 {
-	return ParticleVec->Pt();
+	return ParticleVec.Pt();
 }
 
 double Particle::MomentumX()
 {
-	return ParticleVec->Px();
+	return ParticleVec.Px();
 }
 
 double Particle::MomentumY()
 {
-	return ParticleVec->Py();
+	return ParticleVec.Py();
 }
 
 double Particle::MomentumZ()
 {
-	return ParticleVec->Pz();
+	return ParticleVec.Pz();
 }
 
 double Particle::Theta()
 {
-	return ParticleVec->Theta();
+	return ParticleVec.Theta();
 }
 
 double Particle::Phi()
 {
-	return ParticleVec->Phi();
+	return ParticleVec.Phi();
 }
 
 double Particle::Beta()
 {
-	return ParticleVec->Beta();
+	return ParticleVec.Beta();
 }
 
 double Particle::Gamma()
 {
-	return ParticleVec->Gamma();
+	return ParticleVec.Gamma();
 }
 
 TVector3 Particle::Direction()
 {
-	return ParticleVec->Vect();
+	return ParticleVec.Vect();
 }
 
-TVector3 Particle::Position() const
+TVector3 Particle::Position() //const
 {
-	return *ParticlePos;
+	return ParticlePos;
 }
 
 double Particle::X()
 {
-	return ParticlePos->X();
+	return ParticlePos.X();
 }
 
 double Particle::Y()
 {
-	return ParticlePos->Y();
+	return ParticlePos.Y();
 }
 
 double Particle::Z()
 {
-	return ParticlePos->Z();
+	return ParticlePos.Z();
 }
 
-double Particle::TrackIn() const
+double Particle::TrackIn() //const
 {
 	return dTrackIn;
 }
 
-double Particle::TrackBack() const
+double Particle::TrackBack() //const
 {
 	return dTrackBack;
 }
 
-double Particle::TrackOut() const
+double Particle::TrackOut() //const
 {
 	return dTrackOut;
 }
 
-double Particle::TrackTot() const
+double Particle::TrackTot() //const
 {
 	return TrackIn() + TrackBack() + TrackOut();
 }
@@ -287,18 +299,18 @@ void Particle::SetPdg(int X)
 
 void Particle::SetFourVector(TLorentzVector &V)
 {
-	ParticleVec->SetE(V.E());
-	ParticleVec->SetPx(V.Px());
-	ParticleVec->SetPy(V.Py());
-	ParticleVec->SetPz(V.Pz());
+	ParticleVec.SetE(V.E());
+	ParticleVec.SetPx(V.Px());
+	ParticleVec.SetPy(V.Py());
+	ParticleVec.SetPz(V.Pz());
 }
 
 void Particle::SetFourVector(double Px, double Py, double Pz, double E)
 {
-	ParticleVec->SetE(E);
-	ParticleVec->SetPx(Px);
-	ParticleVec->SetPy(Py);
-	ParticleVec->SetPz(Pz);
+	ParticleVec.SetE(E);
+	ParticleVec.SetPx(Px);
+	ParticleVec.SetPy(Py);
+	ParticleVec.SetPz(Pz);
 }
 
 void Particle::SetMass(double dM)
@@ -307,7 +319,7 @@ void Particle::SetMass(double dM)
 	if (dE < dM)
 		dE = dM;
 
-	ParticleVec->SetE(dE);
+	ParticleVec.SetE(dE);
 	SetRho(sqrt(dE*dE - dM*dM));
 }
 
@@ -318,7 +330,7 @@ void Particle::SetEnergy(double dE)
 		dE = dM;
 
 
-	ParticleVec->SetE(dE);
+	ParticleVec.SetE(dE);
 	SetRho(sqrt(dE*dE - dM*dM));
 }
 
@@ -330,7 +342,7 @@ void Particle::SetEnergyKin(double dE)
 void Particle::SetMomentum(double dP)
 {
 	double dM = Mass();
-	ParticleVec->SetE(sqrt(dP*dP + dM*dM));
+	ParticleVec.SetE(sqrt(dP*dP + dM*dM));
 	SetRho(dP);
 }
 
@@ -338,51 +350,51 @@ void Particle::SetRho(double dR)
 {
 	if (Momentum() == 0.0)
 	{
-		ParticleVec->SetPx(0);
-		ParticleVec->SetPy(0);
-		ParticleVec->SetPz(1);
+		ParticleVec.SetPx(0);
+		ParticleVec.SetPy(0);
+		ParticleVec.SetPz(1);
 	}
 
-	ParticleVec->SetRho(dR);
+	ParticleVec.SetRho(dR);
 }
 
 void Particle::SetTheta(double Ang)
 {
-	ParticleVec->SetTheta(Ang);
+	ParticleVec.SetTheta(Ang);
 }
 
 void Particle::SetPhi(double Ang)
 {
-	ParticleVec->SetPhi(Ang);
+	ParticleVec.SetPhi(Ang);
 }
 
 void Particle::SetPosition(TVector3 &V)
 {
-	ParticlePos->SetX(V.X());
-	ParticlePos->SetY(V.Y());
-	ParticlePos->SetZ(V.Z());
+	ParticlePos.SetX(V.X());
+	ParticlePos.SetY(V.Y());
+	ParticlePos.SetZ(V.Z());
 }
 
 void Particle::SetPosition(double X, double Y, double Z)
 {
-	ParticlePos->SetX(X);
-	ParticlePos->SetY(Y);
-	ParticlePos->SetZ(Z);
+	ParticlePos.SetX(X);
+	ParticlePos.SetY(Y);
+	ParticlePos.SetZ(Z);
 }
 
 void Particle::SetX(double X)
 {
-	ParticlePos->SetX(X);
+	ParticlePos.SetX(X);
 }
 
 void Particle::SetY(double X)
 {
-	ParticlePos->SetY(X);
+	ParticlePos.SetY(X);
 }
 
 void Particle::SetZ(double X)
 {
-	ParticlePos->SetZ(X);
+	ParticlePos.SetZ(X);
 }
 
 void Particle::SetTrackIn(double X)
