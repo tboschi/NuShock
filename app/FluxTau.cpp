@@ -116,8 +116,8 @@ int main(int argc, char** argv)
 	TLorentzVector S = Beam+Targ;
 	double sqrts = S.M();		//CM energy
 
-	Neutrino *Nu_ = new Neutrino(NuMass, Neutrino::Dirac | Neutrino::Unpolarised);
-	Neutrino *NuB = new Neutrino(NuMass, Neutrino::Dirac | Neutrino::Unpolarised | Neutrino::Antiparticle);
+	Neutrino *Nu_ = new Neutrino(NuMass, Neutrino::Dirac | Neutrino::Left );
+	Neutrino *NuB = new Neutrino(NuMass, Neutrino::Dirac | Neutrino::Right | Neutrino::Antiparticle);
 	
 	//find max of Ds param
 	double ptmax = sqrts;
@@ -129,13 +129,14 @@ int main(int argc, char** argv)
 	std::vector<Particle*> vProductDs, vProductTau;
 	std::vector<Particle*>::iterator iP;
 
-	unsigned int nIter = 0;
-	while (nIter < nMAX)
+	unsigned int nIter = 0, iIter = 0, sIter;
+	while (nIter++ < nMAX)
 	{
 		double pt = Gen->Uniform(0, ptmax);
 		double xf = Gen->Uniform(-1.0, 1.0);
 		if (Gen->Uniform(0, pow(10, maxF)) < pow(10, lDparam(xf, pt)))
 		{
+			++iIter;
 			double px, py;
 			double pz = sqrts*xf*0.5;
 			Gen->Circle(px, py, pt);
@@ -148,6 +149,8 @@ int main(int argc, char** argv)
 
 			if(!vProductDs.size())
 				continue;
+			else
+				++sIter;
 
 			if (vProductDs.at(0)->Theta() < Th0)	//neutrino
 				hCharm->Fill(vProductDs.at(0)->Energy(), SF);
@@ -196,10 +199,10 @@ int main(int argc, char** argv)
 				vProductTau.clear();
 			}
 
-			++nIter;
+			//++nIter;
 			//++iIter;
 
-			if (nIter % 1000000 == 0)
+			if (sIter % 10000 == 0)	//saving
 			{
 				FileOut_->Write();
 				FileOutB->Write();
@@ -209,7 +212,6 @@ int main(int argc, char** argv)
 		for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
 			delete *iP;
 		vProductDs.clear();
-
 	}
 
 	//hCharm->Scale(1.0);
@@ -240,6 +242,7 @@ int main(int argc, char** argv)
 	//hPion->Write();
 	//h2Pion->Write();
 
+	std::cout << "Successful Ds meson simulation are " << iIter * 100.0 / nIter << " %" << std::endl;
 	std::cout  << "Neutrinos simulated " << hTotal_->GetEntries();
 	std::cout << " (" << hTotal_->GetEntries()*100.0/double(nMAX) << " %)";
 	std::cout << ", saved in " << FileOut_->GetName() << std::endl;

@@ -77,13 +77,28 @@ class PhaseSpace : public Amplitude
 		double TauET_ratio();
 		double TauMM_ratio();
 		double TauMT_ratio();
+		double LeptonNeutrino_ratio(double &manName);
+		double AntiLeptonNeutrino_ratio(double &manName);
+
+		double TauPI_ratio();
+		double LeptonMeson_ratio(double &manName);
+
+		double PionE_ratio();
+		double PionM_ratio();
+		double KaonE_ratio();
+		double KaonM_ratio();
+		double CharmE_ratio();
+		double CharmM_ratio();
+		double CharmT_ratio();
+		double MesonTwo_ratio(double &manName);
+
 		double Kaon0E_ratio();
 		double Kaon0M_ratio();
 		double KaonCE_ratio();
 		double KaonCM_ratio();
+		double MesonThree_ratio(double &manName, double L_, double L0);
 
 		//DECAY RATES
-
 		double NeutrinoLeptonAA(double &d_Ul, double &d_Un, double M_Neut, double M_Lepton);
 		double NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
 		double Max_NeutrinoLeptonAA(double &max_Ul, double &max_Ua, double M_Neut, double M_Lepton);
@@ -118,6 +133,12 @@ class PhaseSpace : public Amplitude
 		double Max_AntiLeptonNeutrino(double M_Lepton0, double M_Lepton, double M_Neut);
 		double max_AntiLeptonNeutrino(double x, double y, double z);
 		double max_AntiLeptonNeutrino_s(double s);
+
+		double LeptonMeson(double M_Lepton, double M_Meson);
+		double Max_LeptonMeson(double M_Lepton, double M_Meson);
+
+		double MesonTwo(double M_Meson, double M_Lepton);
+		double Max_MesonTwo(double M_Meson, double M_Lepton);
 
 		double MesonThree(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0);
 		double Max_MesonThree(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0);

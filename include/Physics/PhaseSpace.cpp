@@ -6,6 +6,7 @@ PhaseSpace::PhaseSpace() :
 	P_labf(new TLorentzVector()),
 	P_rest(new TLorentzVector())
 {
+	Reset();
 }
 
 PhaseSpace::~PhaseSpace()
@@ -47,16 +48,20 @@ bool PhaseSpace::SetDecay(Channel Name)
 bool PhaseSpace::Generate(Channel Name)
 {
 	unsigned int cc = 0;
+	double Val;
 	if (SetDecay(Name))
 	{
+		do
 		{
-			++cc;
 			Event->Generate();
+			Val = Ratio(Name);
 		}
-		while (GenMT->Rndm() > Ratio(Name));
+		while (Val > 0 && GenMT->Rndm() > Val);
 
-
-		return true;
+		if (Val > 0)
+			return true;
+		else
+			return false;
 	}
 	else
 		return false;
@@ -162,31 +167,31 @@ double PhaseSpace::Ratio(Channel Name)
 			Ret = TauMT_ratio();
 			break;
 		case _TauPI:				//1
-			//Ret = TauPI();
+			Ret = TauPI_ratio();
 			break;
 		case _Tau2PI:				//1
-			//Ret = Tau2PI();
+			//Ret = Tau2PI_ratio();
 			break;
 		case _PionE:				//1
-			//Ret = PionE_ratio();
+			Ret = PionE_ratio();
 			break;
 		case _PionM:				//1
-			//Ret = PionM_ratio();
+			Ret = PionM_ratio();
 			break;
 		case _KaonE:				//1
-			//Ret = KaonE_ratio();
+			Ret = KaonE_ratio();
 			break;
 		case _KaonM:				//1
-			//Ret = KaonM_ratio();
+			Ret = KaonM_ratio();
 			break;
 		case _CharmE:				//1
-			//Ret = CharmE_ratio();
+			Ret = CharmE_ratio();
 			break;
 		case _CharmM:				//1
-			//Ret = CharmE_ratio();
+			Ret = CharmE_ratio();
 			break;
 		case _CharmT:				//1
-			//Ret = CharmT_ratio();
+			Ret = CharmT_ratio();
 			break;
 		case _Kaon0E:
 			Ret = Kaon0E_ratio();
@@ -220,14 +225,15 @@ double PhaseSpace::nMM_ratio()
 
 double PhaseSpace::NeutrinoLeptonAA_ratio(double &maxName_u, double &maxName_a, double (PhaseSpace::*Uu)(int))
 {
-	if (maxName_u < 0 || maxName_a < 0 || IsChanged())
+	if (maxName_u < 0 || maxName_a < 0)// || IsChanged())
 		Max_NeutrinoLeptonAA(maxName_u, maxName_a, vMass.at(0), vMass.at(1));
 
 	double fName_u, fName_a;
 	NeutrinoLeptonAA(fName_u, fName_a, vMass.at(0), vMass.at(1));
 
-	return ( fName_u   * (this->*Uu)(2) + fName_a   * (Ue(2) + Um(2) + Ut(2)) ) / 
-	       ( maxName_u * (this->*Uu)(2) + maxName_a * (Ue(2) + Um(2) + Ut(2)) );
+	return (maxName_u > 1e-25 || maxName_a > 1e-25) ? 
+		( fName_u   * (this->*Uu)(2) + fName_a   * (Ue(2) + Um(2) + Ut(2)) ) / 
+		( maxName_u * (this->*Uu)(2) + maxName_a * (Ue(2) + Um(2) + Ut(2)) ) : -1.0;
 }
 
 //Neutrino LeptonLepton AB
@@ -263,10 +269,11 @@ double PhaseSpace::nTM_ratio()
 
 double PhaseSpace::NeutrinoLeptonAB_ratio(double &maxName)
 {
-	if (maxName < 0 || IsChanged())
+	if (maxName < 0)// || IsChanged())
 		maxName = Max_NeutrinoLeptonAB(vMass.at(0), vMass.at(1), vMass.at(2));
 
-	return NeutrinoLeptonAB(vMass.at(0), vMass.at(1), vMass.at(2)) / maxName;
+	return (maxName > 1e-25) ?
+		NeutrinoLeptonAB(vMass.at(0), vMass.at(1), vMass.at(2)) / maxName : -1.0;
 }
 
 //neutrino psuedomeson
@@ -288,10 +295,11 @@ double PhaseSpace::nETAi_ratio()
 
 double PhaseSpace::NeutrinoPseudoMeson_ratio(double &maxName)
 {
-	if (maxName < 0 || IsChanged())
+	if (maxName < 0)// || IsChanged())
 		maxName = Max_NeutrinoPseudoMeson(vMass.at(0), vMass.at(1));
 
-	return NeutrinoPseudoMeson(vMass.at(0), vMass.at(1)) / maxName;
+	return (maxName > 1e-25) ? 
+		NeutrinoPseudoMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
 }
 
 //lepton psuedomeson
@@ -328,10 +336,11 @@ double PhaseSpace::ECHARM_ratio()
 
 double PhaseSpace::LeptonPseudoMeson_ratio(double &maxName)
 {
-	if (maxName < 0 || IsChanged())
+	if (maxName < 0)// || IsChanged())
 		maxName = Max_LeptonPseudoMeson(vMass.at(0), vMass.at(1));
 
-	return LeptonPseudoMeson(vMass.at(0), vMass.at(1)) / maxName;
+	return (maxName > 1e-25) ? 
+		LeptonPseudoMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
 }
 
 //neutrino vector meson
@@ -353,10 +362,11 @@ double PhaseSpace::nPHI_ratio()
 
 double PhaseSpace::NeutrinoVectorMeson_ratio(double &maxName)
 {
-	if (maxName < 0 || IsChanged())
+	if (maxName < 0)// || IsChanged())
 		maxName = Max_NeutrinoVectorMeson(vMass.at(0), vMass.at(1));
 
-	return NeutrinoVectorMeson(vMass.at(0), vMass.at(1)) / maxName;
+	return (maxName > 1e-25) ? 
+		NeutrinoVectorMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
 }
 
 //lepton vector meson
@@ -383,178 +393,164 @@ double PhaseSpace::MKAx_ratio()
 
 double PhaseSpace::LeptonVectorMeson_ratio(double &maxName)
 {
-	if (maxName < 0 || IsChanged())
+	if (maxName < 0)// || IsChanged())
 		maxName = Max_LeptonVectorMeson(vMass.at(0), vMass.at(1));
 
-	return LeptonVectorMeson(vMass.at(0), vMass.at(1)) / maxName;
+	return (maxName > 1e-25) ?
+		LeptonVectorMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
 }
 
 ////PRODUCTION
 //
+//pure leptonic decays
+//
 double PhaseSpace::MuonE_ratio()
 {
-	if (maxMuonE < 0 || IsChanged())
-		maxMuonE = Max_AntiLeptonNeutrino(M_Muon, M_Electron, M_Neutrino);
-
-	return AntiLeptonNeutrino(M_Muon, M_Electron, M_Neutrino) / maxMuonE;
+	return AntiLeptonNeutrino_ratio(maxMuonE);
 }
 
 double PhaseSpace::MuonM_ratio()
 {
-	if (maxMuonM < 0 || IsChanged())
-		maxMuonM = Max_LeptonNeutrino(M_Muon, M_Electron, M_Neutrino);
-
-	return LeptonNeutrino(M_Muon, M_Electron, M_Neutrino) / maxMuonM;
+	return LeptonNeutrino_ratio(maxMuonM);
 }
-
 
 double PhaseSpace::TauEE_ratio()
 {
-	if (maxTauEE < 0 || IsChanged())
-		maxTauEE = Max_AntiLeptonNeutrino(M_Tau, M_Electron, M_Neutrino);
-
-	return AntiLeptonNeutrino(M_Tau, M_Electron, M_Neutrino) / maxTauEE;
+	return AntiLeptonNeutrino_ratio(maxTauEE);
 }
 
 double PhaseSpace::TauET_ratio()
 {
-	if (maxTauET < 0 || IsChanged())
-		maxTauET = Max_LeptonNeutrino(M_Tau, M_Electron, M_Neutrino);
-
-	return LeptonNeutrino(M_Tau, M_Electron, M_Neutrino) / maxTauET;
+	return LeptonNeutrino_ratio(maxTauET);
 }
 
 double PhaseSpace::TauMM_ratio()
 {
-	if (maxTauMM < 0 || IsChanged())
-		maxTauMM = Max_AntiLeptonNeutrino(M_Tau, M_Muon, M_Neutrino);
-
-	return AntiLeptonNeutrino(M_Tau, M_Muon, M_Neutrino) / maxTauMM;
+	return AntiLeptonNeutrino_ratio(maxTauMM);
 }
 
 double PhaseSpace::TauMT_ratio()
 {
-	if (maxTauMT < 0 || IsChanged())
-		maxTauMT = Max_LeptonNeutrino(M_Tau, M_Muon, M_Neutrino);
+	return LeptonNeutrino_ratio(maxTauMT);
+}
 
-	return LeptonNeutrino(M_Tau, M_Muon, M_Neutrino) / maxTauMT;
+double PhaseSpace::AntiLeptonNeutrino_ratio(double &maxName)
+{
+	if (maxName < 0)// || IsChanged())
+		maxName = Max_AntiLeptonNeutrino(vMass.at(0), vMass.at(1), vMass.at(2));
+
+	return (maxName > 1e-25) ?
+		 AntiLeptonNeutrino(vMass.at(0), vMass.at(1), vMass.at(2)) / maxName : -1.0;
+}
+
+double PhaseSpace::LeptonNeutrino_ratio(double &maxName)
+{
+	if (maxName < 0)// || IsChanged())
+		maxName = Max_LeptonNeutrino(vMass.at(0), vMass.at(1), vMass.at(2));
+
+	return (maxName > 1e-25) ?
+		 LeptonNeutrino(vMass.at(0), vMass.at(1), vMass.at(2)) / maxName : -1.0;
+}
+
+//lepton decay into meson stuff
+//
+double PhaseSpace::TauPI_ratio()
+{
+	return LeptonMeson_ratio(maxTauPI);
 }
 
 /*
-double PhaseSpace::TauPI_ratio()
+double PhaseSpace::Tau2PI_ratio()
 {
-	if (maxTauPI || IsChanged())
-		maxTauPI = Max_LeptonMeson(M_Tau, M_Pion);
+	return LeptonMeson_ratio(maxTauPI);
+}
+*/
 
-	return LeptonMeson(M_Tau, M_Pion) / maxTauPI;
+double PhaseSpace::LeptonMeson_ratio(double &maxName)
+{
+	if (maxName < 0)// || IsChanged())
+		maxName = Max_LeptonMeson(vMass.at(0), vMass.at(1));
+
+	return (maxName > 1e-25) ?
+		 LeptonMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
 }
 
-double PhaseSpace::LeptonMesonDecay(double M_Lepton, double M_Meson)
-{
-	SetMass(M_Lepton);
-	double dMN2 = MassN(2)/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	double M2 = M2_LeptonMeson(dMN2, dMM2);
-	return dGammad2_2B(M2, dMN2, dMM2);
-}
-
-double PhaseSpace::Max_LeptonMeson(double M_Lepton, double M_Meson)
-{
-	SetMass(M_Lepton);
-	double M2 = M2_LeptonMeson(x, y);
-	return dGammad2_2B(M2, x, y);
-}
-
+//meson two body decay
+//
 double PhaseSpace::PionE_ratio()
 {
-	if (maxPionE || IsChanged())
-		maxPionE = Max_MesonTwo(M_Pion, M_Electron);
-
-	return MesonTwo(M_Pion, M_Electron) / maxPionE;
+	return MesonTwo_ratio(maxPionE);
 }
 
 double PhaseSpace::PionM_ratio()
 {
-	if (maxPionM || IsChanged())
-		maxPionM = Max_MesonTwo(M_Pion, M_Electron);
-
-	return MesonTwo(M_Pion, M_Electron) / maxPionM;
+	return MesonTwo_ratio(maxPionM);
 }
 
 double PhaseSpace::KaonE_ratio()
 {
-	if (maxKaonE || IsChanged())
-		maxKaonE = Max_MesonTwo(M_Kaon, M_Electron);
-
-	return MesonTwo(M_Kaon, M_Electron) / maxKaonE;
+	return MesonTwo_ratio(maxKaonE);
 }
 
 double PhaseSpace::KaonM_ratio()
 {
-	if (maxKaonM || IsChanged())
-		maxKaonM = Max_MesonTwo(M_Kaon, M_Muon);
-
-	return MesonTwo(M_Kaon, M_Muon) / maxKaonM;
+	return MesonTwo_ratio(maxKaonM);
 }
 
 double PhaseSpace::CharmE_ratio()
 {
-	if (maxCharmE || IsChanged())
-		maxCharmE = Max_MesonTwo(M_CharmS, M_Electron);
-
-	return MesonTwo(M_CharmS, M_Electron) / maxCharmE;
+	return MesonTwo_ratio(maxCharmE);
 }
 
 double PhaseSpace::CharmM_ratio()
 {
-	if (maxCharmM || IsChanged())
-		maxCharmM = Max_MesonTwo(M_CharmS, M_Muon);
-
-	return MesonTwo(M_CharmS, M_Muon) / maxCharmM;
+	return MesonTwo_ratio(maxCharmM);
 }
 
 double PhaseSpace::CharmT_ratio()
 {
-	if (maxCharmT || IsChanged())
-		maxCharmT = Max_MesonTwo(M_CharmS, M_Tau);
-
-	return MesonTwo(M_CharmS, M_Tau) / maxCharmT;
+	return MesonTwo_ratio(maxCharmT);
 }
-*/
 
+double PhaseSpace::MesonTwo_ratio(double &maxName)
+{
+	if (maxName < 0)// || IsChanged())
+		maxName = Max_MesonTwo(vMass.at(0), vMass.at(1));
+
+	return (maxName > 1e-25) ?
+		MesonTwo(vMass.at(0), vMass.at(1)) / maxName : -1.0;
+}
+
+//three body decays of meson
+//
 double PhaseSpace::Kaon0E_ratio()
 {
-	if (maxKaon0E < 0 || IsChanged())
-		maxKaon0E = Max_MesonThree(M_Kaon0, M_Pion, M_Electron, Const::fK0L_, Const::fK0L0);
-
-	return MesonThree(M_Kaon0, M_Pion, M_Electron, Const::fK0L_, Const::fK0L0) / maxKaon0E;
+	return MesonThree_ratio(maxKaon0E, Const::fKCL_, Const::fKCL0);
 }
 
 double PhaseSpace::Kaon0M_ratio()
 {
-	if (maxKaon0M < 0 || IsChanged())
-		maxKaon0M = Max_MesonThree(M_Kaon0, M_Pion, M_Muon, Const::fK0L_, Const::fK0L0);
-
-	return MesonThree(M_Kaon0, M_Pion, M_Muon, Const::fK0L_, Const::fK0L0) / maxKaon0M;
+	return MesonThree_ratio(maxKaon0M, Const::fKCL_, Const::fKCL0);
 }
 
 double PhaseSpace::KaonCE_ratio()
 {
-	if (maxKaonCE < 0 || IsChanged())
-		maxKaonCE = Max_MesonThree(M_Kaon, M_Pion0, M_Electron, Const::fKCL_, Const::fKCL0);
-
-	return MesonThree(M_Kaon, M_Pion0, M_Electron, Const::fKCL_, Const::fKCL0) / maxKaonCE;
+	return MesonThree_ratio(maxKaonCE, Const::fKCL_, Const::fKCL0);
 }
 
 double PhaseSpace::KaonCM_ratio()
 {
-	if (maxKaonCM < 0 || IsChanged())
-		maxKaonCM = Max_MesonThree(M_Kaon, M_Pion0, M_Muon, Const::fKCL_, Const::fKCL0);
-
-	return MesonThree(M_Kaon, M_Pion0, M_Muon, Const::fKCL_, Const::fKCL0) / maxKaonCM;
+	return MesonThree_ratio(maxKaonCM, Const::fKCL_, Const::fKCL0);
 }
 
+double PhaseSpace::MesonThree_ratio(double &maxName, double L_, double L0)
+{
+	if (maxName < 0)// || IsChanged())
+		maxName = Max_MesonThree(vMass.at(0), vMass.at(1), vMass.at(2), L_, L0);
+
+	return (maxName > 1e-25) ?
+		MesonThree(vMass.at(0), vMass.at(1), vMass.at(2), L_, L0) / maxName : -1.0;
+}
 
 ///////////////
 //DECAY MODES//
@@ -920,6 +916,36 @@ double PhaseSpace::max_AntiLeptonNeutrino_s(double s)	//vars is s
 	return fc * M2_AntiLeptonNeutrino(s_, x, y, z);
 }
 
+double PhaseSpace::LeptonMeson(double M_Lepton, double M_Meson)
+{
+	SetMass(M_Lepton);
+	double dMN2 = MassN(2)/Mass(2);
+	double dMM2 = M_Meson*M_Meson/Mass(2);
+
+	double M2 = M2_LeptonMeson(dMN2, dMM2);
+	return dGammad2_2B(M2, dMN2, dMM2);
+}
+
+double PhaseSpace::Max_LeptonMeson(double M_Lepton, double M_Meson)
+{
+	return LeptonMeson(M_Lepton, M_Meson);
+}
+
+double PhaseSpace::MesonTwo(double M_Meson, double M_Lepton)
+{
+	SetMass(M_Meson);
+	double dMN2 = MassN(2)/Mass(2);
+	double dML2 = M_Lepton*M_Lepton/Mass(2);
+
+	double M2 = M2_MesonTwo(dMN2, dML2);
+	return dGammad2_2B(M2, dMN2, dML2);
+}
+
+double PhaseSpace::Max_MesonTwo(double M_Meson, double M_Lepton)
+{
+	return MesonTwo(M_Meson, M_Lepton);
+}
+
 double PhaseSpace::MesonThree(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0)	//decay constant not important
 {
 	SetMass(M_Meson0);
@@ -1062,7 +1088,6 @@ TLorentzVector* PhaseSpace::LabF()
 void PhaseSpace::SetLabf(TLorentzVector &Vec)	//parent labframe
 {
 	P_labf = &Vec;
-	//P_labf->SetPxPyPzE(Vec.Px(), Vec.Py(), Vec.Pz(), Vec.E());		///maybe this is the mistake!!
 	SetRest(P_labf->M());
 }
 
