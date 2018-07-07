@@ -53,6 +53,7 @@ double Production::Gamma(Channel Name)
 {
 	double Result = 0.0;
 
+	IsChanged();
 	switch(Name)
 	{
 		case _ALL:
@@ -150,18 +151,18 @@ double Production::Total()
 
 double Production::MuonE()
 {
-	if (fMuonE < 0 || IsChanged())
+	if (fMuonE < 0)// || IsChanged())
 		fMuonE = IsAllowed(_MuonE) ? 
-			AntiLeptonNeutrinoDecay(M_Muon, M_Electron, M_Neutrino) : 0;
+			AntiLeptonNeutrinoDecay(M_Muon, M_Electron, M_Neutrino) : 0.0;
 
 	return fMuonE * Ue(2);
 }
 
 double Production::MuonM()
 {
-	if (fMuonM < 0 || IsChanged())
+	if (fMuonM < 0)// || IsChanged())
 		fMuonM = IsAllowed(_MuonM) ? 
-			LeptonNeutrinoDecay(M_Muon, M_Electron, M_Neutrino) : 0;
+			LeptonNeutrinoDecay(M_Muon, M_Electron, M_Neutrino) : 0.0;
 
 	return fMuonM * Um(2);
 }
@@ -169,9 +170,9 @@ double Production::MuonM()
 double Production::TauEE()
 {
 
-	if (fTauEE < 0 || IsChanged())
+	if (fTauEE < 0)// || IsChanged())
 		fTauEE = IsAllowed(_TauEE) ?
-			AntiLeptonNeutrinoDecay(M_Tau, M_Electron, M_Neutrino) : 0;
+			AntiLeptonNeutrinoDecay(M_Tau, M_Electron, M_Neutrino) : 0.0;
 
 	return fTauEE * Ue(2);
 }
@@ -179,9 +180,9 @@ double Production::TauEE()
 double Production::TauET()
 {
 
-	if (fTauET < 0 || IsChanged())
+	if (fTauET < 0)// || IsChanged())
 		fTauET = IsAllowed(_TauET) ? 
-			LeptonNeutrinoDecay(M_Tau, M_Electron, M_Neutrino) : 0;
+			LeptonNeutrinoDecay(M_Tau, M_Electron, M_Neutrino) : 0.0;
 
 	return fTauET * Ut(2);
 }
@@ -189,9 +190,9 @@ double Production::TauET()
 double Production::TauMM()
 {
 
-	if (fTauMM < 0 || IsChanged())
+	if (fTauMM < 0)// || IsChanged())
 		fTauMM = IsAllowed(_TauMM) ? 
-			AntiLeptonNeutrinoDecay(M_Tau, M_Muon, M_Neutrino) : 0;
+			AntiLeptonNeutrinoDecay(M_Tau, M_Muon, M_Neutrino) : 0.0;
 
 	return fTauMM * Um(2);
 }
@@ -199,9 +200,9 @@ double Production::TauMM()
 double Production::TauMT()
 {
 
-	if (fTauMT < 0 || IsChanged())
+	if (fTauMT < 0)// || IsChanged())
 		fTauMT = IsAllowed(_TauMT) ? 
-			LeptonNeutrinoDecay(M_Tau, M_Muon, M_Neutrino) : 0;
+			LeptonNeutrinoDecay(M_Tau, M_Muon, M_Neutrino) : 0.0;
 
 	return fTauMT * Ut(2);
 }
@@ -209,9 +210,9 @@ double Production::TauMT()
 double Production::TauPI()
 {
 
-	if (fTauPI < 0 || IsChanged())
+	if (fTauPI < 0)// || IsChanged())
 		fTauPI = IsAllowed(_TauPI) ? 
-			pow(Const::fU_ud * Const::fDPion, 2) * LeptonMesonDecay(M_Tau, M_Pion) : 0;
+			pow(Const::fU_ud * Const::fDPion, 2) * LeptonMesonDecay(M_Tau, M_Pion) : 0.0;
 
 	return fTauPI * Ut(2);
 }
@@ -219,9 +220,9 @@ double Production::TauPI()
 double Production::PionE()
 {
 
-	if (fPionE < 0 || IsChanged())
+	if (fPionE < 0)// || IsChanged())
 		fPionE = IsAllowed(_PionE) ? 
-			pow(Const::fU_ud * Const::fDPion, 2) * MesonTwoDecay(M_Pion, M_Electron) : 0;
+			pow(Const::fU_ud * Const::fDPion, 2) * MesonTwoDecay(M_Pion, M_Electron) : 0.0;
 
 	return fPionE * Ue(2);
 }
@@ -229,9 +230,9 @@ double Production::PionE()
 double Production::PionM()
 {
 
-	if (fPionM < 0 || IsChanged())
+	if (fPionM < 0)// || IsChanged())
 		fPionM = IsAllowed(_PionM) ? 
-			pow(Const::fU_ud * Const::fDPion, 2) * MesonTwoDecay(M_Pion, M_Muon) : 0;
+			pow(Const::fU_ud * Const::fDPion, 2) * MesonTwoDecay(M_Pion, M_Muon) : 0.0;
 
 	return fPionM * Um(2);
 }
@@ -239,9 +240,9 @@ double Production::PionM()
 double Production::KaonE()
 {
 
-	if (fKaonE < 0 || IsChanged())
+	if (fKaonE < 0)// || IsChanged())
 		fKaonE = IsAllowed(_KaonE) ? 
-			pow(Const::fU_us * Const::fDKaon, 2) * MesonTwoDecay(M_Kaon, M_Electron) : 0;
+			pow(Const::fU_us * Const::fDKaon, 2) * MesonTwoDecay(M_Kaon, M_Electron) : 0.0;
 
 	return fKaonE * Ue(2);
 }
@@ -249,9 +250,9 @@ double Production::KaonE()
 double Production::KaonM()
 {
 
-	if (fKaonM < 0 || IsChanged())
+	if (fKaonM < 0)// || IsChanged())
 		fKaonM = IsAllowed(_KaonM) ? 
-			pow(Const::fU_us * Const::fDKaon, 2) * MesonTwoDecay(M_Kaon, M_Muon) : 0;
+			pow(Const::fU_us * Const::fDKaon, 2) * MesonTwoDecay(M_Kaon, M_Muon) : 0.0;
 
 	return fKaonM * Um(2);
 }
@@ -259,9 +260,9 @@ double Production::KaonM()
 double Production::CharmE()
 {
 
-	if (fCharmE < 0 || IsChanged())
+	if (fCharmE < 0)// || IsChanged())
 		fCharmE = IsAllowed(_CharmE) ? 
-			pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Electron) : 0;
+			pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Electron) : 0.0;
 
 	return fCharmE * Ue(2);
 }
@@ -269,9 +270,9 @@ double Production::CharmE()
 double Production::CharmM()
 {
 
-	if (fCharmM < 0 || IsChanged())
+	if (fCharmM < 0)// || IsChanged())
 		fCharmM = IsAllowed(_CharmM) ? 
-			pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Muon) : 0;
+			pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Muon) : 0.0;
 
 	return fCharmM * Um(2);
 }
@@ -279,9 +280,9 @@ double Production::CharmM()
 double Production::CharmT()
 {
 
-	if (fCharmT < 0 || IsChanged())
+	if (fCharmT < 0)// || IsChanged())
 		fCharmT = IsAllowed(_CharmT) ? 
-			pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Tau) : 0;
+			pow(Const::fU_cs * Const::fDCharm, 2) * MesonTwoDecay(M_CharmS, M_Tau) : 0.0;
 
 	return fCharmT * Ut(2);
 }
@@ -289,10 +290,10 @@ double Production::CharmT()
 double Production::Kaon0E()
 {
 
-	if (fKaon0E < 0 || IsChanged())
+	if (fKaon0E < 0)// || IsChanged())
 		fKaon0E = IsAllowed(_Kaon0E) ?
 			pow(Const::fU_us * Const::fKaPi, 2) * 
-			MesonThreeDecay(M_Kaon0, M_Pion, M_Electron, Const::fK0L_, Const::fK0L0) : 0;
+			MesonThreeDecay(M_Kaon0, M_Pion, M_Electron, Const::fK0L_, Const::fK0L0) : 0.0;
 
 	return fKaon0E * Ue(2);
 }
@@ -300,32 +301,30 @@ double Production::Kaon0E()
 double Production::Kaon0M()
 {
 
-	if (fKaon0M < 0 || IsChanged())
+	if (fKaon0M < 0)// || IsChanged())
 		fKaon0M = IsAllowed(_Kaon0M) ? 
 			pow(Const::fU_us * Const::fKaPi, 2) * 
-			MesonThreeDecay(M_Kaon0, M_Pion, M_Muon, Const::fK0L_, Const::fK0L0) : 0;
+			MesonThreeDecay(M_Kaon0, M_Pion, M_Muon, Const::fK0L_, Const::fK0L0) : 0.0;
 
 	return fKaon0M * Um(2);
 }
 
 double Production::KaonCE()
 {
-
-	if (fKaonCE < 0 || IsChanged())
+	if (fKaonCE < 0)// || IsChanged())
 		fKaonCE = IsAllowed(_KaonCE) ? 
 			pow(Const::fU_us * Const::fKaPi, 2) / 2.0 * 
-			MesonThreeDecay(M_Kaon, M_Pion0, M_Electron, Const::fKCL_, Const::fKCL0) : 0;
+			MesonThreeDecay(M_Kaon, M_Pion0, M_Electron, Const::fKCL_, Const::fKCL0) : 0.0;
 
 	return fKaonCE * Ue(2);
 }
 
 double Production::KaonCM()
 {
-
-	if (fKaonCM < 0 || IsChanged())
+	if (fKaonCM < 0)// || IsChanged())
 		fKaonCM = IsAllowed(_KaonCM) ? 
 			pow(Const::fU_us * Const::fKaPi, 2) / 2.0 * 
-			MesonThreeDecay(M_Kaon, M_Pion0, M_Muon, Const::fKCL_, Const::fKCL0) : 0;
+			MesonThreeDecay(M_Kaon, M_Pion0, M_Muon, Const::fKCL_, Const::fKCL0) : 0.0;
 
 	return fKaonCM * Um(2);
 }

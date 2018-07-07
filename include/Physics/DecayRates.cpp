@@ -57,6 +57,7 @@ double DecayRates::Gamma(Channel Name)
 {
 	double Result = 0.0;
 
+	IsChanged();
 	switch(Name)
 	{
 		case _ALL:
@@ -196,29 +197,19 @@ double DecayRates::ExpALL()
 //all mixing factors are factorised out
 double DecayRates::nnn()
 {
-	if (fnnn < 0 || IsChanged())
-	{
-		if (IsAllowed(_nnn))
-			fnnn = Const::fGF2 * Mass(5) /
-			       (96.0 * Const::fPi3);
-		else fnnn = 0.0;
-	}
+	if (fnnn < 0)// || IsChanged())
+		fnnn = IsAllowed(_nnn) ?
+		       Const::fGF2 * Mass(5) / (96.0 * Const::fPi3) : 0.0;
 
 	return fnnn * (Ue(2) + Um(2) + Ut(2));
 }
 
 double DecayRates::nGAMMA()
 {
-	if (fnGAMMA < 0 || IsChanged())
-	{
-		if (IsAllowed(_nGAMMA))
-		{
-			double AemPi = Const::fAem / Const::fPi;
-			fnGAMMA = Const::fGF2 * Mass(5) *
-			       (27.0/32.0 * AemPi) / (192.0 * Const::fPi3);
-		}
-		else fnGAMMA = 0.0;
-	}
+	if (fnGAMMA < 0)// || IsChanged())
+		fnGAMMA = IsAllowed(_nGAMMA) ?
+			  Const::fGF2 * Mass(5) * (27.0/32.0 * Const::fAem / Const::fPi) /
+			  (192.0 * Const::fPi3) : 0.0;
 
 	return fnGAMMA * (Ue(2) + Um(2) + Ut(2));
 }
@@ -226,7 +217,7 @@ double DecayRates::nGAMMA()
 //M_Sterile > 2 M_Electron (always)
 double DecayRates::nEE()
 {
-	if (fnEE_e < 0 || fnEE_o < 0 || IsChanged())
+	if (fnEE_e < 0 || fnEE_o < 0)// || IsChanged())
 	{
 		if (IsAllowed(_nEE))
 			NeutrinoLeptonAA(fnEE_e, fnEE_o, M_Neutrino, M_Electron);
@@ -243,18 +234,18 @@ double DecayRates::nEE()
 //M_Sterile > M_Muon + M_Electron
 double DecayRates::nEM()	//Antiparticle is Elec
 {
-	if (fnEM < 0 || IsChanged())
+	if (fnEM < 0)// || IsChanged())
 		fnEM = IsAllowed(_nEM) ? 
-			NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Muon) : 0;
+			NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Muon) : 0.0;
 
 	return fnEM * Ue(2);
 }
 
 double DecayRates::nME()	//Anti is Muon
 {
-	if (fnME < 0 || IsChanged())
+	if (fnME < 0)// || IsChanged())
 		fnME = IsAllowed(_nME) ? 
-			NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Electron) : 0;
+			NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Electron) : 0.0;
 
 	return fnME * Um(2);
 }
@@ -262,7 +253,7 @@ double DecayRates::nME()	//Anti is Muon
 //M_Sterile > 2 M_Muon
 double DecayRates::nMM()
 {
-	if (fnMM_m < 0 || fnMM_o < 0 || IsChanged())
+	if (fnMM_m < 0 || fnMM_o < 0)// || IsChanged())
 	{
 		if (IsAllowed(_nMM)) 
 			NeutrinoLeptonAA(fnMM_m, fnMM_o, M_Neutrino, M_Muon);
@@ -279,18 +270,18 @@ double DecayRates::nMM()
 //M_Sterile > M_Tau + M_Electron
 double DecayRates::nET()	//Antiparticle is Elec
 {
-	if (fnET < 0 || IsChanged())
+	if (fnET < 0)// || IsChanged())
 		fnET = IsAllowed(_nET) ? 
-			NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Tau) : 0;
+			NeutrinoLeptonAB(M_Neutrino, M_Electron, M_Tau) : 0.0;
 
 	return fnET * Ue(2);
 }
 
 double DecayRates::nTE()	//Anti is Tau
 {
-	if (fnTE < 0 || IsChanged())
+	if (fnTE < 0)// || IsChanged())
 		fnTE = IsAllowed(_nTE) ? 
-			NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Electron) : 0;
+			NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Electron) : 0.0;
 
 	return fnTE * Ut(2);
 }
@@ -298,18 +289,18 @@ double DecayRates::nTE()	//Anti is Tau
 //M_Sterile > M_Tau + M_Muon
 double DecayRates::nMT()	//Antiparticle is Muon
 {
-	if (fnMT < 0 || IsChanged())
+	if (fnMT < 0)// || IsChanged())
 		fnMT = IsAllowed(_nMT) ? 
-			NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Tau) : 0;
+			NeutrinoLeptonAB(M_Neutrino, M_Muon, M_Tau) : 0.0;
 
 	return fnMT * Um(2);
 }
 
 double DecayRates::nTM()	//Anti is Tau
 {
-	if (fnTM < 0 || IsChanged())
+	if (fnTM < 0)// || IsChanged())
 		fnTM = IsAllowed(_nTM) ? 
-			NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Muon) : 0;
+			NeutrinoLeptonAB(M_Neutrino, M_Tau, M_Muon) : 0.0;
 
 	return fnTM * Ut(2);
 }
@@ -317,9 +308,9 @@ double DecayRates::nTM()	//Anti is Tau
 //M_Sterile > M_Pion0
 double DecayRates::nPI0()
 {
-	if (fnPI0 < 0 || IsChanged())
+	if (fnPI0 < 0)// || IsChanged())
 		fnPI0 = IsAllowed(_nPI0) ?
-			pow(Const::fDPion, 2) * NeutrinoPseudoMeson(M_Neutrino, M_Pion0) : 0;
+			pow(Const::fDPion, 2) * NeutrinoPseudoMeson(M_Neutrino, M_Pion0) : 0.0;
 
 	return fnPI0 * (Ue(2) + Um(2) + Ut(2));
 }
@@ -327,9 +318,9 @@ double DecayRates::nPI0()
 //M_Sterile > M_Pion
 double DecayRates::EPI()
 {
-	if (fEPI < 0 || IsChanged())
+	if (fEPI < 0)// || IsChanged())
 		fEPI = IsAllowed(_EPI) ?
-			pow(Const::fU_ud * Const::fDPion, 2) * LeptonPseudoMeson(M_Electron, M_Pion) : 0;
+			pow(Const::fU_ud * Const::fDPion, 2) * LeptonPseudoMeson(M_Electron, M_Pion) : 0.0;
 	
 	return fEPI * Ue(2);
 }
@@ -337,9 +328,9 @@ double DecayRates::EPI()
 //M_Sterile > M_Pion + M_Muon
 double DecayRates::MPI()
 {
-	if (fMPI < 0 || IsChanged())
+	if (fMPI < 0)// || IsChanged())
 		fMPI = IsAllowed(_MPI) ?
-			pow(Const::fU_ud * Const::fDPion, 2) * LeptonPseudoMeson(M_Muon, M_Pion) : 0;
+			pow(Const::fU_ud * Const::fDPion, 2) * LeptonPseudoMeson(M_Muon, M_Pion) : 0.0;
 	
 	return fMPI * Um(2);
 }
@@ -347,9 +338,9 @@ double DecayRates::MPI()
 //M_Sterile > M_Tau + M_Pion
 double DecayRates::TPI()
 {
-	if (fTPI < 0 || IsChanged())
+	if (fTPI < 0)// || IsChanged())
 		fTPI = IsAllowed(_TPI) ?
-			pow(Const::fU_ud * Const::fDPion, 2) * LeptonPseudoMeson(M_Tau, M_Pion) : 0;
+			pow(Const::fU_ud * Const::fDPion, 2) * LeptonPseudoMeson(M_Tau, M_Pion) : 0.0;
 	
 	return fTPI * Ut(2);
 }
@@ -357,9 +348,9 @@ double DecayRates::TPI()
 //M_Sterile > M_Kaon + M_Electron
 double DecayRates::EKA()
 {
-	if (fEKA < 0 || IsChanged())
+	if (fEKA < 0)// || IsChanged())
 		fEKA = IsAllowed(_EKA) ?
-			pow(Const::fU_us * Const::fDKaon, 2) * LeptonPseudoMeson(M_Electron, M_Kaon) : 0;
+			pow(Const::fU_us * Const::fDKaon, 2) * LeptonPseudoMeson(M_Electron, M_Kaon) : 0.0;
 
 	return fEKA * Ue(2);
 }
@@ -367,9 +358,9 @@ double DecayRates::EKA()
 //M_Sterile > M_Kaon + M_Muon
 double DecayRates::MKA()
 {
-	if (fMKA < 0 || IsChanged())
+	if (fMKA < 0)// || IsChanged())
 		fMKA = IsAllowed(_MKA) ?
-			pow(Const::fU_us * Const::fDKaon, 2) * LeptonPseudoMeson(M_Muon, M_Kaon) : 0;
+			pow(Const::fU_us * Const::fDKaon, 2) * LeptonPseudoMeson(M_Muon, M_Kaon) : 0.0;
 
 	return fMKA * Um(2);
 }
@@ -377,9 +368,9 @@ double DecayRates::MKA()
 //M_Sterile > M_Rho
 double DecayRates::nRHO0()
 {
-	if (fnRHO0 < 0 || IsChanged())
+	if (fnRHO0 < 0)// || IsChanged())
 		fnRHO0 = IsAllowed(_nRHO0) ? 
-			pow(Const::fDRho * Const::fVRho, 2) * NeutrinoVectorMeson(M_Neutrino, M_Rho0) : 0;
+			pow(Const::fDRho * Const::fVRho, 2) * NeutrinoVectorMeson(M_Neutrino, M_Rho0) : 0.0;
 
 	return fnRHO0 * (Ue(2) + Um(2) + Ut(2));
 }
@@ -387,9 +378,9 @@ double DecayRates::nRHO0()
 //M_Sterile > M_Rho + M_Electron 
 double DecayRates::ERHO()
 {
-	if (fERHO < 0 || IsChanged())
+	if (fERHO < 0)// || IsChanged())
 		fERHO = IsAllowed(_ERHO) ? 
-			pow(Const::fU_ud * Const::fDRho, 2) * LeptonVectorMeson(M_Electron, M_Rho) : 0;
+			pow(Const::fU_ud * Const::fDRho, 2) * LeptonVectorMeson(M_Electron, M_Rho) : 0.0;
 
 	return fERHO * Ue(2);
 }
@@ -397,9 +388,9 @@ double DecayRates::ERHO()
 //M_Sterile > M_Rho + M_Muon 
 double DecayRates::MRHO()
 {
-	if (fMRHO < 0 || IsChanged())
+	if (fMRHO < 0)// || IsChanged())
 		fMRHO = IsAllowed(_MRHO) ? 
-			pow(Const::fU_ud * Const::fDRho, 2) * LeptonVectorMeson(M_Muon, M_Rho) : 0;
+			pow(Const::fU_ud * Const::fDRho, 2) * LeptonVectorMeson(M_Muon, M_Rho) : 0.0;
 
 	return fMRHO * Um(2);
 }
@@ -407,9 +398,9 @@ double DecayRates::MRHO()
 //M_Sterile > M_Kaon* + M_Electron 
 double DecayRates::EKAx()
 {
-	if (fEKAx < 0 || IsChanged())
+	if (fEKAx < 0)// || IsChanged())
 		fEKAx = IsAllowed(_EKAx) ? 
-			pow(Const::fU_us * Const::fDKaonx, 2) * LeptonVectorMeson(M_Electron, M_Kaonx) : 0;
+			pow(Const::fU_us * Const::fDKaonx, 2) * LeptonVectorMeson(M_Electron, M_Kaonx) : 0.0;
 
 	return fEKAx * Ue(2);
 }
@@ -417,9 +408,9 @@ double DecayRates::EKAx()
 //M_Sterile > M_Kaon* + M_Muon 
 double DecayRates::MKAx()
 {
-	if (fMKAx < 0 || IsChanged())
+	if (fMKAx < 0)// || IsChanged())
 		fMKAx = IsAllowed(_MKAx) ? 
-			pow(Const::fU_us * Const::fDKaonx, 2) * LeptonVectorMeson(M_Muon, M_Kaonx) : 0;
+			pow(Const::fU_us * Const::fDKaonx, 2) * LeptonVectorMeson(M_Muon, M_Kaonx) : 0.0;
 
 	return fMKAx * Um(2);
 }
@@ -427,9 +418,9 @@ double DecayRates::MKAx()
 //M_Sterile > M_Eta
 double DecayRates::nETA()
 {
-	if (fnETA < 0 || IsChanged())
+	if (fnETA < 0)// || IsChanged())
 		fnETA = IsAllowed(_nETA) ? 
-			pow(Const::fDEta, 2) * NeutrinoPseudoMeson(M_Neutrino, M_Eta) : 0;
+			pow(Const::fDEta, 2) * NeutrinoPseudoMeson(M_Neutrino, M_Eta) : 0.0;
 
 	return fnETA * (Ue(2) + Um(2) + Ut(2));
 }
@@ -437,9 +428,9 @@ double DecayRates::nETA()
 //M_Sterile > M_Eta'
 double DecayRates::nETAi()
 {
-	if (fnETAi < 0 || IsChanged())
+	if (fnETAi < 0)// || IsChanged())
 		fnETAi = IsAllowed(_nETAi) ? 
-			pow(Const::fDEtai, 2) * NeutrinoPseudoMeson(M_Neutrino, M_Etai) : 0;
+			pow(Const::fDEtai, 2) * NeutrinoPseudoMeson(M_Neutrino, M_Etai) : 0.0;
 
 	return fnETAi * (Ue(2) + Um(2) + Ut(2));
 }
@@ -447,9 +438,9 @@ double DecayRates::nETAi()
 //M_Sterile > M_Omega 
 double DecayRates::nOMEGA()
 {
-	if (fnOMEGA < 0 || IsChanged())
+	if (fnOMEGA < 0)// || IsChanged())
 		fnOMEGA = IsAllowed(_nOMEGA) ? 
-			pow(Const::fDOmega * Const::fVOmega, 2) * NeutrinoVectorMeson(M_Neutrino, M_Omega) : 0;
+			pow(Const::fDOmega * Const::fVOmega, 2) * NeutrinoVectorMeson(M_Neutrino, M_Omega) : 0.0;
 
 	return fnOMEGA * (Ue(2) + Um(2) + Ut(2));
 }
@@ -457,9 +448,9 @@ double DecayRates::nOMEGA()
 //M_Sterile > M_Phi 
 double DecayRates::nPHI()
 {
-	if (fnPHI < 0 || IsChanged())
+	if (fnPHI < 0)// || IsChanged())
 		fnPHI = IsAllowed(_nPHI) ? 
-			pow(Const::fDPhi * Const::fVPhi, 2) * NeutrinoVectorMeson(M_Neutrino, M_Phi) : 0;
+			pow(Const::fDPhi * Const::fVPhi, 2) * NeutrinoVectorMeson(M_Neutrino, M_Phi) : 0.0;
 
 	return fnPHI * (Ue(2) + Um(2) + Ut(2));
 }
@@ -467,9 +458,9 @@ double DecayRates::nPHI()
 //M_Sterile > M_Charm + M_Electron
 double DecayRates::ECHARM()
 {
-	if (fECHARM < 0 || IsChanged())
+	if (fECHARM < 0)// || IsChanged())
 		fECHARM = IsAllowed(_ECHARM) ?
-			pow(Const::fU_cd * Const::fDCharm, 2) * LeptonPseudoMeson(M_Electron, M_Charm) : 0;
+			pow(Const::fU_cd * Const::fDCharm, 2) * LeptonPseudoMeson(M_Electron, M_Charm) : 0.0;
 
 	return fECHARM * Ue(2);
 }
