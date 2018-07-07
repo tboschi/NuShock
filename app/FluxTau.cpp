@@ -136,12 +136,12 @@ int main(int argc, char** argv)
 		double xf = Gen->Uniform(-1.0, 1.0);
 		if (Gen->Uniform(0, pow(10, maxF)) < pow(10, lDparam(xf, pt)))
 		{
+		std::cout << xf << "\t" << pt << "\t" << lDparam(xf, pt) << std::endl;
 			++iIter;
 			double px, py;
 			double pz = sqrts*xf*0.5;
 			Gen->Circle(px, py, pt);
 
-			TLorentzVector TT(0, 0, 5, 5);
 			TLorentzVector Ds_vec(px, py, pz, sqrt(pt*pt + pz*pz + pow(Const::fMDs, 2)));
 			Ds_vec.Boost(S.BoostVector());	//parent lab frame
 
