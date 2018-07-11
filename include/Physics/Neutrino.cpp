@@ -12,7 +12,7 @@ Neutrino::Neutrino(double Mass, unsigned int Options) //:
 	SetHelicity(Options);
 
 	fMixings = new double[3];
-	SetMixings(1.0, 1.0, 1.0);
+	SetMixings(0.0, 0.0, 0.0);
 
 	TheDecayRates = new DecayRates();	//to compute heavy neutrino decays
 	TheProduction = new Production();	//to compute massive neutrino production widths
@@ -20,7 +20,6 @@ Neutrino::Neutrino(double Mass, unsigned int Options) //:
 	ThePhaseSpace = new PhaseSpace();	//to generate phasespace for neutrino decays
 
 	//TheCross = new CrossSection();
-	TheProdLightN->SetNeutrino(0, Mixings(), 1, 1, 0);	//SM neutrino loaded
 }
 
 Neutrino::~Neutrino()
@@ -41,6 +40,22 @@ void Neutrino::SetParent(Amplitude *Object)
 //////////
 ///DECAY///
 //////////
+bool Neutrino::IsDecayAllowed()
+{
+	return IsDecayAllowed(DecayChannel());
+}
+
+bool Neutrino::IsDecayAllowed(std::string Name)
+{
+	return IsDecayAllowed(TheDecayRates->FindChannel(Name));
+}
+
+bool Neutrino::IsDecayAllowed(Amplitude::Channel Name)
+{
+	SetParent(TheDecayRates);
+	return TheDecayRates->IsAllowed(Name);
+}
+
 void Neutrino::DecayChannels(std::vector<std::string> &vChan)
 {
 	vChan = TheDecayRates->ListChannels();
@@ -87,6 +102,22 @@ double Neutrino::DecayBranch(Amplitude::Channel Name)
 ///PRODUCTION///
 ////////////////
 //
+bool Neutrino::IsProductionAllowed()
+{
+	return IsProductionAllowed(ProductionChannel());
+}
+
+bool Neutrino::IsProductionAllowed(std::string Name)
+{
+	return IsProductionAllowed(TheProduction->FindChannel(Name));
+}
+
+bool Neutrino::IsProductionAllowed(Amplitude::Channel Name)
+{
+	SetParent(TheProduction);
+	return TheProduction->IsAllowed(Name);
+}
+
 void Neutrino::ProductionChannels(std::vector<std::string> &vChan)
 {
 	vChan = TheProduction->ListChannels();
@@ -120,7 +151,10 @@ double Neutrino::ProductionScale(std::string Name)
 
 double Neutrino::ProductionScale(Amplitude::Channel Name)
 {
-	SetParent(TheProduction);
+	double mixone[3] = {1.0, 1.0, 1.0};
+	//SetParent(TheProduction);
+	TheProduction->SetNeutrino(Mass(), mixone, GetFermion(), GetParticle(), Helicity());
+	TheProdLightN->SetNeutrino(0, mixone, 1, 1, 0);	//SM neutrino loaded
 	return TheProduction->Gamma(Name)/(2*TheProdLightN->Gamma(Name));
 }
 

@@ -16,7 +16,7 @@
 namespace Inte
 {
 
-	const unsigned int Step = 50;
+	const unsigned int Step = 100;	//high number needed to almost correct integration
 
 	enum MinMax
 	{
@@ -150,7 +150,7 @@ namespace Inte
 		function_t FunCast = reinterpret_cast<function_t>(&Function<TempClass>);
 
 		int icount, ifault, numres;
-		int kcount = 1000, konvge = 10;
+		int kcount = Step, konvge = 10;
 		double reqmin = 1e-5;;
 		double *xmin = new double[n];
 		double *start = new double[n];	//starting simplex

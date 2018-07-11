@@ -40,6 +40,9 @@ class Neutrino : public Particle
 
 		void SetParent(Amplitude *Object);
 
+		bool IsDecayAllowed();
+		bool IsDecayAllowed(std::string Name);
+		bool IsDecayAllowed(Amplitude::Channel Name);
 		void DecayChannels(std::vector<std::string> &vChan);
 		double DecayTotal();
 		double DecayWidth();
@@ -49,6 +52,9 @@ class Neutrino : public Particle
 		double DecayBranch(std::string Name);
 		double DecayBranch(Amplitude::Channel name);
 
+		bool IsProductionAllowed();
+		bool IsProductionAllowed(std::string Name);
+		bool IsProductionAllowed(Amplitude::Channel Name);
 		void ProductionChannels(std::vector<std::string> &vChan);
 		double ProductionWidth();
 		double ProductionWidth(std::string Name);

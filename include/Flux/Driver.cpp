@@ -102,7 +102,7 @@ void Driver::CloneCopy(TH1D*& T, TObject* X)
 //
 bool Driver::MakeFlux(Neutrino * N)
 {
-	if (!IsChanged(N))	//compute only if particle is changed have changed 
+	if (!IsChanged(N))	//compute only if particle is changed
 	{
 		std::cerr << "WARNING: recopmuting flux with same neutrino. This should not be happening!" << std::endl;
 		return false;
@@ -235,9 +235,9 @@ double Driver::Intensity(Neutrino *N)	//Return flux intensity, given energy, sim
 	if (fxHeavyElectron)
 		Intensity += N->Ue(2) * InterpolateIntensity(fxHeavyElectron->Get(Flux::Total), Energy);
 	if (fxHeavyMuon)
-		Intensity += N->Ue(2) * InterpolateIntensity(fxHeavyMuon->Get(Flux::Total), Energy);
+		Intensity += N->Um(2) * InterpolateIntensity(fxHeavyMuon->Get(Flux::Total), Energy);
 	if (fxHeavyTau)
-		Intensity += N->Ue(2) * InterpolateIntensity(fxHeavyTau->Get(Flux::Total), Energy);
+		Intensity += N->Ut(2) * InterpolateIntensity(fxHeavyTau->Get(Flux::Total), Energy);
 
 	return Intensity;
 }
@@ -284,6 +284,13 @@ bool Driver::IsChanged(Neutrino *N)
 	bool Ret = (fabs(N->Mass() - Mass_prev) > 1e-9) ||
 	           (N->Helicity() != Helicity_prev) ||
 		   (N->IsParticle() != Particle_prev);
+
+	if (Ret)
+	{
+		Mass_prev = N->Mass();
+		Helicity_prev = N->Helicity();
+		Particle_prev = N->IsParticle();
+	}
 
 	return Ret;
 }

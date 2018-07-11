@@ -125,6 +125,25 @@ void Engine::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
 	}
 }
 
+double Engine::DecayNumber(Detector *Box, bool Eff)
+{
+	return DecayNumber(Box, Eff, FHC) + DecayNumber(Box, Eff, RHC);
+}
+
+double Engine::DecayNumber(Detector *Box, bool Eff, Current Horn)
+{
+	double Signal = 0;
+	for (unsigned int i = 0; i < vDriver(Horn); ++i)
+		Signal += DecayNumber(Box, Eff, Horn, i);
+	return Signal;
+}
+
+double Engine::DecayNumber(Detector *Box, bool Eff, Current Horn, unsigned int ID)
+{
+	//std::cout << "n " << Intensity(Horn, ID) << "\t" << Box->DecayProb(vNeutrino(Horn, ID)) << std::endl;
+	return (Eff ? Box->Efficiency(vNeutrino(Horn, ID)) : 1.0) * Intensity(Horn, ID) * Box->DecayProb(vNeutrino(Horn, ID));
+}
+
 void Engine::MakeFlux()
 {
 	MakeFlux(FHC);
@@ -145,6 +164,13 @@ void Engine::MakeFlux(Current Horn, unsigned int ID)
 double Engine::Intensity(Current Horn, unsigned int ID)
 {
 	return vDriver(Horn, ID)->Intensity(vNeutrino(Horn, ID));
+}
+
+void Engine::ScaleDetector(Detector *Box)
+{
+	ScaleBaseline(Box);
+	ScalePOT(Box);
+	ScaleArea(Box);
 }
 
 void Engine::ScaleBaseline(Detector *Box)

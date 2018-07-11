@@ -90,6 +90,11 @@ Detector::Material Detector::FindMaterial(std::string Name)
 		return Fe;
 }
 
+double Detector::Efficiency(Neutrino *Nu)
+{
+	return Efficiency(Nu->Energy(), Nu->Mass());
+}
+
 double Detector::Efficiency(double Energy, double Mass)
 {
 	if (hhFunc)
@@ -270,7 +275,6 @@ double Detector::DecayProb(Particle *P, double Total, double Branch)	//reaching 
 		double Length = Const::fM2GeV * Get("Baseline");
 		double Lambda = Const::fM2GeV * Zsize();
 		double Lorentz = P->Beta() * P->Gamma();
-			//sqrt(pow(TheN->Energy()/TheN->Mass(), 2) - 1.0);	//betagamma, to invert
 
 		return exp(- Total * Length / Lorentz) * (1 - exp(- Total * Lambda / Lorentz)) * Branch;
 	}

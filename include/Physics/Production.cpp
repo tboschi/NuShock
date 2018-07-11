@@ -2,6 +2,7 @@
 
 Production::Production()
 {
+	Channel_prev = _undefined;
 	Reset();
 }
 
@@ -18,6 +19,11 @@ Amplitude::Channel Production::FindChannel(std::string Name)
 	}
 
 	return _undefined;
+}
+
+std::string Production::FindChannel(Amplitude::Channel Name)
+{
+	return chMap[Name];
 }
 
 std::vector<std::string> Production::ListChannels()
@@ -219,8 +225,7 @@ double Production::TauPI()
 
 double Production::PionE()
 {
-
-	if (fPionE < 0)// || IsChanged())
+	if (fPionE < 0 || IsChanged())
 		fPionE = IsAllowed(_PionE) ? 
 			pow(Const::fU_ud * Const::fDPion, 2) * MesonTwoDecay(M_Pion, M_Electron) : 0.0;
 

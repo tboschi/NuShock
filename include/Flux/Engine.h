@@ -48,8 +48,13 @@ class Engine
 		void MakeSampler(Detector *Box, Current Horn);
 		void MakeSampler(Detector *Box, Current Horn, unsigned int ID);
 
+		double DecayNumber(Detector *Box, bool Eff);
+		double DecayNumber(Detector *Box, bool Eff, Current Horn);
+		double DecayNumber(Detector *Box, bool Eff, Current Horn, unsigned int ID);
+
 		double Intensity(Current Horn, unsigned int ID);
 
+		void ScaleDetector(Detector *Box);
 		void ScaleBaseline(Detector *Box);
 		void ScalePOT(Detector *Box);
 		void ScaleArea(Detector *Box);

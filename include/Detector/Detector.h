@@ -57,6 +57,7 @@ class Detector
 		Detector::Material GetMaterial(std::string Key);
 		Detector::Material FindMaterial(std::string Key);
 
+		double Efficiency(Neutrino *Nu);
 		double Efficiency(double Energy, double Mass);
 		void SetEfficiency(std::string Channel, Coupling U);
 

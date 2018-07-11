@@ -56,32 +56,25 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Neutrino *N_up = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
-	Neutrino *N_do = new Neutrino(0, Neutrino::Dirac | Neutrino::Right);
+	Neutrino *N_L = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
+	Neutrino *N_R = new Neutrino(0, Neutrino::Dirac | Neutrino::Right);
+	N_L->SetMixings(1, 1, 1);
+	N_R->SetMixings(1, 1, 1);
 
 	//Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
-	for (double t = 0.0; t < 1.0; t += 0.001)
+	for (double t = 0.0; t < 2.0; t += 0.001)
 	{
-		N_up->SetMass(t);
-		N_do->SetMass(t);
+		N_L->SetMass(t);
+		N_R->SetMass(t);
 		Out << t << "\t";
-		Out << N_up->ProductionScale("KaonM") << "\t";
-		Out << N_do->ProductionScale("KaonM") << "\t";
-		Out << N_up->ProductionScale("MuonE") << "\t";
-		Out << N_do->ProductionScale("MuonE") << "\t";
-		Out << N_up->ProductionScale("KaonCM") << "\t";
-		Out << N_do->ProductionScale("KaonCM") << "\t";
+		Out << N_L->ProductionScale("CharmE") << "\t";
+		Out << N_R->ProductionScale("CharmE") << "\t";
+		Out << N_L->ProductionScale("CharmM") << "\t";
+		Out << N_R->ProductionScale("CharmM") << "\t";
+		Out << N_L->ProductionScale("CharmT") << "\t";
+		Out << N_R->ProductionScale("CharmT") << "\t";
 		Out << std::endl;
 	}
-		//Out << Kine::ShrockFactor(Pion, Elec, t) << "\t";
-		//Out << Kine::ShrockFactor(Kaon, Elec, t) << "\t";
-		//Out << Kine::ShrockFactor(Charm, Elec, t) << "\t";
-		//Out << Kine::ShrockFactor(Pion, Muon, t) << "\t";
-		//Out << Kine::ShrockFactor(Kaon, Muon, t) << "\t";
-		//Out << Kine::ShrockFactor(Charm, Muon, t) << "\t";
-		//Out << std::endl;
-	//Create object from classes
-	//e.g.	Decay * SuperGamma = new Decay(M_Sterile, U_e, U_m, U_t);
 
 	//Main body
 

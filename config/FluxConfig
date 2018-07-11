@@ -1,13 +1,12 @@
 #Flux configuration file
 #Define a file for each type of neutrino
 #
-#Electron_	data/NuE_charm.root
-Electron_	data/NuE_C.root
 #Electron_	data/NuE_0.root
 #ElectronBar_	data/NuE_0.root
 #Muon_		data/NuMu_charm.root
-Muon_		data/NuMu_C.root
 #Muon_		data/NuMu_0.root
 MuonBar_	data/NuBar_0.root
-Tau_		data/NuTau_DUNE_large.root
-#TauBar_	
+Electron_	electest.root
+Muon_		muontest.root
+Tau_		tautest.root
+TauBar_		tautestBar.root

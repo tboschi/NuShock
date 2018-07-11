@@ -29,8 +29,8 @@ int main(int argc, char** argv)
 {
 	const struct option longopts[] = 
 	{
-		{"", 	required_argument, 	0, 'b'},
-		{"confidence", 	required_argument, 	0, 'C'},
+		{"nue", 	required_argument, 	0, 'e'},
+		{"numu", 	required_argument, 	0, 'u'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
 	};
@@ -40,13 +40,13 @@ int main(int argc, char** argv)
 	opterr = 1;
 
 	//std::string sProb, sTarg("H"), OutName;
-	std::string OutName, DetConfig;
+	std::string OutName, DetConfig, NuEFile, NuMuFile;
 	std::ofstream OutFile;
 	double BeamE = 800;	//DONUT
 	unsigned int nMAX = 1e5;
 	double NuMass = 0.0;	//neutrino mass
 
-	while((iarg = getopt_long(argc,argv, "r:s:m:E:t:o:I:d:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "r:s:m:E:t:o:I:d:e:u:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -68,6 +68,12 @@ int main(int argc, char** argv)
 			case 'd':
 				DetConfig.assign(optarg);
 				break;
+			case 'e':
+				NuEFile.assign(optarg);
+				break;
+			case 'u':
+				NuMuFile.assign(optarg);
+				break;
 			case 'h':
 				Usage(argv[0]);
 				return 1;
@@ -88,7 +94,9 @@ int main(int argc, char** argv)
 	TH1D * hTotalB = new TH1D("htotal2", "total",  100, 0, 20);
 
 	//neutrino
-	TH1D * hCharm = new TH1D("hcharm", "charm",  100, 0, 20);
+	TH1D * hCharmE = new TH1D("hcharme", "charm",  100, 0, 20);
+	TH1D * hCharmM = new TH1D("hcharmm", "charm",  100, 0, 20);
+	TH1D * hCharmT = new TH1D("hcharm", "charm",  100, 0, 20);
 
 	//antineutrino
 	TH1D * hTauE  = new TH1D("htaue",  "taue",   100, 0, 20);
@@ -97,7 +105,9 @@ int main(int argc, char** argv)
 	TH1D * h2Pion = new TH1D("h2pion", "2 pion", 100, 0, 20);
 
 	hTotal_->SetDirectory(0);
-	hCharm->SetDirectory(FileOut_);
+	hCharmT->SetDirectory(FileOut_);
+	hCharmE->SetDirectory(0);
+	hCharmM->SetDirectory(0);
 
 	hTotalB->SetDirectory(0);
 	hTauE->SetDirectory(FileOutB);
@@ -144,16 +154,41 @@ int main(int argc, char** argv)
 			TLorentzVector Ds_vec(px, py, pz, sqrt(pt*pt + pz*pz + pow(Const::fMDs, 2)));
 			Ds_vec.Boost(S.BoostVector());	//parent lab frame
 
-			vProductDs = Nu_->ProductionPS(Amplitude::_CharmT, Ds_vec);
+			//Ds decay into electrons
+			if (!NuEFile.empty())
+			{
+				vProductDs = Nu_->ProductionPS(Amplitude::_CharmE, Ds_vec);
+				if (vProductDs.at(0)->Theta() < Th0)
+					hCharmE->Fill(vProductDs.at(0)->Energy(), SF * 8.3e-5);
 
+				for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+					delete *iP;
+				vProductDs.clear();
+			}
+
+			//Ds decay into muons
+			if (!NuMuFile.empty())
+			{
+				vProductDs = Nu_->ProductionPS(Amplitude::_CharmM, Ds_vec);
+				if (vProductDs.at(0)->Theta() < Th0)
+					hCharmM->Fill(vProductDs.at(0)->Energy(), SF * 5.5e-3);
+
+				for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+					delete *iP;
+				vProductDs.clear();
+			}
+
+			//Ds decay into taus
+			vProductDs = Nu_->ProductionPS(Amplitude::_CharmT, Ds_vec);
 			if(!vProductDs.size())
 				continue;
 			else
 				++sIter;
 
 			if (vProductDs.at(0)->Theta() < Th0)	//neutrino
-				hCharm->Fill(vProductDs.at(0)->Energy(), SF);
+				hCharmT->Fill(vProductDs.at(0)->Energy(), SF * 0.0548);
 
+			//tau decay from Ds
 			TLorentzVector Tau_vec(vProductDs.at(1)->FourVector());
 			for (unsigned int i = 0; i < 4; ++i)
 			{
@@ -165,22 +200,22 @@ int main(int argc, char** argv)
 					case 0:
 						Name = Amplitude::_TauET;
 						hFill = hTauE;
-						Br = SF * 0.1785;	//tau->e (17.85 %)
+						Br = SF * 0.0548 * 0.1785;	//tau->e (17.85 %)
 						break;
 					case 1:
 						Name = Amplitude::_TauMT;
 						hFill = hTauM;
-						Br = SF * 0.1736;	//tau->mu (17.36 %)
+						Br = SF * 0.0548 * 0.1736;	//tau->mu (17.36 %)
 						break;
 					case 2:
 						Name = Amplitude::_TauPI;
 						hFill = hPion;
-                                                Br = SF * 0.1082;	//tau->pi (10.82 %)
+                                                Br = SF * 0.0548 * 0.1082;	//tau->pi (10.82 %)
 						break;
 					case 3:
 						Name = Amplitude::_Tau2PI;
 						hFill = h2Pion;
-                                                Br = SF * 0.2551;	//tau->2pi (25.62 %)
+                                                Br = SF * 0.0548 * 0.2551;	//tau->2pi (25.62 %)
 						break;			//Phase space only!!
 					default:
 						break;
@@ -203,8 +238,8 @@ int main(int argc, char** argv)
 
 			if (sIter % 10000 == 0)	//saving
 			{
-				FileOut_->Write();
-				FileOutB->Write();
+				FileOut_->Write("", TObject::kOverwrite);
+				FileOutB->Write("", TObject::kOverwrite);
 			}
 		}
 
@@ -219,7 +254,7 @@ int main(int argc, char** argv)
 	//hPion->Scale(1.0);
 	//h2Pion->Scale(1.0);
 
-	hTotal_->Add(hCharm);
+	hTotal_->Add(hCharmT);
 
 	hTotalB->Add(hTauE);
 	hTotalB->Add(hTauM);
@@ -251,6 +286,26 @@ int main(int argc, char** argv)
 
 	FileOut_->Close();
 	FileOutB->Close();
+
+	if (!NuEFile.empty())
+	{
+		FileOut_ = new TFile(NuEFile.c_str(), "UPDATE");
+		hTotal_ = dynamic_cast<TH1D*>(FileOut_->Get("htotal"));
+		hTotal_->Add(hCharmE);
+		hTotal_->Write("", TObject::kOverwrite);
+		hCharmE->Write("hcharm", TObject::kOverwrite);
+		FileOut_->Close();
+	}
+
+	if (!NuEFile.empty())
+	{
+		FileOut_ = new TFile(NuMuFile.c_str(), "UPDATE");
+		hTotal_ = dynamic_cast<TH1D*>(FileOut_->Get("htotal"));
+		hTotal_->Add(hCharmE);
+		hTotal_->Write("", TObject::kOverwrite);
+		hCharmM->Write("hcharm", TObject::kOverwrite);
+		FileOut_->Close();
+	}
 
 	return 0;
 }

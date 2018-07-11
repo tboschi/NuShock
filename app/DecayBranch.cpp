@@ -22,10 +22,11 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	std::ofstream OutFile;
-	
-//Initialize variables
-	
-	while((iarg = getopt_long(argc,argv, "o:h", longopts, &index)) != -1)	
+	bool UeFlag = false, 
+	     UmFlag = false, 
+	     UtFlag = false;
+
+	while((iarg = getopt_long(argc,argv, "o:EMTh", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
@@ -36,6 +37,15 @@ int main(int argc, char** argv)
 					std::cout << "Wrong input!" << std::endl;
 					return 1;
 				}
+				break;
+			case 'E':
+				UeFlag = true;
+				break;
+			case 'M':
+				UmFlag = true;
+				break;
+			case 'T':
+				UtFlag = true;
 				break;
 			case 'h':
 				std::cout << "Compute Shrock factors" << std::endl;
@@ -56,27 +66,30 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Neutrino *N_up = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
-	Neutrino *N_do = new Neutrino(0, Neutrino::Dirac | Neutrino::Right);
+	Neutrino *Nu = new Neutrino(0, Neutrino::Dirac | Neutrino::Unpolarised );
 
 	std::vector<std::string> vCh;
-	N_up->DecayChannels(vCh);
+	Nu->DecayChannels(vCh);
+	if (UeFlag)
+		Nu->SetMixings(1, Nu->Um(), Nu->Ut());
+	if (UmFlag)
+		Nu->SetMixings(Nu->Ue(), 1, Nu->Ut());
+	if (UtFlag)
+		Nu->SetMixings(Nu->Ue(), Nu->Um(), 1);
 
 	Out << "#Mass\t";
 	for (unsigned int j = 0; j < vCh.size(); ++j)
-			Out << vCh.at(j) << "_u\t" << vCh.at(j) << "_d\t";
+			Out << vCh.at(j) << "\t";
 	Out << std::endl;
 
-	for (double t = 0.0; t < 2.0; t += 0.001)
+	for (double t = 0.0; t < 0.5; t += 0.001)
 	{
-		N_up->SetMass(t);
-		N_do->SetMass(t);
+		Nu->SetMass(t);
+		std::cout << "mass " << t << std::endl;
+
 		Out << t << "\t";
 		for (unsigned int j = 0; j < vCh.size(); ++j)
-		{
-			Out << N_up->DecayBranch(vCh.at(j)) << "\t";
-			Out << N_do->DecayBranch(vCh.at(j)) << "\t";
-		}
+			Out << Nu->DecayBranch(vCh.at(j)) << "\t";
 		Out << std::endl;
 	}
 

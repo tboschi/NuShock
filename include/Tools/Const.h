@@ -26,6 +26,8 @@ namespace Const
 	static const double fPi = 3.1415926536;		//pi
 	static const double fPi2 = fPi*fPi;		//pi
 	static const double fPi3 = fPi2*fPi;		//pi
+	static const double fPi4 = fPi3*fPi;		//pi
+	static const double fPi5 = fPi4*fPi;		//pi
 	static const double fDeg = 180.0/fPi;		//Rad to Deg
 
 	//CKM entries

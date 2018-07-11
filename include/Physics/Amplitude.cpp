@@ -428,8 +428,7 @@ double Amplitude::SqrtKallen(double X, double Y, double Z)
 //	ds = -2M dE
 double Amplitude::dGammad5_3B(double M2)
 {
-	//return M2 / (512 * Const::fPi3 * Const::fPi2 * GetMass());
-	return M2 * Mass() / (512 * Const::fPi3 * Const::fPi2);	//integration over dsigma dtau
+	return M2 * Mass() / (2048 * Const::fPi5);	//integration over dsigma dtau
 }
 
 //	after integrating angular depend., to be integrated over ds, dt
@@ -477,20 +476,20 @@ double Amplitude::Limit(double &s, double &t, double x, double y, double z)
 //Generic amplitudes//
 //////////////////////
 
-//					lepton		meson	angle
+//					      angle lep    lepton    meson	
 double Amplitude::M2_LeptonPseudoMeson(double cos0, double x, double y)
 {
 	return Const::fGF2 * Mass(4) * 
 		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y) * cos0);
 }
 
-//					neutrino	meson	angle
+//						angle lep    lepton    meson	
 double Amplitude::M2_NeutrinoPseudoMeson(double cos0, double x, double y)
 {
 	return M2_LeptonPseudoMeson(x, y, cos0) / 2.0;
 }
 
-//					lepton		meson	angle
+//					lepton		meson	
 double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)	//must be divided by vector meson mass
 {
 	return Const::fGF2 * Mass(4) * 
@@ -504,7 +503,7 @@ double Amplitude::M2_NeutrinoVectorMeson(double cos0, double x, double y)
 }
 
 //			lepton energy is s = (p0-p2)² and cos0s the angle wrt z-axis
-//			       neutrino, letpon,   lepton
+//					       neutrino, letpon,   lepton
 double Amplitude::M2_WW(double s, double cos0, double x, double y, double z)	//gL^2 + gR^2
 {
 	return 16 * Const::fGF2 * Mass(4) *

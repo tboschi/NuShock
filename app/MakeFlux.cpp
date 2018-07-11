@@ -67,6 +67,8 @@ int main(int argc, char** argv)
 	//neutrino right has same flux as antineutrino left
 	Neutrino *N_L = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
 	Neutrino *N_R = new Neutrino(0, Neutrino::Dirac | Neutrino::Right);
+	N_L->SetMixings(1, 1, 1);
+	N_R->SetMixings(1, 1, 1);
 	
 	TheEngine->BindNeutrino(N_L, Engine::FHC, 0);
 	TheEngine->BindNeutrino(N_R, Engine::FHC, 1);
@@ -76,7 +78,7 @@ int main(int argc, char** argv)
 
 	std::stringstream ssL;
 	double Mass;
-	for (double Mass = 0.0; Mass < 2.0; Mass += 0.001)
+	for (double Mass = 0.0; Mass < 2.0; Mass += 0.05)
 	{
 		N_L->SetMass(Mass);
 		N_R->SetMass(Mass);
