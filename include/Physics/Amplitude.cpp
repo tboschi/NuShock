@@ -616,7 +616,10 @@ bool Amplitude::IsChanged()
 
 	//Reset decay widths if changed
 	if (Ret)
+	{
+	std::cout << "change nu" << std::endl;
 		Reset();
+	}
 
 	return Ret;
 }

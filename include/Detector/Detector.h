@@ -46,7 +46,10 @@ class Detector
 			GasseousArgon = GasAr,
 
 			Fe,
-			Iron = Fe
+			Iron = Fe,
+
+			Pb,
+			Lead = Pb,
 		};
 
 		Detector(std::string ConfigFile);
@@ -61,19 +64,39 @@ class Detector
 		double Efficiency(double Energy, double Mass);
 		void SetEfficiency(std::string Channel, Coupling U);
 
+		double XsizeLAr();
+		double XstartLAr();
+		double XendLAr();
+		double YsizeLAr();
+		double YstartLAr();
+		double YendLAr();
+		double ZsizeLAr();
+		double ZstartLAr();
+		double ZendLAr();
+
+		double XsizeFGT();
+		double XstartFGT();
+		double XendFGT();
+		double YsizeFGT();
+		double YstartFGT();
+		double YendFGT();
+		double ZsizeFGT();
+		double ZstartFGT();
+		double ZendFGT();
+
 		double Xsize();
-		double Xstart();
-		double Xend();
 		double Ysize();
-		double Ystart();
-		double Yend();
 		double Zsize();
 		double Zstart();
 		double Zend();
-		double Zback();
 
+		double AreaLAr();
+		double AreaFGT();
+		double Area();
+
+		bool IsInsideLAr(Particle *P);
+		bool IsInsideFGT(Particle *P);
 		bool IsInside(Particle *P);
-		bool IsContained(Particle *P);
 
 		double DecayProb(Neutrino *N);
 		double DecayProb(Particle *N, double Total, double Branch);

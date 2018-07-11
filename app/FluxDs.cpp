@@ -84,8 +84,8 @@ int main(int argc, char** argv)
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	std::string Out_ = OutName + ".root";
-	std::string OutB = OutName + "Bar.root";
+	std::string Out_ = OutName + "_0.root";
+	std::string OutB = OutName + "_B.root";
 
 	TFile *FileOut_ = new TFile(Out_.c_str(), "RECREATE");
 	TFile *FileOutB = new TFile(OutB.c_str(), "RECREATE");

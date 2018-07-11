@@ -24,9 +24,18 @@ void Tracker::TrackReconstruct(Particle *&P)
 
 void Tracker::TrackVertex(Particle *&P)
 {
-	double X = GenMT->Uniform(Xstart(), Xend());
-	double Y = GenMT->Uniform(Ystart(), Yend());
+	double X, Y;
 	double Z = GenMT->Uniform(Zstart(), Zend());
+	if (Z > ZstartLAr() && Z < ZendLAr())
+	{
+		X = GenMT->Uniform(XstartLAr(), XendLAr());
+		Y = GenMT->Uniform(YstartLAr(), YendLAr());
+	}
+	else if (Z > ZstartFGT() && Z < ZendFGT())
+	{
+		X = GenMT->Uniform(XstartFGT(), XendFGT());
+		Y = GenMT->Uniform(YstartFGT(), YendFGT());
+	}
 
 	P->SetPosition(X, Y, Z);
 }
@@ -146,14 +155,12 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 			
 			while (IsDetectable(P) && !IsDecayed(P, dStep))		//this should quit when particle decays too!
 			{
-				int InOut;
+				bool InOut;
 				double dx = GenMT->Gaus(dStep, Get("Vertex"));
 				double dE = dx * EnergyLoss(P, InOut);	//inside material
 
-				if (InOut > 0)
-					LengthIn += dx;			//even b2b det?
-				else if (InOut == 0)
-					LengthBack += dx;			//even b2b det?
+				if (InOut)
+					LengthIn += dx;
 				else
 					LengthOut += dx;
 
@@ -163,7 +170,7 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 			}
 
 			P->SetTrackIn(LengthIn);
-			P->SetTrackBack(LengthBack);
+			//P->SetTrackBack(LengthBack);
 			P->SetTrackOut(LengthOut);
 			P->SetEnergy(iE);		//reset to original energy
 			P->SetPosition(Start);		//reset to original position
@@ -179,17 +186,15 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 
 				while (IsDetectable(P) && !IsDecayed(P, dStep) && Cover < Length)	//this should quit when particle decays too!
 				{
-					int InOut;
+					bool InOut;
 					double dx = GenMT->Gaus(dStep, Get("Vertex"));
 					double dE = dx * EnergyLoss(P, InOut);	//inside material
 					Cover += dx;
 
-					if (InOut > 0)
-						LengthIn   += dx;			//even b2b det?
-					if (InOut == 0)
-						LengthBack += dx;			//even b2b det?
+					if (InOut)
+						LengthIn += dx;
 					else
-						LengthOut  += dx;
+						LengthOut += dx;
 
 					Pos += Step*dx;		//move by dx
 					P->SetEnergy(P->Energy() - dE);
@@ -209,7 +214,7 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 			else P->SetShower(false);
 
 			P->SetTrackIn(LengthIn);
-			P->SetTrackBack(LengthBack);
+			//P->SetTrackBack(LengthBack);
 			P->SetTrackOut(LengthOut);
 			P->SetEnergy(iE);			//reset to original energy
 			P->SetPosition(Start);		//reset to original position
@@ -235,6 +240,8 @@ double Tracker::CriticalEnergy()	//assuming same for positron and electron
 			return 0.03803;	//GeV
 		case Fe:
 			return 0.02168;	//GeV
+		case Pb:
+			return 0.00743;	//GeV
 		default:
 			return 0;
 	}
@@ -245,45 +252,49 @@ double Tracker::RadiationLength(bool Nuclear)
 	if (!Nuclear)
 		switch (GetMaterial("InTarget"))
 		{
-			case 1:
+			case LAr:
 				return 19.55/1.3945 / 100;
-			case 2:
+			case GasAr:
 				return 19.55/0.1020 / 100;
-			case 3:
+			case Fe:
 				return 13.84/7.874 / 100;
+			case Pb:
+				return 6.37 /11.34 / 100;
 			default:
 				return 0;
 		}
 	else
 		switch (GetMaterial("InTarget"))
 		{
-			case 1:
+			case LAr:
 				return 119.7/1.3945 / 100;
-			case 2:
+			case GasAr:
 				return 119.7/0.1020 / 100;
-			case 3:
+			case Fe:
 				return 132.1/7.874 / 100;
+			case Pb:
+				return 199.6/11.34 / 100;
 			default:
 				return 0;
 		}
 }
 
-double Tracker::EnergyLoss(Particle *P, int &Contained)
+double Tracker::EnergyLoss(Particle *P, bool &Contained)
 {
-	if (IsInside(P))
+	if (IsInsideLAr(P))
 	{
-		Contained = 1;
-		return BetheLoss(P, GetMaterial("InTarget"));
+		Contained = true;
+		return BetheLoss(P, GetMaterial("TargetLAr"));
 	}
-	else if (IsContained(P) && GetMaterial("BackTarget") != 0)
+	else if (IsInsideFGT(P))
 	{
-		Contained = 0;
-		return BetheLoss(P, GetMaterial("BackTarget"));
+		Contained = true;
+		return BetheLoss(P, GetMaterial("TargetFGT"));
 	}
 	else
 	{
-		Contained = -1;
-		return BetheLoss(P, GetMaterial("OutTarget"));
+		Contained = false;
+		return BetheLoss(P, GetMaterial("TargetOut"));
 	}
 }
 
@@ -297,6 +308,8 @@ double Tracker::BetheLoss(Particle *P, Material Target)
 			return Bethe(P, 0.1020, 188.0, 18, 40);
 		case Fe:
 			return Bethe(P, 7.874, 286.0, 26, 56);
+		case Pb:
+			return Bethe(P, 11.34, 823.0, 82, 207);
 		default:
 			0;
 	}
@@ -386,7 +399,7 @@ void Tracker::Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB)
 
 void Tracker::Focus(Particle *P)
 {
-	double Radius = sqrt(pow(Get("Width"), 2) + pow(Get("Height"), 2));
+	double Radius = sqrt(pow(Xsize(), 2) + pow(Ysize(), 2));
 	double SigmaT = atan2(Radius, Get("Baseline"));					//3sigma will be inside the detector (better distribution needed)
 
 	P->SetTheta( abs(GenMT->Gaus(0, SigmaT)) );	

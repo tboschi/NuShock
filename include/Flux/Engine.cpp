@@ -146,7 +146,9 @@ double Engine::DecayNumber(Detector *Box, bool Eff, Current Horn, unsigned int I
 
 void Engine::MakeFlux()
 {
+	std::cout << "fhc hang" << std::endl;
 	MakeFlux(FHC);
+	std::cout << "rhc hang" << std::endl;
 	MakeFlux(RHC);
 }
 
@@ -168,8 +170,11 @@ double Engine::Intensity(Current Horn, unsigned int ID)
 
 void Engine::ScaleDetector(Detector *Box)
 {
+	std::cout << "scalehang0" << std::endl;
 	ScaleBaseline(Box);
+	std::cout << "scalehang1" << std::endl;
 	ScalePOT(Box);
+	std::cout << "scalehang2" << std::endl;
 	ScaleArea(Box);
 }
 
@@ -185,7 +190,7 @@ void Engine::ScalePOT(Detector *Box)
 
 void Engine::ScaleArea(Detector *Box)
 {
-	ScaleArea(Box->Get("Height") * Box->Get("Width") * 1.0e4);
+	ScaleArea(Box->Area() * 1.0e4);
 }
 
 void Engine::ScaleBaseline(double Baseline)

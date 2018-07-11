@@ -37,7 +37,7 @@ class Tracker : public Detector
 		double GammaDecay();
 		double CriticalEnergy();
 		double RadiationLength(bool Nuclear = false);
-		double EnergyLoss(Particle *P, int &Contained);
+		double EnergyLoss(Particle *P, bool &Contained);
 		double BetheLoss(Particle *P, Material Target);
 		double Bethe(Particle *P, double Density, double I, int Z, int A);
 

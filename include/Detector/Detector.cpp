@@ -186,78 +186,168 @@ double Detector::Efficiency(std::string Channel, double Energy)
 
 //detector effect and smearing
 
+double Detector::XsizeLAr()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return Get("WidthLAr") * (F > 0.0 ?  F : 1.0);
+}
+
+double Detector::XstartLAr()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return - 0.5 * Get("WidthLAr") * (F > 0.0 ? F : 1.0);
+}
+
+double Detector::XendLAr()
+{
+	return XsizeLAr() + XstartLAr();
+}
+
+double Detector::YsizeLAr()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return Get("HeightLAr") * (F > 0.0 ? F : 1.0);
+}
+
+double Detector::YstartLAr()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return - 0.5 * Get("HeightLAr") * (F > 0.0 ? F : 1.0);
+}
+
+double Detector::YendLAr()
+{
+	return YsizeLAr() + YstartLAr();
+}
+
+double Detector::ZsizeLAr()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return Get("LengthLAr") * (F > 0.0 ? F : 1.0);
+}
+
+double Detector::ZstartLAr()
+{
+	double F = (1 - pow(Get("Fiducial"), 1.0/3.0)) / 2.0;
+	return F > 0.0 ? F * Get("LengthFGT") : 0.0;
+}
+
+double Detector::ZendLAr()
+{
+	return ZsizeLAr() + ZstartLAr();
+}
+
+double Detector::XsizeFGT()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return Get("WidthFGT") * (F > 0.0 ?  F : 1.0);
+}
+
+double Detector::XstartFGT()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return - 0.5 * Get("WidthFGT") * (F > 0.0 ? F : 1.0);
+}
+
+double Detector::XendFGT()
+{
+	return XsizeFGT() + XstartFGT();
+}
+
+double Detector::YsizeFGT()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return Get("HeightFGT") * (F > 0.0 ? F : 1.0);
+}
+
+double Detector::YstartFGT()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return - 0.5 * Get("HeightFGT") * (F > 0.0 ? F : 1.0);
+}
+
+double Detector::YendFGT()
+{
+	return YsizeFGT() + YstartFGT();
+}
+
+double Detector::ZsizeFGT()
+{
+	double F = pow(Get("Fiducial"), 1.0/3.0);
+	return Get("LengthFGT") * (F > 0.0 ? F : 1.0);
+}
+
+double Detector::ZstartFGT()
+{
+	double F = (1 - pow(Get("Fiducial"), 1.0/3.0)) / 2.0;
+	return ZstartLAr() + (F > 0.0 ? F * Get("LengthFGT") : 0.0);
+}
+
+double Detector::ZendFGT()
+{
+	return ZsizeFGT() + ZstartFGT();
+}
+
 double Detector::Xsize()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
-	return Get("Width") * (F > 0.0 ?  F : 1.0);
-}
-
-double Detector::Xstart()
-{
-	double F = pow(Get("Fiducial"), 1.0/3.0);
-	return - 0.5 * Get("Width") * (F > 0.0 ? F : 1.0);
-}
-
-double Detector::Xend()
-{
-	return Xsize() + Xstart();
+	return std::max(XsizeLAr(), XsizeFGT());
 }
 
 double Detector::Ysize()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
-	return Get("Height") * (F > 0.0 ? F : 1.0);
-}
-
-double Detector::Ystart()
-{
-	double F = pow(Get("Fiducial"), 1.0/3.0);
-	return - 0.5 * Get("Height") * (F > 0.0 ? F : 1.0);
-}
-
-double Detector::Yend()
-{
-	return Ysize() + Ystart();
-}
-
-double Detector::Zsize()
-{
-	double F = pow(Get("Fiducial"), 1.0/3.0);
-	return Get("Length") * (F > 0.0 ? F : 1.0);
+	return std::max(YsizeLAr(), YsizeFGT());
 }
 
 double Detector::Zstart()
 {
-	double F = (1 - pow(Get("Fiducial"), 1.0/3.0)) / 2.0;
-	return F > 0.0 ? F * Get("Length") : 0.0;
+	return ZstartLAr();
 }
 
 double Detector::Zend()
 {
-	return Zsize() + Zstart();
+	return ZendFGT();
 }
 
-double Detector::Zback()
+double Detector::Zsize()
 {
-	return Zstart() + (Get("BackLength") ? Get("BackLength") : 2 * Zsize());
+	return ZsizeLAr() + ZsizeFGT();
 }
 
-bool Detector::IsContained(Particle *P)
+double Detector::AreaLAr()
 {
-	if (P->X() > Xstart() && P->X() < Xend() &&
-	    P->Y() > Ystart() && P->Y() < Yend() &&
-	    P->Z() > Zstart() && P->Z() < Zback())
-		return true;
-	else
-		return false;
+	return XsizeLAr() * YsizeLAr();
+}
+
+double Detector::AreaFGT()
+{
+	return XsizeFGT() * YsizeFGT();
+}
+
+double Detector::Area()
+{
+	return std::max(AreaLAr(), AreaFGT());
 }
 
 bool Detector::IsInside(Particle *P)
 {
-	if (IsContained(P) && P->Z() < Zend())
-		return true;
-	else
-		return false;
+	if (P->Z() > ZstartLAr() && P->Z() < ZendLAr())
+		return IsInsideLAr(P);
+	else if (P->Z() > ZstartFGT() && P->Z() < ZendFGT())
+		return IsInsideFGT(P);
+}
+
+bool Detector::IsInsideLAr(Particle *P)
+{
+	return (P->Z() > ZstartLAr() && P->Z() < ZendLAr() &&
+		P->Y() > YstartLAr() && P->Y() < YendLAr() &&
+		P->X() > XstartLAr() && P->X() < XendLAr());
+}
+
+bool Detector::IsInsideFGT(Particle *P)
+{
+	return (P->Z() > ZstartFGT() && P->Z() < ZendFGT() &&
+		P->Y() > YstartFGT() && P->Y() < YendFGT() &&
+		P->X() > XstartFGT() && P->X() < XendFGT());
 }
 
 //special, neutrino class required
