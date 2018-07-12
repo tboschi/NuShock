@@ -73,19 +73,19 @@ double Engine::SampleEnergy(Current Horn, unsigned int ID, bool Set)
 		return -1.0;
 }
 
-void Engine::MakeSampler(Detector *Box)
+void Engine::MakeSampler(Detector *Box, bool Eff)
 {
-	MakeSampler(Box, FHC);
-	MakeSampler(Box, RHC);
+	MakeSampler(Box, Eff, FHC);
+	MakeSampler(Box, Eff, RHC);
 }
 
-void Engine::MakeSampler(Detector *Box, Current Horn)
+void Engine::MakeSampler(Detector *Box, bool Eff, Current Horn)
 {
 	for (unsigned int i = 0; i < vDriver(Horn); ++i)
-		MakeSampler(Box, Horn, i);
+		MakeSampler(Box, Eff, Horn, i);
 }
 
-void Engine::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
+void Engine::MakeSampler(Detector *Box, bool Eff, Current Horn, unsigned int ID)
 {
 	std::stringstream ssName;
 	ssName << "sample_";
@@ -109,7 +109,7 @@ void Engine::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
 	{
 		vNeutrino(Horn, ID)->SetEnergy(Energy);
 
-		Weight = EnStep * Intensity(Horn, ID) * Box->DecayProb(vNeutrino(Horn, ID));
+		Weight = EnStep * DecayNumber(Box, Eff, Horn, ID);
 		hSampleNu->Fill(Energy + EnStep, Weight);
 	}
 
@@ -123,6 +123,22 @@ void Engine::MakeSampler(Detector *Box, Current Horn, unsigned int ID)
 			vSampleNuRHC.at(ID) = hSampleNu;
 			break;
 	}
+}
+
+double Engine::DecayNumberIntegrated(Detector *Box, bool Eff)
+{
+	MakeSampler(Box, Eff);
+	return DecayNumberIntegrated(Box, Eff, FHC) + 
+	       DecayNumberIntegrated(Box, Eff, RHC);
+}
+
+double Engine::DecayNumberIntegrated(Detector *Box, bool Eff, Current Horn)
+{
+	double Events = 0;
+	for (unsigned int i = 0; i < vDriver(Horn); ++i)
+	       Events += vSampleNu(Horn, i)->Integral("WIDTH");
+
+	return Events;
 }
 
 double Engine::DecayNumber(Detector *Box, bool Eff)
@@ -146,9 +162,7 @@ double Engine::DecayNumber(Detector *Box, bool Eff, Current Horn, unsigned int I
 
 void Engine::MakeFlux()
 {
-	std::cout << "fhc hang" << std::endl;
 	MakeFlux(FHC);
-	std::cout << "rhc hang" << std::endl;
 	MakeFlux(RHC);
 }
 
