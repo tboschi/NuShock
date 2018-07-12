@@ -162,9 +162,7 @@ int main(int argc, char** argv)
 		if (!TheNu_->IsDecayAllowed() && !TheNuB->IsDecayAllowed())
 			continue;
 
-		std::cout << "hang Make flux" << std::endl;
 		TheEngine->MakeFlux();
-		std::cout << "hang scale" << std::endl;
 		TheEngine->ScaleDetector(TheBox);
 
 		bool SetGrid = false;
@@ -176,7 +174,6 @@ int main(int argc, char** argv)
 		unsigned int g = 0;
 		double Start, End;
 		double EnStep = TheEngine->RangeWidth(Start, End);
-		std::cout << "energy loop" << std::endl;
 		for (double Energy = Start; Energy < End; Energy += EnStep)
 		{
 			std::vector<double> vlU2(nD, lU2Start);

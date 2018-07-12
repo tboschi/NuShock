@@ -9,6 +9,8 @@
 #include "Detector.h"
 #include "Physics.h"
 
+#include "Analysis.h"
+
 #include "TH2D.h"
 #include "TFile.h"
 
@@ -17,7 +19,6 @@ int main(int argc, char** argv)
 {
 	const struct option longopts[] = 
 	{
-		{"smconfig", 	required_argument, 	0, 's'},
 		{"detconfig", 	required_argument,	0, 'd'},
 		{"fluxconfig", 	required_argument,	0, 'f'},
 		{"channel", 	required_argument,	0, 'c'},
@@ -40,9 +41,9 @@ int main(int argc, char** argv)
 	bool UeFlag = false, UmFlag = false, UtFlag = false;
 	bool Left = false, Right = false;	//default unpolarised
 	bool Efficiency = false;
-	double Threshold = 2.44;
+	double Thr = 2.44;
 	
-	while((iarg = getopt_long(argc,argv, "d:f:c:o:WEMTLRh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "d:f:c:o:WEMTLRt:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -79,7 +80,7 @@ int main(int argc, char** argv)
 				Right = true;
 				break;
 			case 't':
-				Threshold = std::strtod(optarg, NULL);
+				Thr  = std::strtod(optarg, NULL);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -146,25 +147,7 @@ int main(int argc, char** argv)
 	double Mass;
 	std::cout << "Scanning over " << nD << " dimensions" << std::endl;
 
-	std::vector<double> vSignal;	//summing over energy, array of Uus
-	std::vector<std::vector<double> > vGridlU2;
-
-	double lU2_A = -12.0;
-	double lU2_B = - 6.0;
-	double lU2_C = - 6.0;
-	double lU2_D =   0.0;
-	double lU2Step = (lU2End - lU2Start) / Grid;
-	double Ue, Um, Ut;
-	bool UeSet, UmSet, UtSet;
-
-	std::vector<double> vlU2_A(nD), vlU2_B(nD), vlU2_C(nD), vlU2_D(nD);
-	for (unsigned int i = 0; i < nD; ++i)
-	{
-		vlU2_A.at(i) = lU2_A;
-		vlU2_B.at(i) = lU2_B;
-		vlU2_C.at(i) = lU2_C;
-		vlU2_D.at(i) = lU2_D;
-	}	
+	Exclusion *Solver = new Exclusion(TheEngine, TheBox, Efficiency, vFlag, Thr);
 
 	for (double logMass = -2.0; logMass < 0.3; logMass += 2.3/Grid)	//increase mass log
 	{
@@ -174,117 +157,28 @@ int main(int argc, char** argv)
 		TheNu_->SetMass(Mass);
 		TheNuB->SetMass(Mass);
 
-		if (!TheNu_->IsDecayAllowed() && !TheNuB->IsDecayAllowed())
-			continue;
-
-		TheEngine->MakeFlux();
-		TheEngine->ScaleDetector(TheBox);
-
-		bool SetGrid = false;
-		vGridlU2.clear();
-
-		vSignal.clear();
-		vSignal.resize(pow(Grid, nD));	//number of Uus probing
-
-		unsigned int g = 0;
-
-		double A = 0, B = 0.5, C = 0.5, D = 1;
-		while (A-B > 1e-6 && C-D > 1e-6)
+		if (TheNu_->IsDecayAllowed() &&
+		    TheNuB->IsDecayAllowed() &&
+		    TheNu_->IsProductionAllowed() &&
+		    TheNuB->IsProductionAllowed())
 		{
-			SetMix(TheNu, TheNuB, vFlag, vlU2_A);
-			A = TheEngine->DecayNumberIntegrated(TheBox, Efficiency) - Thr;
 
-			SetMix(TheNu, TheNuB, vFlag, vlU2_B);
-			B = TheEngine->DecayNumberIntegrated(TheBox, Efficiency) - Thr;
+			TheEngine->MakeFlux();
+			TheEngine->ScaleDetector(TheBox);
 
-			SetMix(TheNu, TheNuB, vFlag, vlU2_C);
-			C = TheEngine->DecayNumberIntegrated(TheBox, Efficiency) - Thr;
+			double lU2Bot = -12.0;
+			double lU2Top = - 0.0;
+			double lU2Mid;
 
-			SetMix(TheNu, TheNuB, vFlag, vlU2_D);
-			D = TheEngine->DecayNumberIntegrated(TheBox, Efficiency) - Thr;
-
-			if (A * B < 0)		//bot is in between here
+			if (Solver->FindInterval(lU2Bot, lU2Mid, lU2Top))
 			{
-				std::vector<double> vlU2_M(nD);
-				for (unsigned int i = 0; i < nD; ++i)
-					vlU2_M.at(i) = (vlU2_A.at(i) + vlU2_B.at(i)) / 2.0;
-				SetMix(TheNu, TheNuB, vFlag, vlU2_M);
-				M = TheEngine->DecayNumberIntegrated(TheBox, Efficiency) - Thr;
+				lU2Bot = Solver->Bisect(lU2Bot, lU2Mid);
+				lU2Top = Solver->Bisect(lU2Mid, lU2Top);
+
+				Out << Mass << "\t" << pow(10, lU2Bot) << "\t" << pow(10, lU2Top) << std::endl;
 			}
-		}
-
-		for (double Energy = Start; Energy < End; Energy += EnStep)
-		{
-			std::vector<double> vlU2(nD, lU2Start);
-			TheNu_->SetEnergy(Energy);
-			TheNuB->SetEnergy(Energy);
-
-			bool Iter = true;
-			unsigned int g = 0;
-			while (Iter)
-			{
-				UeSet = UmSet = UtSet = false;
-				for (unsigned int i = 0; i < nD; ++i)
-				{
-					double Uu = pow(10.0, 0.5 * vlU2.at(i));
-
-					if (UeFlag && !UeSet)
-					{
-						TheNu_->SetMixings(Uu, TheNu_->Um(), TheNu_->Ut());
-						TheNuB->SetMixings(Uu, TheNuB->Um(), TheNuB->Ut());
-						UeSet = true;
-					}
-					else if (UmFlag && !UmSet)
-					{
-						TheNu_->SetMixings(TheNu_->Ue(), Uu, TheNu_->Ut());
-						TheNuB->SetMixings(TheNuB->Ue(), Uu, TheNuB->Ut());
-						UmSet = true;
-					}
-					else if (UtFlag && !UtSet)
-					{
-						TheNu_->SetMixings(TheNu_->Ue(), TheNu_->Um(), Uu);
-						TheNuB->SetMixings(TheNuB->Ue(), TheNuB->Um(), Uu);
-						UtSet = true;
-					}
-				}
-
-				if (vGridlU2.size() < vSignal.size())
-					vGridlU2.push_back(vlU2);
-
-				vSignal.at(g++) += EnStep * TheEngine->DecayNumber(TheBox, Efficiency);
-
-				///carry operations
-				vlU2.at(0) += lU2Step;
-				unsigned int c = 0;
-				while (Iter && vlU2.at(c) >= lU2End - lU2Step)
-				{
-					vlU2.at(c)    = 0;
-					vlU2.at(c++) += lU2Step;
-
-					if (c < nD)
-						Iter = true;
-					else
-						Iter = false;
-				}
-			}
-		}
-	
-		for (unsigned int g = 0; g < vSignal.size(); ++g)
-		{
-			Out << Mass << "\t";
-			for (unsigned int u = 0; u < nD; ++u)
-			{
-				double Uu2 = pow(10.0, vGridlU2.at(g).at(u));
-				Out << Uu2 << "\t";
-			}
-			Out << vSignal.at(g) << std::endl;
 		}
 	}
-
-	//OutFile->cd();
-	//logCont->Write();
-	//Contour->Write();
-	//OutFile->Close();
 
 	return 0;
 }
@@ -308,28 +202,4 @@ void Usage(char* argv0)
 	std::cout << "\t\tSelect which mixing element" << std::endl;
 	std::cout <<"\n  -h,  --help" << std::endl;
 	std::cout << "\t\tPrint this message and exit" << std::endl;
-}
-
-void SetMix(Neutrino *Nu_, Neutrino *NuB, const &std::map<char, double> mlU2)
-{
-	std::map<char, double>::const_iterator iu;
-	for (iu = mlU2.begin(); iu != mlU2.end(); ++iu)
-	{
-		double uu = pow(10, 0.5 * iu->second)
-		if (iu->first == 'E')
-		{
-			TheNu_->SetMixings(uu, TheNu_->Um(), TheNu_->Ut());
-			TheNuB->SetMixings(uu, TheNuB->Um(), TheNuB->Ut());
-		}
-		else if (iu->first == 'M')
-		{
-			TheNu_->SetMixings(TheNu_->Ue(), uu, TheNu_->Ut());
-			TheNuB->SetMixings(TheNuB->Ue(), uu, TheNuB->Ut());
-		}
-		else if (iu->first == 'T')
-		{
-			TheNu_->SetMixings(TheNu_->Ue(), TheNu_->Um(), uu);
-			TheNuB->SetMixings(TheNuB->Ue(), TheNuB->Um(), uu);
-		}
-	}
 }

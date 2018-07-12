@@ -22,7 +22,7 @@ class Production : public Amplitude
 
 		Amplitude::Channel FindChannel(std::string Name);
 		std::string FindChannel(Amplitude::Channel Name);
-		std::vector<std::string> ListChannels();
+		std::vector<Amplitude::Channel> ListChannels();
 
 		bool IsAllowed(Channel Name);
 		double Gamma(Channel Name);

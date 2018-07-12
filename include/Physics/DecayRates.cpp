@@ -19,12 +19,17 @@ Amplitude::Channel DecayRates::FindChannel(std::string Name)
 	return _undefined;
 }
 
-std::vector<std::string> DecayRates::ListChannels()
+std::string DecayRates::FindChannel(Amplitude::Channel Name)
+{
+	return chMap[Name];
+}
+
+std::vector<Amplitude::Channel> DecayRates::ListChannels()
 {
 	if (chMap.size() == 0)
 		LoadMap();
 
-	std::vector<std::string> vName;
+	std::vector<Amplitude::Channel> vName;
 
 	std::map<Amplitude::Channel, std::string>::iterator itS = chMap.begin();
 	std::map<Amplitude::Channel, std::string>::iterator itE = chMap.begin();
@@ -33,7 +38,7 @@ std::vector<std::string> DecayRates::ListChannels()
 	std::advance(itE, 29);
 
 	for (it = itS ; it != itE; ++it)
-		vName.push_back(it->second);
+		vName.push_back(it->first);
 
 	return vName;
 }

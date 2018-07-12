@@ -20,6 +20,8 @@ Neutrino::Neutrino(double Mass, unsigned int Options) //:
 	ThePhaseSpace = new PhaseSpace();	//to generate phasespace for neutrino decays
 
 	//TheCross = new CrossSection();
+	chDecay	     = Amplitude::_undefined;
+	chProduction = Amplitude::_undefined;
 }
 
 Neutrino::~Neutrino()
@@ -42,7 +44,17 @@ void Neutrino::SetParent(Amplitude *Object)
 //////////
 bool Neutrino::IsDecayAllowed()
 {
-	return IsDecayAllowed(DecayChannel());
+	if (DecayChannel() == Amplitude::_undefined)
+	{
+		std::vector<Amplitude::Channel> vChan = TheDecayRates->ListChannels();
+		bool Ret = false;
+		for (unsigned int ch = 0; ch < vChan.size(); ++ch)
+			Ret += IsDecayAllowed(vChan.at(ch));
+
+		return Ret;
+	}
+	else
+		return IsDecayAllowed(DecayChannel());
 }
 
 bool Neutrino::IsDecayAllowed(std::string Name)
@@ -58,7 +70,10 @@ bool Neutrino::IsDecayAllowed(Amplitude::Channel Name)
 
 void Neutrino::DecayChannels(std::vector<std::string> &vChan)
 {
-	vChan = TheDecayRates->ListChannels();
+	vChan.clear();
+	std::vector<Amplitude::Channel> vAmpChan = TheDecayRates->ListChannels();
+	for (unsigned int ch = 0; ch < vAmpChan.size(); ++ch)
+		vChan.push_back(TheDecayRates->FindChannel(vAmpChan.at(ch)));
 }
 
 double Neutrino::DecayTotal()
@@ -104,7 +119,17 @@ double Neutrino::DecayBranch(Amplitude::Channel Name)
 //
 bool Neutrino::IsProductionAllowed()
 {
-	return IsProductionAllowed(ProductionChannel());
+	if (ProductionChannel() == Amplitude::_undefined)
+	{
+		std::vector<Amplitude::Channel> vChan = TheProduction->ListChannels();
+		bool Ret = false;
+		for (unsigned int ch = 0; ch < vChan.size(); ++ch)
+			Ret += IsProductionAllowed(vChan.at(ch));
+
+		return Ret;
+	}
+	else
+		return IsProductionAllowed(ProductionChannel());
 }
 
 bool Neutrino::IsProductionAllowed(std::string Name)
@@ -120,7 +145,10 @@ bool Neutrino::IsProductionAllowed(Amplitude::Channel Name)
 
 void Neutrino::ProductionChannels(std::vector<std::string> &vChan)
 {
-	vChan = TheProduction->ListChannels();
+	vChan.clear();
+	std::vector<Amplitude::Channel> vAmpChan = TheProduction->ListChannels();
+	for (unsigned int ch = 0; ch < vAmpChan.size(); ++ch)
+		vChan.push_back(TheProduction->FindChannel(vAmpChan.at(ch)));
 }
 
 double Neutrino::ProductionWidth()

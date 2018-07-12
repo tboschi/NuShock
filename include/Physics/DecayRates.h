@@ -20,7 +20,8 @@ class DecayRates : public Amplitude
 		DecayRates();
 
 		Amplitude::Channel FindChannel(std::string Name);
-		std::vector<std::string> ListChannels();
+		std::string FindChannel(Amplitude::Channel Name);
+		std::vector<Amplitude::Channel> ListChannels();
 
 		bool IsAllowed(Channel Name);
 		double Gamma(Channel Name);

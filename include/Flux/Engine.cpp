@@ -73,20 +73,25 @@ double Engine::SampleEnergy(Current Horn, unsigned int ID, bool Set)
 		return -1.0;
 }
 
-void Engine::MakeSampler(Detector *Box, bool Eff)
+double Engine::MakeSampler(Detector *Box, bool Eff)
 {
-	MakeSampler(Box, Eff, FHC);
-	MakeSampler(Box, Eff, RHC);
+	return MakeSampler(Box, Eff, FHC) +
+	       MakeSampler(Box, Eff, RHC);
 }
 
-void Engine::MakeSampler(Detector *Box, bool Eff, Current Horn)
+double Engine::MakeSampler(Detector *Box, bool Eff, Current Horn)
 {
+	double Integral = 0;
 	for (unsigned int i = 0; i < vDriver(Horn); ++i)
-		MakeSampler(Box, Eff, Horn, i);
+		Integral += MakeSampler(Box, Eff, Horn, i);
+
+	return Integral;
 }
 
-void Engine::MakeSampler(Detector *Box, bool Eff, Current Horn, unsigned int ID)
+double Engine::MakeSampler(Detector *Box, bool Eff, Current Horn, unsigned int ID)
 {
+	delete vSampleNu(Horn, ID);
+
 	std::stringstream ssName;
 	ssName << "sample_";
 	switch (Horn)
@@ -104,16 +109,17 @@ void Engine::MakeSampler(Detector *Box, bool Eff, Current Horn, unsigned int ID)
 	double EnStep = RangeWidth(Start, End);
 	TH1D *hSampleNu = new TH1D(ssName.str().c_str(), "Neutrinos in detector", BinNumber(), Start, End);
 
-	double Weight;
+	double Weight, Integral = 0;
 	for (double Energy = Start; Energy < End; Energy += EnStep)
 	{
 		vNeutrino(Horn, ID)->SetEnergy(Energy);
 
-		Weight = EnStep * DecayNumber(Box, Eff, Horn, ID);
+		Weight = DecayNumber(Box, Eff, Horn, ID);
 		hSampleNu->Fill(Energy + EnStep, Weight);
+
+		Integral += EnStep * Weight;
 	}
 
-	delete vSampleNu(Horn, ID);
 	switch (Horn)
 	{
 		case FHC:
@@ -123,16 +129,19 @@ void Engine::MakeSampler(Detector *Box, bool Eff, Current Horn, unsigned int ID)
 			vSampleNuRHC.at(ID) = hSampleNu;
 			break;
 	}
+
+	return Integral;
 }
 
 double Engine::DecayNumberIntegrated(Detector *Box, bool Eff)
 {
-	MakeSampler(Box, Eff);
-	return DecayNumberIntegrated(Box, Eff, FHC) + 
-	       DecayNumberIntegrated(Box, Eff, RHC);
+	return MakeSampler(Box, Eff);	//this is needed
+;
+	//return DecayNumberIntegrated(Box, FHC) + 
+	       //DecayNumberIntegrated(Box, RHC);
 }
 
-double Engine::DecayNumberIntegrated(Detector *Box, bool Eff, Current Horn)
+double Engine::DecayNumberIntegrated(Detector *Box, Current Horn)
 {
 	double Events = 0;
 	for (unsigned int i = 0; i < vDriver(Horn); ++i)
@@ -184,11 +193,8 @@ double Engine::Intensity(Current Horn, unsigned int ID)
 
 void Engine::ScaleDetector(Detector *Box)
 {
-	std::cout << "scalehang0" << std::endl;
 	ScaleBaseline(Box);
-	std::cout << "scalehang1" << std::endl;
 	ScalePOT(Box);
-	std::cout << "scalehang2" << std::endl;
 	ScaleArea(Box);
 }
 

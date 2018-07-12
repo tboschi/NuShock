@@ -44,9 +44,12 @@ class Engine
 		std::vector<double> SampleEnergy(Current Horn, bool Set);
 		double SampleEnergy(Current Horn, unsigned int ID, bool Set);
 
-		void MakeSampler(Detector *Box);
-		void MakeSampler(Detector *Box, Current Horn);
-		void MakeSampler(Detector *Box, Current Horn, unsigned int ID);
+		double MakeSampler(Detector *Box, bool Eff);
+		double MakeSampler(Detector *Box, bool Eff, Current Horn);
+		double MakeSampler(Detector *Box, bool Eff, Current Horn, unsigned int ID);
+
+		double DecayNumberIntegrated(Detector *Box, bool Eff);
+		double DecayNumberIntegrated(Detector *Box, Current Horn);
 
 		double DecayNumber(Detector *Box, bool Eff);
 		double DecayNumber(Detector *Box, bool Eff, Current Horn);

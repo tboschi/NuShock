@@ -26,16 +26,17 @@ std::string Production::FindChannel(Amplitude::Channel Name)
 	return chMap[Name];
 }
 
-std::vector<std::string> Production::ListChannels()
+//std::vector<std::string> Production::ListChannels()
+std::vector<Amplitude::Channel> Production::ListChannels()
 {
 	if (chMap.size() == 0)
 		LoadMap();
 
-	std::vector<std::string> vName;
+	std::vector<Amplitude::Channel> vName;
 
 	std::map<Amplitude::Channel, std::string>::iterator it = chMap.begin();
 	for (std::advance(it, 29); it != chMap.end(); ++it)
-		vName.push_back(it->second);
+		vName.push_back(it->first);
 
 	return vName;
 }

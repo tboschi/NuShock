@@ -18,7 +18,9 @@ LDLIBS   := -lcuba
 CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
 #apps and exctuables
-CPP =	DecayBranch	\
+CPP =	Exclusion	\
+	FastExclusion		
+	#DecayBranch	\
 	Exclusion	\
 	MakeFlux	\
 	FluxDs		\
@@ -44,6 +46,7 @@ HPP =	Tools/Const		\
 	Flux/Flux		\
 	Flux/Driver		\
 	Flux/Engine		\
+	Analysis/Exclusion	\
 	#Event/EventGenerator	\
 
 #main target
