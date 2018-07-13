@@ -364,7 +364,6 @@ double Detector::DecayProb(Particle *P, double Total, double Branch)	//reaching 
 	{
 		double Length = Const::fM2GeV * Get("Baseline");
 		double Lambda = Const::fM2GeV * Zsize();
-		std::cout << "z " << Zsize() << std::endl;
 		double Lorentz = P->Beta() * P->Gamma();
 
 		return exp(- Total * Length / Lorentz) * (1 - exp(- Total * Lambda / Lorentz)) * Branch;

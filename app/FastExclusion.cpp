@@ -39,11 +39,13 @@ int main(int argc, char** argv)
 	//TFile *OutFile;
 	std::string Channel = "ALL";
 	bool UeFlag = false, UmFlag = false, UtFlag = false;
-	bool Left = false, Right = false;	//default unpolarised
 	bool Efficiency = false;
 	double Thr = 2.44;
 	
-	while((iarg = getopt_long(argc,argv, "d:f:c:o:WEMTLRt:h", longopts, &index)) != -1)
+	bool Left = false, Right = false;		//default unpolarised
+	bool Particle = false, Antipart = false;	//default majorana
+
+	while((iarg = getopt_long(argc,argv, "d:f:c:o:t:WEMTLRAPh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -58,6 +60,9 @@ int main(int argc, char** argv)
 				break;
 			case 'o':
 				OutFile.open(optarg);
+				break;
+			case 't':
+				Thr  = std::strtod(optarg, NULL);
 				break;
 			case 'W':
 				Efficiency = true;
@@ -79,8 +84,13 @@ int main(int argc, char** argv)
 				Left = false;
 				Right = true;
 				break;
-			case 't':
-				Thr  = std::strtod(optarg, NULL);
+			case 'P':
+				Particle = true;
+				Antipart = false;
+				break;
+			case 'A':
+				Particle = false;
+				Antipart = true;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -92,7 +102,28 @@ int main(int argc, char** argv)
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Neutrino *TheNu_, *TheNuB;
+	//Neutrino *TheNu_, *TheNuB;
+	
+	Neutrino *TheNu;
+	unsigned int OptHel, OptFerm;
+
+	if (Left)
+		OptHel = Neutrino::Left;
+	else if (Right)
+		OptHel = Neutrino::Right;
+	else
+		OptHel = Neutrino::Unpolarised;
+
+	if (Particle)
+		OptFerm = Neutrino::Dirac;
+	else if (Antipart)
+		OptFerm = Neutrino::Dirac | Neutrino::Antiparticle;
+	else
+		OptFerm = Neutrino::Majorana;
+
+	TheNu = new Neutrino(0, OptHel | OptFerm);
+
+	/*
 	if (Left)
 	{
 		TheNu_ = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
@@ -108,8 +139,10 @@ int main(int argc, char** argv)
 		TheNu_ = new Neutrino(0, Neutrino::Dirac | Neutrino::Unpolarised );
 		TheNuB = new Neutrino(0, Neutrino::Dirac | Neutrino::Unpolarised | Neutrino::Antiparticle);
 	}
-	TheNu_->SetDecayChannel(Channel);
-	TheNuB->SetDecayChannel(Channel);
+	*/
+	//TheNu_->SetDecayChannel(Channel);
+	//TheNuB->SetDecayChannel(Channel);
+	TheNu->SetDecayChannel(Channel);
 
 	Detector *TheBox = new Detector(DetConfig);
 
@@ -139,8 +172,10 @@ int main(int argc, char** argv)
 	Out << "Events" << std::endl;
 
 	Engine *TheEngine = new Engine(FluxConfig, 1, 1);	//creating 1FHC and 1RHC fluxedrivers
-	TheEngine->BindNeutrino(TheNu_, Engine::FHC, 0);
-	TheEngine->BindNeutrino(TheNuB, Engine::RHC, 0);
+	//TheEngine->BindNeutrino(TheNu_, Engine::FHC, 0);
+	//TheEngine->BindNeutrino(TheNuB, Engine::RHC, 0);
+	TheEngine->BindNeutrino(TheNu, Engine::FHC, 0);		//left neutrino
+	TheEngine->BindNeutrino(TheNu, Engine::RHC, 0);		//is a right antineutrino
 
 	unsigned int Grid = 250;
 	unsigned int nD = vFlag.size();	//number of dimensions
@@ -154,13 +189,16 @@ int main(int argc, char** argv)
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
 
-		TheNu_->SetMass(Mass);
-		TheNuB->SetMass(Mass);
+		//TheNu_->SetMass(Mass);
+		//TheNuB->SetMass(Mass);
+		TheNu->SetMass(Mass);
 
-		if (TheNu_->IsDecayAllowed() &&
-		    TheNuB->IsDecayAllowed() &&
-		    TheNu_->IsProductionAllowed() &&
-		    TheNuB->IsProductionAllowed())
+		//if (TheNu_->IsDecayAllowed() &&
+		//    TheNuB->IsDecayAllowed() &&
+		//    TheNu_->IsProductionAllowed() &&
+		//    TheNuB->IsProductionAllowed())
+		if (TheNu->IsDecayAllowed() &&
+		    TheNu->IsProductionAllowed())
 		{
 
 			TheEngine->MakeFlux();

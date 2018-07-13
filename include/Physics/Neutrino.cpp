@@ -94,7 +94,7 @@ double Neutrino::DecayWidth(std::string Name)
 double Neutrino::DecayWidth(Amplitude::Channel Name)
 {
 	SetParent(TheDecayRates);
-	return TheDecayRates->Gamma(Name);
+	return (IsMajorana() ? 2.0 : 1.0) * TheDecayRates->Gamma(Name);
 }
 
 double Neutrino::DecayBranch()
