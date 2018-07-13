@@ -1,7 +1,10 @@
 #include "Analysis/Exclusion.h"
 
-Exclusion::Exclusion(Engine* TE, Detector *TB, bool Efficiency, std::vector<char> &vF, double Threshold) :
+Exclusion::Exclusion(Engine* TE, Engine::Current HornType, 
+		     Detector *TB, bool Efficiency, 
+		     std::vector<char> &vF, double Threshold) :
 	TheEngine(TE),
+	Horn(HornType),
 	TheBox(TB),
 	Eff(Efficiency),
 	vFlag(vF),
@@ -90,9 +93,20 @@ void Exclusion::Split(std::list<double> &ll)
 
 double Exclusion::Function(double lu2)
 {
-	//std::cout << "calling function" << std::endl;
 	SetMix(lu2);
-	return TheEngine->MakeSampler(TheBox, Eff) - Thr;
+
+	switch (Horn)
+	{
+		case Engine::FHC:
+			return TheEngine->MakeSampler(TheBox, Eff, Engine::FHC) - Thr;
+		case Engine::RHC:
+			return TheEngine->MakeSampler(TheBox, Eff, Engine::RHC) - Thr;
+		case Engine::Both:
+			return TheEngine->MakeSampler(TheBox, Eff, Engine::FHC) +
+			       TheEngine->MakeSampler(TheBox, Eff, Engine::RHC) - Thr;
+		default:
+			return 0.0;
+	}
 }
 
 void Exclusion::SetMix(double lu2)

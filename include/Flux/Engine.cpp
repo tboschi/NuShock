@@ -165,7 +165,7 @@ double Engine::DecayNumber(Detector *Box, bool Eff, Current Horn)
 
 double Engine::DecayNumber(Detector *Box, bool Eff, Current Horn, unsigned int ID)
 {
-	//std::cout << "n " << Intensity(Horn, ID) << "\t" << Box->DecayProb(vNeutrino(Horn, ID)) << std::endl;
+	//std::cout << vNeutrino(Horn, ID)->Ue() << "\t" << Intensity(Horn, ID) << "\t" << Box->DecayProb(vNeutrino(Horn, ID)) << std::endl;
 	return (Eff ? Box->Efficiency(vNeutrino(Horn, ID)) : 1.0) * Intensity(Horn, ID) * Box->DecayProb(vNeutrino(Horn, ID));
 }
 

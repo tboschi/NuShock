@@ -25,7 +25,7 @@ class Production : public Amplitude
 		std::vector<Amplitude::Channel> ListChannels();
 
 		bool IsAllowed(Channel Name);
-		double Gamma(Channel Name);
+		double Gamma(Channel Name, bool Unitary = false);
 		double Scale(Channel Name);
 
 		double Total();

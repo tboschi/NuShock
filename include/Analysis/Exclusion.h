@@ -18,7 +18,9 @@
 class Exclusion
 {
 	public:
-		Exclusion(Engine* TE, Detector *TB, bool Efficiency, std::vector<char> &vF, double Threshold);
+		Exclusion(Engine* TE, Engine::Current HornType,
+			  Detector *TB, bool Efficiency, 
+			  std::vector<char> &vF, double Threshold);
 		~Exclusion();
 		double Bisect(double S, double E);
 		bool FindInterval(double S, double &M, double E);
@@ -29,6 +31,7 @@ class Exclusion
 
 	private:
 		Engine *TheEngine;
+		Engine::Current Horn;
 		Detector *TheBox;
 		bool Eff;
 		std::vector<char> vFlag;

@@ -72,85 +72,85 @@ double DecayRates::Gamma(Channel Name)
 		case _ALL:
 			Result = Total();
 			break;
-		case _nnn:			//
+		case _nnn:
 			Result = nnn();
 			break;
-		case _nGAMMA:			//
+		case _nGAMMA:
 			Result = nGAMMA();
 			break;
-		case _nEE:			//
+		case _nEE:
 			Result = nEE();
 			break;
-		case _nEM:			//
+		case _nEM:
 			Result = nEM();
 			break;
-		case _nME:			//
+		case _nME:
 			Result = nME();
 			break;
-		case _nMM:			//
+		case _nMM:
 			Result = nMM();
 			break;
-		case _nET:			//
+		case _nET:
 			Result = nET();
 			break;
-		case _nTE:			//
+		case _nTE:
 			Result = nTE();
 			break;
-		case _nMT:			//
+		case _nMT:
 			Result = nMT();
 			break;
-		case _nTM:			//
+		case _nTM:
 			Result = nTM();
 			break;
-		case _nPI0:			//
+		case _nPI0:
 			Result = nPI0();
 			break;
-		case _EPI:			//
+		case _EPI:
 			Result = EPI();
 			break;
-		case _MPI:			//
+		case _MPI:
 			Result = MPI();
 			break;
-		case _TPI:			//
+		case _TPI:
 			Result = TPI();
 			break;
-		case _EKA:			//
+		case _EKA:
 			Result = EKA();
 			break;
-		case _MKA:			//
+		case _MKA:
 			Result = MKA();
 			break;
-		case _EKAx:			//
+		case _EKAx:
 			Result = EKAx();
 			break;
-		case _MKAx:			//
+		case _MKAx:
 			Result = MKAx();
 			break;
-		case _nRHO0:			//
+		case _nRHO0:
 			Result = nRHO0();
 			break;
-		case _ERHO:			//
+		case _ERHO:
 			Result = ERHO();
 			break;
-		case _MRHO:			//
+		case _MRHO:
 			Result = MRHO();
 			break;
-		case _nETA:			//
+		case _nETA:
 			Result = nETA();
 			break;
-		case _nETAi:			//
+		case _nETAi:
 			Result = nETAi();
 			break;
-		case _nOMEGA:			//
+		case _nOMEGA:
 			Result = nOMEGA();
 			break;	
-		case _nPHI:			//
+		case _nPHI:
 			Result = nPHI();
 			break;
-		case _ECHARM:			//
+		case _ECHARM:
 			Result = ECHARM();
 			break;
-		case _ExpALL:			//
+		case _ExpALL:
 			Result = ExpALL();
 			break;
 		default:
@@ -159,7 +159,7 @@ double DecayRates::Gamma(Channel Name)
 			break;
 	}
 
-	return Result;
+	return (1.0 + !GetFermion()) * Result;	//!fermion is majorana, Gamma is twice as much
 }
 
 //Return Gamma_tot - Gamma of interest

@@ -39,6 +39,7 @@ class Neutrino : public Particle
 		~Neutrino();
 
 		void SetParent(Amplitude *Object);
+		void SetUnitary(Amplitude *Object);
 
 		bool IsDecayAllowed();
 		bool IsDecayAllowed(std::string Name);
@@ -76,6 +77,7 @@ class Neutrino : public Particle
 		std::string ProductionChannelName();
 
 		//void SetMass(double Mass = 0.0);
+		void SetMixings(double *Mixings);
 		void SetMixings(double Ue, double Um, double Ut);
 		//void SetEnergy(double Energy);
 		//void SetEnergyKin(double Energy);

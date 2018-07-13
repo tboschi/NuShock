@@ -56,9 +56,17 @@ bool Production::IsAllowed(Channel Name)
 	return (Limit >= MassN());
 }
 
-double Production::Gamma(Channel Name)
+double Production::Gamma(Channel Name, bool Unitary)
 {
 	double Result = 0.0;
+
+	double Mix[3] = {Ue(), Um(), Ut()};
+	if (Unitary)
+	{
+		SetUe(1.0);
+		SetUm(1.0);
+		SetUt(1.0);
+	}
 
 	IsChanged();
 	switch(Name)
@@ -124,6 +132,13 @@ double Production::Gamma(Channel Name)
 			std::cerr << ShowChannel(Name) << ": channel unknown" << std::endl;
 			Result = 0.0;
 			break;
+	}
+
+	if (Unitary)
+	{
+		SetUe(Mix[0]);
+		SetUm(Mix[1]);
+		SetUt(Mix[2]);
 	}
 
 	return Result;

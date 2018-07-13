@@ -19,6 +19,9 @@ Neutrino::Neutrino(double Mass, unsigned int Options) //:
 	TheProdLightN = new Production();	//to compute massless neutrino production widths
 	ThePhaseSpace = new PhaseSpace();	//to generate phasespace for neutrino decays
 
+	double MixOne[3] = {1.0, 1.0, 1.0};
+	TheProdLightN->SetNeutrino(0, MixOne, 1, 1, 0);	//SM neutrino loaded
+
 	//TheCross = new CrossSection();
 	chDecay	     = Amplitude::_undefined;
 	chProduction = Amplitude::_undefined;
@@ -179,11 +182,9 @@ double Neutrino::ProductionScale(std::string Name)
 
 double Neutrino::ProductionScale(Amplitude::Channel Name)
 {
-	double mixone[3] = {1.0, 1.0, 1.0};
-	//SetParent(TheProduction);
-	TheProduction->SetNeutrino(Mass(), mixone, GetFermion(), GetParticle(), Helicity());
-	TheProdLightN->SetNeutrino(0, mixone, 1, 1, 0);	//SM neutrino loaded
-	return TheProduction->Gamma(Name)/(2*TheProdLightN->Gamma(Name));
+	SetParent(TheProduction);
+	return TheProduction->Gamma(Name, true) / TheProdLightN->Gamma(Name) /
+		(Helicity() ? 2.0 : 1.0);
 }
 
 std::vector<Particle*> Neutrino::DecayPS()	//neutrino is labframe

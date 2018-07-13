@@ -103,25 +103,10 @@ int main(int argc, char** argv)
 	Detector *TheBox = new Detector(DetConfig);
 	std::vector<char> vFlag;
 
-	Neutrino *TheNu;
+	Neutrino *TheNu0, *TheNuB;
 	unsigned int OptHel, OptFerm;
 
-	if (Particle)
-	{
-		OptFerm = Neutrino::Dirac;
-		FileName += "_P";
-	}
-	else if (Antipart)
-	{
-		OptFerm = Neutrino::Dirac | Neutrino::Antiparticle;
-		FileName += "_A";
-	}
-	else
-	{
-		OptFerm = Neutrino::Majorana;
-		FileName += "_M";
-	}
-
+	FileName += "_B";
 	if (Left)
 	{
 		OptHel = Neutrino::Left;
@@ -168,35 +153,34 @@ int main(int argc, char** argv)
 	std::ofstream Out(FileName.c_str());
 	Out << "#Mass\t" << First << "Events" << std::endl;
 
-	TheNu = new Neutrino(0, OptHel | OptFerm);
-	TheNu->SetDecayChannel(Channel);
+	TheNu0 = new Neutrino(0, OptHel );
+	TheNuB = new Neutrino(0, OptHel | Neutrino::Antiparticle);
+	TheNu0->SetDecayChannel(Channel);
+	TheNuB->SetDecayChannel(Channel);
 
 	Engine *TheEngine = new Engine(FluxConfig, 1, 1);	//creating 1FHC and 1RHC fluxedrivers
-	TheEngine->BindNeutrino(TheNu, Engine::FHC, 0);		//left neutrino
-	TheEngine->BindNeutrino(TheNu, Engine::RHC, 0);		//is a right antineutrino
+	TheEngine->BindNeutrino(TheNu0, Engine::FHC, 0);		//left neutrino
+	TheEngine->BindNeutrino(TheNuB, Engine::RHC, 0);		//is a right antineutrino
 
 	unsigned int Grid = 250;
 	unsigned int nD = vFlag.size();	//number of dimensions
 	double Mass;
 	std::cout << "Scanning over " << nD << " dimensions" << std::endl;
 
-	Exclusion *Solver;
-	if (TheNu->IsParticle())
-		Solver = new Exclusion(TheEngine, Engine::FHC, TheBox, Efficiency, vFlag, Thr);
-	else if (TheNu->IsAntiparticle())
-		Solver = new Exclusion(TheEngine, Engine::RHC, TheBox, Efficiency, vFlag, Thr);
-	else if (TheNu->IsMajorana())
-		Solver = new Exclusion(TheEngine, Engine::Both, TheBox, Efficiency, vFlag, Thr);
+	Exclusion *Solver = new Exclusion(TheEngine, Engine::Both, TheBox, Efficiency, vFlag, Thr);
 
 	for (double logMass = -2.0; logMass < 0.3; logMass += 2.3/Grid)	//increase mass log
 	{
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
 
-		TheNu->SetMass(Mass);
+		TheNu0->SetMass(Mass);
+		TheNuB->SetMass(Mass);
 
-		if (TheNu->IsDecayAllowed() &&
-		    TheNu->IsProductionAllowed())
+		if (TheNu0->IsDecayAllowed() &&
+		    TheNu0->IsProductionAllowed() &&
+		    TheNuB->IsDecayAllowed() &&
+		    TheNuB->IsProductionAllowed())
 		{
 
 			TheEngine->MakeFlux();
@@ -216,7 +200,8 @@ int main(int argc, char** argv)
 		}
 	}
 
-	delete TheNu;
+	delete TheNu0;
+	delete TheNuB;
 	delete TheEngine;
 	delete Solver;
 
