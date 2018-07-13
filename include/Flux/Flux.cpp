@@ -13,6 +13,8 @@ Flux::Flux(std::string HistFile) :
         hTauM(0)
 {
 	TFile* InFile = new TFile(HistFile.c_str(), "READ");
+	if (InFile->IsZombie())
+		std::cout << "File " << HistFile << " does not exist" << std::endl;
 
 	CloneCopy(hTotal, InFile->Get("htotal"));
 	CloneCopy(hPion,  InFile->Get("hpion"));
