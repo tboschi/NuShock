@@ -1,0 +1,58 @@
+#!/bin/bash --login
+
+#$ -S /bin/bash
+#$ -cwd
+#$ -N HLNExclusion
+#$ -t 1-26
+# -M tommaso.boschi@qmul.ac.uk
+# -m e
+#$ -l h_rss=4G,h_vmem=4G 
+#$ -q "SL6@heppc400,SL6@heppc401,SL6@heppc402,SL6@heppc403,SL6@heppc404,SL6@heppc405,SL6@heppc406,SL6@heppc407"
+
+source /opt/sge/default/common/settings.sh
+#source /users/tboschi/.bashrc
+#echo $ROOTSYS
+#echo $PATH
+#export $LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/lib64:/usr/lib64:$ROOTSYS/lib:$G4LIB:$CUBA/lib"
+
+#Home="/data/tboschi/NewSupershock/"
+cd $HOME
+Config="config"
+
+Exec="/data/tboschi/NewSupershock/bin/FastExclusion"
+
+#Channel=$(./EchoChannel $SGE_TASK_ID)
+Channel=$(./EchoChannel $1)
+Opt0="-d config/ND_Full -f config/FluxConfig"
+
+Opt01="-P -L -E"
+Opt02="-P -L -M"
+Opt03="-P -L -T"
+Opt04="-P -R -E"
+Opt05="-P -R -M"
+Opt06="-P -R -T"
+
+Opt07="-A -L -E"
+Opt08="-A -L -M"
+Opt09="-A -L -T"
+Opt10="-A -R -E"
+Opt11="-A -R -M"
+Opt12="-A -R -T"
+
+Opt13="-M -L -E"
+Opt14="-M -L -M"
+Opt15="-M -L -T"
+Opt16="-M -R -E"
+Opt17="-M -R -M"
+Opt18="-M -R -T"
+
+OptArr=("$Opt01" "$Opt02" "$Opt03" "$Opt04" "$Opt05" "$Opt06" 
+        "$Opt07" "$Opt08" "$Opt09" "$Opt10" "$Opt11" "$Opt12"
+	"$Opt13" "$Opt14" "$Opt15" "$Opt16" "$Opt17" "$Opt18")
+
+# Run the tasks:
+for i in "${OptArr[@]}"
+do
+	echo $Exec $Opt0 -o $Channel -c $Channel "$i"
+	$Exec $Opt0 -o $Channel -c $Channel "$i"
+done
