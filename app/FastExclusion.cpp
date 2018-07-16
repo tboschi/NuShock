@@ -109,17 +109,17 @@ int main(int argc, char** argv)
 	if (Particle)
 	{
 		OptFerm = Neutrino::Dirac;
-		FileName += "_P";
+		FileName += "_p";
 	}
 	else if (Antipart)
 	{
 		OptFerm = Neutrino::Dirac | Neutrino::Antiparticle;
-		FileName += "_A";
+		FileName += "_a";
 	}
 	else
 	{
 		OptFerm = Neutrino::Majorana;
-		FileName += "_M";
+		FileName += "_m";
 	}
 
 	if (Left)
@@ -178,7 +178,7 @@ int main(int argc, char** argv)
 	unsigned int Grid = 250;
 	unsigned int nD = vFlag.size();	//number of dimensions
 	double Mass;
-	std::cout << "Scanning over " << nD << " dimensions" << std::endl;
+	//std::cout << "Scanning over " << nD << " dimensions" << std::endl;
 
 	Exclusion *Solver;
 	if (TheNu->IsParticle())
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
 	for (double logMass = -2.0; logMass < 0.3; logMass += 2.3/Grid)	//increase mass log
 	{
 		Mass = pow(10.0, logMass);
-		std::cout << "Mass " << Mass << std::endl;
+		//std::cout << "Mass " << Mass << std::endl;
 
 		TheNu->SetMass(Mass);
 
