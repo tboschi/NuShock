@@ -149,6 +149,7 @@ void Driver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
 	fxFlux->Scale(Flux::Muon, N->ProductionScale("MuonE"));
 
 	//Ds+ -> e+ nu_e
+	std::cout << "MakecharmE " << N->ProductionScale("CharmE") << std::endl;
 	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmE"));
 
 	fxFlux->Add();
@@ -173,6 +174,7 @@ void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
 	fxFlux->Scale(Flux::Muon, N->ProductionScale("MuonM"));
 
 	//Ds+ -> mu+ nu_mu
+	std::cout << "MakecharmM " << N->ProductionScale("CharmM") << std::endl;
 	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmM"));
 
 	fxFlux->Add();
@@ -206,6 +208,7 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 
 		delete hTemp;
 	}
+	std::cout << "MakecharmT " << N->ProductionScale("CharmT") << std::endl;
 	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmT") * Modifier);
 
 	//tau+ -> pi+ nu_tau

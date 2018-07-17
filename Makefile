@@ -18,14 +18,14 @@ LDLIBS   := -lcuba
 CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
 #apps and exctuables
-CPP =	Exclusion	\
+CPP =	MakeFlux	\
 	FastExclusion	\
-	FastExclCombine		
+	FastExclCombine	\
+	ProductionScale	\
+	#Exclusion	\
 	#DecayBranch	\
 	Exclusion	\
-	MakeFlux	\
 	FluxDs		\
-	ProductionScale	\
 	#Simulation	\
 	ToPlot	\
 	#Eps2Dat		\
