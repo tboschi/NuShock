@@ -152,7 +152,8 @@ class PhaseSpace : public Amplitude
 
 		unsigned int Daughters();
 		TLorentzVector* DaughterVector(unsigned int i, Reference Frame = RestFrame);
-		Particle* Daughter(unsigned int i, Reference Frame = RestFrame);
+		//Particle* Daughter(unsigned int i, Reference Frame = RestFrame);
+		Particle Daughter(unsigned int i, Reference Frame = RestFrame);
 		TLorentzVector *LabF();
 		TLorentzVector *Rest();
 		TLorentzVector *Parent(Reference Frame = RestFrame);
