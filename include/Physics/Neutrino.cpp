@@ -222,6 +222,10 @@ std::vector<Particle*> Neutrino::ProductionPS(Amplitude::Channel Name, TLorentzV
 		for (unsigned int i = 0; i < ThePhaseSpace->Daughters(); ++i)
 			vDaughter.push_back(ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame));
 
+	std::cout << "Neutrino ";
+	for (unsigned int i = 0; i < vDaughter.size(); ++i)
+		std::cout << vDaughter.at(i) << "\t";
+	std::cout << std::endl;
 	return vDaughter;
 }
 

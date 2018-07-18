@@ -13,16 +13,18 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1D.h"
+#include "TH2D.h"
 #include "TRandom3.h"
 #include "TGenPhaseSpace.h"
 
 void Usage(char* argv0);
-double lDparam(double xf, double pt)
+double Ds(double xf, double pt)
 {
 	//from 1708.08700, 250GeV proton beam E796
 	double b = 1.08;
 	double n = 6.1;
-	return n*(1-std::abs(xf)) - b * pt*pt;
+	//return n*(1-std::abs(xf)) - b * pt*pt;
+	return std::exp(n * std::log(1 - std::abs(xf)) - b * pow(pt, 2));
 }
 
 int main(int argc, char** argv)
@@ -43,7 +45,7 @@ int main(int argc, char** argv)
 	std::string OutName, DetConfig, NuEFile, NuMuFile;
 	std::ofstream OutFile;
 	double BeamE = 800;	//DONUT
-	unsigned int nMAX = 1e5;
+	unsigned int Nevent = 1e5;
 	double NuMass = 0.0;	//neutrino mass
 
 	while((iarg = getopt_long(argc,argv, "r:s:m:E:t:o:I:d:e:u:h", longopts, &index)) != -1)
@@ -63,7 +65,7 @@ int main(int argc, char** argv)
 				OutFile.open(optarg);
 				break;
 			case 'I':
-				nMAX = strtol(optarg, NULL, 10);
+				Nevent = strtol(optarg, NULL, 10);
 				break;
 			case 'd':
 				DetConfig.assign(optarg);
@@ -104,8 +106,10 @@ int main(int argc, char** argv)
 	TH1D * hPion  = new TH1D("hpion",  "pion",   100, 0, 20);
 	TH1D * h2Pion = new TH1D("h2pion", "2 pion", 100, 0, 20);
 
+
 	hTotal_->SetDirectory(0);
 	hCharmT->SetDirectory(FileOut_);
+
 	hCharmE->SetDirectory(0);
 	hCharmM->SetDirectory(0);
 
@@ -117,142 +121,153 @@ int main(int argc, char** argv)
 
 	//generous angular acceptance of detector
 	Detector *TheBox = new Detector(DetConfig);
-	double Th0 = atan2(2*TheBox->Get("Height"), TheBox->Get("Baseline"));
+	double Th0 = TheBox->AngularAcceptance();
 
 	TRandom3 *Gen = new TRandom3(0);
 
 	TLorentzVector Beam(0, 0, sqrt(pow(BeamE, 2) - pow(Const::fMProton, 2)), BeamE);
 	TLorentzVector Targ(0, 0, 0, Const::fMProton);
 	TLorentzVector S = Beam+Targ;
-	double sqrts = S.M();		//CM energy
+	double ptmax = S.M();		//CM energy
 
 	Neutrino *Nu_ = new Neutrino(NuMass, Neutrino::Dirac | Neutrino::Left );
 	Neutrino *NuB = new Neutrino(NuMass, Neutrino::Dirac | Neutrino::Right | Neutrino::Antiparticle);
 	
-	//find max of Ds param
-	double ptmax = sqrts;
-	double maxF = lDparam(0, 0);
-	double minF = lDparam(1, ptmax);
-
-	double SF = 12.1e-3 / 331.4 * 0.077 * 0.0548 / nMAX;
+	//Normalisation
+	double SF = 12.1e-3 / 331.4 * 0.077 / Nevent;
 
 	std::vector<Particle*> vProductDs, vProductTau;
 	std::vector<Particle*>::iterator iP;
 
-	unsigned int nIter = 0, iIter = 0, sIter;
-	while (nIter++ < nMAX)
+	unsigned int DecayCount = 0, InNDCount = 0;
+	for (unsigned int ID = 0; ID < Nevent; ++ID)
 	{
-		double pt = Gen->Uniform(0, ptmax);
-		double xf = Gen->Uniform(-1.0, 1.0);
-		if (Gen->Uniform(0, pow(10, maxF)) < pow(10, lDparam(xf, pt)))
+		double pt, xf;
+		do
 		{
-			++iIter;
-			double px, py;
-			double pz = sqrts*xf*0.5;
-			Gen->Circle(px, py, pt);
+			pt = Gen->Uniform(0, ptmax);
+			xf = Gen->Uniform(-1.0, 1.0);
+		}
+		while (Gen->Rndm() > Ds(xf, pt));
 
-			TLorentzVector Ds_vec(px, py, pz, sqrt(pt*pt + pz*pz + pow(Const::fMDs, 2)));
-			Ds_vec.Boost(S.BoostVector());	//parent lab frame
+		double px, py;
+		double pz = ptmax * xf / 2.0;
+		Gen->Circle(px, py, pt);
 
-			//Ds decay into electrons
-			if (!NuEFile.empty())
-			{
-				vProductDs = Nu_->ProductionPS(Amplitude::_CharmE, Ds_vec);
-				if (vProductDs.at(0)->Theta() < Th0)
-					hCharmE->Fill(vProductDs.at(0)->Energy(), SF * 8.3e-5);
+		TLorentzVector Ds_vec(px, py, pz, sqrt(pt*pt + pz*pz + pow(Const::fMDs, 2)));
+		Ds_vec.Boost(S.BoostVector());	//parent lab frame
 
-				for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
-					delete *iP;
-				vProductDs.clear();
-			}
+		//Ds decay into electrons
+		if (!NuEFile.empty())
+		{
+			vProductDs = Nu_->ProductionPS(Amplitude::_CharmE, Ds_vec);
+			if (vProductDs.at(0)->Theta() < Th0)
+				hCharmE->Fill(vProductDs.at(0)->Energy(), SF * 8.3e-5);
 
-			//Ds decay into muons
-			if (!NuMuFile.empty())
-			{
-				vProductDs = Nu_->ProductionPS(Amplitude::_CharmM, Ds_vec);
-				if (vProductDs.at(0)->Theta() < Th0)
-					hCharmM->Fill(vProductDs.at(0)->Energy(), SF * 5.5e-3);
-
-				for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
-					delete *iP;
-				vProductDs.clear();
-			}
-
-			//Ds decay into taus
-			vProductDs = Nu_->ProductionPS(Amplitude::_CharmT, Ds_vec);
-			if(!vProductDs.size())
-				continue;
-			else
-				++sIter;
-
-			if (vProductDs.at(0)->Theta() < Th0)	//neutrino
-				hCharmT->Fill(vProductDs.at(0)->Energy(), SF * 0.0548);
-
-			//tau decay from Ds
-			TLorentzVector Tau_vec(vProductDs.at(1)->FourVector());
-			for (unsigned int i = 0; i < 4; ++i)
-			{
-				Amplitude::Channel Name;
-				TH1D* hFill;
-				double Br;
-				switch (i)
-				{
-					case 0:
-						Name = Amplitude::_TauET;
-						hFill = hTauE;
-						Br = SF * 0.0548 * 0.1785;	//tau->e (17.85 %)
-						break;
-					case 1:
-						Name = Amplitude::_TauMT;
-						hFill = hTauM;
-						Br = SF * 0.0548 * 0.1736;	//tau->mu (17.36 %)
-						break;
-					case 2:
-						Name = Amplitude::_TauPI;
-						hFill = hPion;
-                                                Br = SF * 0.0548 * 0.1082;	//tau->pi (10.82 %)
-						break;
-					case 3:
-						Name = Amplitude::_Tau2PI;
-						hFill = h2Pion;
-                                                Br = SF * 0.0548 * 0.2551;	//tau->2pi (25.62 %)
-						break;			//Phase space only!!
-					default:
-						break;
-				}
-
-				vProductTau = NuB->ProductionPS(Name, Tau_vec);
-				if (!vProductTau.size())
-					continue;
-
-				if (vProductTau.at(0)->Theta() < Th0)	//neutrino
-					hFill->Fill(vProductTau.at(0)->Energy(), Br);
-
-				for (iP = vProductTau.begin(); iP != vProductTau.end(); ++iP)
-					delete *iP;
-				vProductTau.clear();
-			}
-
-			//++nIter;
-			//++iIter;
-
-			if (sIter % 10000 == 0)	//saving
-			{
-				FileOut_->Write("", TObject::kOverwrite);
-				FileOutB->Write("", TObject::kOverwrite);
-			}
+			for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+				delete *iP;
+			vProductDs.clear();
 		}
 
+		//Ds decay into muons
+		if (!NuMuFile.empty())
+		{
+			vProductDs = Nu_->ProductionPS(Amplitude::_CharmM, Ds_vec);
+			if (vProductDs.at(0)->Theta() < Th0)
+				hCharmM->Fill(vProductDs.at(0)->Energy(), SF * 5.5e-3);
+
+			for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+				delete *iP;
+			vProductDs.clear();
+		}
+
+		//Ds decay into taus
+		vProductDs = Nu_->ProductionPS(Amplitude::_CharmT, Ds_vec);
+		std::cout << "fluxds ";
+		for (unsigned int i = 0; i < vProductDs.size(); ++i)
+			std::cout << vProductDs.at(i) << "\t";
+		std::cout << std::endl;
+
+		if(!vProductDs.size())
+			continue;
+		else
+			++DecayCount;
+
+		if (vProductDs.at(0)->Theta() <= Th0)	//neutrino
+			hCharmT->Fill(vProductDs.at(0)->Energy(), SF * 0.0548);
+		else
+			++InNDCount;
+
+		//tau decay from Ds
+		TLorentzVector Tau_vec(vProductDs.at(1)->FourVector());
+		for (unsigned int i = 0; i < 4; ++i)
+		{
+			Amplitude::Channel Name;
+			TH1D* hFill;
+			double Br;
+			switch (i)
+			{
+				case 0:
+					Name = Amplitude::_TauET;
+					hFill = hTauE;
+					Br = SF * 0.0548 * 0.1785;	//tau->e (17.85 %)
+					break;
+				case 1:
+					Name = Amplitude::_TauMT;
+					hFill = hTauM;
+					Br = SF * 0.0548 * 0.1736;	//tau->mu (17.36 %)
+					break;
+				case 2:
+					Name = Amplitude::_TauPI;
+					hFill = hPion;
+					Br = SF * 0.0548 * 0.1082;	//tau->pi (10.82 %)
+					break;
+				case 3:
+					Name = Amplitude::_Tau2PI;
+					hFill = h2Pion;
+					Br = SF * 0.0548 * 0.2551;	//tau->2pi (25.62 %)
+					break;			//Phase space only!!
+				default:
+					break;
+			}
+
+			vProductTau = NuB->ProductionPS(Name, Tau_vec);
+			std::cout << "fluxtau ";
+			for (unsigned int i = 0; i < vProductTau.size(); ++i)
+				std::cout << vProductTau.at(i) << "\t";
+			std::cout << std::endl;
+			if (!vProductTau.size())
+				continue;
+
+			if (vProductTau.at(0)->Theta() <= Th0)	//neutrino
+				hFill->Fill(vProductTau.at(0)->Energy(), Br);
+
+			std::cout << "delete fluxT ";
+			for (iP = vProductTau.begin(); iP != vProductTau.end(); ++iP)
+			{
+				std::cout << *iP << "\t";
+				delete *iP;
+			}
+			std::cout << std::endl;
+			vProductTau.clear();
+		}
+
+		//if (ID % 10000 == 0)	//saving
+		if (false)	//saving
+		{
+			FileOut_->Write("", TObject::kOverwrite);
+			FileOutB->Write("", TObject::kOverwrite);
+		}
+
+		std::cout << "delete ds ";
 		for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+		{
+			std::cout << *iP << "\t";
 			delete *iP;
+		}
+		std::cout << std::endl;
 		vProductDs.clear();
 	}
-
-	//hCharm->Scale(1.0);
-	//hTauE->Scale(1.0);
-	//hTauM->Scale(1.0);
-	//hPion->Scale(1.0);
-	//h2Pion->Scale(1.0);
 
 	hTotal_->Add(hCharmT);
 
@@ -271,17 +286,14 @@ int main(int argc, char** argv)
 	FileOutB->Write();
 
 	hTotalB->Write("htotal");
-	//hTauE->Write();
-	//hTauM->Write();
-	//hPion->Write();
-	//h2Pion->Write();
 
-	std::cout << "Successful Ds meson simulation are " << iIter * 100.0 / nIter << " %" << std::endl;
+	std::cout << "Ds meson decays are " << 100.0 * DecayCount / double(Nevent) << " %\n";
+	std::cout << "Products in ND are " << 100.0 * (1.0 - InNDCount / double(Nevent)) << " %\n";
 	std::cout  << "Neutrinos simulated " << hTotal_->GetEntries();
-	std::cout << " (" << hTotal_->GetEntries()*100.0/double(nMAX) << " %)";
+	std::cout << " (" << hTotal_->GetEntries()*100.0/double(Nevent) << " %)";
 	std::cout << ", saved in " << FileOut_->GetName() << std::endl;
 	std::cout  << "Antineutrinos simulated " << hTotalB->GetEntries();
-	std::cout << " (" << hTotalB->GetEntries()*100.0/double(nMAX) << " %)";
+	std::cout << " (" << hTotalB->GetEntries()*100.0/double(Nevent) << " %)";
 	std::cout << ", saved in " << FileOutB->GetName() << std::endl;
 
 	FileOut_->Close();

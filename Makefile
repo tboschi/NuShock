@@ -22,10 +22,10 @@ CPP =	MakeFlux	\
 	FastExclusion	\
 	FastExclCombine	\
 	ProductionScale	\
+	FluxDs		\
 	#Exclusion	\
 	#DecayBranch	\
 	Exclusion	\
-	FluxDs		\
 	#Simulation	\
 	ToPlot	\
 	#Eps2Dat		\

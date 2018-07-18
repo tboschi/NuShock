@@ -328,6 +328,16 @@ double Detector::Area()
 	return std::max(AreaLAr(), AreaFGT());
 }
 
+double Detector::Radius()
+{
+	return sqrt(Area() / Const::fPi);
+}
+
+double Detector::AngularAcceptance()
+{
+	return atan2(Radius(), Get("Baseline"));
+}
+
 bool Detector::IsInside(Particle *P)
 {
 	if (P->Z() > ZstartLAr() && P->Z() < ZendLAr())

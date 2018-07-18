@@ -94,6 +94,9 @@ class Detector
 		double AreaFGT();
 		double Area();
 
+		double Radius();
+		double AngularAcceptance();
+
 		bool IsInsideLAr(Particle *P);
 		bool IsInsideFGT(Particle *P);
 		bool IsInside(Particle *P);
