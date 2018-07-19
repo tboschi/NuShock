@@ -97,6 +97,7 @@ std::string Amplitude::ShowChannel(Channel Name)
 Amplitude::Process Amplitude::LoadMass(Channel Name)	//return true if Decay, false if Production
 {
 	vMass.clear();
+	vPdg.clear();
 	switch(Name)
 	{
 		//masses in channelname order
