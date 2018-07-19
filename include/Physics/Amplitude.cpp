@@ -320,10 +320,10 @@ Amplitude::Process Amplitude::LoadMass(Channel Name)	//return true if Decay, fal
 		case _Tau2PI:
 			vMass.push_back(M_Tau);
 			vMass.push_back(M_Pion);
-			vMass.push_back(M_Pion);
+			vMass.push_back(M_Pion0);
 			vPdg.push_back(15);
 			vPdg.push_back(211);
-			vPdg.push_back(211);
+			vPdg.push_back(111);
 			return Production;
 		case _PionE:
 			vMass.push_back(M_Pion);
@@ -553,10 +553,16 @@ double Amplitude::M2_AntiLeptonNeutrino(double s, double x, double y, double z)
 }
 
 //					      neutrino	meson
-double Amplitude::M2_LeptonMeson(double x, double y)	//y is the meson
+double Amplitude::M2_LeptonTwo(double x, double y)	//y is the meson
 {
 	return Const::fGF2 * Mass(4) * 
 		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y));
+}
+
+//	not implemented
+double Amplitude::M2_LeptonThree(double x, double y, double z)	
+{
+	return Const::fGF2 * Mass(4);
 }
 
 //					   neutrino  lepton

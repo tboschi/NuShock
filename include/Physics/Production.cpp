@@ -95,6 +95,9 @@ double Production::Gamma(Channel Name, bool Unitary)
 		case _TauPI:
 			Result = TauPI();
 			break;
+		case _Tau2PI:
+			Result = Tau2PI();
+			break;
 		case _PionE:
 			Result = PionE();
 			break;
@@ -234,9 +237,18 @@ double Production::TauPI()
 
 	if (fTauPI < 0)// || IsChanged())
 		fTauPI = IsAllowed(_TauPI) ? 
-			pow(Const::fU_ud * Const::fDPion, 2) * LeptonMesonDecay(M_Tau, M_Pion) : 0.0;
+			pow(Const::fU_ud * Const::fDPion, 2) * LeptonTwoDecay(M_Tau, M_Pion) : 0.0;
 
 	return fTauPI * Ut(2);
+}
+
+double Production::Tau2PI()
+{
+	if (fTau2PI < 0)// || IsChanged())
+		fTau2PI = IsAllowed(_Tau2PI) ? 
+			pow(Const::fU_ud * Const::fDPion, 2) * LeptonThreeDecay(M_Tau, M_Pion, M_Pion0) : 0.0;
+
+	return fTau2PI * Ut(2);
 }
 
 double Production::PionE()
@@ -362,8 +374,7 @@ double Production::LeptonNeutrinoDecay(double M_Lepton0, double M_Lepton, double
 	double dMn2 = M_Neut*M_Neut/Mass(2);
 	double dMN2 = MassN(2)/Mass(2);
 
-	double M2 = I_LeptonNeutrino(dMn2, dML2, dMN2);
-	return dGammad2_3B(M2);
+	return I_LeptonNeutrino(dMn2, dML2, dMN2);
 }
 
 //						c	  b	    a
@@ -394,7 +405,8 @@ double Production::I_LeptonNeutrino_u(double u)	//fixing one variable
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
 
-	return fc * M2_LeptonNeutrino(u_, x, y, z);
+	double M2 = fc * M2_LeptonNeutrino(u_, x, y, z);
+	return dGammad2_3B(M2);
 }
 
 
@@ -406,8 +418,7 @@ double Production::AntiLeptonNeutrinoDecay(double M_Lepton0, double M_Lepton, do
 	double dMn2 = M_Neut*M_Neut/Mass(2);
 	double dMN2 = MassN(2)/Mass(2);
 
-	double M2 = I_AntiLeptonNeutrino(dMn2, dML2, dMN2);
-	return dGammad2_3B(M2);
+	return I_AntiLeptonNeutrino(dMn2, dML2, dMN2);
 }
 						//  c	      b		a
 double Production::I_AntiLeptonNeutrino(double x, double y, double z)//, double theta)	//integrate first in y and then in x
@@ -438,22 +449,57 @@ double Production::I_AntiLeptonNeutrino_s(double s)	//the term is written for a 
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
 
-	return fc * M2_AntiLeptonNeutrino(s_, x, y, z);
+	double M2 = fc * M2_AntiLeptonNeutrino(s_, x, y, z);
+	return dGammad2_3B(M2);
 }
 
-double Production::LeptonMesonDecay(double M_Lepton, double M_Meson)
+double Production::LeptonTwoDecay(double M_Lepton, double M_Meson)
 {
 	SetMass(M_Lepton);
 	double dMN2 = MassN(2)/Mass(2);
 	double dMM2 = M_Meson*M_Meson/Mass(2);
 
-	return I_LeptonMeson(dMN2, dMM2);
+	return I_LeptonTwo(dMN2, dMM2);
 }
 
-double Production::I_LeptonMeson(double x, double y)
+double Production::I_LeptonTwo(double x, double y)
 {
-	double M2 = M2_LeptonMeson(x, y);
+	double M2 = M2_LeptonTwo(x, y);
 	return dGammad0_2B(M2, x, y);
+}
+
+double Production::LeptonThreeDecay(double M_Lepton, double M_Meson0, double M_Meson)
+{
+	SetMass(M_Lepton);
+	double dMN2 = MassN(2)/Mass(2);
+	double dMM2 = M_Meson*M_Meson/Mass(2);
+	double dM02 = M_Meson0*M_Meson0/Mass(2);
+
+	return I_LeptonThree(dMN2, dMM2, dM02);
+}
+
+double Production::I_LeptonThree(double x, double y, double z)
+{
+	F_var.clear();
+
+	F_var.push_back(x);	//0	//c2
+	F_var.push_back(y);	//1	//b2
+	F_var.push_back(z);	//2	//a2
+
+	SetFunction(&Production::I_LeptonThree_s);
+	return Inte::BooleIntegration(this); 		//switch to Vega
+}
+
+double Production::I_LeptonThree_s(double s)
+{
+	double x = F_var.at(0);
+	double y = F_var.at(1);
+	double z = F_var.at(2);
+	double s_ = s;
+	double fc = Limit(s_, x, y, z);
+
+	double M2 = fc * M2_LeptonThree(x, y, z);
+	return dGammad2_3B(M2);
 }
 
 double Production::MesonTwoDecay(double M_Meson, double M_Lepton)
@@ -529,7 +575,8 @@ double Production::I_MesonThree_t(double t)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;              //so an overall factor of 2
 
-	return fc * M2_MesonThree(s_, t_, x, y, z, L_, L0);
+	double M2 = fc * M2_MesonThree(s_, t_, x, y, z, L_, L0);
+	return dGammad2_3B(M2);
 }
 
 double Production::I_MesonThree_D(double *v)
@@ -561,6 +608,7 @@ void Production::Reset()
 	fTauMM	= -1.0;
 	fTauMT	= -1.0;
 	fTauPI  = -1.0;
+	fTau2PI = -1.0;
 	fPionE	= -1.0;
 	fPionM	= -1.0;
 	fKaonE	= -1.0;

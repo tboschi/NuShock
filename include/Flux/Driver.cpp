@@ -149,7 +149,6 @@ void Driver::MakeElecComponent(Flux *fxFlux, Neutrino *N)
 	fxFlux->Scale(Flux::Muon, N->ProductionScale("MuonE"));
 
 	//Ds+ -> e+ nu_e
-	std::cout << "MakecharmE " << N->ProductionScale("CharmE") << std::endl;
 	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmE"));
 
 	fxFlux->Add();
@@ -174,7 +173,6 @@ void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
 	fxFlux->Scale(Flux::Muon, N->ProductionScale("MuonM"));
 
 	//Ds+ -> mu+ nu_mu
-	std::cout << "MakecharmM " << N->ProductionScale("CharmM") << std::endl;
 	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmM"));
 
 	fxFlux->Add();
@@ -208,17 +206,16 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 
 		delete hTemp;
 	}
-	std::cout << "MakecharmT " << N->ProductionScale("CharmT") << std::endl;
 	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmT") * Modifier);
 
 	//tau+ -> pi+ nu_tau
 	fxFlux->Scale(Flux::Pion, N->ProductionScale("TauPI"));
 
 	//tau+ -> pi+ pi0 nu_tau	//crossing simmetries
-	fxFlux->Scale(Flux::PPion, N->Mass() > Const::fMTau - Const::fMPion - Const::fMPion0 ? 0.0 : 1.0);
+	fxFlux->Scale(Flux::PPion, N->ProductionScale("Tau2PI"));
 
 	//tau+ -> nu_tau_bar e+ nu_e
-	fxFlux->Scale(Flux::TauE, N->ProductionScale("TauEE"));
+	fxFlux->Scale(Flux::TauE, N->ProductionScale("TauET"));
 
 	//tau+ -> nu_tau_bar mu+ nu_mu
 	fxFlux->Scale(Flux::TauM, N->ProductionScale("TauMT"));	//Three body

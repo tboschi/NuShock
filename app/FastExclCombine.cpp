@@ -106,23 +106,6 @@ int main(int argc, char** argv)
 	Neutrino *TheNu0, *TheNuB;
 	unsigned int OptHel, OptFerm;
 
-	FileName += "_B";
-	if (Left)
-	{
-		OptHel = Neutrino::Left;
-		FileName += "_L";
-	}
-	else if (Right)
-	{
-		OptHel = Neutrino::Right;
-		FileName += "_R";
-	}
-	else
-	{
-		OptHel = Neutrino::Unpolarised;
-		FileName += "_U";
-	}
-
 	std::string First;
 	if (UeFlag)
 	{
@@ -149,6 +132,23 @@ int main(int argc, char** argv)
 		First += "Ut\t";
 	}
 
+	FileName += "_b";
+	if (Left)
+	{
+		OptHel = Neutrino::Left;
+		FileName += "_L";
+	}
+	else if (Right)
+	{
+		OptHel = Neutrino::Right;
+		FileName += "_R";
+	}
+	else
+	{
+		OptHel = Neutrino::Unpolarised;
+		FileName += "_U";
+	}
+
 	FileName += ".dat";
 	std::ofstream Out(FileName.c_str());
 	Out << "#Mass\t" << First << "Events" << std::endl;
@@ -165,14 +165,14 @@ int main(int argc, char** argv)
 	unsigned int Grid = 250;
 	unsigned int nD = vFlag.size();	//number of dimensions
 	double Mass;
-	std::cout << "Scanning over " << nD << " dimensions" << std::endl;
+	//std::cout << "Scanning over " << nD << " dimensions" << std::endl;
 
 	Exclusion *Solver = new Exclusion(TheEngine, Engine::Both, TheBox, Efficiency, vFlag, Thr);
 
 	for (double logMass = -2.0; logMass < 0.3; logMass += 2.3/Grid)	//increase mass log
 	{
 		Mass = pow(10.0, logMass);
-		std::cout << "Mass " << Mass << std::endl;
+		//std::cout << "Mass " << Mass << std::endl;
 
 		TheNu0->SetMass(Mass);
 		TheNuB->SetMass(Mass);

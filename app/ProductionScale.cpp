@@ -66,13 +66,14 @@ int main(int argc, char** argv)
 	{
 		N_L->SetMass(t);
 		N_R->SetMass(t);
+		std::cout << "Mass " << t << std::endl;
 		Out << t << "\t";
-		Out << N_L->ProductionScale("CharmE") << "\t";
-		Out << N_R->ProductionScale("CharmE") << "\t";
-		Out << N_L->ProductionScale("CharmM") << "\t";
-		Out << N_R->ProductionScale("CharmM") << "\t";
-		Out << N_L->ProductionScale("CharmT") << "\t";
-		Out << N_R->ProductionScale("CharmT") << "\t";
+		Out << N_L->ProductionScale("PionM") << "\t";
+		Out << N_R->ProductionScale("PionM") << "\t";
+		Out << N_L->ProductionScale("TauPI") << "\t";
+		Out << N_R->ProductionScale("TauPI") << "\t";
+		Out << N_L->ProductionScale("Tau2PI") << "\t";
+		Out << N_R->ProductionScale("Tau2PI") << "\t";
 		Out << std::endl;
 	}
 

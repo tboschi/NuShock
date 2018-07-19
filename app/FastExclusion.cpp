@@ -106,6 +106,32 @@ int main(int argc, char** argv)
 	Neutrino *TheNu;
 	unsigned int OptHel, OptFerm;
 
+	std::string First;
+	if (UeFlag)
+	{
+		if (Efficiency)
+			TheBox->SetEfficiency(Channel, Detector::E);
+		vFlag.push_back('E');
+		FileName += "_E";
+		First += "Ue\t";
+	}
+	if (UmFlag)
+	{
+		if (Efficiency)
+			TheBox->SetEfficiency(Channel, Detector::M);
+		vFlag.push_back('M');
+		FileName += "_M";
+		First += "Um\t";
+	}
+	if (UtFlag)
+	{
+		if (Efficiency)
+			TheBox->SetEfficiency(Channel, Detector::T);
+		vFlag.push_back('T');
+		FileName += "_T";
+		First += "Ut\t";
+	}
+
 	if (Particle)
 	{
 		OptFerm = Neutrino::Dirac;
@@ -138,31 +164,6 @@ int main(int argc, char** argv)
 		FileName += "_U";
 	}
 
-	std::string First;
-	if (UeFlag)
-	{
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::E);
-		vFlag.push_back('E');
-		FileName += "_E";
-		First += "Ue\t";
-	}
-	if (UmFlag)
-	{
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::M);
-		vFlag.push_back('M');
-		FileName += "_M";
-		First += "Um\t";
-	}
-	if (UtFlag)
-	{
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::T);
-		vFlag.push_back('T');
-		FileName += "_T";
-		First += "Ut\t";
-	}
 
 	FileName += ".dat";
 	std::ofstream Out(FileName.c_str());

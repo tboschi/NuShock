@@ -122,7 +122,8 @@ class Amplitude
 
 		double M2_LeptonNeutrino(double s, double x, double y, double z);
 		double M2_AntiLeptonNeutrino(double s, double x, double y, double z);
-		double M2_LeptonMeson(double x, double y);
+		double M2_LeptonTwo(double x, double y);
+		double M2_LeptonThree(double x, double y, double z);
 		double M2_MesonTwo(double x, double y);
 		double M2_MesonThree(double s, double t, double x, double y, double z, double L_, double L0);
 

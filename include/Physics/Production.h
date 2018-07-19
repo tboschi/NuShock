@@ -36,6 +36,7 @@ class Production : public Amplitude
                 double TauMM();
                 double TauMT();
 		double TauPI();
+		double Tau2PI();
                 double PionE();
                 double PionM();
                 double KaonE();
@@ -56,8 +57,12 @@ class Production : public Amplitude
 		double I_LeptonNeutrino(double x, double y, double z);
 		double I_LeptonNeutrino_u(double u);
 
-		double LeptonMesonDecay(double M_Lepton, double M_Meson);
-		double I_LeptonMeson(double x, double y);
+		double LeptonTwoDecay(double M_Lepton, double M_Meson);
+		double I_LeptonTwo(double x, double y);
+
+		double LeptonThreeDecay(double M_Lepton, double M_Meson, double M_Meson0);
+		double I_LeptonThree(double x, double y, double z);
+		double I_LeptonThree_s(double s);
 
 		double MesonTwoDecay(double M_Meson, double M_Lepton);
 		double I_MesonTwo(double x, double y);
@@ -81,6 +86,7 @@ class Production : public Amplitude
                        fTauMM,
                        fTauMT,
 		       fTauPI,
+		       fTau2PI,
                        fPionE,
                        fPionM,
                        fKaonE,

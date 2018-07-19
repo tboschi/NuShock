@@ -81,7 +81,9 @@ class PhaseSpace : public Amplitude
 		double AntiLeptonNeutrino_ratio(double &manName);
 
 		double TauPI_ratio();
-		double LeptonMeson_ratio(double &manName);
+		double Tau2PI_ratio();
+		double LeptonTwo_ratio(double &manName);
+		double LeptonThree_ratio(double &manName);
 
 		double PionE_ratio();
 		double PionM_ratio();
@@ -134,8 +136,13 @@ class PhaseSpace : public Amplitude
 		double max_AntiLeptonNeutrino(double x, double y, double z);
 		double max_AntiLeptonNeutrino_s(double s);
 
-		double LeptonMeson(double M_Lepton, double M_Meson);
-		double Max_LeptonMeson(double M_Lepton, double M_Meson);
+		double LeptonTwo(double M_Lepton, double M_Meson);
+		double Max_LeptonTwo(double M_Lepton, double M_Meson);
+
+		double LeptonThree(double M_Lepton, double M_Meson, double M_Meson0);
+		double Max_LeptonThree(double M_Lepton, double M_Meson, double M_Meson0);
+		double max_LeptonThree(double M_Lepton, double M_Meson, double M_Meson0);
+		double max_LeptonThree_D(double *p);
 
 		double MesonTwo(double M_Meson, double M_Lepton);
 		double Max_MesonTwo(double M_Meson, double M_Lepton);
