@@ -57,6 +57,7 @@ int main(int argc, char** argv)
 				break;
 			case 'm':
 				NuMass = strtod(optarg, NULL);
+				NuMass /= 1000.0;
 				break;
 			case 'E':
 				BeamE = strtod(optarg, NULL);
@@ -99,6 +100,7 @@ int main(int argc, char** argv)
 	TH1D * hCharmE = new TH1D("hcharme", "charm",  100, 0, 20);
 	TH1D * hCharmM = new TH1D("hcharmm", "charm",  100, 0, 20);
 	TH1D * hCharmT = new TH1D("hcharm", "charm",  100, 0, 20);
+	TH1D * pCharmT = new TH1D("pcharm", "charm",  100, 0, 20);
 
 	//antineutrino
 	TH1D * hTauE  = new TH1D("htaue",  "taue",   100, 0, 20);
@@ -109,6 +111,7 @@ int main(int argc, char** argv)
 
 	hTotal_->SetDirectory(0);
 	hCharmT->SetDirectory(FileOut_);
+	pCharmT->SetDirectory(FileOut_);
 
 	hCharmE->SetDirectory(0);
 	hCharmM->SetDirectory(0);
@@ -130,11 +133,13 @@ int main(int argc, char** argv)
 	TLorentzVector S = Beam+Targ;
 	double ptmax = S.M();		//CM energy
 
+	Neutrino *Nu0 = new Neutrino(0.0,    Neutrino::Dirac | Neutrino::Left );
 	Neutrino *Nu_ = new Neutrino(NuMass, Neutrino::Dirac | Neutrino::Left );
 	Neutrino *NuB = new Neutrino(NuMass, Neutrino::Dirac | Neutrino::Right | Neutrino::Antiparticle);
 	
 	//Normalisation
 	double SF = 12.1e-3 / 331.4 * 0.077 / Nevent;
+	//normalisation of baseline and area
 
 	//std::vector<Particle*> vProductDs, vProductTau;
 	//std::vector<Particle*>::iterator iP;
@@ -185,20 +190,21 @@ int main(int argc, char** argv)
 
 		//Ds decay into taus
 		vProductDs = Nu_->ProductionPS(Amplitude::_CharmT, Ds_vec);
-		//std::cout << "fluxds ";
-		//for (unsigned int i = 0; i < vProductDs.size(); ++i)
-		//	std::cout << vProductDs.at(i) << "\t";
-		//std::cout << std::endl;
 
-		if(!vProductDs.size())
-			continue;
-		else
+		if (vProductDs.size())
+		{
 			++DecayCount;
 
-		if (vProductDs.at(0).Theta() <= Th0)	//neutrino
-			hCharmT->Fill(vProductDs.at(0).Energy(), SF * 0.0548);
-		else
-			++InNDCount;
+			if (vProductDs.at(0).Theta() <= Th0)	//neutrino
+				hCharmT->Fill(vProductDs.at(0).Energy(), SF * 0.0548);
+			else
+				++InNDCount;
+		}
+
+		vProductDs.clear();
+		vProductDs = Nu0->ProductionPS(Amplitude::_CharmT, Ds_vec);
+		if(!vProductDs.size())
+			continue;
 
 		//tau decay from Ds
 		TLorentzVector Tau_vec(vProductDs.at(1).FourVector());
@@ -234,41 +240,19 @@ int main(int argc, char** argv)
 			}
 
 			vProductTau = NuB->ProductionPS(Name, Tau_vec);
-			//std::cout << "fluxtau ";
-			//for (unsigned int i = 0; i < vProductTau.size(); ++i)
-			//	std::cout << vProductTau.at(i) << "\t";
-			//std::cout << std::endl;
-			if (!vProductTau.size())
-				continue;
+			if (vProductTau.size())
+				if (vProductTau.at(0).Theta() <= Th0)	//neutrino
+					hFill->Fill(vProductTau.at(0).Energy(), Br);
 
-			if (vProductTau.at(0).Theta() <= Th0)	//neutrino
-				hFill->Fill(vProductTau.at(0).Energy(), Br);
-
-			//std::cout << "delete fluxT ";
-			//for (iP = vProductTau.begin(); iP != vProductTau.end(); ++iP)
-			//{
-			//	//std::cout << *iP << "\t";
-			//	delete *iP;
-			//}
-			//std::cout << std::endl;
 			vProductTau.clear();
 		}
 
-		//if (ID % 10000 == 0)	//saving
-		if (false)	//saving
+		if (ID % 10000 == 0)	//saving
 		{
 			FileOut_->Write("", TObject::kOverwrite);
 			FileOutB->Write("", TObject::kOverwrite);
 		}
 
-		//std::cout << "delete ds ";
-		for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
-		{
-			//std::cout << *iP << "\t";
-			//delete *iP;
-		}
-		//std::cout << std::endl;
-		vProductDs.clear();
 	}
 
 	hTotal_->Add(hCharmT);

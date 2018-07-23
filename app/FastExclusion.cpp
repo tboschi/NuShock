@@ -189,6 +189,8 @@ int main(int argc, char** argv)
 	else if (TheNu->IsMajorana())
 		Solver = new Exclusion(TheEngine, Engine::Both, TheBox, Efficiency, vFlag, Thr);
 
+	std::vector<double> vMass, vU2Bot, vU2Top;
+
 	for (double logMass = -2.0; logMass < 0.3; logMass += 2.3/Grid)	//increase mass log
 	{
 		Mass = pow(10.0, logMass);
@@ -212,10 +214,21 @@ int main(int argc, char** argv)
 				lU2Bot = Solver->Bisect(lU2Bot, lU2Mid);
 				lU2Top = Solver->Bisect(lU2Mid, lU2Top);
 
-				Out << Mass << "\t" << pow(10, lU2Bot) << "\t" << pow(10, lU2Top) << std::endl;
+				vMass.push_back(Mass);
+				vU2Bot.push_back(pow(10, lU2Bot));
+				vU2Top.push_back(pow(10, lU2Top));
+
+				//Out << Mass << "\t" << pow(10, lU2Bot) << "\t" << pow(10, lU2Top) << std::endl;
 			}
 		}
 	}
+
+
+	for (unsigned int i = 0; i < vMass.size(); ++i)
+		Out << vMass.at(i) << "\t" << vU2Bot.at(i) << std::endl;;
+	for (unsigned int i = vMass.size(); i > 0; --i)
+		Out << vMass.at(i-1) << "\t" << vU2Top.at(i-1) << std::endl;;
+	Out << vMass.front() << "\t" << vU2Bot.front() << std::endl;;
 
 	delete TheNu;
 	delete TheEngine;

@@ -153,6 +153,35 @@ void Flux::Scale(Hist Name, double X)
 		hComponent->Scale(X);
 }
 
+bool Flux::Stretch(Hist Name, double Sx, double Ex)
+{
+	TH1D* hComponent;
+
+	if (hComponent = Get(Name))
+	{
+		TH1D *hTemp = dynamic_cast<TH1D*> (hComponent->Clone());
+		hComponent->Reset("ICES");
+
+		double A = hTemp->GetXaxis()->GetBinCenter(hTemp->FindFirstBinAbove(0));
+		double B = hTemp->GetXaxis()->GetBinCenter(hTemp->FindLastBinAbove(0));
+
+		double m = (Ex - Sx) / (B - A);
+		double Start = RangeStart();
+		double End   = RangeEnd();
+		double EnStep = (End - Start) / BinNumber();
+		for (double Energy = Start; Energy < End; Energy += EnStep)
+		{
+			double Flux = hTemp->GetBinContent(hTemp->FindBin(Energy));
+			hComponent->Fill( Sx + (Energy - A) * (Ex - Sx) / (B - A), Flux * (Ex - Sx) / (B - A) );
+		}
+
+		delete hTemp;
+		return true;
+	}
+	else
+		return false;
+}
+
 double Flux::RangeStart()
 {
 	return Get(Total)->GetBinCenter(0) + BinWidth()/2.0;

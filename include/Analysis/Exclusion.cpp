@@ -102,8 +102,7 @@ double Exclusion::Function(double lu2)
 		case Engine::RHC:
 			return TheEngine->MakeSampler(TheBox, Eff, Engine::RHC) - Thr;
 		case Engine::Both:
-			return TheEngine->MakeSampler(TheBox, Eff, Engine::FHC) +
-			       TheEngine->MakeSampler(TheBox, Eff, Engine::RHC) - Thr;
+			return TheEngine->MakeSampler(TheBox, Eff) - Thr;
 		default:
 			return 0.0;
 	}

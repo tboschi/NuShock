@@ -43,6 +43,7 @@ class Flux
 		void Add(Hist Name);
 		void Scale(double X);
 		void Scale(Hist Name, double X);
+		bool Stretch(Hist Name, double Sx, double Ex);
 
 		double RangeStart();
 		double RangeEnd();

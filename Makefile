@@ -18,9 +18,10 @@ LDLIBS   := -lcuba
 CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
 #apps and exctuables
-CPP =	MakeFlux	\
+CPP =	Modifier	\
 	FastExclusion	\
 	FastExclCombine	\
+	#MakeFlux	\
 	ProductionScale	\
 	FluxDs		\
 	#Exclusion	\

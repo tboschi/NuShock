@@ -48,21 +48,62 @@ Driver::Driver(std::string FluxConfig, bool FHC)
 
 			//correction for charm to tau decay
 			//
-			if (Key.find("Modifier") != std::string::npos)
+			if (Key.find("Mod_") != std::string::npos)
 			{
-				ModFile.open(Name.c_str());
+				std::vector<double> *vM, *vA, *vB, *vP;
+				if (Key.find("Charm") != std::string::npos)
+				{
+					ModFile.open(Name.c_str());
+					vM = &vM_Charm;
+					vA = &vA_Charm;
+					vB = &vB_Charm;
+					vP = &vP_Charm;
+				}
+				else if (Key.find("TauE") != std::string::npos)
+				{
+					ModFile.open(Name.c_str());
+					vM = &vM_TauE;
+					vA = &vA_TauE;
+					vB = &vB_TauE;
+					vP = &vP_TauE;
+				}
+				else if (Key.find("TauM") != std::string::npos)
+				{
+					ModFile.open(Name.c_str());
+					vM = &vM_TauM;
+					vA = &vA_TauM;
+					vB = &vB_TauM;
+					vP = &vP_TauM;
+				}
+				else if (Key.find("PPion") != std::string::npos)
+				{
+					ModFile.open(Name.c_str());
+					vM = &vM_PPion;
+					vA = &vA_PPion;
+					vB = &vB_PPion;
+					vP = &vP_PPion;
+				}
+				else if (Key.find("Pion") != std::string::npos)
+				{
+					ModFile.open(Name.c_str());
+					vM = &vM_Pion;
+					vA = &vA_Pion;
+					vB = &vB_Pion;
+					vP = &vP_Pion;
+				}
 
-				double Mass, X, Y;
+				double Mass, A, B, P;
 				while (getline(ModFile, Line))
 				{
 					ssL.str("");
 					ssL.clear();
 					ssL << Line;
 
-					ssL >> Mass >> X >> Y;
-					vMdir.push_back(Mass);
-					vXdir.push_back(X);
-					vYdir.push_back(Y);
+					ssL >> Mass >> A >> B >> P;
+					vM->push_back(Mass);
+					vA->push_back(A);
+					vB->push_back(B);
+					vP->push_back(P);
 				}
 				ModFile.close();
 			}
@@ -182,42 +223,58 @@ void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino* N)
 void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 {
 	//Ds+ -> tau+ nu_tau
-	//"manual" modifier from empirical observation
-	//the histogram is stretched and pulled to match the MC simulation spectrum
-	double Modifier = 1;
-	TH1D *hPoint;
-	if (vMdir.size() &&
-	   (hPoint = fxFlux->Get(Flux::Charm)) && 
-	   (N->Mass() < Const::fMDs - Const::fMTau) )
+	if (vM_Charm.size())
 	{
-		TH1D *hTemp = dynamic_cast<TH1D*> (hPoint->Clone());
-		hPoint->Reset("ICES");
+		double Sx, Ex;
+		double Mod = Modify(Flux::Charm, Sx, Ex, N->Mass());
 
-		double xdir, ydir;
-		Modifier = Modify(xdir ,ydir, N->Mass());
-
-		double Start, End;
-		double EnStep = RangeWidth(Start, End)/50;
-		for (double Energy = Start; Energy < End; Energy += EnStep)
-		{
-			double Flux = hTemp->GetBinContent(hTemp->FindBin(Energy));
-			hPoint->Fill(Energy*xdir, Flux/50.0);	//fix end point
-		}
-
-		delete hTemp;
+		if (fxFlux->Stretch(Flux::Charm, Sx, Ex))
+			fxFlux->Scale(Flux::Charm, Mod);
 	}
-	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmT") * Modifier);
+	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmT"));
 
 	//tau+ -> pi+ nu_tau
+	if (vM_Pion.size())
+	{
+		double Sx, Ex;
+		double Mod = Modify(Flux::Pion, Sx, Ex, N->Mass());
+
+		if (fxFlux->Stretch(Flux::Pion, Sx, Ex))
+			fxFlux->Scale(Flux::Pion, Mod);
+	}
 	fxFlux->Scale(Flux::Pion, N->ProductionScale("TauPI"));
 
 	//tau+ -> pi+ pi0 nu_tau	//crossing simmetries
+	if (vM_PPion.size())
+	{
+		double Sx, Ex;
+		double Mod = Modify(Flux::PPion, Sx, Ex, N->Mass());
+
+		if (fxFlux->Stretch(Flux::PPion, Sx, Ex))
+			fxFlux->Scale(Flux::PPion, Mod);
+	}
 	fxFlux->Scale(Flux::PPion, N->ProductionScale("Tau2PI"));
 
 	//tau+ -> nu_tau_bar e+ nu_e
+	if (vM_TauE.size())
+	{
+		double Sx, Ex;
+		double Mod = Modify(Flux::TauE, Sx, Ex, N->Mass());
+
+		if (fxFlux->Stretch(Flux::TauE, Sx, Ex))
+			fxFlux->Scale(Flux::TauE, Mod);
+	}
 	fxFlux->Scale(Flux::TauE, N->ProductionScale("TauET"));
 
 	//tau+ -> nu_tau_bar mu+ nu_mu
+	if (vM_TauM.size())
+	{
+		double Sx, Ex;
+		double Mod = Modify(Flux::TauM, Sx, Ex, N->Mass());
+
+		if (fxFlux->Stretch(Flux::TauM, Sx, Ex))
+			fxFlux->Scale(Flux::TauM, Mod);
+	}
 	fxFlux->Scale(Flux::TauM, N->ProductionScale("TauMT"));	//Three body
 
 	fxFlux->Add();
@@ -296,19 +353,54 @@ bool Driver::IsChanged(Neutrino *N)
 }
 
 //Modificator for charm to tau flux
-double Driver::Modify(double &xdir, double &ydir, double M_Sterile)
+double Driver::Modify(Flux::Hist Name, double &A, double &B, double Mass)
 {
-	for (unsigned int i = 0; i < vMdir.size(); ++i)
+	std::vector<double> *vM, *vA, *vB, *vP;
+	switch (Name)
 	{
-		if (vMdir.at(i) > M_Sterile || fabs(M_Sterile-vMdir.at(i)) < 1e-9)
-		{
-			xdir = vXdir.at(i);
-			ydir = vYdir.at(i);
+		case Flux::Charm:
+			vM = &vM_Charm;
+			vA = &vA_Charm;
+			vB = &vB_Charm;
+			vP = &vP_Charm;
 			break;
+		case Flux::TauE:
+			vM = &vM_TauE;
+			vA = &vA_TauE;
+			vB = &vB_TauE;
+			vP = &vP_TauE;
+			break;
+		case Flux::TauM:
+			vM = &vM_TauM;
+			vA = &vA_TauM;
+			vB = &vB_TauM;
+			vP = &vP_TauM;
+			break;
+		case Flux::Pion:
+			vM = &vM_Pion;
+			vA = &vA_Pion;
+			vB = &vB_Pion;
+			vP = &vP_Pion;
+			break;
+		case Flux::PPion:
+			vM = &vM_PPion;
+			vA = &vA_PPion;
+			vB = &vB_PPion;
+			vP = &vP_PPion;
+			break;
+	}
+
+	for (unsigned int i = 0; i < vM->size(); ++i)
+	{
+		if (vM->at(i) > Mass || fabs(Mass - vM->at(i)) < 1e-9)
+		{
+			A = vA->at(i);
+			B = vB->at(i);
+			return 1.0/vP->at(i);
 		}
 	}
 
-	return xdir*ydir;
+	return 1.0;
 }
 
 double Driver::RangeWidth()
