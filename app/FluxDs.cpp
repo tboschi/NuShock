@@ -141,10 +141,8 @@ int main(int argc, char** argv)
 	double SF = 12.1e-3 / 331.4 * 0.077 / Nevent;
 	//normalisation of baseline and area
 
-	//std::vector<Particle*> vProductDs, vProductTau;
-	//std::vector<Particle*>::iterator iP;
-	std::vector<Particle> vProductDs, vProductTau;
-	std::vector<Particle>::iterator iP;
+	std::vector<Particle*> vProductDs, vProductTau;
+	std::vector<Particle*>::iterator iP;
 
 	unsigned int DecayCount = 0, InNDCount = 0;
 	for (unsigned int ID = 0; ID < Nevent; ++ID)
@@ -168,11 +166,11 @@ int main(int argc, char** argv)
 		if (!NuEFile.empty())
 		{
 			vProductDs = Nu_->ProductionPS(Amplitude::_CharmE, Ds_vec);
-			if (vProductDs.at(0).Theta() < Th0)
-				hCharmE->Fill(vProductDs.at(0).Energy(), SF * 8.3e-5);
+			if (vProductDs.at(0)->Theta() < Th0)
+				hCharmE->Fill(vProductDs.at(0)->Energy(), SF * 8.3e-5);
 
-			//for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
-			//	delete *iP;
+			for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+				delete *iP;
 			vProductDs.clear();
 		}
 
@@ -180,11 +178,11 @@ int main(int argc, char** argv)
 		if (!NuMuFile.empty())
 		{
 			vProductDs = Nu_->ProductionPS(Amplitude::_CharmM, Ds_vec);
-			if (vProductDs.at(0).Theta() < Th0)
-				hCharmM->Fill(vProductDs.at(0).Energy(), SF * 5.5e-3);
+			if (vProductDs.at(0)->Theta() < Th0)
+				hCharmM->Fill(vProductDs.at(0)->Energy(), SF * 5.5e-3);
 
-			//for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
-			//	delete *iP;
+			for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+				delete *iP;
 			vProductDs.clear();
 		}
 
@@ -195,19 +193,22 @@ int main(int argc, char** argv)
 		{
 			++DecayCount;
 
-			if (vProductDs.at(0).Theta() <= Th0)	//neutrino
-				hCharmT->Fill(vProductDs.at(0).Energy(), SF * 0.0548);
+			if (vProductDs.at(0)->Theta() <= Th0)	//neutrino
+				hCharmT->Fill(vProductDs.at(0)->Energy(), SF * 0.0548);
 			else
 				++InNDCount;
+
+			for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+				delete *iP;
+			vProductDs.clear();
 		}
 
-		vProductDs.clear();
 		vProductDs = Nu0->ProductionPS(Amplitude::_CharmT, Ds_vec);
 		if(!vProductDs.size())
 			continue;
 
 		//tau decay from Ds
-		TLorentzVector Tau_vec(vProductDs.at(1).FourVector());
+		TLorentzVector Tau_vec(vProductDs.at(1)->FourVector());
 		for (unsigned int i = 0; i < 4; ++i)
 		{
 			Amplitude::Channel Name;
@@ -241,11 +242,17 @@ int main(int argc, char** argv)
 
 			vProductTau = NuB->ProductionPS(Name, Tau_vec);
 			if (vProductTau.size())
-				if (vProductTau.at(0).Theta() <= Th0)	//neutrino
-					hFill->Fill(vProductTau.at(0).Energy(), Br);
+				if (vProductTau.at(0)->Theta() <= Th0)	//neutrino
+					hFill->Fill(vProductTau.at(0)->Energy(), Br);
 
+			for (iP = vProductTau.begin(); iP != vProductTau.end(); ++iP)
+				delete *iP;
 			vProductTau.clear();
 		}
+
+		for (iP = vProductDs.begin(); iP != vProductDs.end(); ++iP)
+			delete *iP;
+		vProductDs.clear();
 
 		if (ID % 10000 == 0)	//saving
 		{

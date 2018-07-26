@@ -1044,14 +1044,12 @@ TLorentzVector* PhaseSpace::DaughterVector(unsigned int i, Reference Frame)
 		return 0;
 }
 
-//Particle* PhaseSpace::Daughter(unsigned int i, Reference Frame)
-Particle PhaseSpace::Daughter(unsigned int i, Reference Frame)
+Particle* PhaseSpace::Daughter(unsigned int i, Reference Frame)
 {
 	if (i < Daughters())
-		//return new Particle(vPdg.at(i), DaughterVector(i, Frame));
-		return Particle(vPdg.at(i), DaughterVector(i, Frame));
-	//else
-	//	return 0;
+		return new Particle(vPdg.at(i), DaughterVector(i, Frame));
+	else
+		return 0;
 }
 
 unsigned int PhaseSpace::Daughters()

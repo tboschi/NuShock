@@ -370,6 +370,8 @@ double Detector::DecayProb(Particle *P, double Total, double Branch)	//reaching 
 {
 	if (P->EnergyKin() < 0.0)
 		return 0.0;
+	else if (fabs(P->Beta() - 1.0) < 1e-9)
+		return 1.0;
 	else
 	{
 		double Length = Const::fM2GeV * Get("Baseline");

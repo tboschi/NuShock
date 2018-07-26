@@ -175,7 +175,7 @@ double DecayRates::Other(Channel Name)
 //
 double DecayRates::Branch(Channel Name)
 {
-	if (Gamma(Name) < 0.0)
+	if (Gamma(Name) <= 0.0)
 		return 0.0;
 	else return Gamma(Name)/Gamma(_ALL);
 }

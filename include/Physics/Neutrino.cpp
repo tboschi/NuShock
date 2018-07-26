@@ -187,21 +187,18 @@ double Neutrino::ProductionScale(Amplitude::Channel Name)
 		(Helicity() ? 2.0 : 1.0);
 }
 
-//std::vector<Particle*> Neutrino::DecayPS()	//neutrino is labframe
-std::vector<Particle> Neutrino::DecayPS()	//neutrino is labframe
+std::vector<Particle*> Neutrino::DecayPS()	//neutrino is labframe
 {
 	return DecayPS(DecayChannel());
 }
 
-//std::vector<Particle*> Neutrino::DecayPS(Amplitude::Channel Name)	//neutrino is labframe
-std::vector<Particle> Neutrino::DecayPS(Amplitude::Channel Name)	//neutrino is labframe
+std::vector<Particle*> Neutrino::DecayPS(Amplitude::Channel Name)	//neutrino is labframe
 {
 	SetParent(ThePhaseSpace);
 	TLorentzVector Vec = FourVector();
 	ThePhaseSpace->SetLabf(Vec);
 
-	//std::vector<Particle*> vDaughter;
-	std::vector<Particle> vDaughter;
+	std::vector<Particle*> vDaughter;
 	if (ThePhaseSpace->Generate(Name))
 		for (unsigned int i = 0; i < ThePhaseSpace->Daughters(); ++i)
 			vDaughter.push_back(ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame));
@@ -209,20 +206,17 @@ std::vector<Particle> Neutrino::DecayPS(Amplitude::Channel Name)	//neutrino is l
 	return vDaughter;
 }
 
-//std::vector<Particle*> Neutrino::ProductionPS(TLorentzVector &Vec)	//other particle is labframe
-std::vector<Particle> Neutrino::ProductionPS(TLorentzVector &Vec)	//other particle is labframe
+std::vector<Particle*> Neutrino::ProductionPS(TLorentzVector &Vec)	//other particle is labframe
 {
 	return ProductionPS(ProductionChannel(), Vec);
 }
 
-//std::vector<Particle*> Neutrino::ProductionPS(Amplitude::Channel Name, TLorentzVector &Vec)	//other is labframe
-std::vector<Particle> Neutrino::ProductionPS(Amplitude::Channel Name, TLorentzVector &Vec)	//other is labframe
+std::vector<Particle*> Neutrino::ProductionPS(Amplitude::Channel Name, TLorentzVector &Vec)
 {
 	SetParent(ThePhaseSpace);
 	ThePhaseSpace->SetLabf(Vec);
 
-	//std::vector<Particle*> vDaughter;
-	std::vector<Particle> vDaughter;
+	std::vector<Particle*> vDaughter;
 	if (ThePhaseSpace->Generate(Name))
 		for (unsigned int i = 0; i < ThePhaseSpace->Daughters(); ++i)
 			vDaughter.push_back(ThePhaseSpace->Daughter(i, PhaseSpace::LabFrame));

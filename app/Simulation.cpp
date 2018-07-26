@@ -29,6 +29,8 @@ int main(int argc, char** argv)
 		{"output", 	required_argument,	0, 'o'},
 		{"left", 	no_argument,		0, 'L'},
 		{"right", 	no_argument,		0, 'R'},
+		{"dirac", 	no_argument,		0, 'D'},
+		{"majorana", 	no_argument,		0, 'M'},
 		{"help", 	no_argument,		0, 'h'},
 		{0,	0, 	0,	0},
 	};
@@ -37,15 +39,15 @@ int main(int argc, char** argv)
 	int iarg = 0;
 	opterr = 1;
 	
-	std::string SMConfig, DetConfig, FluxConfig;
-	TFile *OutFile;
-	unsigned int Nevent = 1000;
+	std::string OutName, DetConfig, FluxConfig;
+	unsigned int Nevent = 10000;
 	double Mass = 0.0;
 	bool Left = false, Right = false;	//default unpolarised
+	bool Dirac = true;	//default unpolarised
 
 	std::string Channel = "ALL";
 	
-	while((iarg = getopt_long(argc,argv, "d:f:m:n:c:o:LRh", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "d:f:m:n:c:o:LRDMh", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
@@ -65,7 +67,7 @@ int main(int argc, char** argv)
 				Channel.assign(optarg);
 				break;
 			case 'o':
-				OutFile = new TFile(optarg, "RECREATE");
+				OutName.assign(optarg);
 				break;
 			case 'L':
 				Left = true;
@@ -74,6 +76,12 @@ int main(int argc, char** argv)
 			case 'R':
 				Left = false;
 				Right = true;
+				break;
+			case 'D':
+				Dirac = true;
+				break;
+			case 'M':
+				Dirac = false;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -85,51 +93,93 @@ int main(int argc, char** argv)
 
 	//std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 	
-	Neutrino *TheNu;
+	Neutrino *TheNu0_L, *TheNu0_R, *TheNuB_L, *TheNuB_R;
+	unsigned int OptHel, OptFerm;
+
 	if (Left)
-		TheNu = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
+		OptHel = Neutrino::Left;
 	else if (Right)
-		TheNu = new Neutrino(0, Neutrino::Dirac | Neutrino::Right );
+		OptHel = Neutrino::Right;
 	else
-		TheNu = new Neutrino(0, Neutrino::Dirac | Neutrino::Unpolarised );
+		OptHel = Neutrino::Unpolarised;
+
+	if (Dirac)
+	{
+		TheNu0_L = new Neutrino(Mass, Neutrino::Left  | Neutrino::Dirac);
+		TheNuB_L = new Neutrino(Mass, Neutrino::Left  | Neutrino::Dirac | Neutrino::Antiparticle);
+		TheNu0_R = new Neutrino(Mass, Neutrino::Right | Neutrino::Dirac);
+		TheNuB_R = new Neutrino(Mass, Neutrino::Right | Neutrino::Dirac | Neutrino::Antiparticle);
+		OutName += "_dirac_";
+	}
+	else
+	{
+		TheNu0_L = TheNuB_L = new Neutrino(Mass, Neutrino::Left  | Neutrino::Majorana);
+		TheNu0_R = TheNuB_R = new Neutrino(Mass, Neutrino::Right | Neutrino::Majorana);
+		OutName += "_major_";
+	}
+
+	TheNu0_L->SetMixings(5.0e-3, 5.0e-3, 5.0e-3);
+	TheNuB_L->SetMixings(5.0e-3, 5.0e-3, 5.0e-3);
+	TheNu0_R->SetMixings(5.0e-3, 5.0e-3, 5.0e-3);
+	TheNuB_R->SetMixings(5.0e-3, 5.0e-3, 5.0e-3);
+	TheNu0_L->SetDecayChannel(Channel);
+	TheNuB_L->SetDecayChannel(Channel);
+	TheNu0_R->SetDecayChannel(Channel);
+	TheNuB_R->SetDecayChannel(Channel);
+
+	if (!TheNu0_L->IsDecayAllowed() || !TheNu0_L->IsProductionAllowed() ||
+	    !TheNuB_L->IsDecayAllowed() || !TheNuB_L->IsProductionAllowed() ||
+	    !TheNu0_R->IsDecayAllowed() || !TheNu0_R->IsProductionAllowed() ||
+	    !TheNuB_R->IsDecayAllowed() || !TheNuB_R->IsProductionAllowed() )
+	{
+		std::cerr << "Decay " << Channel << " is not allowed for a mass of " << Mass << " GeV" << std::endl;
+		return 1;
+	}
+
+	
+	std::string FileName;
+	std::stringstream ssL;
+	ssL << OutName << std::setfill('0') << std::setw(4) << Mass*1000 << ".root";
+	std::cout << "Saving in " << ssL.str() << std::endl;
+	TFile *OutFile = new TFile(ssL.str().c_str(), "RECREATE");
 
 	Tracker *TheBox = new Tracker(DetConfig);
-	Engine *TheEngine = new Engine(FluxConfig, 1, 1);	//creating 1FHC and 1RHC fluxedrivers
+	Engine *TheEngine = new Engine(FluxConfig, 2, 2);	//creating 1FHC and 1RHC fluxedrivers
 
 	//Binding neutrino to driver
-	TheEngine->BindNeutrino(TheNu, Engine::FHC, 0);
-	TheEngine->BindNeutrino(TheNu, Engine::RHC, 0);
+	TheEngine->BindNeutrino(TheNu0_L, Engine::FHC, 0);
+	TheEngine->BindNeutrino(TheNuB_L, Engine::RHC, 0);
+	TheEngine->BindNeutrino(TheNu0_R, Engine::FHC, 1);
+	TheEngine->BindNeutrino(TheNuB_R, Engine::RHC, 1);
 
-	if (Mass)
-		TheNu->SetMass(Mass);
-
-	TheNu->SetMixings(1e-5/sqrt(3.0), 1e-5/sqrt(3.0), 1e-5/sqrt(3.0));
-	TheNu->SetDecayChannel(Channel);
-
+	TheEngine->ScaleDetector(TheBox);
 	TheEngine->MakeFlux();
-	TheEngine->MakeSampler(TheBox);
+	std::vector<double> vWeight;
+	double Total = TheEngine->MakeSampler(TheBox, 0, vWeight);
+	for (unsigned int i = 0; i < vWeight.size(); ++i)
+		vWeight.at(i) /= Total;
 
-	Particle *ParticleA, *ParticleB;
-	int iA, iB;
 	unsigned int SaveMe = 0;
 
-	double Real, Delay;
-
-	double EnergyA, EnergyB, EnergyC, Energy0;
-	double MomentA, MomentB, MomentC, Moment0;
-	double TransvA, TransvB, TransvC, Transv0;
-	double ThetaA, ThetaB, ThetaC, Theta0;
-	double PhiA, PhiB, PhiC, Phi0;
-	double MassA, MassB, MassC, Mass0;
-	double InnA, BakA, OutA;
-	double InnB, BakB, OutB;
+	double True, W;
+	bool L, R;
+	double EnergyA, EnergyB, Energy0;
+	double MomentA, MomentB, Moment0;
+	double TransvA, TransvB, Transv0;
+	double ThetaA, ThetaB, Theta0;
+	double PhiA, PhiB, Phi0;
+	double MassA, MassB, Mass0;
+	double InnA, OutA, TotA;
+	double InnB, OutB, TotB;
 	double Angle;				//separation between A & B
 
 	//TRandom3 *Rand = new TRandom3(0);
 	TTree *Data = new TTree("Data", "Particle tracks");
 
-	Data->Branch("Real",  &Real, "  fReal/D"    );
-	//Data->Branch("Delay", &Delay, "fDelay/D");
+	Data->Branch("True",   &True,   "fTrue/D");
+	Data->Branch("W", &W, "fW/D");
+	Data->Branch("L", &L, "bL/O");
+	Data->Branch("R", &R, "bR/O");
 
 	Data->Branch("E_A",   &EnergyA, "fEnergyA/D");
 	Data->Branch("P_A",   &MomentA, "fMomentA/D");
@@ -138,8 +188,8 @@ int main(int argc, char** argv)
 	Data->Branch("PhiA",  &PhiA,    "fPhiA/D"   );
 	Data->Branch("M_A",   &MassA,   "fMassA/D"  );
 	Data->Branch("Inn_A", &InnA,    "fInnA/D"   );
-	Data->Branch("Bak_A", &BakA,    "fBakA/D"   );
 	Data->Branch("Out_A", &OutA,    "fOutA/D"   );
+	Data->Branch("Tot_A", &TotA,    "fTotA/D"   );
 
 	Data->Branch("E_B",   &EnergyB, "fEnergyB/D");
 	Data->Branch("P_B",   &MomentB, "fMomentB/D");
@@ -148,8 +198,8 @@ int main(int argc, char** argv)
 	Data->Branch("PhiB",  &PhiB,    "fPhiB/D"   );
 	Data->Branch("M_B",   &MassB,   "fMassB/D"  );
 	Data->Branch("Inn_B", &InnB,    "fInnB/D"   );
-	Data->Branch("Bak_B", &BakB,    "fBakB/D"   );
 	Data->Branch("Out_B", &OutB,    "fOutB/D"   );
+	Data->Branch("Tot_B", &TotB,    "fTotB/D"   );
 
 	Data->Branch("Angle", &Angle,   "fAngle/D"  );
 
@@ -169,105 +219,124 @@ int main(int argc, char** argv)
 	unsigned int ND = 0, ID;
 	for (ID = 0; ID < Nevent; ++ND)
 	{
-		std::cout << "Sampling " << ND << std::endl;
-		//RealFHC = TheEngine->SampleEnergy(Engine::FHC, 0, 1);
-		Real = TheEngine->SampleEnergy(Engine::FHC, 0, 1);
-
-		/*
-		iBunch = Rand->Integer(nBunch);
-		if (Rand->Rndm() < 2.99)
-			Beta = sqrt(1 - Mass*Mass / Real/Real);
-		else
-			Beta = 1.0;
-
-		//Delay = Lc * (1.0/Beta - 1) + iBunch*tBunch;
-		Delay = Rand->Gaus(Lc * (1.0/Beta - 1) + iBunch*tBunch, 1e-9);
-
-
-		*/
-
-
-		std::vector<Particle*> vParticle = TheNu->DecayPS();		//it should not be empty
-
-		ParticleA = 0, ParticleB = 0;
-		iA = -1, iB = -1;
-		std::vector<Particle*>::iterator iP;
-		//for (unsigned int i = 0; i < vParticle.size(); ++i)
-		for (iP = vParticle.begin(); iP != vParticle.end(); ++iP)
+		std::vector<double> vEnergy = TheEngine->SampleEnergy();
+		Neutrino *TheNu;
+		for (unsigned int i = 0; i < vEnergy.size(); ++i)
 		{
-			if ((*iP)->Pdg() == 12)	//neutrino is invibisle
+			if (vEnergy.at(i) < 0)
 				continue;
-			else if ((*iP)->Pdg() == 111)		//pi0, must decay rn
-				TheBox->Pi0Decay(*iP, ParticleA, ParticleB);
-			else if ((*iP)->Pdg() == 22)		//nu gamma decay
-				ParticleA = ParticleB = *iP;
-			else
+
+			switch (i)
 			{
-				//if (iA < 0)
-				if (!ParticleA)
-					ParticleA = *iP;
-				else if (!ParticleB)
-					ParticleB = *iP;
+				case 0:
+					TheNu = TheNu0_L;
+					L = true;
+					R = false;
+					break;
+				case 1:
+					TheNu = TheNu0_R;
+					L = false;
+					R = true;
+					break;
+				case 2:
+					TheNu = TheNuB_L;
+					L = true;
+					R = false;
+					break;
+				case 3:
+					TheNu = TheNuB_R;
+					L = false;
+					R = true;
+					break;
+			}
+
+			TheNu->SetEnergy(vEnergy.at(i));
+			std::vector<Particle*> vParticle = TheNu->DecayPS();
+
+			Particle *ParticleA = 0, *ParticleB = 0;
+
+			std::vector<Particle*>::iterator iP;
+			for (iP = vParticle.begin(); iP != vParticle.end(); ++iP)
+			{
+				if ((*iP)->Pdg() == 12)	//neutrino is invibisle
+					continue;
+				else if ((*iP)->Pdg() == 111)		//pi0, must decay rn
+					TheBox->Pi0Decay(*iP, ParticleA, ParticleB);
+				else if ((*iP)->Pdg() == 22)		//nu gamma decay
+					ParticleA = ParticleB = *iP;
 				else
 				{
-					delete *iP;
-					*iP = 0;
+					if (!ParticleA)
+						ParticleA = *iP;
+					else if (!ParticleB)
+						ParticleB = *iP;
+					else
+					{
+						//delete (*iP);
+						//(*iP) = 0;
+					}
 				}
 			}
-		}
 
-		TheBox->TrackReconstruct(ParticleA);
-		TheBox->TrackReconstruct(ParticleB);
-		if (ParticleA != 0 && ParticleB != 0)
-		{
-			std::cout << "\tParticle " << ID << std::endl;
-			EnergyA = ParticleA->Energy();
-			MomentA = ParticleA->Momentum();
-			TransvA = ParticleA->Transverse();
-			ThetaA  = ParticleA->Theta();
-			PhiA    = ParticleA->Phi();
-			MassA   = ParticleA->Mass();
-			InnA    = ParticleA->TrackIn();
-			BakA    = ParticleA->TrackBack();
-			OutA    = ParticleA->TrackOut();
+			TheBox->TrackReconstruct(ParticleA);
+			TheBox->TrackReconstruct(ParticleB);
+
+			if (ParticleA && ParticleB)
+			{
+				True   = vEnergy.at(i);
+				W      = vWeight.at(i);
+
+				EnergyA = ParticleA->Energy();
+				MomentA = ParticleA->Momentum();
+				TransvA = ParticleA->Transverse();
+				ThetaA  = ParticleA->Theta();
+				PhiA    = ParticleA->Phi();
+				MassA   = ParticleA->Mass();
+				InnA    = ParticleA->TrackIn();
+				OutA    = ParticleA->TrackOut();
+				TotA    = ParticleA->TrackTot();
+			
+				EnergyB = ParticleB->Energy();
+				MomentB = ParticleB->Momentum();
+				TransvB = ParticleB->Transverse();
+				ThetaB  = ParticleB->Theta();
+				PhiB    = ParticleB->Phi();
+				MassB   = ParticleB->Mass();
+				InnB    = ParticleB->TrackIn();
+				OutB    = ParticleB->TrackOut();
+				TotB    = ParticleB->TrackTot();
 		
-			EnergyB = ParticleB->Energy();
-			MomentB = ParticleB->Momentum();
-			TransvB = ParticleB->Transverse();
-			ThetaB  = ParticleB->Theta();
-			PhiB    = ParticleB->Phi();
-			MassB   = ParticleB->Mass();
-			InnB    = ParticleB->TrackIn();
-			BakB    = ParticleB->TrackBack();
-			OutB    = ParticleB->TrackOut();
-	
-			Angle = ParticleA->Direction().Angle(ParticleB->Direction());
+				Angle   = ParticleA->Direction().Angle(ParticleB->Direction());
 
-			TLorentzVector Reco = ParticleA->FourVector() + ParticleB->FourVector();
-		
-			Energy0 = Reco.E();
-			Moment0 = Reco.P();
-			Transv0 = Reco.Pt();
-			Theta0  = Reco.Theta();
-			Phi0    = Reco.Phi();
-			Mass0   = Reco.M();
+				TLorentzVector Reco = ParticleA->FourVector() + ParticleB->FourVector();
+			
+				Energy0 = Reco.E();
+				Moment0 = Reco.P();
+				Transv0 = Reco.Pt();
+				Theta0  = Reco.Theta();
+				Phi0    = Reco.Phi();
+				Mass0   = Reco.M();
 
-			Data->Fill();
-			++ID;
+				Data->Fill();
+				++ID;
+			}
+
+			if (SaveMe++ > 10000)
+			{
+				OutFile->cd();
+				Data->Write();
+				SaveMe = 0;
+			}
+
+			//delete ParticleA, ParticleB;
+			ParticleA = 0, ParticleB = 0;
+			for (unsigned k = 0; k < vParticle.size(); ++k)
+				delete vParticle.at(k);
+			vParticle.clear();
 		}
-
-		if (SaveMe++ > 10000)
-		{
-			OutFile->cd();
-			Data->Write();
-			SaveMe = 0;
-		}
-
-		delete ParticleA, ParticleB;
-		ParticleA = 0, ParticleB = 0;
 	}
 
-	std::cout << "Above detection thresholds there are " << (100.0*ID)/ND << "\% of simulated particles" << std::endl;
+	std::cout << "Above detection thresholds there are " << (ID * 100.0 / vWeight.size())/ND << "\% of simulated particles" << std::endl;
 	OutFile->cd();
         Data->Write();
 	OutFile->Close();

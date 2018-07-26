@@ -40,16 +40,15 @@ class Engine
 		void MakeFlux(Current Horn);
 		void MakeFlux(Current Horn, unsigned int ID);
 
-		std::vector<double> SampleEnergy(bool Set);
-		std::vector<double> SampleEnergy(Current Horn, bool Set);
-		double SampleEnergy(Current Horn, unsigned int ID, bool Set);
+		std::vector<double> SampleEnergy();
+		std::vector<double> SampleEnergy(Current Horn);
+		double SampleEnergy(Current Horn, unsigned int ID);
 
+		double MakeSampler(Detector *Box, bool Eff, std::vector<double>&);
+		double MakeSampler(Detector *Box, bool Eff, std::vector<double>&, Current Horn);
 		double MakeSampler(Detector *Box, bool Eff);
 		double MakeSampler(Detector *Box, bool Eff, Current Horn);
 		double MakeSampler(Detector *Box, bool Eff, Current Horn, unsigned int ID);
-
-		double DecayNumberIntegrated(Detector *Box, bool Eff);
-		double DecayNumberIntegrated(Detector *Box, Current Horn);
 
 		double DecayNumber(Detector *Box, bool Eff);
 		double DecayNumber(Detector *Box, bool Eff, Current Horn);

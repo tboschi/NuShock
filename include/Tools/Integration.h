@@ -156,9 +156,7 @@ namespace Inte
 		double *start = new double[n];	//starting simplex
 		double *step = new double[n];	//
 		for (unsigned int i = 0; i < n; ++i)
-		{
 			step[i]  = 0.5;
-		}
 		start[0] = 0.5;
 		start[1] = 0.5;
 		start[2] = 0.5;
@@ -170,15 +168,15 @@ namespace Inte
 			 reqmin, step, konvge, kcount, 
 			 &icount, &numres, &ifault );
 
+		/*
 		if (ifault == 0)
 		{
-			//for (unsigned int i = 0; i < n; ++i)
-			//	minX.push_back(xmin[i]);
 			return Function<TempClass>(xmin, UserData, True);
-			//return Sign * yValue;
 		}
 		else
 			return -1.0;
+		*/
+		return Function<TempClass>(xmin, UserData, True);
 	}
 }
 

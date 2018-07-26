@@ -11,9 +11,6 @@
 
 #include "Analysis.h"
 
-#include "TH2D.h"
-#include "TFile.h"
-
 void Usage(char* argv0);
 int main(int argc, char** argv)
 {
@@ -228,7 +225,8 @@ int main(int argc, char** argv)
 		Out << vMass.at(i) << "\t" << vU2Bot.at(i) << std::endl;;
 	for (unsigned int i = vMass.size(); i > 0; --i)
 		Out << vMass.at(i-1) << "\t" << vU2Top.at(i-1) << std::endl;;
-	Out << vMass.front() << "\t" << vU2Bot.front() << std::endl;;
+	if (vMass.size())
+		Out << vMass.front() << "\t" << vU2Bot.front() << std::endl;;
 
 	delete TheNu;
 	delete TheEngine;

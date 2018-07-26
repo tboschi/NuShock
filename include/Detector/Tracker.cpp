@@ -16,7 +16,7 @@ void Tracker::TrackReconstruct(Particle *&P)
 
 		if (!IsDetectable(P))
 		{
-			delete P;
+			//delete P;
 			P = 0;
 		}
 	}
