@@ -5,9 +5,8 @@
 #include <iomanip>
 #include <getopt.h>
 
-#include "EventGenerator.h"
-#include "FluxDriver.h"
-#include "DecayRates.h"
+#include "Flux.h"
+#include "Detector.h"
 
 #include "TFile.h"
 #include "TDirectory.h"
@@ -65,12 +64,12 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Detector * TheBox = new Detector(DetConfig, NULL);
+	Detector * TheBox = new Detector(DetConfig);
 
 	TH1D* hFlux = dynamic_cast<TH1D*> (FluxFile->Get("htotal"));
-	hFlux->Scale(1.0/pow(TheBox->GetElement("Baseline"), 2));
-	//hFlux->Scale(TheBox->GetElement("POT/s"));
-	//hFlux->Scale(TheBox->GetElement("Height")*TheBox->GetElement("Width")*1.0e4);
+	hFlux->Scale(1.0/pow(TheBox->Get("Baseline"), 2));
+	//hFlux->Scale(TheBox->Get("POT/s"));
+	//hFlux->Scale(TheBox->Area()*1.0e4);
 
 	TIter Next(XsecFile->GetListOfKeys());
 	TKey *Kkk = dynamic_cast<TKey*> (Next());
@@ -78,7 +77,7 @@ int main(int argc, char** argv)
 	TGraph * gXsecCC = dynamic_cast<TGraph*> (Dir->Get("tot_cc"));
 	TGraph * gXsecNC = dynamic_cast<TGraph*> (Dir->Get("tot_nc"));
 
-	TFile* OutTemp = new TFile("OutTemp.root", "RECREATE");
+	//TFile* OutTemp = new TFile("OutTemp.root", "RECREATE");
 	TH1D * hXsecCC = new TH1D("hxseccc", "hxseccc", hFlux->GetNbinsX(), 0, 20);
 	TH1D * hXsecNC = new TH1D("hxsecnc", "hxsecnc", hFlux->GetNbinsX(), 0, 20);
 
@@ -101,17 +100,26 @@ int main(int argc, char** argv)
 		hXsecCC->SetBinContent(i, 1.0e-38*sumCC/NCC);
 		hXsecNC->SetBinContent(i, 1.0e-38*sumNC/NNC);
 	}
-	hXsecCC->Write();
-	hXsecNC->Write();
+	//hXsecCC->Write();
+	//hXsecNC->Write();
 
-	double MolarMass = 1;
-	if (TheBox->GetElement("InTarget") == 1 || TheBox->GetElement("InTarget") == 2)	//Argon
-		MolarMass = 40.0;	//grams
-	else if (TheBox->GetElement("InTarget") == 3)	//Iron
-		MolarMass = 56.0;	//grams
+	double MolarMass = 40.0;
+	/*
+	switch (TheBox->GetMaterial("InTarget"))
+	{
+		case Detector::LAr:
+		case Detector::GasAr:
+			MolarMass = 40.0;	//grams
+			break;
+		case Detector::Fe:
+			MolarMass = 56.0;	//grams
+			break;
+	}
+	*/
 
-	double NtargetTot = Const::fNa * TheBox->GetElement("Weight") * 1e6 / MolarMass;	//number of targets total tons
-	double NtargetPer = Const::fNa * 1e6 / MolarMass;					//number of targets per ton
+	//double NtargetTotLAr = Const::fNa * TheBox->Get("WeightLAr") * 1e6 / MolarMass;	//number of targets total tons
+	//double NtargetTotFGT = Const::fNa * TheBox->Get("WeightFGT") * 1e6 / MolarMass;	//number of targets total tons
+	double NtargetPer = Const::fNa * 1e6 / MolarMass;				//number of targets per ton
 
 	double RateCC = 0, RateNC = 0;
 	double Npot = 0;
@@ -128,18 +136,18 @@ int main(int argc, char** argv)
 	FluxFile->Close();
 	XsecFile->Close();
 
-	double Ysec = 1.0e7 * TheBox->GetElement("Years");
+	double Ysec = 1.0e7 * TheBox->Get("Years");
 	Out << std::setprecision(10);
 	Out << "Tot numb of neutrinos per 1e20 POT is " << Npot*1e20 << std::endl;
 	Out << "Total number of CC events per 1e20 POT is " << NtargetPer*RateCC*1e20 << std::endl;
 	Out << "Total number of NC events per 1e20 POT is " << NtargetPer*RateNC*1e20 << std::endl;
-	Out << "Frequency of CC events is " << NtargetPer*RateCC*TheBox->GetElement("POT/s") << " Hz on average" << std::endl;
-	Out << "Frequency of NC events is " << NtargetPer*RateNC*TheBox->GetElement("POT/s") << " Hz on average" << std::endl;
-	Out << "Frequency of total events is " << NtargetPer*(RateNC+RateCC)*TheBox->GetElement("POT/s") << " Hz on average" << std::endl;
+	Out << "Frequency of CC events is " << NtargetPer*RateCC*TheBox->Get("POT/s") << " Hz on average" << std::endl;
+	Out << "Frequency of NC events is " << NtargetPer*RateNC*TheBox->Get("POT/s") << " Hz on average" << std::endl;
+	Out << "Frequency of total events is " << NtargetPer*(RateNC+RateCC)*TheBox->Get("POT/s") << " Hz on average" << std::endl;
 	Out << "Percentage of CC over total " << RateCC/(RateNC+RateCC) << std::endl;
 	Out << "Percentage of NC over total " << RateNC/(RateNC+RateCC) << std::endl;
 
-	OutTemp->Close();
+	//OutTemp->Close();
 	return 0;
 }
 	

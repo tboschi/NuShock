@@ -34,9 +34,11 @@ class Tracker : public Detector
 		void TrackVertex(Particle *&P);
 		void TrackSmearing(Particle *&P);
 		void TrackLength(Particle *&P);
-		double GammaDecay();
-		double CriticalEnergy();
-		double RadiationLength(bool Nuclear = false);
+		double GammaDecay(Particle *P);
+		double CriticalEnergy(Particle *P);
+		double CriticalEnergy(Detector::Material Element);
+		double RadiationLength(Particle *P, bool Nuclear = false);
+		double RadiationLength(Detector::Material Element, bool Nuclear = false);
 		double EnergyLoss(Particle *P, bool &Contained);
 		double BetheLoss(Particle *P, Material Target);
 		double Bethe(Particle *P, double Density, double I, int Z, int A);

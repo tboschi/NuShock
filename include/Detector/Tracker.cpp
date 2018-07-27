@@ -142,13 +142,13 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 	switch (abs(P->Pdg()))
 	{
 		case 11:
-			tmax = log(P->Energy()/CriticalEnergy()) - 1.0;
-			Depth = RadiationLength() * GenMT->Gaus(tmax, 0.3*tmax);
+			tmax = log(P->Energy()/CriticalEnergy(P)) - 1.0;
+			Depth = RadiationLength(P) * GenMT->Gaus(tmax, 0.3*tmax);
 
 			P->SetTrackIn(Depth);
 			break;
 		case 22:
-			P->SetTrackIn(GammaDecay());
+			P->SetTrackIn(GammaDecay(P));
 			break;
 		case 13:
 			iE = P->Energy();
@@ -181,7 +181,7 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 			
 			while (IsDetectable(P) && !IsDecayed(P, dStep))		//this should quit when particle decays too!
 			{
-				double Length = GenMT->Exp(RadiationLength(1));
+				double Length = GenMT->Exp(RadiationLength(P));
 				double Cover = 0;
 
 				while (IsDetectable(P) && !IsDecayed(P, dStep) && Cover < Length)	//this should quit when particle decays too!
@@ -224,15 +224,29 @@ void Tracker::TrackLength(Particle *&P)	//This should not change *P
 	}
 }
 
-double Tracker::GammaDecay()
+double Tracker::GammaDecay(Particle *P)
 {
-	double Path = 9.0/7.0 * RadiationLength(0);
+	double Path = 9.0/7.0 * RadiationLength(P, 0);
 	return GenMT->Exp(Path);
 }
 
-double Tracker::CriticalEnergy()	//assuming same for positron and electron
+double Tracker::CriticalEnergy(Particle *P)
 {
-	switch (GetMaterial("InTarget"))
+	Detector::Material Element;
+
+	if (IsInsideLAr(P))
+		Element = GetMaterial("TargetLAr");
+	else if (IsInsideFGT(P))
+		Element = GetMaterial("TargetFGT");
+	else
+		Element = GetMaterial("TargetOut");
+
+	return CriticalEnergy(Element);
+}
+
+double Tracker::CriticalEnergy(Detector::Material Element)	//assuming same for positron and electron
+{
+	switch (Element)
 	{
 		case LAr:
 			return 0.03284;	//GeV
@@ -247,10 +261,24 @@ double Tracker::CriticalEnergy()	//assuming same for positron and electron
 	}
 }
 
-double Tracker::RadiationLength(bool Nuclear)
+double Tracker::RadiationLength(Particle *P, bool Nuclear)
+{
+	Detector::Material Element;
+
+	if (IsInsideLAr(P))
+		Element = GetMaterial("TargetLAr"), Nuclear;
+	else if (IsInsideFGT(P))
+		Element = GetMaterial("TargetFGT"), Nuclear;
+	else
+		Element = GetMaterial("TargetOut"), Nuclear;
+
+	return RadiationLength(Element, Nuclear);
+}
+
+double Tracker::RadiationLength(Detector::Material Element, bool Nuclear)
 {
 	if (!Nuclear)
-		switch (GetMaterial("InTarget"))
+		switch (Element)
 		{
 			case LAr:
 				return 19.55/1.3945 / 100;
@@ -264,7 +292,7 @@ double Tracker::RadiationLength(bool Nuclear)
 				return 0;
 		}
 	else
-		switch (GetMaterial("InTarget"))
+		switch (Element)
 		{
 			case LAr:
 				return 119.7/1.3945 / 100;
@@ -385,8 +413,8 @@ void Tracker::Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB)
 
 	TVector3 MoveA(GammaA.Vect().Unit());
 	TVector3 MoveB(GammaB.Vect().Unit());
-	MoveA *= GammaDecay();
-	MoveB *= GammaDecay();
+	MoveA *= GammaDecay(PA);
+	MoveB *= GammaDecay(PB);
 	MoveA += Start;
 	MoveB += Start;
 
