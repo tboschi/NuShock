@@ -1,8 +1,0 @@
-#nPI0, E
-#0.150	Simulation/FGT/sign_FGT_nPI0_150_E.root	Background/FGT/cut_FGT_nPI0_150.dat
-#0.200	Simulation/FGT/sign_FGT_nPI0_200_E.root	Background/FGT/cut_FGT_nPI0_200.dat
-#0.250	Simulation/FGT/sign_FGT_nPI0_250_E.root	Background/FGT/cut_FGT_nPI0_250.dat
-0.300	Simulation/FGT/sign_FGT_nPI0_300_E.root	Background/FGT/cut_FGT_nPI0_300.dat
-#0.350	Simulation/FGT/sign_FGT_nPI0_350_E.root	Background/FGT/cut_FGT_nPI0_350.dat
-#0.400	Simulation/FGT/sign_FGT_nPI0_300_E.root	Background/FGT/cut_FGT_nPI0_400.dat
-#0.450	Simulation/FGT/sign_FGT_nPI0_350_E.root	Background/FGT/cut_FGT_nPI0_450.dat

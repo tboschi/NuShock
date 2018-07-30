@@ -155,7 +155,7 @@ int main(int argc, char** argv)
 	TheEngine->ScaleDetector(TheBox);
 	TheEngine->MakeFlux();
 	std::vector<double> vWeight;
-	double Total = TheEngine->MakeSampler(TheBox, 0, vWeight);
+	double Total = TheEngine->MakeSampler(TheBox, vWeight);
 	for (unsigned int i = 0; i < vWeight.size(); ++i)
 		vWeight.at(i) /= Total;
 

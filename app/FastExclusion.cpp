@@ -37,12 +37,13 @@ int main(int argc, char** argv)
 	std::string Channel = "ALL";
 	bool UeFlag = false, UmFlag = false, UtFlag = false;
 	bool Efficiency = false;
-	double Thr = 2.44;
+	double Thr = 2.44, Qct = 0.0;
+	//for mass dependency of threshold as in T = Qct * Mass + Thr
 	
 	bool Left = false, Right = false;		//default unpolarised
 	bool Particle = false, Antipart = false;	//default majorana
 
-	while((iarg = getopt_long(argc,argv, "d:f:c:o:t:WEMTLRAPBmh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "d:f:c:o:t:q:WEMTLRAPBmh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -59,7 +60,10 @@ int main(int argc, char** argv)
 				FileName.assign(optarg);
 				break;
 			case 't':
-				Thr  = std::strtod(optarg, NULL);
+				Thr = std::strtod(optarg, NULL);
+				break;
+			case 'q':
+				Qct = std::strtod(optarg, NULL);
 				break;
 			case 'W':
 				Efficiency = true;
@@ -106,24 +110,18 @@ int main(int argc, char** argv)
 	std::string First;
 	if (UeFlag)
 	{
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::E);
 		vFlag.push_back('E');
 		FileName += "_E";
 		First += "Ue\t";
 	}
 	if (UmFlag)
 	{
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::M);
 		vFlag.push_back('M');
 		FileName += "_M";
 		First += "Um\t";
 	}
 	if (UtFlag)
 	{
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::T);
 		vFlag.push_back('T');
 		FileName += "_T";
 		First += "Ut\t";
@@ -133,16 +131,22 @@ int main(int argc, char** argv)
 	{
 		OptFerm = Neutrino::Dirac;
 		FileName += "_p";
+		if (Efficiency)
+			TheBox->SetEfficiency(Channel, 1);
 	}
 	else if (Antipart)
 	{
 		OptFerm = Neutrino::Dirac | Neutrino::Antiparticle;
 		FileName += "_a";
+		if (Efficiency)
+			TheBox->SetEfficiency(Channel, 1);
 	}
 	else
 	{
 		OptFerm = Neutrino::Majorana;
 		FileName += "_m";
+		if (Efficiency)
+			TheBox->SetEfficiency(Channel, 0);
 	}
 
 	if (Left)
@@ -180,11 +184,11 @@ int main(int argc, char** argv)
 
 	Exclusion *Solver;
 	if (TheNu->IsParticle())
-		Solver = new Exclusion(TheEngine, Engine::FHC, TheBox, Efficiency, vFlag, Thr);
+		Solver = new Exclusion(TheEngine, Engine::FHC, TheBox, vFlag, Thr);
 	else if (TheNu->IsAntiparticle())
-		Solver = new Exclusion(TheEngine, Engine::RHC, TheBox, Efficiency, vFlag, Thr);
+		Solver = new Exclusion(TheEngine, Engine::RHC, TheBox, vFlag, Thr);
 	else if (TheNu->IsMajorana())
-		Solver = new Exclusion(TheEngine, Engine::Both, TheBox, Efficiency, vFlag, Thr);
+		Solver = new Exclusion(TheEngine, Engine::Both, TheBox, vFlag, Thr);
 
 	std::vector<double> vMass, vU2Bot, vU2Top;
 
@@ -192,6 +196,10 @@ int main(int argc, char** argv)
 	{
 		Mass = pow(10.0, logMass);
 		//std::cout << "Mass " << Mass << std::endl;
+		double Threshold = Thr + Mass * Qct;
+		if (Threshold < 2.44)
+			Threshold = 2.44;
+		Solver->SetThr(Threshold);
 
 		TheNu->SetMass(Mass);
 

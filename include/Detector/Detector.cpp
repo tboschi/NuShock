@@ -19,20 +19,15 @@ Detector::Detector(std::string ConfigName) :
 
 		if (ssL >> Key)
 		{
-			if (Key == "E")			//electon channels
+			if (Key == "D")			//dirac
 			{
 				ssL >> Channel >> Name;
-				mEfficiencyE[Channel] = Name;
+				mEfficiencyD[Channel] = Name;
 			}
-			else if (Key == "M")
+			else if (Key == "M")		//majorana
 			{
 				ssL >> Channel >> Name;
 				mEfficiencyM[Channel] = Name;
-			}
-			else if (Key == "T")
-			{
-				ssL >> Channel >> Name;
-				mEfficiencyT[Channel] = Name;
 			}
 			else if (Key.find("Target") != std::string::npos && ssL >> Name)
 				mMaterial[Key] = FindMaterial(Name);
@@ -42,6 +37,7 @@ Detector::Detector(std::string ConfigName) :
 	}
 
 	FuncFile = new TFile();
+	EffSet = false;
 }
 
 std::vector<std::string> Detector::ListKey()
@@ -58,13 +54,10 @@ std::vector<std::string> Detector::ListChannel()
 	std::vector<std::string> List;
 	std::map<std::string, std::string>::iterator it;
 
-	for (it = mEfficiencyE.begin(); it != mEfficiencyE.end(); ++it)
+	for (it = mEfficiencyD.begin(); it != mEfficiencyD.end(); ++it)
 		List.push_back(it->first);
 
 	for (it = mEfficiencyM.begin(); it != mEfficiencyM.end(); ++it)
-		List.push_back(it->first);
-
-	for (it = mEfficiencyT.begin(); it != mEfficiencyT.end(); ++it)
 		List.push_back(it->first);
 
 	return List;
@@ -92,7 +85,10 @@ Detector::Material Detector::FindMaterial(std::string Name)
 
 double Detector::Efficiency(Neutrino *Nu)
 {
-	return Efficiency(Nu->Energy(), Nu->Mass());
+	if (EffSet)
+		return Efficiency(Nu->Energy(), Nu->Mass());
+	else
+		return 1.0;
 }
 
 double Detector::Efficiency(double Energy, double Mass)
@@ -108,29 +104,23 @@ double Detector::Efficiency(double Energy, double Mass)
 		return -1.0;
 }
 
-void Detector::SetEfficiency(std::string Channel, Coupling U)
+void Detector::SetEfficiency(std::string Channel, bool U)
 {
 	if (FuncFile != 0 && FuncFile->IsOpen())
 		FuncFile->Close();
 
-	switch (U)
+	if (U)
 	{
-		case E:
-			FuncFile = new TFile(mEfficiencyE[Channel].c_str(), "OPEN");
-			hhFunc = dynamic_cast<TH2D*> (FuncFile->Get("hhfunc"));
-			break;
-		case M:
-			FuncFile = new TFile(mEfficiencyM[Channel].c_str(), "OPEN");
-			hhFunc = dynamic_cast<TH2D*> (FuncFile->Get("hhfunc"));
-			break;
-		case T:
-			FuncFile = new TFile(mEfficiencyT[Channel].c_str(), "OPEN");
-			hhFunc = dynamic_cast<TH2D*> (FuncFile->Get("hhfunc"));
-			break;
-		default:
-			hhFunc = 0;
-			break;
+		FuncFile = new TFile(mEfficiencyD[Channel].c_str(), "OPEN");
+		hhFunc = dynamic_cast<TH2D*> (FuncFile->Get("hhfunc"));
 	}
+	else
+	{
+		FuncFile = new TFile(mEfficiencyM[Channel].c_str(), "OPEN");
+		hhFunc = dynamic_cast<TH2D*> (FuncFile->Get("hhfunc"));
+	}
+
+	EffSet = true;
 }
 
 /*

@@ -1,8 +1,0 @@
-#nGAMMA, M
-#0.050	Simulation/LAr/sign_LAr_nGAMMA_050_M.root	Background/LAr/cut_LAr_nGAMMA_050.dat
-#0.100	Simulation/LAr/sign_LAr_nGAMMA_100_M.root	Background/LAr/cut_LAr_nGAMMA_100.dat
-#0.150	Simulation/LAr/sign_LAr_nGAMMA_150_M.root	Background/LAr/cut_LAr_nGAMMA_150.dat
-#0.200	Simulation/LAr/sign_LAr_nGAMMA_200_M.root	Background/LAr/cut_LAr_nGAMMA_200.dat
-#0.250	Simulation/LAr/sign_LAr_nGAMMA_250_M.root	Background/LAr/cut_LAr_nGAMMA_250.dat
-0.300	Simulation/LAr/sign_LAr_nGAMMA_300_M.root	Background/LAr/cut_LAr_nGAMMA_300.dat
-#0.350	Simulation/LAr/sign_LAr_nGAMMA_350_M.root	Background/LAr/cut_LAr_nGAMMA_350.dat

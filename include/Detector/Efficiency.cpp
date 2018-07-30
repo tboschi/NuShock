@@ -22,8 +22,6 @@ Efficiency::Efficiency(std::string InFile)
 		vSim.push_back(SimFile);
 		vCut.push_back(CutFile);
 	}	
-
-	LoopFile();
 }
 
 void Efficiency::InitFunc()	//energies from 0 to 20, 100 bin; masses from 0 to 2.0, 400 bin
@@ -35,6 +33,7 @@ void Efficiency::InitFunc()	//energies from 0 to 20, 100 bin; masses from 0 to 2
 
 void Efficiency::LoopFile()
 {
+	InitFunc();
 	for (unsigned int i = 0; i < vMass.size(); ++i)
 	{
 		TreeFile = new TFile(vSim.at(i).c_str(), "OPEN");
@@ -160,6 +159,8 @@ void Efficiency::LoadCut(std::string CutFile)
 			SetSpecial(4, Lower, Upper);
 		else if (BranchName == "T_AB0")		//(T_A+T_B)/T_0
 			SetSpecial(5, Lower, Upper);
+		else if (BranchName == "TTA")		//(T_A+T_B)/T_0
+			SetSpecial(6, Lower, Upper);
 		else
 			std::cout << BranchName << ": branch unknown!" << std::endl;
 	}
@@ -199,6 +200,10 @@ void Efficiency::SetSpecial(int CutNumber, double Lo, double Up)
 			Data->SetBranchStatus("T_A", 1);
 			Data->SetBranchStatus("T_B", 1);
 			Data->SetBranchStatus("T_0", 1);
+			break;
+		case 6:		//Special cut T_AB0
+			Data->SetBranchStatus("T_A", 1);
+			Data->SetBranchStatus("TheA", 1);
 			break;
 	}
 
@@ -261,6 +266,9 @@ bool Efficiency::SpecialCut()
 				break;
 			case 5:		//Special cut T_AB0
 				Value = (T_A+T_B)/T_0;
+				break;
+			case 6:		//Special cut T_AB0
+				Value = T_A*TheA;
 				break;
 			default:
 				break;

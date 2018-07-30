@@ -65,17 +65,19 @@ PairAngle	3.0
 ResPi0Mass	0.040
 
 #Efficiency file
-#
-E	EPI		Efficiency/LAr/eff_EPI_E.root
-E	nMM		Efficiency/LAr/eff_nMUMU_E.root
-E	nEM		Efficiency/LAr/eff_nMUE_E.root
-E	nEE		Efficiency/LAr/eff_nEE_E.root
-E	nGAMMA	Efficiency/LAr/eff_nGAMMA_E.root
-E	nPI0		Efficiency/LAr/eff_nPI0_E.root
-
-M	MPI		Efficiency/LAr/eff_MUPI_M.root
-M	nMM		Efficiency/LAr/eff_nMUMU_M.root
-M	nME		Efficiency/LAr/eff_nMUE_M.root
-M	nEE		Efficiency/LAr/eff_nEE_M.root
-M	nGAMMA	Efficiency/LAr/eff_nGAMMA_M.root
-M	nPI0		Efficiency/LAr/eff_nPI0_M.root
+#dirac
+D	EPI		Efficiency/EPI_dirac.root
+D	MPI		Efficiency/EPI_dirac.root
+D	nEE		Efficiency/nEE_dirac.root
+D	nEM		Efficiency/nMUE_dirac.root
+D	nMM		Efficiency/nMUMU_dirac.root
+D	nGAMMA		Efficiency/nGAMMA_dirac.root
+D	nPI0		Efficiency/nPI0_dirac.root
+#majorana
+M	EPI		Efficiency/EPI_major.root
+M	MPI		Efficiency/EPI_major.root
+M	nEE		Efficiency/nEE_major.root
+M	nEM		Efficiency/nMUE_major.root
+M	nMM		Efficiency/nMUMU_major.root
+M	nGAMMA		Efficiency/nGAMMA_major.root
+M	nPI0		Efficiency/nPI0_major.root

@@ -19,7 +19,7 @@ class Exclusion
 {
 	public:
 		Exclusion(Engine* TE, Engine::Current HornType,
-			  Detector *TB, bool Efficiency, 
+			  Detector *TB,
 			  std::vector<char> &vF, double Threshold);
 		~Exclusion();
 		double Bisect(double S, double E);
@@ -28,12 +28,12 @@ class Exclusion
 		void Split(std::list<double> &ll);
 		double Function(double lu2);
 		void SetMix(double lu2);
+		void SetThr(double T);
 
 	private:
 		Engine *TheEngine;
 		Engine::Current Horn;
 		Detector *TheBox;
-		bool Eff;
 		std::vector<char> vFlag;
 		double Thr;
 };

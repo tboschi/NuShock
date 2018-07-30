@@ -1,8 +1,0 @@
-#nEE, M
-#0.050	Simulation/FGT/sign_FGT_nEE_050_M.root	Background/FGT/cut_FGT_nEE_050.dat
-#0.100	Simulation/FGT/sign_FGT_nEE_100_M.root	Background/FGT/cut_FGT_nEE_100.dat
-#0.150	Simulation/FGT/sign_FGT_nEE_150_M.root	Background/FGT/cut_FGT_nEE_150.dat
-#0.200	Simulation/FGT/sign_FGT_nEE_200_M.root	Background/FGT/cut_FGT_nEE_200.dat
-#0.250	Simulation/FGT/sign_FGT_nEE_250_M.root	Background/FGT/cut_FGT_nEE_250.dat
-0.300	Simulation/FGT/sign_FGT_nEE_300_M.root	Background/FGT/cut_FGT_nEE_300.dat
-#0.350	Simulation/FGT/sign_FGT_nEE_350_M.root	Background/FGT/cut_FGT_nEE_350.dat

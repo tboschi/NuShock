@@ -28,12 +28,6 @@
 class Detector
 {
 	public:
-		enum Coupling
-		{
-			E,
-			M,
-			T
-		};
 
 		enum Material
 		{
@@ -62,7 +56,7 @@ class Detector
 
 		double Efficiency(Neutrino *Nu);
 		double Efficiency(double Energy, double Mass);
-		void SetEfficiency(std::string Channel, Coupling U);
+		void SetEfficiency(std::string Channel, bool U);
 
 		double XsizeLAr();
 		double XstartLAr();
@@ -110,9 +104,10 @@ class Detector
 	private:
 		TFile *FuncFile;
 		TH2D *hhFunc;
+		bool EffSet;
 
 		std::map<std::string, double> mDetector;
-		std::map<std::string, std::string> mEfficiencyE, mEfficiencyM, mEfficiencyT;
+		std::map<std::string, std::string> mEfficiencyD, mEfficiencyM;
 		std::map<std::string, Material> mMaterial;
 };
 
