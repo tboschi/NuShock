@@ -1,0 +1,17 @@
+#!/bin/bash
+
+Exec="./bin/Rate"
+OptD="-d config/ND_Full"
+
+printf "\nNuE_0\n"
+$Exec $OptD -f data/NuE_0.root -x data/NuE_0_argon_xsec.root
+printf "\nNuE_B\n"
+#$Exec $OptD -f data/NuE_B.root -x data/NuE_B_argon_xsec.root
+printf "\nNuM_0\n"
+$Exec $OptD -f data/NuM_0.root -x data/NuM_0_argon_xsec.root
+printf "\nNuM_B\n"
+$Exec $OptD -f data/NuM_B.root -x data/NuM_B_argon_xsec.root
+printf "\nNuT_0\n"
+$Exec $OptD -f data/NuT_0.root -x data/NuT_0_argon_xsec.root
+printf "\nNuT_B\n"
+$Exec $OptD -f data/NuT_B.root -x data/NuT_B_argon_xsec.root

@@ -1,0 +1,55 @@
+#!/bin/bash --login
+
+Config="config"
+
+Exec="./bin/ProductionScale"
+
+Chan20=("PionE")
+Chan21=("PionM")
+Chan22=("KaonE")
+Chan23=("KaonM")
+Chan24=("CharmE")
+Chan25=("CharmM")
+Chan26=("CharmT")
+Chan27=("TauPI")
+
+ChanTwo=("$Chan20" "$Chan21" "$Chan22" "$Chan23" "$Chan24" "$Chan25" "$Chan26" "$Chan27")
+
+Chan30=("MuonE")
+Chan31=("MuonM")
+Chan32=("TauEE")
+Chan33=("TauET")
+Chan34=("TauMM")
+Chan34=("TauMT")
+Chan35=("Tau2PI")
+Chan36=("Kaon0E")
+Chan37=("Kaon0M")
+Chan38=("KaonCE")
+Chan39=("KaonCM")
+
+ChanThree=("$Chan30" "$Chan31" "$Chan32" "$Chan33" "$Chan34" "$Chan35" "$Chan36" "$Chan37" "$Chan38" "$Chan39")
+
+# Run the tasks:
+for i in "${ChanTwo[@]}"
+do
+	echo $Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
+
+	if [ "${i}" = "${OptArr[7]}" ]
+	then
+		$Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
+	else
+		$Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}" &
+	fi
+done
+
+for i in "${ChanThree[@]}"
+do
+	echo $Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
+
+	if [ "${i}" = "${OptThree[9]}" ]
+	then
+		$Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
+	else
+		$Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}" &
+	fi
+done
