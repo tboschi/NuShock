@@ -2,25 +2,50 @@
 #include <fstream>
 
 #include "Tools.h"
-#include "Physics.h"
+#include "Flux.h"
+#include "TH1D.h"
 
-int main()
+int main(int argc, char** argv)
 {
-	PhaseSpace *ThePS = new PhaseSpace();
-	double mix[3] = {1.0, 1.0, 1.0};
-	double mass = 0.4;
-	ThePS->SetNeutrino(mass, mix, 1, 1, -1);
-	ThePS->SetMass(mass);
+	std::string File(argv[1]);
+	Flux *ff = new Flux(File);
 
-	std::ofstream Out("nll.dat");
+	std::ofstream Out(argv[2]);
 
-	double x = 0;
-	double y = pow(Const::fMMuon/mass, 2);
-	double z = pow(Const::fMElectron/mass, 2);
+	ff->Scale(1e20);
+	TH1D *hh;
+	double Energy = ff->RangeStart();
+	double End   = ff->RangeEnd();
+	double Width = ff->BinWidth();
+	double BinN  = ff->BinNumber();
+	for (unsigned int i = 0; i < BinN; ++i)
+	{
+		Out << Energy << "\t";
+		if (hh = ff->Get(Flux::Total))
+			Out << hh->GetBinContent(i) << "\t";
+		else if (hh = ff->Get(Flux::Pion))
+		 	Out << hh->GetBinContent(i) << "\t";
+		else if (hh = ff->Get(Flux::PPion))
+		 	Out << hh->GetBinContent(i) << "\t";
+		else if (hh = ff->Get(Flux::Kaon))
+		 	Out << hh->GetBinContent(i) << "\t";
+		else if (hh = ff->Get(Flux::Kaon0))
+		 	Out << hh->GetBinContent(i) << "\t";
+		else if (hh = ff->Get(Flux::Charm))
+		 	Out << hh->GetBinContent(i) << "\t";
+		else if (hh = ff->Get(Flux::Muon))
+		 	Out << hh->GetBinContent(i) << "\t";
+		else if (hh = ff->Get(Flux::TauE))
+		 	Out << hh->GetBinContent(i) << "\t";
+		else if (hh = ff->Get(Flux::TauM))
+			Out << hh->GetBinContent(i) << "\t";
 
-	for (double s = 0; s < 1; s += 0.01)
-		for (double cos0 = -1; cos0 < 1; cos0 += 0.01)
-			Out << s << "\t" << cos0 << "\t" << ThePS->M2_WW(s, cos0, x, y, z) << "\t" << ThePS->M2_WZ(s, cos0, x, y, z)  << std::endl;
+		Energy += Width;
+	}
+		
+
+	delete ff;
+	Out.close();
 
 	return 0;
 }

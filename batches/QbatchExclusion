@@ -65,12 +65,12 @@ OptArr=("$Opt01" "$Opt02" "$Opt03" "$Opt04" "$Opt05" "$Opt06" "$Opt07" "$Opt08" 
 # Run the tasks:
 for i in "${OptArr[@]}"
 do
-	echo $Exec $Opt0 -o Results/$Channel -c $Channel "${i}"
+	echo $Exec $Opt0 -o Results/Exclusion/$Channel -c $Channel "${i}"
 
 	if [ "${i}" = "${OptArr[26]}" ]
 	then
-		$Exec $Opt0 -o Results/$Channel -c $Channel "${i}"
+		$Exec $Opt0 -o Results/Exclusion/$Channel -c $Channel "${i}"
 	else
-		$Exec $Opt0 -o Results/$Channel -c $Channel "${i}" &
+		$Exec $Opt0 -o Results/Exclusion/$Channel -c $Channel "${i}" &
 	fi
 done

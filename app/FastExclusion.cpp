@@ -210,7 +210,7 @@ int main(int argc, char** argv)
 			TheEngine->MakeFlux();
 			TheEngine->ScaleDetector(TheBox);
 
-			double lU2Bot = -12.0;
+			double lU2Bot = -16.0;
 			double lU2Top = - 0.0;
 			double lU2Mid;
 
@@ -222,8 +222,22 @@ int main(int argc, char** argv)
 				vMass.push_back(Mass);
 				vU2Bot.push_back(pow(10, lU2Bot));
 				vU2Top.push_back(pow(10, lU2Top));
+			}
+			else
+			{
+				for (unsigned int i = 0; i < vMass.size(); ++i)
+					Out << vMass.at(i) << "\t" << vU2Bot.at(i) << std::endl;;
+				for (unsigned int i = vMass.size(); i > 0; --i)
+					Out << vMass.at(i-1) << "\t" << vU2Top.at(i-1) << std::endl;;
+				if (vMass.size())
+				{
+					Out << vMass.front() << "\t" << vU2Bot.front() << std::endl;;
+					Out << std::endl << std::endl;
+				}
 
-				//Out << Mass << "\t" << pow(10, lU2Bot) << "\t" << pow(10, lU2Top) << std::endl;
+				vMass.clear();
+				vU2Bot.clear();
+				vU2Top.clear();
 			}
 		}
 	}

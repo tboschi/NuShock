@@ -271,6 +271,11 @@ double Particle::Z()
 	return ParticlePos.Z();
 }
 
+double Particle::Dist()
+{
+	return ParticlePos.Mag2();
+}
+
 double Particle::TrackIn() //const
 {
 	return dTrackIn;

@@ -19,11 +19,12 @@ CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPD
 
 #apps and exctuables
 CPP =	Simulation	\
+	ToPlot		\
 	Rate		\
-	Efficiency
-	#FluxDs		\
 	FastExclusion	\
 	FastExclCombine	\
+	#Efficiency
+	#FluxDs		\
 	#Modifier	\
 	#MakeFlux	\
 	ProductionScale	\

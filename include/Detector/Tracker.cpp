@@ -8,9 +8,10 @@ void Tracker::TrackReconstruct(Particle *&P)
 {
 	if (P)
 	{
-		TrackVertex(P);
+		if (P->Dist() == 0.0)
+			TrackVertex(P);
 
-		if (P->TrackIn() < 0)
+		if (P->TrackOut() < 0)
 			TrackLength(P);
 		TrackSmearing(P);
 
@@ -395,21 +396,27 @@ void Tracker::Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB)
 {
 	//in rest frame
 	double M_Pion0 = Const::fMPion0;
-	TLorentzVector GammaA(0, 0, M_Pion0/2.0, M_Pion0/2.0); 
-	TLorentzVector GammaB(0, 0, -M_Pion0/2.0, M_Pion0/2.0); 
 
+	delete PA, PB;
+	PA = 0, PB = 0;
+
+	TrackVertex(Pi0);
 	TVector3 vBoost(Pi0->FourVector().BoostVector());
 	TVector3 Start(Pi0->Position());		//starting point is vertex
-	double Theta = GenMT->Uniform(-Const::fPi, Const::fPi);
-	double Phi = GenMT->Uniform(-Const::fPi, Const::fPi);
 
+	TLorentzVector GammaA(0, 0,  M_Pion0/2.0, M_Pion0/2.0); 
+	TLorentzVector GammaB(0, 0, -M_Pion0/2.0, M_Pion0/2.0); 
+	double Theta = GenMT->Uniform(-Const::fPi, Const::fPi);
+	double Phi   = GenMT->Uniform(-Const::fPi, Const::fPi);
 	GammaA.SetTheta(Theta);
 	GammaB.SetTheta(Theta + Const::fPi);
 	GammaA.SetPhi(Phi);
 	GammaB.SetPhi(Phi + Const::fPi);
-
 	GammaA.Boost(vBoost);
 	GammaB.Boost(vBoost);
+
+	PA = new Particle(22, GammaA, Start);	//here are the photons
+	PB = new Particle(22, GammaB, Start);	//position should be different
 
 	TVector3 MoveA(GammaA.Vect().Unit());
 	TVector3 MoveB(GammaB.Vect().Unit());
@@ -418,17 +425,14 @@ void Tracker::Pi0Decay(Particle *Pi0, Particle *&PA, Particle *&PB)
 	MoveA += Start;
 	MoveB += Start;
 
-	delete PA, PB;
-	PA = 0, PB = 0;
-
-	PA = new Particle(22, GammaA, MoveA);	//here are the photons
-	PB = new Particle(22, GammaB, MoveB);	//position should be different
+	PA->SetPosition(MoveA);
+	PB->SetPosition(MoveB);
 }
 
 void Tracker::Focus(Particle *P)
 {
 	double Radius = sqrt(pow(Xsize(), 2) + pow(Ysize(), 2));
-	double SigmaT = atan2(Radius, Get("Baseline"));					//3sigma will be inside the detector (better distribution needed)
+	double SigmaT = atan2(Radius, Get("Baseline"));	//3sigma will be inside the detector (better distribution needed)
 
 	P->SetTheta( abs(GenMT->Gaus(0, SigmaT)) );	
 	P->SetPhi( GenMT->Uniform(-Const::fPi, Const::fPi) );

@@ -62,6 +62,7 @@ class Particle
 		double X();
 		double Y();
 		double Z();
+		double Dist();
 		double TrackIn();
 		double TrackBack();
 		double TrackOut();

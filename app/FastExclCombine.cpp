@@ -37,12 +37,12 @@ int main(int argc, char** argv)
 	std::string Channel = "ALL";
 	bool UeFlag = false, UmFlag = false, UtFlag = false;
 	bool Efficiency = false;
-	double Thr = 2.44;
+	double Thr = 2.44, Qct = 0.0;
 	
 	bool Left = false, Right = false;		//default unpolarised
 	bool Particle = false, Antipart = false;	//default majorana
 
-	while((iarg = getopt_long(argc,argv, "d:f:c:o:t:WEMTLRAPBmh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "d:f:c:o:t:q:WEMTLRAPBmh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -60,6 +60,9 @@ int main(int argc, char** argv)
 				break;
 			case 't':
 				Thr  = std::strtod(optarg, NULL);
+				break;
+			case 'q':
+				Qct  = std::strtod(optarg, NULL);
 				break;
 			case 'W':
 				Efficiency = true;
@@ -106,24 +109,18 @@ int main(int argc, char** argv)
 	std::string First;
 	if (UeFlag)
 	{
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::E);
 		vFlag.push_back('E');
 		FileName += "_E";
 		First += "Ue\t";
 	}
 	if (UmFlag)
 	{
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::M);
 		vFlag.push_back('M');
 		FileName += "_M";
 		First += "Um\t";
 	}
 	if (UtFlag)
 	{
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::T);
 		vFlag.push_back('T');
 		FileName += "_T";
 		First += "Ut\t";
@@ -150,6 +147,9 @@ int main(int argc, char** argv)
 	std::ofstream Out(FileName.c_str());
 	Out << "#Mass\t" << First << "Events" << std::endl;
 
+	if (Efficiency)
+		TheBox->SetEfficiency(Channel, 1);
+
 	TheNu0 = new Neutrino(0, OptHel );
 	TheNuB = new Neutrino(0, OptHel | Neutrino::Antiparticle);
 	TheNu0->SetDecayChannel(Channel);
@@ -164,13 +164,17 @@ int main(int argc, char** argv)
 	double Mass;
 	//std::cout << "Scanning over " << nD << " dimensions" << std::endl;
 
-	Exclusion *Solver = new Exclusion(TheEngine, Engine::Both, TheBox, Efficiency, vFlag, Thr);
+	Exclusion *Solver = new Exclusion(TheEngine, Engine::Both, TheBox, vFlag, Thr);
 	std::vector<double> vMass, vU2Bot, vU2Top;
 
 	for (double logMass = -2.0; logMass < 0.3; logMass += 2.3/Grid)	//increase mass log
 	{
 		Mass = pow(10.0, logMass);
 		//std::cout << "Mass " << Mass << std::endl;
+		double Threshold = Thr + Mass * Qct;
+		if (Threshold < 2.44)
+			Threshold = 2.44;
+		Solver->SetThr(Threshold);
 
 		TheNu0->SetMass(Mass);
 		TheNuB->SetMass(Mass);
@@ -198,6 +202,22 @@ int main(int argc, char** argv)
 				vU2Top.push_back(pow(10, lU2Top));
 				//Out << Mass << "\t" << pow(10, lU2Bot) << "\t" << pow(10, lU2Top) << std::endl;
 			}
+			else
+			{
+				for (unsigned int i = 0; i < vMass.size(); ++i)
+					Out << vMass.at(i) << "\t" << vU2Bot.at(i) << std::endl;;
+				for (unsigned int i = vMass.size(); i > 0; --i)
+					Out << vMass.at(i-1) << "\t" << vU2Top.at(i-1) << std::endl;;
+				if (vMass.size())
+				{
+					Out << vMass.front() << "\t" << vU2Bot.front() << std::endl;;
+					Out << std::endl << std::endl;
+				}
+
+				vMass.clear();
+				vU2Bot.clear();
+				vU2Top.clear();
+			}
 		}
 	}
 
@@ -206,7 +226,10 @@ int main(int argc, char** argv)
 	for (unsigned int i = vMass.size(); i > 0; --i)
 		Out << vMass.at(i-1) << "\t" << vU2Top.at(i-1) << std::endl;;
 	if (vMass.size())
+	{
 		Out << vMass.front() << "\t" << vU2Bot.front() << std::endl;;
+		Out << std::endl << std::endl;
+	}
 
 	delete TheNu0;
 	delete TheNuB;

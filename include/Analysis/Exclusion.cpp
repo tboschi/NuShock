@@ -53,10 +53,10 @@ bool Exclusion::FindInterval(double S, double &M, double E)
 	ll.push_back(E);	//...this one
 
 	unsigned int g = 0;	//max number of splits is 50
-	while ( (M = IsZero(ll)) < ll.front() && ll.size() < 50 )	//there is no zero
+	while ( (M = IsZero(ll)) < ll.front() && ll.size() < 100 )	//there is no zero
 		Split(ll);				//keep splitting
 
-	return (ll.size() < 50);
+	return (ll.size() < 100);
 }
 
 double Exclusion::IsZero(std::list<double> &ll)
@@ -111,32 +111,35 @@ void Exclusion::SetMix(double lu2)
 {
 	double uu = pow(10, 0.5 * lu2);
 
-	for (unsigned int f = 0; f < vFlag.size(); ++f)
+	for (unsigned int h = 0; h < 2; ++h)
 	{
-		for (unsigned int h = 0; h < 2; ++h)
+		Neutrino *NN;
+		Engine::Current Horn;
+		switch(h)
 		{
-			Neutrino *NN;
-			Engine::Current Horn;
-			switch(h)
-			{
-				case 0:
-					Horn = Engine::FHC;
-					break;
-				case 1:
-					Horn = Engine::RHC;
-					break;
-			}
+			case 0:
+				Horn = Engine::FHC;
+				break;
+			case 1:
+				Horn = Engine::RHC;
+				break;
+		}
 
-			for (unsigned int n = 0; n < TheEngine->vNeutrino(Horn); ++n)
+		for (unsigned int n = 0; n < TheEngine->vNeutrino(Horn); ++n)
+		{
+			NN = TheEngine->vNeutrino(Horn, n);
+			double ue = 0.0, um = 0.0, ut = 0.0;
+			for (unsigned int f = 0; f < vFlag.size(); ++f)
 			{
-				NN = TheEngine->vNeutrino(Horn, n);
 				if (vFlag.at(f) == 'E')
-					NN->SetMixings(uu, NN->Um(), NN->Ut());
+					ue = uu;
 				else if (vFlag.at(f) == 'M')
-					NN->SetMixings(NN->Ue(), uu, NN->Ut());
+					um = uu;
 				else if (vFlag.at(f) == 'T')
-					NN->SetMixings(NN->Ue(), NN->Um(), uu);
+					ut = uu;
 			}
+			//std::cout << ue << "\t" << um << "\t" << ut << std::endl;
+			NN->SetMixings(ue, um, ut);
 		}
 	}
 }

@@ -66,18 +66,20 @@ ResPi0Mass	0.040
 
 #Efficiency file
 #dirac
-D	EPI		Efficiency/EPI_dirac.root
-D	MPI		Efficiency/EPI_dirac.root
-D	nEE		Efficiency/nEE_dirac.root
-D	nEM		Efficiency/nMUE_dirac.root
-D	nMM		Efficiency/nMUMU_dirac.root
-D	nGAMMA		Efficiency/nGAMMA_dirac.root
-D	nPI0		Efficiency/nPI0_dirac.root
+D	EPI		Results/Efficiency/EPI_dirac.root
+D	MPI		Results/Efficiency/EPI_dirac.root
+D	nEE		Results/Efficiency/nEE_dirac.root
+D	nEM		Results/Efficiency/nME_dirac.root
+D	nME		Results/Efficiency/nME_dirac.root
+D	nMM		Results/Efficiency/nMM_dirac.root
+D	nGAMMA		Results/Efficiency/nGAMMA_dirac.root
+D	nPI0		Results/Efficiency/nPI0_dirac.root
 #majorana
-M	EPI		Efficiency/EPI_major.root
-M	MPI		Efficiency/EPI_major.root
-M	nEE		Efficiency/nEE_major.root
-M	nEM		Efficiency/nMUE_major.root
-M	nMM		Efficiency/nMUMU_major.root
-M	nGAMMA		Efficiency/nGAMMA_major.root
-M	nPI0		Efficiency/nPI0_major.root
+M	EPI		Results/Efficiency/EPI_major.root
+M	MPI		Results/Efficiency/EPI_major.root
+M	nEE		Results/Efficiency/nEE_major.root
+M	nEM		Results/Efficiency/nME_major.root
+M	nME		Results/Efficiency/nME_major.root
+M	nMM		Results/Efficiency/nMM_major.root
+M	nGAMMA		Results/Efficiency/nGAMMA_major.root
+M	nPI0		Results/Efficiency/nPI0_major.root
