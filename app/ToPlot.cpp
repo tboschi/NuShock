@@ -9,10 +9,16 @@ int main(int argc, char** argv)
 {
 	std::string File(argv[1]);
 	Flux *ff = new Flux(File);
+	ff->Scale(1e20);
 
 	std::ofstream Out(argv[2]);
 
-	ff->Scale(1e20);
+	std::string Det(argv[3]);
+	Detector * TheBox = new Detector(Det);
+	ff->Scale(1.0/pow(TheBox->Get("Baseline"), 2));
+
+	ff->Add();
+
 	TH1D *hh;
 	double Energy = ff->RangeStart();
 	double End   = ff->RangeEnd();
@@ -23,28 +29,30 @@ int main(int argc, char** argv)
 		Out << Energy << "\t";
 		if (hh = ff->Get(Flux::Total))
 			Out << hh->GetBinContent(i) << "\t";
-		else if (hh = ff->Get(Flux::Pion))
+		if (hh = ff->Get(Flux::Pion))
 		 	Out << hh->GetBinContent(i) << "\t";
-		else if (hh = ff->Get(Flux::PPion))
+		if (hh = ff->Get(Flux::PPion))
 		 	Out << hh->GetBinContent(i) << "\t";
-		else if (hh = ff->Get(Flux::Kaon))
+		if (hh = ff->Get(Flux::Kaon))
 		 	Out << hh->GetBinContent(i) << "\t";
-		else if (hh = ff->Get(Flux::Kaon0))
+		if (hh = ff->Get(Flux::Kaon0))
 		 	Out << hh->GetBinContent(i) << "\t";
-		else if (hh = ff->Get(Flux::Charm))
+		if (hh = ff->Get(Flux::Charm))
 		 	Out << hh->GetBinContent(i) << "\t";
-		else if (hh = ff->Get(Flux::Muon))
+		if (hh = ff->Get(Flux::Muon))
 		 	Out << hh->GetBinContent(i) << "\t";
-		else if (hh = ff->Get(Flux::TauE))
+		if (hh = ff->Get(Flux::TauE))
 		 	Out << hh->GetBinContent(i) << "\t";
-		else if (hh = ff->Get(Flux::TauM))
+		if (hh = ff->Get(Flux::TauM))
 			Out << hh->GetBinContent(i) << "\t";
 
+		Out << std::endl;
 		Energy += Width;
 	}
 		
 
 	delete ff;
+	delete TheBox;
 	Out.close();
 
 	return 0;
