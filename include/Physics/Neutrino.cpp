@@ -14,10 +14,11 @@ Neutrino::Neutrino(double Mass, unsigned int Options) //:
 	fMixings = new double[3];
 	SetMixings(0.0, 0.0, 0.0);
 
-	TheDecayRates = new DecayRates();	//to compute heavy neutrino decays
-	TheProduction = new Production();	//to compute massive neutrino production widths
-	TheProdLightN = new Production();	//to compute massless neutrino production widths
-	ThePhaseSpace = new PhaseSpace();	//to generate phasespace for neutrino decays
+	TheDecayRatesL = new DecayRates(-1);	//to compute heavy neutrino decays, left helix
+	TheDecayRatesR = new DecayRates( 1);	//to compute heavy neutrino decays, right helix
+	TheProduction  = new Production();	//to compute massive neutrino production widths
+	TheProdLightN  = new Production();	//to compute massless neutrino production widths
+	ThePhaseSpace  = new PhaseSpace();	//to generate phasespace for neutrino decays
 
 	double MixOne[3] = {1.0, 1.0, 1.0};
 	TheProdLightN->SetNeutrino(0, MixOne, 1, 1, 0);	//SM neutrino loaded
@@ -284,13 +285,15 @@ void Neutrino::SetEnergyKin(double Energy)
 
 void Neutrino::SetHelicity(unsigned int Options)		//Left for particle is -1
 {								//Right for particle is 1
-	switch (Options & 3)					//For antiparticle, reverse
+	switch (Options & 3)
 	{
 		case 0:
-			iHel = 1-2*GetParticle();
+			//iHel = 1-2*GetParticle();
+			iHel = -1;
 			break;
 		case 1:
-			iHel = 2*GetParticle()-1;
+			//iHel = 2*GetParticle()-1;
+			iHel =  1;
 			break;
 		case 2:
 		case 3:

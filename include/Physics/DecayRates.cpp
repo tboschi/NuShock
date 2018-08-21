@@ -159,7 +159,7 @@ double DecayRates::Gamma(Channel Name)
 			break;
 	}
 
-	return (1.0 + !GetFermion()) * Result;	//!fermion is majorana, Gamma is twice as much
+	return Result;
 }
 
 //Return Gamma_tot - Gamma of interest

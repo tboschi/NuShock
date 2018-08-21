@@ -480,14 +480,42 @@ double Amplitude::Limit(double &s, double &t, double x, double y, double z)
 //					      angle lep    lepton    meson	
 double Amplitude::M2_LeptonPseudoMeson(double cos0, double x, double y)
 {
+	if (GetFermion())	//dirac
+		return M2_LeptonPseudoMeson(Helicity(), cos0, x, y);
+	else			//majorana	adds up particle and antiparticle
+		return M2_LeptonPseudoMeson(-1, cos0, x, y) +
+		       M2_LeptonPseudoMeson( 1, cos0, x, y);
+}
+
+double Amplitude::M2_LeptonPseudoMeson(int Hel, double cos0, double x, double y)
+{
 	return Const::fGF2 * Mass(4) * 
-		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y) * cos0);
+		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Hel * SqrtKallen(1, x, y) * cos0);
+		//(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y) * cos0);
 }
 
 //						angle lep    lepton    meson	
 double Amplitude::M2_NeutrinoPseudoMeson(double cos0, double x, double y)
 {
-	return M2_LeptonPseudoMeson(x, y, cos0) / 2.0;
+	if (GetFermion())	//dirac
+		return M2_NeutrinoPseudoMeson(Helicity(), cos0, x, y);
+	else			//majorana	adds up particle and antiparticle
+		return M2_NeutrinoPseudoMeson(-1, cos0, x, y) +
+		       M2_NeutrinoPseudoMeson( 1, cos0, x, y) +
+}
+
+double Amplitude::M2_NeutrinoPseudoMeson(int Hel, double cos0, double x, double y)
+{
+	return M2_LeptonPseudoMeson(Hel, x, y, cos0) / 2.0;
+}
+
+double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)
+{
+	if (GetFermion())	//dirac
+		return M2_LeptonVectorMeson(Helicity(), cos0, x, y);
+	else			//majorana	adds up particle and antiparticle
+		return M2_LeptonVectorMeson(-1, cos0, x, y) +
+		       M2_LeptonVectorMeson( 1, cos0, x, y);
 }
 
 //					lepton		meson	
@@ -495,6 +523,15 @@ double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)	//must b
 {
 	return Const::fGF2 * Mass(4) * 
 		(pow(1 - x, 2) + y * (1 + x) - 2 * y*y - (1 - x - 2*y) *  Helicity() * SqrtKallen(1, x, y) * cos0);
+}
+
+double Amplitude::M2_NeutrinoVectorMeson(double cos0, double x, double y)
+{
+	if (GetFermion())	//dirac
+		return M2_NeutrinoVectorMeson(Helicity(), cos0, x, y);
+	else			//majorana	adds up particle and antiparticle
+		return M2_NeutrinoVectorMeson(-1, cos0, x, y) +
+		       M2_NeutrinoVectorMeson( 1, cos0, x, y) +
 }
 
 //					lepton		meson	angle
@@ -656,7 +693,7 @@ double Amplitude::Ut(int E)
 
 int Amplitude::Helicity()
 {
-	return iHel;
+	return GetParticle() ? iHel : -iHel;
 }
 
 bool Amplitude::GetFermion()
