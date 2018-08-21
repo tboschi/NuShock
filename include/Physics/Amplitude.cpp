@@ -494,7 +494,7 @@ double Amplitude::M2_NeutrinoPseudoMeson(double cos0, double x, double y)
 double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)	//must be divided by vector meson mass
 {
 	return Const::fGF2 * Mass(4) * 
-		(pow(1 - x, 2) + y * (1 + x) - 2*y - (1 - x - 2*y) *  Helicity() * SqrtKallen(1, x, y) * cos0);
+		(pow(1 - x, 2) + y * (1 + x) - 2 * y*y - (1 - x - 2*y) *  Helicity() * SqrtKallen(1, x, y) * cos0);
 }
 
 //					lepton		meson	angle
