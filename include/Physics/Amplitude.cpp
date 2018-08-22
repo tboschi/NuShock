@@ -40,12 +40,9 @@ void Amplitude::LoadMap()
 	chMap[_nGAMMA] = "nGAMMA";
 	chMap[_nEE]    = "nEE";
 	chMap[_nEM]    = "nEM";
-	chMap[_nME]    = "nME";
 	chMap[_nMM]    = "nMM";
 	chMap[_nET]    = "nET";
-	chMap[_nTE]    = "nTE";
 	chMap[_nMT]    = "nMT";
-	chMap[_nTM]    = "nTM";
 	chMap[_nPI0]   = "nPI0";
 	chMap[_EPI]    = "EPI";
 	chMap[_MPI]    = "MPI";
@@ -62,10 +59,10 @@ void Amplitude::LoadMap()
 	chMap[_nETAi]  = "nETAi";
 	chMap[_nPHI]   = "nPHI";
 	chMap[_ECHARM] = "ECHARM";
-	chMap[_ExpALL] = "ExpALL";
+	chMap[_ExpALL] = "ExpALL";		//25
 
 	//production channels
-	chMap[_MuonE]  = "MuonE";		//29
+	chMap[_MuonE]  = "MuonE";		//26
 	chMap[_MuonM]  = "MuonM";
 	chMap[_TauEE]  = "TauEE";
 	chMap[_TauET]  = "TauET";
@@ -143,14 +140,6 @@ Amplitude::Process Amplitude::LoadMass(Channel Name)	//return true if Decay, fal
 			vPdg.push_back(11);
 			vPdg.push_back(13);
 			return DecayRates;
-		case _nME:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Muon);
-			vMass.push_back(M_Electron);
-			vPdg.push_back(12);
-			vPdg.push_back(13);
-			vPdg.push_back(11);
-			return DecayRates;
 		case _nET:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Electron);
@@ -159,14 +148,6 @@ Amplitude::Process Amplitude::LoadMass(Channel Name)	//return true if Decay, fal
 			vPdg.push_back(11);
 			vPdg.push_back(15);
 			return DecayRates;
-		case _nTE:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Tau);
-			vMass.push_back(M_Electron);
-			vPdg.push_back(12);
-			vPdg.push_back(15);
-			vPdg.push_back(11);
-			return DecayRates;
 		case _nMT:
 			vMass.push_back(M_Neutrino);
 			vMass.push_back(M_Muon);
@@ -174,14 +155,6 @@ Amplitude::Process Amplitude::LoadMass(Channel Name)	//return true if Decay, fal
 			vPdg.push_back(12);
 			vPdg.push_back(13);
 			vPdg.push_back(15);
-			return DecayRates;
-		case _nTM:
-			vMass.push_back(M_Neutrino);
-			vMass.push_back(M_Tau);
-			vMass.push_back(M_Muon);
-			vPdg.push_back(12);
-			vPdg.push_back(15);
-			vPdg.push_back(13);
 			return DecayRates;
 			//neutrino psuedomeson
 		case _nPI0:
@@ -480,28 +453,21 @@ double Amplitude::Limit(double &s, double &t, double x, double y, double z)
 //					      angle lep    lepton    meson	
 double Amplitude::M2_LeptonPseudoMeson(double cos0, double x, double y)
 {
-	if (GetFermion())	//dirac
-		return M2_LeptonPseudoMeson(Helicity(), cos0, x, y);
-	else			//majorana	adds up particle and antiparticle
-		return M2_LeptonPseudoMeson(-1, cos0, x, y) +
-		       M2_LeptonPseudoMeson( 1, cos0, x, y);
+	return (GetFermion() ? 0.0 : M2_LeptonPseudoMeson(-Helicity(), cos0, x, y)) +	//added only if majorana
+				     M2_LeptonPseudoMeson( Helicity(), cos0, x, y);
 }
 
 double Amplitude::M2_LeptonPseudoMeson(int Hel, double cos0, double x, double y)
 {
 	return Const::fGF2 * Mass(4) * 
 		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Hel * SqrtKallen(1, x, y) * cos0);
-		//(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y) * cos0);
 }
 
 //						angle lep    lepton    meson	
 double Amplitude::M2_NeutrinoPseudoMeson(double cos0, double x, double y)
 {
-	if (GetFermion())	//dirac
-		return M2_NeutrinoPseudoMeson(Helicity(), cos0, x, y);
-	else			//majorana	adds up particle and antiparticle
-		return M2_NeutrinoPseudoMeson(-1, cos0, x, y) +
-		       M2_NeutrinoPseudoMeson( 1, cos0, x, y) +
+	return (GetFermion() ? 0.0 : M2_NeutrinoPseudoMeson(-Helicity(), cos0, x, y)) +	//added only if majorana
+				     M2_NeutrinoPseudoMeson( Helicity(), cos0, x, y);
 }
 
 double Amplitude::M2_NeutrinoPseudoMeson(int Hel, double cos0, double x, double y)
@@ -511,60 +477,69 @@ double Amplitude::M2_NeutrinoPseudoMeson(int Hel, double cos0, double x, double 
 
 double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)
 {
-	if (GetFermion())	//dirac
-		return M2_LeptonVectorMeson(Helicity(), cos0, x, y);
-	else			//majorana	adds up particle and antiparticle
-		return M2_LeptonVectorMeson(-1, cos0, x, y) +
-		       M2_LeptonVectorMeson( 1, cos0, x, y);
+	return (GetFermion() ? 0.0 : M2_LeptonVectorMeson(-Helicity(), cos0, x, y)) +	//added only if majorana
+				     M2_LeptonVectorMeson( Helicity(), cos0, x, y);
 }
 
 //					lepton		meson	
-double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)	//must be divided by vector meson mass
+double Amplitude::M2_LeptonVectorMeson(int Hel, double cos0, double x, double y)	//must be divided by vector meson mass
 {
 	return Const::fGF2 * Mass(4) * 
-		(pow(1 - x, 2) + y * (1 + x) - 2 * y*y - (1 - x - 2*y) *  Helicity() * SqrtKallen(1, x, y) * cos0);
+		(pow(1 - x, 2) + y * (1 + x) - 2 * y*y - (1 - x - 2*y) *  Hel * SqrtKallen(1, x, y) * cos0);
 }
 
 double Amplitude::M2_NeutrinoVectorMeson(double cos0, double x, double y)
 {
-	if (GetFermion())	//dirac
-		return M2_NeutrinoVectorMeson(Helicity(), cos0, x, y);
-	else			//majorana	adds up particle and antiparticle
-		return M2_NeutrinoVectorMeson(-1, cos0, x, y) +
-		       M2_NeutrinoVectorMeson( 1, cos0, x, y) +
+	return (GetFermion() ? 0.0 : M2_NeutrinoVectorMeson(-Helicity(), cos0, x, y)) +	//added only if majorana
+				     M2_NeutrinoVectorMeson( Helicity(), cos0, x, y);
 }
 
 //					lepton		meson	angle
-double Amplitude::M2_NeutrinoVectorMeson(double cos0, double x, double y)
+double Amplitude::M2_NeutrinoVectorMeson(int Hel, double cos0, double x, double y)
 {
-	return M2_LeptonVectorMeson(cos0, x, y) / 2.0;
+	return M2_LeptonVectorMeson(Hel, cos0, x, y) / 2.0;
 }
 
-//			lepton energy is s = (p0-p2)² and cos0s the angle wrt z-axis
-//					       neutrino, letpon,   lepton
 double Amplitude::M2_WW(double s, double cos0, double x, double y, double z)	//gL^2 + gR^2
 {
+	return (GetFermion() ? 0.0 : M2_WW(-Helicity(), s, cos0, x, y, z)) +	//added only if majorana
+				     M2_WW( Helicity(), s, cos0, x, y, z);
+}
+//			lepton energy is s = (p0-p2)² and cos0s the angle wrt z-axis
+//					       neutrino, letpon,   lepton
+double Amplitude::M2_WW(int Hel, double s, double cos0s, double x, double y, double z)	//gL^2 + gR^2
+{
 	return 16 * Const::fGF2 * Mass(4) *
-	       (s - x - y) * (1 + z - s - Helicity() * SqrtKallen(1, z, s) * cos0);
+	       (s - x - y) * (1 + z - s - Hel * SqrtKallen(1, z, s) * cos0s);
 }
 
+double Amplitude::M2_WZ(double u, double cos0u, double x, double y, double z)	//gL^2 + gR^2
+{
+	return (GetFermion() ? 0.0 : M2_WZ(-Helicity(), u, cos0u, x, y, z)) +	//added only if majorana
+				     M2_WZ( Helicity(), u, cos0u, x, y, z);
+}
+//			lepton energiy is u = (p0-p1)² and cos0u the angle wrt z-axis
+//			       neutrino, letpon,   lepton
+double Amplitude::M2_WZ(int Hel, double u, double cos0u, double x, double y, double z)	//2gL*gR
+{
+	return 16 * Const::fGF2 * Mass(4) *
+		sqrt(y * z) * (1 + x - u - Hel * SqrtKallen(1, x, u) * cos0u);
+}
+
+double Amplitude::M2_WZ(double s, double t, double cos0s, double cos0t, double x, double y, double z)	//2gL*gR
+{
+	return (GetFermion() ? 0.0 : M2_WZ(-Helicity(), s, t, cos0s, cos0t, x, y, z)) +	//added only if majorana
+				     M2_WZ( Helicity(), s, t, cos0s, cos0t, x, y, z);
+}
 //			lepton energies are s = (p0-p2)², t = (p0-p3)² and cos0s,t the angles wrt z-axis
 //			       neutrino, letpon,   lepton
-double Amplitude::M2_WZ(double s, double t, double cos0s, double cos0t, double x, double y, double z)	//2gL*gR
+double Amplitude::M2_WZ(int Hel, double s, double t, double cos0s, double cos0t, double x, double y, double z)	//2gL*gR
 {
 	double u = 1 + x + y + z - s - t;
 	double cos0u = (SqrtKallen(1, y, s) * cos0s + SqrtKallen(1, z, t) * cos0t) / 
 			SqrtKallen(1, x, u) ;
 
-	return M2_WZ(x, y, z, u, cos0u);
-}
-
-//			lepton energiy is u = (p0-p1)² and cos0u the angle wrt z-axis
-//			       neutrino, letpon,   lepton
-double Amplitude::M2_WZ(double u, double cos0u, double x, double y, double z)	//2gL*gR
-{
-	return 16 * Const::fGF2 * Mass(4) *
-		sqrt(y * z) * (1 + x - u - Helicity() * SqrtKallen(1, x, u) * cos0u);
+	return M2_WZ(Hel, u, cos0u, x, y, z);
 }
 
 //
@@ -577,8 +552,14 @@ double Amplitude::M2_WZ(double u, double cos0u, double x, double y, double z)	//
 //				           neutrino  lepton    neutrino
 double Amplitude::M2_LeptonNeutrino(double u, double x, double y, double z)
 {
+	return (GetFermion() ? 0.0 : M2_LeptonNeutrino(-Helicity(), u, x, y, z)) +	//added only if majorana
+				     M2_LeptonNeutrino( Helicity(), u, x, y, z);
+}
+
+double Amplitude::M2_LeptonNeutrino(int Hel, double u, double x, double y, double z)
+{
 	return 16 * Const::fGF2 * Mass(4) *
-		(1 + x - u) * (u - y - z - Helicity() * SqrtKallen(u, y, z));
+		(1 + x - u) * (u - y - z - Hel * SqrtKallen(u, y, z));
 }
 
 //	This amplitude is to be used if the mixing comes from the flavour in final state
@@ -586,44 +567,69 @@ double Amplitude::M2_LeptonNeutrino(double u, double x, double y, double z)
 //	production is from antilepeton
 double Amplitude::M2_AntiLeptonNeutrino(double s, double x, double y, double z)
 {
+	return (GetFermion() ? 0.0 : M2_AntiLeptonNeutrino(-Helicity(), s, x, y, z)) +	//added only if majorana
+				     M2_AntiLeptonNeutrino( Helicity(), s, x, y, z);
+}
+double Amplitude::M2_AntiLeptonNeutrino(int Hel, double s, double x, double y, double z)
+{
 	return 16 * Const::fGF2 * Mass(4) * 
-		(s - x - y) * (1 + z - s - Helicity() * SqrtKallen(1, s, z));
+		(s - x - y) * (1 + z - s - Hel * SqrtKallen(1, s, z));
 }
 
+double Amplitude::M2_LeptonTwo(double x, double y)
+{
+	return (GetFermion() ? 0.0 : M2_LeptonTwo(-Helicity(), x, y)) +	//added only if majorana
+				     M2_LeptonTwo( Helicity(), x, y);
+}
 //					      neutrino	meson
-double Amplitude::M2_LeptonTwo(double x, double y)	//y is the meson
+double Amplitude::M2_LeptonTwo(int Hel, double x, double y)	//y is the meson
 {
 	return Const::fGF2 * Mass(4) * 
-		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y));
+		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Hel * SqrtKallen(1, x, y));
 }
 
+double Amplitude::M2_LeptonThree(double x, double y, double z)
+{
+	return (GetFermion() ? 0.0 : M2_LeptonThree(-Helicity(), x, y, z)) +	//added only if majorana
+				     M2_LeptonThree( Helicity(), x, y, z);
+}
 //	not implemented
-double Amplitude::M2_LeptonThree(double x, double y, double z)	
+double Amplitude::M2_LeptonThree(int Hel, double x, double y, double z)	
 {
 	return Const::fGF2 * Mass(4);
 }
 
-//					   neutrino  lepton
 double Amplitude::M2_MesonTwo(double x, double y)
 {
+	return (GetFermion() ? 0.0 : M2_MesonTwo(-Helicity(), x, y)) +	//added only if majorana
+				     M2_MesonTwo( Helicity(), x, y);
+}
+//					   neutrino  lepton
+double Amplitude::M2_MesonTwo(int Hel, double x, double y)
+{
 	return Const::fGF2 * Mass(4) * 
-		(x + y - pow(x - y, 2) - Helicity() * (y - x) * SqrtKallen(1, x, y));
+		(x + y - pow(x - y, 2) - Hel * (y - x) * SqrtKallen(1, x, y));
 }
 
-//Jackson frame??
 double Amplitude::M2_MesonThree(double s, double t, double x, double y, double z, double L_, double L0)
+{
+	return (GetFermion() ? 0.0 : M2_MesonThree(-Helicity(), s, t, x, y, z, L_, L0)) +	//added only if majorana
+				     M2_MesonThree( Helicity(), s, t, x, y, z, L_, L0);
+}
+//Jackson frame??
+double Amplitude::M2_MesonThree(int Hel, double s, double t, double x, double y, double z, double L_, double L0)
 {
 	double u = 1 + x + y + z - s - t;
 
 	double F = 2 * (1 + L_ * u / x);
 	double G = (1 + L_ * u / x) - (L_ - L0) * (1 + 1 / x);
 
-	double A = (1 + y - t)*(1 + z - s - Helicity() * SqrtKallen(1, z, s)) -
-	           (u - y - z - Helicity() * SqrtKallen(u, y, z));
+	double A = (1 + y - t)*(1 + z - s - Hel * SqrtKallen(1, z, s)) -
+	           (u - y - z - Hel * SqrtKallen(u, y, z));
 	double B = (y + z) * (u - y - z) + 4 * y * z -
-	           (y - z) * Helicity() * SqrtKallen(u, y, z);
-	double C = (1 + y - t) * 2*z + (1 + z - s) * (2*y + Helicity() * SqrtKallen(u, y, z)) -
-		   Helicity() * (u - z + y) * SqrtKallen(1, z, s);
+	           (y - z) * Hel * SqrtKallen(u, y, z);
+	double C = (1 + y - t) * 2*z + (1 + z - s) * (2*y + Hel * SqrtKallen(u, y, z)) -
+		   Hel * (u - z + y) * SqrtKallen(1, z, s);
 
 	return Const::fGF2 * ( (F*F) * A + (G*G) * B - (F*G) * C ) / 2.0;
 }

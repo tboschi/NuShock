@@ -38,12 +38,9 @@ class Amplitude
 			//pure leptonic
 			_nEE,		//3 body	N -> nu e e
 			_nEM,		//3 body	N -> nu e mu (via U_e)
-			_nME,		//3 body	N -> nu mu e (via U_m)
 			_nMM,		//3 body	N -> nu mu mu
 			_nET,		//3 body	N -> nu e tau (via U_e)
-			_nTE,		//3 body	N -> nu tau e (via U_t)
 			_nMT,		//3 body	N -> nu mu tau (via U_m)
-			_nTM,		//3 body	N -> nu tau mu (via U_t)
 			//pion
 			_nPI0,		//2 body	N -> nu pi0
 			_EPI,		//2 body	N -> e pi
@@ -66,7 +63,7 @@ class Amplitude
 			_nPHI,		//2 body	N -> nu phi
 			//charm
 			_ECHARM,	//2 body	N -> e D+
-			//Channels for experimental comparison (EPI, MPI, nEE, nME, nMM)
+			//Channels for experimental comparison (EPI, MPI, nEE, nEM, nMM)
 			_ExpALL,	//
 
 			//production modes
@@ -112,19 +109,32 @@ class Amplitude
 		double Limit(double &s, double x, double y, double z);
 		double Limit(double &s, double &t, double x, double y, double z);
 
+		double M2_LeptonPseudoMeson(int Hel, double cos0, double x, double y);
 		double M2_LeptonPseudoMeson(double cos0, double x, double y);
+		double M2_NeutrinoPseudoMeson(int Hel, double cos0, double x, double y);
 		double M2_NeutrinoPseudoMeson(double cos0, double x, double y);
+		double M2_LeptonVectorMeson(int Hel, double cos0, double x, double y);
 		double M2_LeptonVectorMeson(double cos0, double x, double y);
+		double M2_NeutrinoVectorMeson(int Hel, double cos0, double x, double y);
 		double M2_NeutrinoVectorMeson(double cos0, double x, double y);
+		double M2_WW(int Hel, double s, double cos0, double x, double y, double z);
 		double M2_WW(double s, double cos0, double x, double y, double z);
+		double M2_WZ(int Hel, double s, double t, double cos0s, double cos0t, double x, double y, double z);
 		double M2_WZ(double s, double t, double cos0s, double cos0t, double x, double y, double z);
+		double M2_WZ(int Hel, double u, double cos0u, double x, double y, double z);
 		double M2_WZ(double u, double cos0u, double x, double y, double z);
 
+		double M2_LeptonNeutrino(int Hel, double s, double x, double y, double z);
 		double M2_LeptonNeutrino(double s, double x, double y, double z);
+		double M2_AntiLeptonNeutrino(int Hel, double s, double x, double y, double z);
 		double M2_AntiLeptonNeutrino(double s, double x, double y, double z);
+		double M2_LeptonTwo(int Hel, double x, double y);
 		double M2_LeptonTwo(double x, double y);
+		double M2_LeptonThree(int Hel, double x, double y, double z);
 		double M2_LeptonThree(double x, double y, double z);
+		double M2_MesonTwo(int Hel, double x, double y);
 		double M2_MesonTwo(double x, double y);
+		double M2_MesonThree(int Hel, double s, double t, double x, double y, double z, double L_, double L0);
 		double M2_MesonThree(double s, double t, double x, double y, double z, double L_, double L0);
 
 		bool IsChanged();

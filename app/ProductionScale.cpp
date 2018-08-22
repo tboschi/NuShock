@@ -21,21 +21,20 @@ int main(int argc, char** argv)
 	int iarg = 0;
 	opterr = 1;
 	
+	std::string Channel;
 	std::ofstream OutFile;
 	
 //Initialize variables
 	
-	while((iarg = getopt_long(argc,argv, "o:h", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "c:o:h", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
+			case 'c':
+				Channel.assign(optarg);
+				break;
 			case 'o':
 				OutFile.open(optarg);
-				if (!OutFile.is_open())
-				{
-					std::cout << "Wrong input!" << std::endl;
-					return 1;
-				}
 				break;
 			case 'h':
 				std::cout << "Compute Shrock factors" << std::endl;
@@ -56,24 +55,33 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Neutrino *N_L = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
-	Neutrino *N_R = new Neutrino(0, Neutrino::Dirac | Neutrino::Right);
-	N_L->SetMixings(1, 1, 1);
-	N_R->SetMixings(1, 1, 1);
+	Neutrino *NuL = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
+	Neutrino *NuR = new Neutrino(0, Neutrino::Dirac | Neutrino::Right);
+	Neutrino *Nu0 = new Neutrino(0, Neutrino::Dirac | Neutrino::Unpolarised);
+
+	NuL->SetMixings(1, 1, 1);
+	NuR->SetMixings(1, 1, 1);
+	Nu0->SetMixings(1, 1, 1);
+
+	NuL->SetProductionChannel(Channel);
+	NuR->SetProductionChannel(Channel);
+	Nu0->SetProductionChannel(Channel);
 
 	//Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
-	for (double t = 0.0; t < 2.0; t += 0.001)
+	for (double t = 0.0; t < 2.0; t += 0.0001)
 	{
-		N_L->SetMass(t);
-		N_R->SetMass(t);
-		std::cout << "Mass " << t << std::endl;
-		Out << t << "\t";
-		Out << N_L->ProductionScale("PionM") << "\t";
-		Out << N_R->ProductionScale("PionM") << "\t";
-		Out << N_L->ProductionScale("TauPI") << "\t";
-		Out << N_R->ProductionScale("TauPI") << "\t";
-		Out << N_L->ProductionScale("Tau2PI") << "\t";
-		Out << N_R->ProductionScale("Tau2PI") << "\t";
+		NuL->SetMass(t);
+		NuR->SetMass(t);
+		Nu0->SetMass(t);
+
+		double pL = NuL->ProductionScale();
+		double pR = NuR->ProductionScale();
+		double p0 = Nu0->ProductionScale();
+		//std::cout << "Mass " << t << std::endl;
+		Out << t;
+		Out << "\t" << (pL == 0.0 ? 1e-30 : pL);
+		Out << "\t" << (pR == 0.0 ? 1e-30 : pR);
+		Out << "\t" << (p0 == 0.0 ? 1e-30 : p0);
 		Out << std::endl;
 	}
 

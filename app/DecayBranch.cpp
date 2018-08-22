@@ -21,22 +21,21 @@ int main(int argc, char** argv)
 	int iarg = 0;
 	opterr = 1;
 	
+	std::string Channel;
 	std::ofstream OutFile;
 	bool UeFlag = false, 
 	     UmFlag = false, 
 	     UtFlag = false;
 
-	while((iarg = getopt_long(argc,argv, "o:EMTh", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "c:o:EMTh", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
+			case 'c':
+				Channel.assign(optarg);
+				break;
 			case 'o':
 				OutFile.open(optarg);
-				if (!OutFile.is_open())
-				{
-					std::cout << "Wrong input!" << std::endl;
-					return 1;
-				}
 				break;
 			case 'E':
 				UeFlag = true;
@@ -66,31 +65,38 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Neutrino *Nu = new Neutrino(0, Neutrino::Dirac | Neutrino::Unpolarised );
+	Neutrino *NuD = new Neutrino(0, Neutrino::Dirac    | Neutrino::Unpolarised );
+	//Neutrino *NuM = new Neutrino(0, Neutrino::Majorana | Neutrino::Unpolarised );
 
-	std::vector<std::string> vCh;
-	Nu->DecayChannels(vCh);
+	NuD->SetDecayChannel(Channel);
+	//NuM->SetDecayChannel(Channel);
+
 	if (UeFlag)
-		Nu->SetMixings(1, Nu->Um(), Nu->Ut());
-	if (UmFlag)
-		Nu->SetMixings(Nu->Ue(), 1, Nu->Ut());
-	if (UtFlag)
-		Nu->SetMixings(Nu->Ue(), Nu->Um(), 1);
-
-	Out << "#Mass\t";
-	for (unsigned int j = 0; j < vCh.size(); ++j)
-			Out << vCh.at(j) << "\t";
-	Out << std::endl;
-
-	for (double t = 0.0; t < 0.5; t += 0.001)
 	{
-		Nu->SetMass(t);
-		std::cout << "mass " << t << std::endl;
+		NuD->SetMixings(1, NuD->Um(), NuD->Ut());
+		//NuM->SetMixings(1, NuM->Um(), NuM->Ut());
+	}
+	if (UmFlag)
+	{
+		NuD->SetMixings(NuD->Ue(), 1, NuD->Ut());
+		//NuM->SetMixings(NuM->Ue(), 1, NuM->Ut());
+	}
+	if (UtFlag)
+	{
+		NuD->SetMixings(NuD->Ue(), NuD->Um(), 1);
+		//NuM->SetMixings(NuM->Ue(), NuM->Um(), 1);
+	}
 
-		Out << t << "\t";
-		for (unsigned int j = 0; j < vCh.size(); ++j)
-			Out << Nu->DecayBranch(vCh.at(j)) << "\t";
-		Out << std::endl;
+	Out << "#Mass\tDirac\tMajorana\n";
+
+	for (double t = 0.0; t < 2.0; t += 0.0001)
+	{
+		NuD->SetMass(t);
+		//NuM->SetMass(t);
+		//std::cout << "mass " << t << std::endl;
+
+		double db = NuD->DecayBranch();
+		Out << t << "\t" << (db == 0 ? 1e-30 : db) << std::endl;//"\t" << NuM->DecayBranch() << std::endl;
 	}
 
 	return 0;

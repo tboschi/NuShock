@@ -12,7 +12,7 @@ Amplitude::Channel Production::FindChannel(std::string Name)
 		LoadMap();
 
 	std::map<Amplitude::Channel, std::string>::iterator it = chMap.begin();
-	for (std::advance(it, 29); it != chMap.end(); ++it)
+	for (std::advance(it, 26); it != chMap.end(); ++it)
 	{
 		if (it->second == Name)
 			return it->first;
@@ -35,7 +35,7 @@ std::vector<Amplitude::Channel> Production::ListChannels()
 	std::vector<Amplitude::Channel> vName;
 
 	std::map<Amplitude::Channel, std::string>::iterator it = chMap.begin();
-	for (std::advance(it, 29); it != chMap.end(); ++it)
+	for (std::advance(it, 26); it != chMap.end(); ++it)
 		vName.push_back(it->first);
 
 	return vName;

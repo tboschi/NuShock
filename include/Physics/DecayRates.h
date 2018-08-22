@@ -35,12 +35,9 @@ class DecayRates : public Amplitude
 		double nGAMMA();
 		double nEE();
 		double nEM();
-		double nME();
 		double nMM();
 		double nET();
-		double nTE();
 		double nMT();
-		double nTM();
 		double nPI0();
 		double EPI();
 		double MPI();
@@ -67,8 +64,8 @@ class DecayRates : public Amplitude
 		double I_LeptonVectorMeson(double x, double y);
 		double I_NeutrinoVectorMeson(double x, double y);
 
-		double NeutrinoLeptonAA(double &fCC, double &fNC, double M_Neut, double M_Lepton);
-		double NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
+		double NeutrinoLeptonAA(double &Amp_Uu, double &Amp_Uo, double M_Neut, double M_Lepton);
+		double NeutrinoLeptonAB(double &Amp_Ua, double &Amp_Ub, double M_Neut, double M_LeptonA, double M_LeptonB);
 		double NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
 		double I_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);//, double theta)
 		double I_NeutrinoLeptonLepton_s(double s);
@@ -85,14 +82,14 @@ class DecayRates : public Amplitude
                        fnGAMMA,
                        fnEE_e,	
                        fnEE_o,	
-                       fnEM,	
-                       fnME,	
+                       fnEM_e,	
+                       fnEM_m,	
                        fnMM_m,	
                        fnMM_o,	
-                       fnET,	
-                       fnTE,	
-                       fnMT,	
-                       fnTM,	
+                       fnET_e,	
+                       fnET_t,	
+                       fnMT_m,	
+                       fnMT_t,	
                        fnPI0,	
                        fEPI,	
                        fMPI,	

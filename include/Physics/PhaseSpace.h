@@ -37,15 +37,13 @@ class PhaseSpace : public Amplitude
 
 		double nEE_ratio();
 		double nMM_ratio();
-		double NeutrinoLeptonAA_ratio(double &maxName_u, double &maxName_a, double (PhaseSpace::*Uu)(int));
+		double NeutrinoLeptonAA_ratio(double &maxName_u, double &maxName_o, double (PhaseSpace::*Uu)(int));
 
 		double nEM_ratio();
-		double nME_ratio();
 		double nET_ratio();
-		double nTE_ratio();
 		double nMT_ratio();
-		double nTM_ratio();
-		double NeutrinoLeptonAB_ratio(double &maxName);
+		double NeutrinoLeptonAB_ratio(double &maxName_a, double &maxName_b,
+					      double (PhaseSpace::*Ua)(int), double (PhaseSpace::*Ub)(int));
 
 		double nPI0_ratio();
 		double nETA_ratio();
@@ -99,10 +97,10 @@ class PhaseSpace : public Amplitude
 		double MesonThree_ratio(double &manName, double L_, double L0);
 
 		//DECAY RATES
-		double NeutrinoLeptonAA(double &d_Ul, double &d_Un, double M_Neut, double M_Lepton);
-		double NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
-		double Max_NeutrinoLeptonAA(double &max_Ul, double &max_Ua, double M_Neut, double M_Lepton);
-		double Max_NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB);
+		double NeutrinoLeptonAA(double &d_Uu, double &d_Uo, double M_Neut, double M_Lepton);
+		double NeutrinoLeptonAB(double &d_Ua, double &d_Ub, double M_Neut, double M_LeptonA, double M_LeptonB);
+		double Max_NeutrinoLeptonAA(double &max_Uu, double &max_Uo, double M_Neut, double M_Lepton);
+		double Max_NeutrinoLeptonAB(double &max_Ua, double &max_Ub, double M_Neut, double M_LeptonA, double M_LeptonB);
 		double NeutrinoLeptonLepton(double s, double t, double cos0, double cos1, double x, double y, double z, double gL, double gR);
 		double max_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
 		double max_NeutrinoLeptonLepton_D(double *p);
@@ -175,15 +173,15 @@ class PhaseSpace : public Amplitude
 		double maxnnn,
 		       maxnGAMMA,
 		       maxnEE_e,	
-		       maxnEE_a,	
-		       maxnEM,	
-		       maxnME,	
+		       maxnEE_o,	
+		       maxnEM_e,	
+		       maxnEM_m,	
 		       maxnMM_m,	
-		       maxnMM_a,	
-		       maxnET,	
-		       maxnTE,	
-		       maxnMT,	
-		       maxnTM,	
+		       maxnMM_o,	
+		       maxnET_e,	
+		       maxnET_t,	
+		       maxnMT_m,	
+		       maxnMT_t,	
 		       maxnPI0,	
 		       maxEPI,	
 		       maxMPI,	

@@ -75,23 +75,14 @@ double PhaseSpace::Ratio(Channel Name)
 		case _nEM:
 			Ret = nEM_ratio();
 			break;
-		case _nME:
-			Ret = nME_ratio();
-			break;
 		case _nMM:
 			Ret = nMM_ratio();
 			break;
 		case _nET:
 			Ret = nET_ratio();
 			break;
-		case _nTE:
-			Ret = nTE_ratio();
-			break;
 		case _nMT:
 			Ret = nMT_ratio();
-			break;
-		case _nTM:
-			Ret = nTM_ratio();
 			break;
 		case _nPI0:
 			Ret = nPI0_ratio();
@@ -208,65 +199,55 @@ double PhaseSpace::Ratio(Channel Name)
 //Neutrino LeptonLepton AA
 double PhaseSpace::nEE_ratio()
 {
-	return NeutrinoLeptonAA_ratio(maxnEE_e, maxnEE_a, &PhaseSpace::Ue);
+	return NeutrinoLeptonAA_ratio(maxnEE_e, maxnEE_o, &PhaseSpace::Ue);
 }
 
 double PhaseSpace::nMM_ratio()
 {
-	return NeutrinoLeptonAA_ratio(maxnMM_m, maxnMM_a, &PhaseSpace::Um);
+	return NeutrinoLeptonAA_ratio(maxnMM_m, maxnMM_o, &PhaseSpace::Um);
 }
 
-double PhaseSpace::NeutrinoLeptonAA_ratio(double &maxName_u, double &maxName_a, double (PhaseSpace::*Uu)(int))
+double PhaseSpace::NeutrinoLeptonAA_ratio(double &maxName_u, double &maxName_o, double (PhaseSpace::*Uu)(int))
 {
-	if (maxName_u < 0 || maxName_a < 0 || IsChanged())
-		Max_NeutrinoLeptonAA(maxName_u, maxName_a, vMass.at(0), vMass.at(1));
+	if (maxName_u < 0 || maxName_o < 0 || IsChanged())
+		Max_NeutrinoLeptonAA(maxName_u, maxName_o, vMass.at(0), vMass.at(1));
 
-	double fName_u, fName_a;
-	NeutrinoLeptonAA(fName_u, fName_a, vMass.at(0), vMass.at(1));
+	double fName_u, fName_o;
+	NeutrinoLeptonAA(fName_u, fName_o, vMass.at(0), vMass.at(1));
 
-	return (maxName_u > 1e-25 || maxName_a > 1e-25) ? 
-		( fName_u   * (this->*Uu)(2) + fName_a   * (Ue(2) + Um(2) + Ut(2)) ) / 
-		( maxName_u * (this->*Uu)(2) + maxName_a * (Ue(2) + Um(2) + Ut(2)) ) : -1.0;
+	return (maxName_u > 1e-25 || maxName_o > 1e-25) ? 
+		( fName_u   * (this->*Uu)(2) + fName_o   * (Ue(2) + Um(2) + Ut(2) - (this->*Uu)(2)) ) / 
+		( maxName_u * (this->*Uu)(2) + maxName_o * (Ue(2) + Um(2) + Ut(2) - (this->*Uu)(2)) ) : -1.0;
 }
 
 //Neutrino LeptonLepton AB
 double PhaseSpace::nEM_ratio()
 {
-	return NeutrinoLeptonAB_ratio(maxnEM);
-}
-
-double PhaseSpace::nME_ratio()
-{
-	return NeutrinoLeptonAB_ratio(maxnME);
+	return NeutrinoLeptonAB_ratio(maxnEM_e, maxnEM_m, &PhaseSpace::Ue, &PhaseSpace::Um);
 }
 
 double PhaseSpace::nET_ratio()
 {
-	return NeutrinoLeptonAB_ratio(maxnET);
-}
-
-double PhaseSpace::nTE_ratio()
-{
-	return NeutrinoLeptonAB_ratio(maxnTE);
+	return NeutrinoLeptonAB_ratio(maxnET_e, maxnET_t, &PhaseSpace::Ue, &PhaseSpace::Ut);
 }
 
 double PhaseSpace::nMT_ratio()
 {
-	return NeutrinoLeptonAB_ratio(maxnMT);
+	return NeutrinoLeptonAB_ratio(maxnMT_m, maxnMT_t, &PhaseSpace::Um, &PhaseSpace::Ut);
 }
 
-double PhaseSpace::nTM_ratio()
+double PhaseSpace::NeutrinoLeptonAB_ratio(double &maxName_a, double &maxName_b, 
+					  double (PhaseSpace::*Ua)(int), double (PhaseSpace::*Ub)(int))
 {
-	return NeutrinoLeptonAB_ratio(maxnTM);
-}
+	if (maxName_a < 0 || maxName_b < 0 || IsChanged())
+		Max_NeutrinoLeptonAB(maxName_a, maxName_b, vMass.at(0), vMass.at(1), vMass.at(2));
 
-double PhaseSpace::NeutrinoLeptonAB_ratio(double &maxName)
-{
-	if (maxName < 0 || IsChanged())
-		maxName = Max_NeutrinoLeptonAB(vMass.at(0), vMass.at(1), vMass.at(2));
+	double fName_a, fName_b;
+	NeutrinoLeptonAB(fName_a, fName_b, vMass.at(0), vMass.at(1), vMass.at(2));
 
-	return (maxName > 1e-25) ?
-		NeutrinoLeptonAB(vMass.at(0), vMass.at(1), vMass.at(2)) / maxName : -1.0;
+	return (maxName_a > 1e-25 || maxName_b > 1e-25) ? 
+		( fName_a   * (this->*Ua)(2) + fName_b   * (this->*Ub)(2) ) / 
+		( maxName_a * (this->*Ua)(2) + maxName_b * (this->*Ub)(2) ) : -1.0;
 }
 
 //neutrino psuedomeson
@@ -549,7 +530,7 @@ double PhaseSpace::MesonThree_ratio(double &maxName, double L_, double L0)
 //DECAY MODES//
 ///////////////
 //
-double PhaseSpace::NeutrinoLeptonAA(double &d_Ul, double &d_Un, double M_Neut, double M_Lepton)
+double PhaseSpace::NeutrinoLeptonAA(double &d_Uu, double &d_Uo, double M_Neut, double M_Lepton)
 {
 	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
@@ -563,30 +544,31 @@ double PhaseSpace::NeutrinoLeptonAA(double &d_Ul, double &d_Un, double M_Neut, d
 	double gL_NC = -1 + 2*Const::fSin2W;	//times U(neutrino flavour)
 	double gR_NC = 2*Const::fSin2W;
 
-	d_Ul = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dML2, dML2, gL_CC, gR_CC);
-	d_Un = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dML2, dML2, gL_NC, gR_NC);
+	d_Uu = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dML2, dML2, gL_CC, gR_CC);
+	d_Uo = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dML2, dML2, gL_NC, gR_NC);
 
 	return 0.0;
 }
 
-double PhaseSpace::Max_NeutrinoLeptonAA(double &max_Ul, double &max_Ua, double M_Neut, double M_Lepton)
+double PhaseSpace::Max_NeutrinoLeptonAA(double &max_Uu, double &max_Uo, double M_Neut, double M_Lepton)
 {
 	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dML2 = M_Lepton*M_Lepton/Mass(2);
 
-	double gL_CC = 2 - 4*GetParticle();	//times U(lepton flavour)
-	double gR_CC = 0;
-	double gL_NC = -1 + 2*Const::fSin2W;	//times U(neutrino flavour)
-	double gR_NC = 2*Const::fSin2W;
+	double gL_CC = -0.5 + Const::fSin2W + (2*GetParticle() - 1);	//times U(lepton flavour)
+	double gR_CC = Const::fSin2W;
 
-	max_Ul = max_NeutrinoLeptonLepton(dMN2, dML2, dML2, gL_CC, gR_CC);
-	max_Ua = max_NeutrinoLeptonLepton(dMN2, dML2, dML2, gL_NC, gR_NC);
+	double gL_NC = -0.5 + Const::fSin2W;	//times U(neutrino flavour)
+	double gR_NC = Const::fSin2W;
+
+	max_Uu = max_NeutrinoLeptonLepton(dMN2, dML2, dML2, gL_CC, gR_CC);
+	max_Uo = max_NeutrinoLeptonLepton(dMN2, dML2, dML2, gL_NC, gR_NC);
 
 	return 0.0;
 }
 
-double PhaseSpace::NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB)
+double PhaseSpace::NeutrinoLeptonAB(double &d_Ua, double &d_Ub, double M_Neut, double M_LeptonA, double M_LeptonB)
 {
 	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
@@ -596,23 +578,27 @@ double PhaseSpace::NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_Le
 	double s_, t_, u_, coss_, cost_, cosu_;
 	Kinematic_3B(s_, t_, u_, coss_, cost_, cosu_);
 
-	double gL = 2;	//times U(lepton flavour)
-	double gR = 0;
+	double gL = 1.0;	//times U(lepton flavour)
+	double gR = 0.0;
 
-	return NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dMA2, dMB2, gL, gR);
+	d_Ua = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dMA2, dMB2, gL, gR);
+	d_Ub = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dMB2, dMA2, gL, gR);
+
+	return 0.0;
 }
 
-double PhaseSpace::Max_NeutrinoLeptonAB(double M_Neut, double M_LeptonA, double M_LeptonB)
+double PhaseSpace::Max_NeutrinoLeptonAB(double &max_Ua, double &max_Ub, double M_Neut, double M_LeptonA, double M_LeptonB)
 {
 	SetMass(MassN());
 	double dMN2 = M_Neut*M_Neut/Mass(2);
 	double dMA2 = M_LeptonA*M_LeptonB/Mass(2);
 	double dMB2 = M_LeptonB*M_LeptonB/Mass(2);
 
-	double gL = 2;	//times U(lepton flavour)
-	double gR = 0;
+	double gL = 1.0;	//times U(lepton flavour)
+	double gR = 0.0;
 
-	return max_NeutrinoLeptonLepton(dMN2, dMA2, dMB2, gL, gR);
+	max_Ua = max_NeutrinoLeptonLepton(dMN2, dMA2, dMB2, gL, gR);
+	max_Ub = max_NeutrinoLeptonLepton(dMN2, dMB2, dMA2, gL, gR);
 }
 
 double PhaseSpace::max_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR)
@@ -1096,15 +1082,15 @@ void PhaseSpace::Reset()
 	maxnnn    = -1.0;
 	maxnGAMMA = -1.0;
 	maxnEE_e  = -1.0;
-	maxnEE_a  = -1.0;
-	maxnEM    = -1.0;
-	maxnME    = -1.0;
+	maxnEE_o  = -1.0;
+	maxnEM_e  = -1.0;
+	maxnEM_m  = -1.0;
 	maxnMM_m  = -1.0;
-	maxnMM_a  = -1.0;
-	maxnET    = -1.0;
-	maxnTE    = -1.0;
-	maxnMT    = -1.0;
-	maxnTM    = -1.0;
+	maxnMM_o  = -1.0;
+	maxnET_e  = -1.0;
+	maxnET_t  = -1.0;
+	maxnMT_m  = -1.0;
+	maxnMT_t  = -1.0;
 	maxnPI0   = -1.0;
 	maxEPI    = -1.0;
 	maxMPI    = -1.0;

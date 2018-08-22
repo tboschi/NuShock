@@ -5,21 +5,18 @@ Config="config"
 Exec="./bin/DecayBranch"
 
 cc00=("nEM")
-cc01=("nME")
-cc02=("nET")
-cc03=("nTE")
-cc04=("nMT")
-cc05=("nTM")
-cc06=("EPI")
-cc07=("MPI")
-cc08=("TPI")
-cc09=("EKA")
-cc10=("MKA")
-cc11=("ERHO")
-cc12=("MRHO")
-cc13=("EKAx")
-cc14=("MKAx")
-cc15=("ECHARM")
+cc01=("nET")
+cc02=("nMT")
+cc03=("EPI")
+cc04=("MPI")
+cc05=("TPI")
+cc06=("EKA")
+cc07=("MKA")
+cc08=("ERHO")
+cc09=("MRHO")
+cc10=("EKAx")
+cc11=("MKAx")
+cc12=("ECHARM")
 
 nc00=("nnn")
 nc01=("nGAMMA")
@@ -33,8 +30,7 @@ nc08=("nETAi")
 nc09=("nPHI")
 nc10=("ExpALL")
 
-ccArr=("$cc00" "$cc01" "$cc02" "$cc03" "$cc04" "$cc05" "$cc06" "$cc07" "$cc08" "$cc09"
-       "$cc10" "$cc11" "$cc12" "$cc13" "$cc14" "$cc15")
+ccArr=("$cc00" "$cc01" "$cc02" "$cc03" "$cc04" "$cc05" "$cc06" "$cc07" "$cc08" "$cc09" "$cc10" "$cc11" "$cc12")
 ncArr=("$nc00" "$nc01" "$nc02" "$nc03" "$nc04" "$nc05" "$nc06" "$nc07" "$nc08" "$nc09" "$nc10")
 
 # Run the tasks:
@@ -42,7 +38,7 @@ for i in "${ccArr[@]}"
 do
 	echo $Exec -o Results/Kinematic/"Branch_"${i}".dat" -c "${i}" -E -M -T
 
-	if [ "${i}" = "${ccArr[15]}" ]
+	if [ "${i}" = "${ccArr[12]}" ]
 	then
 		$Exec -o Results/Kinematic/"Branch_"${i}".dat" -c "${i}" -E -M -T
 	else

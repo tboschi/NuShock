@@ -18,7 +18,9 @@ LDLIBS   := -lcuba
 CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
 #apps and exctuables
-CPP =	Simulation	\
+CPP =	DecayBranch	\
+	ProductionScale	\
+	#Simulation	\
 	ToPlot		\
 	Rate		\
 	FastExclusion	\
@@ -27,9 +29,7 @@ CPP =	Simulation	\
 	#FluxDs		\
 	#Modifier	\
 	#MakeFlux	\
-	ProductionScale	\
 	#Exclusion	\
-	#DecayBranch	\
 	Exclusion	\
 	ToPlot	\
 	#Eps2Dat		\

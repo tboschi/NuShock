@@ -4,30 +4,30 @@ Config="config"
 
 Exec="./bin/ProductionScale"
 
-Chan20=("PionE")
-Chan21=("PionM")
-Chan22=("KaonE")
-Chan23=("KaonM")
-Chan24=("CharmE")
-Chan25=("CharmM")
-Chan26=("CharmT")
-Chan27=("TauPI")
+ch2_0=("PionE")
+ch2_1=("PionM")
+ch2_2=("KaonE")
+ch2_3=("KaonM")
+ch2_4=("CharmE")
+ch2_5=("CharmM")
+ch2_6=("CharmT")
+ch2_7=("TauPI")
 
-ChanTwo=("$Chan20" "$Chan21" "$Chan22" "$Chan23" "$Chan24" "$Chan25" "$Chan26" "$Chan27")
+ChanTwo=("$ch2_0" "$ch2_1" "$ch2_2" "$ch2_3" "$ch2_4" "$ch2_5" "$ch2_6" "$ch2_7")
 
-Chan30=("MuonE")
-Chan31=("MuonM")
-Chan32=("TauEE")
-Chan33=("TauET")
-Chan34=("TauMM")
-Chan34=("TauMT")
-Chan35=("Tau2PI")
-Chan36=("Kaon0E")
-Chan37=("Kaon0M")
-Chan38=("KaonCE")
-Chan39=("KaonCM")
+ch3_0=("MuonE")
+ch3_1=("MuonM")
+ch3_2=("TauEE")
+ch3_3=("TauET")
+ch3_4=("TauMM")
+ch3_5=("TauMT")
+ch3_6=("Tau2PI")
+ch3_7=("Kaon0E")
+ch3_8=("Kaon0M")
+ch3_9=("KaonCE")
+ch310=("KaonCM")
 
-ChanThree=("$Chan30" "$Chan31" "$Chan32" "$Chan33" "$Chan34" "$Chan35" "$Chan36" "$Chan37" "$Chan38" "$Chan39")
+ChanThree=("$ch3_0" "$ch3_1" "$ch3_2" "$ch3_3" "$ch3_4" "$ch3_5" "$ch3_6" "$ch3_7" "$ch3_8" "$ch3_9" "$ch310")
 
 # Run the tasks:
 for i in "${ChanTwo[@]}"
@@ -46,7 +46,7 @@ for i in "${ChanThree[@]}"
 do
 	echo $Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
 
-	if [ "${i}" = "${OptThree[9]}" ]
+	if [ "${i}" = "${OptThree[10]}" ]
 	then
 		$Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
 	else
