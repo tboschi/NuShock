@@ -1,0 +1,71 @@
+#!/bin/bash --login
+
+#$ -S /bin/bash
+#$ -cwd
+#$ -N HLNExclusion
+#$ -t 1-26
+#$ -M tommaso.boschi@qmul.ac.uk
+#$ -m e
+#$ -l h_rss=4G,h_vmem=4G 
+
+source /opt/sge/default/common/settings.sh
+source ~/.bashrc
+
+Home="/data/tboschi/NewSupershock/"
+cd $Home
+Config="config"
+
+Exec="./bin/FastExclCombine"
+
+#Channel=$(./EchoChannel $SGE_TASK_ID)
+#Channel=$(./EchoChannel $1)
+Opt0="-d config/ND_Full -f config/FluxConfig -W"
+
+Chan0=("nEE")
+#Chan1=("nME")
+Chan2=("nEM")
+Chan3=("nMM")
+Chan4=("EPI")
+Chan5=("MPI")
+Chan6=("nGAMMA")
+Chan7=("nPI0")
+
+Thr0=("-t 35.9329 -q 88.0119")
+#Thr1=("-t 41.1923 -q 14.9867")
+Thr2=("-t 41.1923 -q 14.9867")
+Thr3=("-t 59.5377 -q 58.0274")
+Thr4=("-t 26.1154 -q 28.5739")
+Thr5=("-t -0.1082 -q 219.96")
+Thr6=("-t 66.8106 -q -68.1774")
+Thr7=("-t -38.3797 -q 348.567")
+
+ChanArr=("$Chan0" "$Chan1" "$Chan2" "$Chan3" "$Chan4" "$Chan5" "$Chan6" "$Chan7")
+Channel="${ChanArr[$1]}"
+
+ThrArr=("$Thr0" "$Thr1" "$Thr2" "$Thr3" "$Thr4" "$Thr5" "$Thr6" "$Thr7")
+Threshold="${ThrArr[$1]}"
+
+Opt01="-L -E"
+Opt02="-L -M"
+Opt03="-L -T"
+Opt04="-R -E"
+Opt05="-R -M"
+Opt06="-R -T"
+Opt07="-E"
+Opt08="-M"
+Opt09="-T"
+
+OptArr=("$Opt01" "$Opt02" "$Opt03" "$Opt04" "$Opt05" "$Opt06"  "$Opt07" "$Opt08" "$Opt09")
+
+# Run the tasks:
+for i in "${OptArr[@]}"
+do
+	echo $Exec $Opt0 -o Results/Exclusion/$Channel"_W" -c $Channel "${i}" $Threshold
+
+	if [ "${i}" = "${OptArr[8]}" ]
+	then
+		$Exec $Opt0 -o Results/Exclusion/$Channel"_W" -c $Channel "${i}" $Threshold
+	else
+		$Exec $Opt0 -o Results/Exclusion/$Channel"_W" -c $Channel "${i}" $Threshold &
+	fi
+done

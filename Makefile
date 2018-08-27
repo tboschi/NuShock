@@ -20,12 +20,12 @@ CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPD
 #apps and exctuables
 CPP =	DecayBranch	\
 	ProductionScale	\
-	#Simulation	\
-	ToPlot		\
-	Rate		\
 	FastExclusion	\
 	FastExclCombine	\
-	#Efficiency
+	Simulation	\
+	Efficiency
+	#ToPlot		\
+	Rate		\
 	#FluxDs		\
 	#Modifier	\
 	#MakeFlux	\

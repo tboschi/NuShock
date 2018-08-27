@@ -1,0 +1,76 @@
+#!/bin/bash --login
+
+#$ -S /bin/bash
+#$ -cwd
+#$ -N HLNExclusion
+#$ -t 1-26
+# -M tommaso.boschi@qmul.ac.uk
+# -m e
+#$ -l h_rss=4G,h_vmem=4G 
+#$ -q "SL6@heppc400,SL6@heppc401,SL6@heppc402,SL6@heppc403,SL6@heppc404,SL6@heppc405,SL6@heppc406,SL6@heppc407"
+
+#source /opt/sge/default/common/settings.sh
+#source /users/tboschi/.bashrc
+#echo $ROOTSYS
+#echo $PATH
+#export $LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/lib64:/usr/lib64:$ROOTSYS/lib:$G4LIB:$CUBA/lib"
+
+#Home="/data/tboschi/NewSupershock/"
+#cd $HOME
+Config="config"
+
+Exec="./bin/FastExclusion"
+
+#Channel=$(./EchoChannel $SGE_TASK_ID)
+Channel=$(./EchoChannel $1)
+Opt0="-d config/ND_Full -f config/FluxConfig"
+
+#dirac particle
+Opt01=("-P -L -E")
+Opt02=("-P -L -M")
+Opt03=("-P -L -T")
+Opt04=("-P -R -E")
+Opt05=("-P -R -M")
+Opt06=("-P -R -T")
+Opt07=("-P -E")
+Opt08=("-P -M")
+Opt09=("-P -T")
+
+#dirac antiparticle
+Opt10=("-A -L -E")
+Opt11=("-A -L -M")
+Opt12=("-A -L -T")
+Opt13=("-A -R -E")
+Opt14=("-A -R -M")
+Opt15=("-A -R -T")
+Opt16=("-A -E")
+Opt17=("-A -M")
+Opt18=("-A -T")
+
+#majorana
+Opt19=("-L -E -M")
+Opt20=("-L -M -T")
+Opt21=("-L -E -T")
+Opt22=("-R -E -M")
+Opt23=("-R -M -T")
+Opt24=("-R -E -T")
+Opt25=("-E -M")
+Opt26=("-M -T")
+Opt27=("-E -T")
+
+#OptArr=("$Opt01" "$Opt02" "$Opt03" "$Opt04" "$Opt05" "$Opt06" "$Opt07" "$Opt08" "$Opt09"
+#	"$Opt10" "$Opt11" "$Opt12" "$Opt13" "$Opt14" "$Opt15" "$Opt16" "$Opt17" "$Opt18"
+OptArr=("$Opt19" "$Opt20" "$Opt21" "$Opt22" "$Opt23" "$Opt24" "$Opt25" "$Opt26" "$Opt27")
+
+# Run the tasks:
+for i in "${OptArr[@]}"
+do
+	echo $Exec $Opt0 -o Results/Exclusion/$Channel -c $Channel "${i}"
+
+	if [ "${i}" = "${OptArr[26]}" ]
+	then
+		$Exec $Opt0 -o Results/Exclusion/$Channel -c $Channel "${i}"
+	else
+		$Exec $Opt0 -o Results/Exclusion/$Channel -c $Channel "${i}" &
+	fi
+done

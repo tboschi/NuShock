@@ -1,0 +1,47 @@
+#!/bin/bash --login
+
+#$ -S /bin/bash
+#$ -cwd
+#$ -N HLNExclusion
+#$ -t 1-26
+#$ -M tommaso.boschi@qmul.ac.uk
+#$ -m e
+#$ -l h_rss=4G,h_vmem=4G 
+
+source /opt/sge/default/common/settings.sh
+source ~/.bashrc
+
+Home="/data/tboschi/NewSupershock/"
+cd $Home
+Config="config"
+
+Exec="./bin/FastExclCombine"
+
+#Channel=$(./EchoChannel $SGE_TASK_ID)
+Channel=$(./EchoChannel $1)
+Opt0="-d config/ND_Full -f config/FluxConfig"
+
+Opt01="-L -E -M"
+Opt02="-L -M -T"
+Opt03="-L -E -T"
+Opt04="-R -E -M"
+Opt05="-R -M -T"
+Opt06="-R -E -T"
+Opt07="-E -M"
+Opt08="-M -T"
+Opt09="-E -T"
+
+OptArr=("$Opt01" "$Opt02" "$Opt03" "$Opt04" "$Opt05" "$Opt06"  "$Opt07" "$Opt08" "$Opt09")
+
+# Run the tasks:
+for i in "${OptArr[@]}"
+do
+	echo $Exec $Opt0 -o Results/Exclusion/$Channel -c $Channel "${i}"
+
+	if [ "${i}" = "${OptArr[8]}" ]
+	then
+		$Exec $Opt0 -o Results/Exclusion/$Channel -c $Channel "${i}"
+	else
+		$Exec $Opt0 -o Results/Exclusion/$Channel -c $Channel "${i}" &
+	fi
+done
