@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 	std::cout << "Belt limited from " << std::max(0, b-1) << " to " << int(b + lim) << " (width " << Width << ")" << std::endl;
 	while (nA < b+1)
 	{
-		std::cout << nB-nA << std::endl;
+		//std::cout << nB-nA << std::endl;
 		s += 0.005;
 		vRatio.clear();
 		vP0.clear();

@@ -40,23 +40,32 @@ void Engine::BindNeutrino(Neutrino *N, Current Horn, unsigned int ID)
 	}
 }
 
-std::vector<double> Engine::SampleEnergy()
+void Engine::SampleEnergy(std::vector<double> &vE, std::vector<double> &vI)
 {
 	std::vector<double> vEnergyF, vEnergyR;
-	vEnergyF = SampleEnergy(FHC);
-	vEnergyR = SampleEnergy(RHC);
+	std::vector<double> vIntensF, vIntensR;
+	SampleEnergy(vEnergyF, vIntensF, FHC);
+	SampleEnergy(vEnergyR, vIntensR, RHC);
 
-	vEnergyF.insert(vEnergyF.end(), vEnergyR.begin(), vEnergyR.end());
-	return vEnergyF;
+	vE.clear();
+	vE.insert(vE.end(), vEnergyF.begin(), vEnergyF.end());
+	vE.insert(vE.end(), vEnergyR.begin(), vEnergyR.end());
+
+	vI.clear();
+	vI.insert(vI.end(), vIntensF.begin(), vIntensF.end());
+	vI.insert(vI.end(), vIntensR.begin(), vIntensR.end());
 }
 
-std::vector<double> Engine::SampleEnergy(Current Horn)
+void Engine::SampleEnergy(std::vector<double> &vE, std::vector<double> &vI, Current Horn)
 {
-	std::vector<double> vEnergy;
-	for (unsigned int i = 0; i < vDriver(Horn); ++i)
-		vEnergy.push_back(SampleEnergy(Horn, i));
+	vE.clear();
+	vI.clear();
 
-	return vEnergy;
+	for (unsigned int i = 0; i < vDriver(Horn); ++i)
+	{
+		vE.push_back(SampleEnergy(Horn, i));
+		vI.push_back(IntensitySample(Horn, i, vE.back()));
+	}
 }
 
 double Engine::SampleEnergy(Current Horn, unsigned int ID)
@@ -197,6 +206,16 @@ void Engine::MakeFlux(Current Horn, unsigned int ID)
 double Engine::Intensity(Current Horn, unsigned int ID)
 {
 	return vDriver(Horn, ID)->Intensity(vNeutrino(Horn, ID));
+}
+
+double Engine::IntensitySample(Current Horn, unsigned int ID)
+{
+	return IntensitySample(Horn, ID, vNeutrino(Horn, ID)->EnergyKin());
+}
+
+double Engine::IntensitySample(Current Horn, unsigned int ID, double Energy)
+{
+	return vDriver(Horn, ID)->InterpolateIntensity(vSampleNu(Horn, ID), Energy);
 }
 
 void Engine::ScaleDetector(Detector *Box)

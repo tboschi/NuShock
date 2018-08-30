@@ -230,6 +230,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 
 		if (fxFlux->Stretch(Flux::Charm, Sx, Ex))
 			fxFlux->Scale(Flux::Charm, Mod);
+		else
+			fxFlux->Scale(Flux::Charm, 0.0);
 	}
 	fxFlux->Scale(Flux::Charm, N->ProductionScale("CharmT"));
 
@@ -241,6 +243,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 
 		if (fxFlux->Stretch(Flux::Pion, Sx, Ex))
 			fxFlux->Scale(Flux::Pion, Mod);
+		else
+			fxFlux->Scale(Flux::Pion, 0.0);
 	}
 	fxFlux->Scale(Flux::Pion, N->ProductionScale("TauPI"));
 
@@ -252,6 +256,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 
 		if (fxFlux->Stretch(Flux::PPion, Sx, Ex))
 			fxFlux->Scale(Flux::PPion, Mod);
+		else
+			fxFlux->Scale(Flux::PPion, 0.0);
 	}
 	fxFlux->Scale(Flux::PPion, N->ProductionScale("Tau2PI"));
 
@@ -263,6 +269,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 
 		if (fxFlux->Stretch(Flux::TauE, Sx, Ex))
 			fxFlux->Scale(Flux::TauE, Mod);
+		else
+			fxFlux->Scale(Flux::TauE, 0.0);
 	}
 	fxFlux->Scale(Flux::TauE, N->ProductionScale("TauET"));
 
@@ -274,6 +282,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino *N)
 
 		if (fxFlux->Stretch(Flux::TauM, Sx, Ex))
 			fxFlux->Scale(Flux::TauM, Mod);
+		else
+			fxFlux->Scale(Flux::TauM, 0.0);
 	}
 	fxFlux->Scale(Flux::TauM, N->ProductionScale("TauMT"));	//Three body
 
@@ -301,6 +311,8 @@ double Driver::Intensity(Neutrino *N)	//Return flux intensity, given energy, sim
 
 double Driver::InterpolateIntensity(TH1D* Hist, double Energy)
 {
+	if (!Hist)
+		return 0.0;
 	int Bin = Hist->FindBin(Energy);
 	double I1 = Hist->GetBinContent(Bin);
 	double E1 = Hist->GetBinCenter(Bin);
@@ -400,7 +412,7 @@ double Driver::Modify(Flux::Hist Name, double &A, double &B, double Mass)
 		}
 	}
 
-	return 1.0;
+	return 0.0;
 }
 
 double Driver::RangeWidth()

@@ -582,7 +582,7 @@ double PhaseSpace::NeutrinoLeptonAB(double &d_Ua, double &d_Ub, double M_Neut, d
 	double gR = 0.0;
 
 	d_Ua = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dMA2, dMB2, gL, gR);
-	d_Ub = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dMB2, dMA2, gL, gR);
+	d_Ub = NeutrinoLeptonLepton(u_, s_, cosu_, coss_, dMN2, dMB2, dMA2, gL, gR);
 
 	return 0.0;
 }

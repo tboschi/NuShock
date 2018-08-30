@@ -69,7 +69,7 @@ ResPi0Mass	0.040
 D	EPI		Results/Efficiency/EPI_dirac.root
 D	MPI		Results/Efficiency/EPI_dirac.root
 D	nEE		Results/Efficiency/nEE_dirac.root
-D	nEM		Results/Efficiency/nME_dirac.root
+D	nEM		Results/Efficiency/nEM_dirac.root
 #D	nME		Results/Efficiency/nME_dirac.root
 D	nMM		Results/Efficiency/nMM_dirac.root
 D	nGAMMA		Results/Efficiency/nGAMMA_dirac.root
@@ -78,7 +78,7 @@ D	nPI0		Results/Efficiency/nPI0_dirac.root
 M	EPI		Results/Efficiency/EPI_major.root
 M	MPI		Results/Efficiency/EPI_major.root
 M	nEE		Results/Efficiency/nEE_major.root
-M	nEM		Results/Efficiency/nME_major.root
+M	nEM		Results/Efficiency/nEM_major.root
 #M	nME		Results/Efficiency/nME_major.root
 M	nMM		Results/Efficiency/nMM_major.root
 M	nGAMMA		Results/Efficiency/nGAMMA_major.root

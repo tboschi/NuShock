@@ -61,11 +61,11 @@ int main(int argc, char** argv)
 	
 	OutFile->cd();
 	TheFunction = MakeEff->GetFunction();
-	TheAll = MakeEff->GetAll();
-	TheCut = MakeEff->GetCut();
+	//TheAll = MakeEff->GetAll();
+	//TheCut = MakeEff->GetCut();
 	TheFunction->Write();
-	TheAll->Write();
-	TheCut->Write();
+	//TheAll->Write();
+	//TheCut->Write();
 
 	OutFile->Close();
 

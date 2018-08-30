@@ -144,7 +144,7 @@ double Production::Gamma(Channel Name, bool Unitary)
 		SetUt(Mix[2]);
 	}
 
-	return Result;
+	return (Result < 1e-27 ? 0.0 : Result);
 }
 
 double Production::Scale(Channel Name)

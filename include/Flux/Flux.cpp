@@ -157,7 +157,7 @@ bool Flux::Stretch(Hist Name, double Sx, double Ex)
 {
 	TH1D* hComponent;
 
-	if (hComponent = Get(Name))
+	if ((hComponent = Get(Name)) && Sx >= RangeStart() && Ex <= RangeEnd())
 	{
 		TH1D *hTemp = dynamic_cast<TH1D*> (hComponent->Clone());
 		hComponent->Reset("ICES");

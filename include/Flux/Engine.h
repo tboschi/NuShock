@@ -40,8 +40,8 @@ class Engine
 		void MakeFlux(Current Horn);
 		void MakeFlux(Current Horn, unsigned int ID);
 
-		std::vector<double> SampleEnergy();
-		std::vector<double> SampleEnergy(Current Horn);
+		void SampleEnergy(std::vector<double> &vE, std::vector<double> &vI);
+		void SampleEnergy(std::vector<double> &vE, std::vector<double> &vI, Current Horn);
 		double SampleEnergy(Current Horn, unsigned int ID);
 
 		double MakeSampler(Detector *Box, std::vector<double>&);
@@ -55,6 +55,8 @@ class Engine
 		double DecayNumber(Detector *Box, Current Horn, unsigned int ID);
 
 		double Intensity(Current Horn, unsigned int ID);
+		double IntensitySample(Current Horn, unsigned int ID);
+		double IntensitySample(Current Horn, unsigned int ID, double Energy);
 
 		void ScaleDetector(Detector *Box);
 		void ScaleBaseline(Detector *Box);

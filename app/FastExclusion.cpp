@@ -19,11 +19,14 @@ int main(int argc, char** argv)
 		{"detconfig", 	required_argument,	0, 'd'},
 		{"fluxconfig", 	required_argument,	0, 'f'},
 		{"channel", 	required_argument,	0, 'c'},
-		{"threshold", 	required_argument,	0, 't'},
-		{"efficiency", 	no_argument,		0, 'W'},
 		{"output", 	required_argument,	0, 'o'},
+		{"threshold", 	required_argument,	0, 't'},
+		{"massdepend", 	required_argument,	0, 'q'},
+		{"efficiency", 	no_argument,		0, 'W'},
 		{"particle", 	no_argument,		0, 'P'},
 		{"antipart", 	no_argument,		0, 'A'},
+		{"dirac", 	no_argument,		0, 'r'},
+		{"majorana", 	no_argument,		0, 'j'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
 	};
@@ -41,9 +44,10 @@ int main(int argc, char** argv)
 	//for mass dependency of threshold as in T = Qct * Mass + Thr
 	
 	bool Left = false, Right = false;		//default unpolarised
-	bool Particle = false, Antipart = false;	//default majorana
+	bool Particle = false, Antipart = false;	//default both for Dirac
+	bool Dirac = false;				//default majorana neutrino
 
-	while((iarg = getopt_long(argc,argv, "d:f:c:o:t:q:WEMTLRAPBmh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "d:f:c:o:t:q:WEMTLRAPjrh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -85,6 +89,12 @@ int main(int argc, char** argv)
 				Left = false;
 				Right = true;
 				break;
+			case 'r':
+				Dirac = true;
+				break;
+			case 'j':
+				Dirac = false;
+				break;
 			case 'P':
 				Particle = true;
 				Antipart = false;
@@ -101,13 +111,20 @@ int main(int argc, char** argv)
 		}
 	}
 
+	//constructing the detector
 	Detector *TheBox = new Detector(DetConfig);
 	std::vector<char> vFlag;
 
-	Neutrino *TheNu;
-	unsigned int OptHel, OptFerm;
+	unsigned int OptHel, Opt0, OptB;
 
 	std::string First;
+
+	if (!UeFlag && !UmFlag && !UtFlag)
+	{
+		std::cerr << "You have to select at least one mixing, -E -M or -T" << std::endl;
+		return 1;
+	}
+
 	if (UeFlag)
 	{
 		vFlag.push_back('E');
@@ -126,24 +143,24 @@ int main(int argc, char** argv)
 		FileName += "_T";
 		First += "Ut\t";
 	}
+	
 
-	if (Particle)
+	if (Dirac)
 	{
-		OptFerm = Neutrino::Dirac;
-		FileName += "_p";
+		Opt0 = Neutrino::Dirac;
+		OptB = Neutrino::Dirac | Neutrino::Antiparticle;
+		if (Particle)
+			FileName += "_dP";
+		else if (Antipart)
+			FileName += "_dA";
+		else
+			FileName += "_d";
 		if (Efficiency)
 			TheBox->SetEfficiency(Channel, 1);
 	}
-	else if (Antipart)
+	else	//Majorana
 	{
-		OptFerm = Neutrino::Dirac | Neutrino::Antiparticle;
-		FileName += "_a";
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, 1);
-	}
-	else
-	{
-		OptFerm = Neutrino::Majorana;
+		Opt0 = OptB = Neutrino::Majorana;
 		FileName += "_m";
 		if (Efficiency)
 			TheBox->SetEfficiency(Channel, 0);
@@ -151,12 +168,12 @@ int main(int argc, char** argv)
 
 	if (Left)
 	{
-		OptHel = Neutrino::Left;
+		OptHel = Neutrino::Left;	//-1 helicity
 		FileName += "_L";
 	}
 	else if (Right)
 	{
-		OptHel = Neutrino::Right;
+		OptHel = Neutrino::Right;	//+1 helicity
 		FileName += "_R";
 	}
 	else
@@ -165,53 +182,58 @@ int main(int argc, char** argv)
 		FileName += "_U";
 	}
 
-
 	FileName += ".dat";
 	std::ofstream Out(FileName.c_str());
 	Out << "#Mass\t" << First << "Events" << std::endl;
 
-	TheNu = new Neutrino(0, OptHel | OptFerm);
-	TheNu->SetDecayChannel(Channel);
+	Neutrino *TheNu0 = new Neutrino(0, OptHel | Opt0);
+	Neutrino *TheNuB = new Neutrino(0, OptHel | OptB);
+
+	TheNu0->SetDecayChannel(Channel);
+	TheNuB->SetDecayChannel(Channel);
 
 	Engine *TheEngine = new Engine(FluxConfig, 1, 1);	//creating 1FHC and 1RHC fluxedrivers
-	TheEngine->BindNeutrino(TheNu, Engine::FHC, 0);		//left neutrino
-	TheEngine->BindNeutrino(TheNu, Engine::RHC, 0);		//is a right antineutrino
 
-	unsigned int Grid = 250;
+	TheEngine->BindNeutrino(TheNu0, Engine::FHC, 0);		//left neutrino
+	TheEngine->BindNeutrino(TheNuB, Engine::RHC, 0);		//is a right antineutrino
+
+	unsigned int Grid = 500;
 	unsigned int nD = vFlag.size();	//number of dimensions
-	double Mass;
+	double Mass, lMStart = log10(0.01), lMEnd = log10(2.0), lMStep = log10(2.0/0.01)/Grid;
 	//std::cout << "Scanning over " << nD << " dimensions" << std::endl;
 
 	Exclusion *Solver;
-	if (TheNu->IsParticle())
+	if (Dirac && Particle)
 		Solver = new Exclusion(TheEngine, Engine::FHC, TheBox, vFlag, Thr);
-	else if (TheNu->IsAntiparticle())
+	else if (Dirac && Antipart)
 		Solver = new Exclusion(TheEngine, Engine::RHC, TheBox, vFlag, Thr);
-	else if (TheNu->IsMajorana())
+	else	//Dirac both or Majorana
 		Solver = new Exclusion(TheEngine, Engine::Both, TheBox, vFlag, Thr);
 
 	std::vector<double> vMass, vU2Bot, vU2Top;
 
-	for (double logMass = -2.0; logMass < 0.3; logMass += 2.3/Grid)	//increase mass log
+	//logscale loop
+	for (double logMass = lMStart; logMass < lMEnd; logMass += lMStep)
 	{
 		Mass = pow(10.0, logMass);
-		//std::cout << "Mass " << Mass << std::endl;
 		double Threshold = Thr + Mass * Qct;
 		if (Threshold < 2.44)
 			Threshold = 2.44;
 		Solver->SetThr(Threshold);
 
-		TheNu->SetMass(Mass);
+		TheNu0->SetMass(Mass);
+		TheNuB->SetMass(Mass);
 
-		if (TheNu->IsDecayAllowed() &&
-		    TheNu->IsProductionAllowed())
+		if (TheNu0->IsDecayAllowed() &&
+		    TheNu0->IsProductionAllowed() &&
+		    TheNuB->IsDecayAllowed() &&
+		    TheNuB->IsProductionAllowed())
 		{
-
 			TheEngine->MakeFlux();
 			TheEngine->ScaleDetector(TheBox);
 
 			double lU2Bot = -16.0;
-			double lU2Top = - 0.0;
+			double lU2Top =   0.0;
 			double lU2Mid;
 
 			if (Solver->FindInterval(lU2Bot, lU2Mid, lU2Top))
@@ -250,7 +272,8 @@ int main(int argc, char** argv)
 	if (vMass.size())
 		Out << vMass.front() << "\t" << vU2Bot.front() << std::endl;;
 
-	delete TheNu;
+	delete TheNu0;
+	delete TheNuB;
 	delete TheEngine;
 	delete Solver;
 
@@ -262,18 +285,26 @@ void Usage(char* argv0)
 	std::cout << "Description" << std::endl;
 	std::cout << "Usage : " << std::endl;
 	std::cout << argv0 << " [OPTIONS]" << std::endl;
-	std::cout <<"\n  -s,  --smconfig" << std::endl;
-	std::cout << "\t\tStandard Model configuration file" << std::endl;
-	std::cout <<"\n  -d,  --detconfig" << std::endl;
+	std::cout <<"\n  -d,  --detconfig [CONFIG]" << std::endl;
 	std::cout << "\t\tDetector configuration file" << std::endl;
-	std::cout <<"\n  -f,  --fluxconfig" << std::endl;
+	std::cout <<"\n  -f,  --fluxconfig [CONFIG]" << std::endl;
 	std::cout << "\t\tFlux configuration file" << std::endl;
-	std::cout <<"\n  -o,  --output" << std::endl;
-	std::cout << "\t\tOutput file" << std::endl;
-	std::cout <<"\n  -c,  --channel" << std::endl;
+	std::cout <<"\n  -o,  --output [path/STRING]" << std::endl;
+	std::cout << "\t\tBase name of output file" << std::endl;
+	std::cout <<"\n  -c,  --channel [STRING]" << std::endl;
 	std::cout << "\t\tDecay channel, defaul ALL" << std::endl;
+	std::cout <<"\n  -t,  --threshold [FLOAT]" << std::endl;
+	std::cout << "\t\tThreshold intercept. If -q not set, then is mass independent. Defaul 2.44" << std::endl;
+	std::cout <<"\n  -q,  --massdepend [FLOAT]" << std::endl;
+	std::cout << "\t\tMass dependance of threshold. Needs -t flag. Defaul 0" << std::endl;
 	std::cout <<"\n  -E,  -M,  -T" << std::endl;
-	std::cout << "\t\tSelect which mixing element" << std::endl;
+	std::cout << "\t\tSelect which mixing element. Multiple selection allowed" << std::endl;
+	std::cout <<"\n  -L,  -R,  -U" << std::endl;
+	std::cout << "\t\tSelect neutrino polarisation." << std::endl;
+	std::cout <<"\n  --dirac,  --majorana" << std::endl;
+	std::cout << "\t\tSelect fermionic nature of neutrino. Default Majorana" << std::endl;
+	std::cout <<"\n  -P, -A {incompatible with --majorana}" << std::endl;
+	std::cout << "\t\tSelect either neutrino or antineutrino components for dirac. Default, both are used." << std::endl;
 	std::cout <<"\n  -h,  --help" << std::endl;
 	std::cout << "\t\tPrint this message and exit" << std::endl;
 }

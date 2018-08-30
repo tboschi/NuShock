@@ -23,79 +23,113 @@ Exec="./bin/FastExclusion"
 
 #Channel=$(./EchoChannel $SGE_TASK_ID)
 #Channel=$(./EchoChannel $1)
-Opt0="-d config/ND_Full -f config/FluxConfig -W"
+Config="-d config/ND_Full -f config/FluxConfig -W"
 
 #channels
 Chan0=("nEE")
-#Chan1=("nME")
-Chan2=("nEM")
-Chan3=("nMM")
-Chan4=("EPI")
-Chan5=("MPI")
-Chan6=("nGAMMA")
-Chan7=("nPI0")
+Chan1=("nEM")
+Chan2=("nMM")
+Chan3=("EPI")
+Chan4=("MPI")
+Chan5=("nGAMMA")
+Chan6=("nPI0")
 
-Thr0=("-t 35.9329 -q 88.0119")
-#Thr1=("-t 41.1923 -q 14.9867")
-Thr2=("-t 41.1923 -q 14.9867")
-Thr3=("-t 59.5377 -q 58.0274")
-Thr4=("-t 26.1154 -q 28.5739")
-Thr5=("-t -0.1082 -q 219.96")
-Thr6=("-t 66.8106 -q -68.1774")
-Thr7=("-t -38.3797 -q 348.567")
-
-ChanArr=("$Chan0" "$Chan1" "$Chan2" "$Chan3" "$Chan4" "$Chan5" "$Chan6" "$Chan7")
+ChanArr=("$Chan0" "$Chan1" "$Chan2" "$Chan3" "$Chan4" "$Chan5" "$Chan6")
 Channel="${ChanArr[$1]}"
 
-ThrArr=("$Thr0" "$Thr1" "$Thr2" "$Thr3" "$Thr4" "$Thr5" "$Thr6" "$Thr7")
+#LAr background
+LAr0=("-t 35.9329 -q 88.0119")
+LAr1=("-t 41.1923 -q 14.9867")
+LAr2=("-t 59.5377 -q 58.0274")
+LAr3=("-t 26.1154 -q 28.5739")
+LAr4=("-t -0.1082 -q 219.96")
+LAr5=("-t 66.8106 -q -68.1774")
+LAr6=("-t -38.3797 -q 348.567")
+
+#FGT background
+FGT0=("-t 11.9906 -q 3.3144")
+FGT1=("-t 25.0697 -q 13.2461")
+FGT2=("-t 49.0559 -q 51.9738")
+FGT3=("-t 11.2859 -q 7.48414")
+FGT4=("-t -28.3269 -q 185.11")
+FGT5=("-t 47.6569 -q -58.0033")
+FGT6=("-t -20.6483 -q 163.968")
+
+#ThrArr=("$LAr0" "$LAr1" "$LAr2" "$LAr3" "$LAr4" "$LAr5" "$LAr6")
+ThrArr=("$FGT0" "$FGT1" "$FGT2" "$FGT3" "$FGT4" "$FGT5" "$FGT6")
 Threshold="${ThrArr[$1]}"
 
 #dirac particle
-Opt01=("-P -L -E")
-Opt02=("-P -L -M")
-Opt03=("-P -L -T")
-Opt04=("-P -R -E")
-Opt05=("-P -R -M")
-Opt06=("-P -R -T")
-Opt07=("-P -E")
-Opt08=("-P -M")
-Opt09=("-P -T")
+Opt00=("--dirac -P -L -E")
+Opt01=("--dirac -P -L -M")
+Opt02=("--dirac -P -L -T")
+Opt03=("--dirac -P -R -E")
+Opt04=("--dirac -P -R -M")
+Opt05=("--dirac -P -R -T")
+Opt06=("--dirac -P -E")
+Opt07=("--dirac -P -M")
+Opt08=("--dirac -P -T")
 
 #dirac antiparticle
-Opt10=("-A -L -E")
-Opt11=("-A -L -M")
-Opt12=("-A -L -T")
-Opt13=("-A -R -E")
-Opt14=("-A -R -M")
-Opt15=("-A -R -T")
-Opt16=("-A -E")
-Opt17=("-A -M")
-Opt18=("-A -T")
+Opt09=("--dirac -A -L -E")
+Opt10=("--dirac -A -L -M")
+Opt11=("--dirac -A -L -T")
+Opt12=("--dirac -A -R -E")
+Opt13=("--dirac -A -R -M")
+Opt14=("--dirac -A -R -T")
+Opt15=("--dirac -A -E")
+Opt16=("--dirac -A -M")
+Opt17=("--dirac -A -T")
 
+#dirac both
+Opt18=("--dirac -L -E")
+Opt19=("--dirac -L -M")
+Opt20=("--dirac -L -T")
+Opt21=("--dirac -R -E")
+Opt22=("--dirac -R -M")
+Opt23=("--dirac -R -T")
+Opt24=("--dirac -E")
+Opt25=("--dirac -M")
+Opt26=("--dirac -T")
+ 
 #majorana
-Opt19=("-L -E")
-Opt20=("-L -M")
-Opt21=("-L -T")
-Opt22=("-R -E")
-Opt23=("-R -M")
-Opt24=("-R -T")
-Opt25=("-E")
-Opt26=("-M")
-Opt27=("-T")
+Opt27=("--majorana -L -E")
+Opt28=("--majorana -L -M")
+Opt29=("--majorana -L -T")
+Opt30=("--majorana -R -E")
+Opt31=("--majorana -R -M")
+Opt32=("--majorana -R -T")
+Opt33=("--majorana -E")
+Opt34=("--majorana -M")
+Opt35=("--majorana -T")
 
-OptArr=("$Opt01" "$Opt02" "$Opt03" "$Opt04" "$Opt05" "$Opt06" "$Opt07" "$Opt08" "$Opt09"
-	"$Opt10" "$Opt11" "$Opt12" "$Opt13" "$Opt14" "$Opt15" "$Opt16" "$Opt17" "$Opt18"
-	"$Opt19" "$Opt20" "$Opt21" "$Opt22" "$Opt23" "$Opt24" "$Opt25" "$Opt26" "$Opt27")
+OptA_0=("$Opt00" "$Opt01" "$Opt02" "$Opt03" "$Opt04" "$Opt05" "$Opt06" "$Opt07" "$Opt08"
+	"$Opt09" "$Opt10" "$Opt11" "$Opt12" "$Opt13" "$Opt14" "$Opt15" "$Opt16" "$Opt17")
+OptA_1=("$Opt18" "$Opt19" "$Opt20" "$Opt21" "$Opt22" "$Opt23" "$Opt24" "$Opt25" "$Opt26"
+	"$Opt27" "$Opt28" "$Opt29" "$Opt30" "$Opt31" "$Opt32" "$Opt33" "$Opt34" "$Opt35")
 
 # Run the tasks:
-for i in "${OptArr[@]}"
+#first array
+for i in "${OptA_0[@]}"
 do
-	echo $Exec $Opt0 -o Results/Exclusion/$Channel"_W" -c $Channel "${i}" $Threshold
+	echo $Exec $Config -o Results/Exclusion/$Channel"_W" -c $Channel "${i}" $Threshold
 
-	if [ "${i}" = "${OptArr[26]}" ]
+	if [ "${i}" = "${OptA_0[@]: -1}" ]
 	then
-		$Exec $Opt0 -o Results/Exclusion/$Channel"_W" -c $Channel "${i}" $Threshold
+		$Exec $Config -o Results/Exclusion/$Channel"_W" -c $Channel ${i} $Threshold
 	else
-		$Exec $Opt0 -o Results/Exclusion/$Channel"_W" -c $Channel "${i}" $Threshold &
+		$Exec $Config -o Results/Exclusion/$Channel"_W" -c $Channel ${i} $Threshold &
+	fi
+done
+#second array
+for i in "${OptA_1[@]}"
+do
+	echo $Exec $Config -o Results/Exclusion/$Channel"_W" -c $Channel "${i}" $Threshold
+
+	if [ "${i}" = "${OptA_1[@]: -1}" ]
+	then
+		$Exec $Config -o Results/Exclusion/$Channel"_W" -c $Channel ${i} $Threshold
+	else
+		$Exec $Config -o Results/Exclusion/$Channel"_W" -c $Channel ${i} $Threshold &
 	fi
 done

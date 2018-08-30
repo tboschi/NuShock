@@ -33,16 +33,19 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	//Initialize variables
-	std::string DetConfig, FluxConfig;
+	std::string DetConfig, FluxConfig, FileName;
 	std::ofstream OutFile;
 	//TFile *OutFile;
 	std::string Channel = "ALL";
 	bool UeFlag = false, UmFlag = false, UtFlag = false;
-	bool Left = false, Right = false;	//default unpolarised
+
+	bool Left = false, Right = false;		//default unpolarised
+	bool Particle = false, Antipart = false;	//default majorana
+
 	bool Efficiency = false;
-	double Threshold = 2.44;
+	double Thr = 2.44, Qct = 0.0;
 	
-	while((iarg = getopt_long(argc,argv, "d:f:c:o:WEMTLRh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "d:f:c:o:WEMTLRAPt:q:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -56,7 +59,7 @@ int main(int argc, char** argv)
 				Channel.assign(optarg);
 				break;
 			case 'o':
-				OutFile.open(optarg);
+				FileName.assign(optarg);
 				break;
 			case 'W':
 				Efficiency = true;
@@ -78,8 +81,19 @@ int main(int argc, char** argv)
 				Left = false;
 				Right = true;
 				break;
+			case 'P':
+				Particle = true;
+				Antipart = false;
+				break;
+			case 'A':
+				Particle = false;
+				Antipart = true;
+				break;
 			case 't':
-				Threshold = std::strtod(optarg, NULL);
+				Thr = std::strtod(optarg, NULL);
+				break;
+			case 'q':
+				Qct = std::strtod(optarg, NULL);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -89,58 +103,84 @@ int main(int argc, char** argv)
 		}
 	}
 
-	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
+	Detector *TheBox = new Detector(DetConfig);
+	std::vector<char> vFlag;
 
-	Neutrino *TheNu_, *TheNuB;
-	if (Left)
+	Neutrino *TheNu;
+	unsigned int OptHel, OptFerm;
+
+	std::string First;
+	if (UeFlag)
 	{
-		TheNu_ = new Neutrino(0, Neutrino::Dirac | Neutrino::Left );
-		TheNuB = new Neutrino(0, Neutrino::Dirac | Neutrino::Left | Neutrino::Antiparticle);
+		vFlag.push_back('E');
+		FileName += "_E";
+		First += "Ue\t";
 	}
-	else if (Right)
+	if (UmFlag)
 	{
-		TheNu_ = new Neutrino(0, Neutrino::Dirac | Neutrino::Right );
-		TheNuB = new Neutrino(0, Neutrino::Dirac | Neutrino::Right | Neutrino::Antiparticle);
+		vFlag.push_back('M');
+		FileName += "_M";
+		First += "Um\t";
+	}
+	if (UtFlag)
+	{
+		vFlag.push_back('T');
+		FileName += "_T";
+		First += "Ut\t";
+	}
+
+	if (Particle)
+	{
+		OptFerm = Neutrino::Dirac;
+		FileName += "_p";
+		if (Efficiency)
+			TheBox->SetEfficiency(Channel, 1);
+	}
+	else if (Antipart)
+	{
+		OptFerm = Neutrino::Dirac | Neutrino::Antiparticle;
+		FileName += "_a";
+		if (Efficiency)
+			TheBox->SetEfficiency(Channel, 1);
 	}
 	else
 	{
-		TheNu_ = new Neutrino(0, Neutrino::Dirac | Neutrino::Unpolarised );
-		TheNuB = new Neutrino(0, Neutrino::Dirac | Neutrino::Unpolarised | Neutrino::Antiparticle);
+		OptFerm = Neutrino::Majorana;
+		FileName += "_m";
+		if (Efficiency)
+			TheBox->SetEfficiency(Channel, 0);
 	}
-	TheNu_->SetDecayChannel(Channel);
-	TheNuB->SetDecayChannel(Channel);
 
-	Detector *TheBox = new Detector(DetConfig);
+	if (Left)
+	{
+		OptHel = Neutrino::Left;
+		FileName += "_L";
+	}
+	else if (Right)
+	{
+		OptHel = Neutrino::Right;
+		FileName += "_R";
+	}
+	else
+	{
+		OptHel = Neutrino::Unpolarised;
+		FileName += "_U";
+	}
 
-	Out << "#Mass\t";
-	if (UeFlag)
-	{
-		Out << "Ue\t";
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::E);
-	}
-	else if (UmFlag)
-	{
-		Out << "Um\t";
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::M);
-	}
-	else if (UtFlag)
-	{
-		Out << "Ut\t";
-		if (Efficiency)
-			TheBox->SetEfficiency(Channel, Detector::T);
-	}
-	Out << "Events" << std::endl;
+	FileName += ".dat";
+	std::ofstream Out(FileName.c_str());
+	Out << "#Mass\t" << First << "Events" << std::endl;
+
+	TheNu = new Neutrino(0, OptHel | OptFerm);
+	TheNu->SetDecayChannel(Channel);
 
 	Engine *TheEngine = new Engine(FluxConfig, 1, 1);	//creating 1FHC and 1RHC fluxedrivers
-	TheEngine->BindNeutrino(TheNu_, Engine::FHC, 0);
-	TheEngine->BindNeutrino(TheNuB, Engine::RHC, 0);
+	TheEngine->BindNeutrino(TheNu, Engine::FHC, 0);		//left neutrino
+	TheEngine->BindNeutrino(TheNu, Engine::RHC, 0);		//is a right antineutrino
 
 	unsigned int Grid = 250;
-	unsigned int nD = UeFlag + UmFlag + UtFlag;	//number of dimensions
+	unsigned int nD = vFlag.size();	//number of dimensions
 	double Mass;
-	std::cout << "Scanning over " << nD << " dimensions" << std::endl;
 
 	std::vector<double> vSignal;	//summing over energy, array of Uus
 	std::vector<std::vector<double> > vGridlU2;
@@ -156,89 +196,35 @@ int main(int argc, char** argv)
 		Mass = pow(10.0, logMass);
 		std::cout << "Mass " << Mass << std::endl;
 
-		TheNu_->SetMass(Mass);
-		TheNuB->SetMass(Mass);
+		TheNu->SetMass(Mass);
 
-		if (!TheNu_->IsDecayAllowed() && !TheNuB->IsDecayAllowed())
-			continue;
-
-		TheEngine->MakeFlux();
-		TheEngine->ScaleDetector(TheBox);
-
-		bool SetGrid = false;
-		vGridlU2.clear();
-
-		vSignal.clear();
-		vSignal.resize(pow(Grid, nD));	//number of Uus probing
-
-		unsigned int g = 0;
-		double Start, End;
-		double EnStep = TheEngine->RangeWidth(Start, End);
-		for (double Energy = Start; Energy < End; Energy += EnStep)
+		if (TheNu->IsDecayAllowed() &&
+		    TheNu->IsProductionAllowed())
 		{
-			std::vector<double> vlU2(nD, lU2Start);
-			TheNu_->SetEnergy(Energy);
-			TheNuB->SetEnergy(Energy);
+			TheEngine->MakeFlux();
+			TheEngine->ScaleDetector(TheBox);
 
-			bool Iter = true;
-			unsigned int g = 0;
-			while (Iter)
+			for (double lU2 = lU2Start; lU2 < lU2End; lU2 += lU2Step)
 			{
-				UeSet = UmSet = UtSet = false;
-				for (unsigned int i = 0; i < nD; ++i)
-				{
-					double Uu = pow(10.0, 0.5 * vlU2.at(i));
+				double Uu = pow(10.0, 0.5 * lU2);
+				double Ue = 0.0, Um = 0.0, Ut = 0.0;
 
-					if (UeFlag && !UeSet)
-					{
-						TheNu_->SetMixings(Uu, TheNu_->Um(), TheNu_->Ut());
-						TheNuB->SetMixings(Uu, TheNuB->Um(), TheNuB->Ut());
-						UeSet = true;
-					}
-					else if (UmFlag && !UmSet)
-					{
-						TheNu_->SetMixings(TheNu_->Ue(), Uu, TheNu_->Ut());
-						TheNuB->SetMixings(TheNuB->Ue(), Uu, TheNuB->Ut());
-						UmSet = true;
-					}
-					else if (UtFlag && !UtSet)
-					{
-						TheNu_->SetMixings(TheNu_->Ue(), TheNu_->Um(), Uu);
-						TheNuB->SetMixings(TheNuB->Ue(), TheNuB->Um(), Uu);
-						UtSet = true;
-					}
+				for (unsigned int f = 0; f < vFlag.size(); ++f)
+				{
+					if (vFlag.at(f) == 'E')
+						Ue = Uu;
+					else if (vFlag.at(f) == 'M')
+						Um = Uu;
+					else if (vFlag.at(f) == 'T')
+						Ut = Uu;
 				}
 
-				if (vGridlU2.size() < vSignal.size())
-					vGridlU2.push_back(vlU2);
+				TheNu->SetMixings(Ue, Um, Ut);
 
-				vSignal.at(g++) += EnStep * TheEngine->DecayNumber(TheBox, Efficiency);
-
-				///carry operations
-				vlU2.at(0) += lU2Step;
-				unsigned int c = 0;
-				while (Iter && vlU2.at(c) >= lU2End - lU2Step)
-				{
-					vlU2.at(c)    = 0;
-					vlU2.at(c++) += lU2Step;
-
-					if (c < nD)
-						Iter = true;
-					else
-						Iter = false;
-				}
+				std::vector<double> vInt;
+				double Signal = TheEngine->MakeSampler(TheBox, vInt);
+				Out << Mass << "\t" << Uu*Uu << "\t" << Signal << std::endl;
 			}
-		}
-	
-		for (unsigned int g = 0; g < vSignal.size(); ++g)
-		{
-			Out << Mass << "\t";
-			for (unsigned int u = 0; u < nD; ++u)
-			{
-				double Uu2 = pow(10.0, vGridlU2.at(g).at(u));
-				Out << Uu2 << "\t";
-			}
-			Out << vSignal.at(g) << std::endl;
 		}
 	}
 
@@ -270,3 +256,65 @@ void Usage(char* argv0)
 	std::cout <<"\n  -h,  --help" << std::endl;
 	std::cout << "\t\tPrint this message and exit" << std::endl;
 }
+
+/*
+			double Start, End;
+			double EnStep = TheEngine->RangeWidth(Start, End);
+			for (double Energy = Start; Energy < End; Energy += EnStep)
+			{
+				std::vector<double> vlU2(nD, lU2Start);
+				TheNu_->SetEnergy(Energy);
+				TheNuB->SetEnergy(Energy);
+
+				bool Iter = true;
+				unsigned int g = 0;
+
+			//std::cout << ue << "\t" << um << "\t" << ut << std::endl;
+			NN->SetMixings(ue, um, ut);
+				while (Iter)
+				{
+					UeSet = UmSet = UtSet = false;
+					for (unsigned int i = 0; i < nD; ++i)
+					{
+						double Uu = pow(10.0, 0.5 * vlU2.at(i));
+
+						if (UeFlag && !UeSet)
+						{
+							TheNu_->SetMixings(Uu, TheNu_->Um(), TheNu_->Ut());
+							TheNuB->SetMixings(Uu, TheNuB->Um(), TheNuB->Ut());
+							UeSet = true;
+						}
+						else if (UmFlag && !UmSet)
+						{
+							TheNu_->SetMixings(TheNu_->Ue(), Uu, TheNu_->Ut());
+							TheNuB->SetMixings(TheNuB->Ue(), Uu, TheNuB->Ut());
+							UmSet = true;
+						}
+						else if (UtFlag && !UtSet)
+						{
+							TheNu_->SetMixings(TheNu_->Ue(), TheNu_->Um(), Uu);
+							TheNuB->SetMixings(TheNuB->Ue(), TheNuB->Um(), Uu);
+							UtSet = true;
+						}
+					}
+
+					if (vGridlU2.size() < vSignal.size())
+						vGridlU2.push_back(vlU2);
+
+					///carry operations
+					vlU2.at(0) += lU2Step;
+					unsigned int c = 0;
+					while (Iter && vlU2.at(c) >= lU2End - lU2Step)
+					{
+						vlU2.at(c)    = 0;
+						vlU2.at(c++) += lU2Step;
+
+						if (c < nD)
+							Iter = true;
+						else
+							Iter = false;
+					}
+
+					vSignal.at(g++) += EnStep * TheEngine->DecayNumber(TheBox, Efficiency);
+
+*/

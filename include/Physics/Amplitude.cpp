@@ -551,85 +551,86 @@ double Amplitude::M2_WZ(int Hel, double s, double t, double cos0s, double cos0t,
 //		   production is from lepton, described in Jackson Frame!
 //				           neutrino  lepton    neutrino
 double Amplitude::M2_LeptonNeutrino(double u, double x, double y, double z)
-{
-	return (GetFermion() ? 0.0 : M2_LeptonNeutrino(-Helicity(), u, x, y, z)) +	//added only if majorana
-				     M2_LeptonNeutrino( Helicity(), u, x, y, z);
-}
-
-double Amplitude::M2_LeptonNeutrino(int Hel, double u, double x, double y, double z)
+//{
+//	return (GetFermion() ? 0.0 : M2_LeptonNeutrino(-Helicity(), u, x, y, z)) +	//added only if majorana
+//				     M2_LeptonNeutrino( Helicity(), u, x, y, z);
+//}
+//
+//double Amplitude::M2_LeptonNeutrino(int Hel, double u, double x, double y, double z)
 {
 	return 16 * Const::fGF2 * Mass(4) *
-		(1 + x - u) * (u - y - z - Hel * SqrtKallen(u, y, z));
+		(1 + x - u) * (u - y - z - Helicity() * SqrtKallen(u, y, z));
 }
 
 //	This amplitude is to be used if the mixing comes from the flavour in final state
 //				     neutrino  lepton    neutrino  neutrino  angle betw. lepton and neutr
 //	production is from antilepeton
 double Amplitude::M2_AntiLeptonNeutrino(double s, double x, double y, double z)
-{
-	return (GetFermion() ? 0.0 : M2_AntiLeptonNeutrino(-Helicity(), s, x, y, z)) +	//added only if majorana
-				     M2_AntiLeptonNeutrino( Helicity(), s, x, y, z);
-}
-double Amplitude::M2_AntiLeptonNeutrino(int Hel, double s, double x, double y, double z)
+//{
+//	return (GetFermion() ? 0.0 : M2_AntiLeptonNeutrino(-Helicity(), s, x, y, z)) +	//added only if majorana
+//				     M2_AntiLeptonNeutrino( Helicity(), s, x, y, z);
+//}
+//
+//double Amplitude::M2_AntiLeptonNeutrino(int Hel, double s, double x, double y, double z)
 {
 	return 16 * Const::fGF2 * Mass(4) * 
-		(s - x - y) * (1 + z - s - Hel * SqrtKallen(1, s, z));
+		(s - x - y) * (1 + z - s - Helicity() * SqrtKallen(1, s, z));
 }
 
 double Amplitude::M2_LeptonTwo(double x, double y)
-{
-	return (GetFermion() ? 0.0 : M2_LeptonTwo(-Helicity(), x, y)) +	//added only if majorana
-				     M2_LeptonTwo( Helicity(), x, y);
-}
-//					      neutrino	meson
-double Amplitude::M2_LeptonTwo(int Hel, double x, double y)	//y is the meson
+//{
+//	return (GetFermion() ? 0.0 : M2_LeptonTwo(-Helicity(), x, y)) +	//added only if majorana
+//				     M2_LeptonTwo( Helicity(), x, y);
+//}
+////					      neutrino	meson
+//double Amplitude::M2_LeptonTwo(int Hel, double x, double y)	//y is the meson
 {
 	return Const::fGF2 * Mass(4) * 
-		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Hel * SqrtKallen(1, x, y));
+		(pow(1 - x, 2) - y * (1 + x) - (1 - x) * Helicity() * SqrtKallen(1, x, y));
 }
 
 double Amplitude::M2_LeptonThree(double x, double y, double z)
-{
-	return (GetFermion() ? 0.0 : M2_LeptonThree(-Helicity(), x, y, z)) +	//added only if majorana
-				     M2_LeptonThree( Helicity(), x, y, z);
-}
-//	not implemented
-double Amplitude::M2_LeptonThree(int Hel, double x, double y, double z)	
+//{
+//	return (GetFermion() ? 0.0 : M2_LeptonThree(-Helicity(), x, y, z)) +	//added only if majorana
+//				     M2_LeptonThree( Helicity(), x, y, z);
+//}
+////	not implemented
+//double Amplitude::M2_LeptonThree(int Hel, double x, double y, double z)	
 {
 	return Const::fGF2 * Mass(4);
 }
 
 double Amplitude::M2_MesonTwo(double x, double y)
-{
-	return (GetFermion() ? 0.0 : M2_MesonTwo(-Helicity(), x, y)) +	//added only if majorana
-				     M2_MesonTwo( Helicity(), x, y);
-}
-//					   neutrino  lepton
-double Amplitude::M2_MesonTwo(int Hel, double x, double y)
+//{
+//	return (GetFermion() ? 0.0 : M2_MesonTwo(-Helicity(), x, y)) +	//added only if majorana
+//				     M2_MesonTwo( Helicity(), x, y);
+//}
+////					   neutrino  lepton
+//double Amplitude::M2_MesonTwo(int Hel, double x, double y)
 {
 	return Const::fGF2 * Mass(4) * 
-		(x + y - pow(x - y, 2) - Hel * (y - x) * SqrtKallen(1, x, y));
+		(x + y - pow(x - y, 2) - Helicity() * (y - x) * SqrtKallen(1, x, y));
 }
 
 double Amplitude::M2_MesonThree(double s, double t, double x, double y, double z, double L_, double L0)
-{
-	return (GetFermion() ? 0.0 : M2_MesonThree(-Helicity(), s, t, x, y, z, L_, L0)) +	//added only if majorana
-				     M2_MesonThree( Helicity(), s, t, x, y, z, L_, L0);
-}
-//Jackson frame??
-double Amplitude::M2_MesonThree(int Hel, double s, double t, double x, double y, double z, double L_, double L0)
+//{
+//	return (GetFermion() ? 0.0 : M2_MesonThree(-Helicity(), s, t, x, y, z, L_, L0)) +	//added only if majorana
+//				     M2_MesonThree( Helicity(), s, t, x, y, z, L_, L0);
+//}
+////Jackson frame??
+//double Amplitude::M2_MesonThree(int Hel, double s, double t, double x, double y, double z, double L_, double L0)
 {
 	double u = 1 + x + y + z - s - t;
 
 	double F = 2 * (1 + L_ * u / x);
 	double G = (1 + L_ * u / x) - (L_ - L0) * (1 + 1 / x);
 
-	double A = (1 + y - t)*(1 + z - s - Hel * SqrtKallen(1, z, s)) -
-	           (u - y - z - Hel * SqrtKallen(u, y, z));
+	double A = (1 + y - t)*(1 + z - s - Helicity() * SqrtKallen(1, z, s)) -
+	           (u - y - z - Helicity() * SqrtKallen(u, y, z));
 	double B = (y + z) * (u - y - z) + 4 * y * z -
-	           (y - z) * Hel * SqrtKallen(u, y, z);
-	double C = (1 + y - t) * 2*z + (1 + z - s) * (2*y + Hel * SqrtKallen(u, y, z)) -
-		   Hel * (u - z + y) * SqrtKallen(1, z, s);
+	           (y - z) * Helicity() * SqrtKallen(u, y, z);
+	double C = (1 + y - t) * 2*z + (1 + z - s) * (2*y + Helicity() * SqrtKallen(u, y, z)) -
+		   Helicity() * (u - z + y) * SqrtKallen(1, z, s);
 
 	return Const::fGF2 * ( (F*F) * A + (G*G) * B - (F*G) * C ) / 2.0;
 }

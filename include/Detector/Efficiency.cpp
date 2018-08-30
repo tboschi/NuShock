@@ -67,6 +67,7 @@ void Efficiency::InitTree()
 {
 	Data->SetBranchAddress("True", &True, &b_fTrue);
 	Data->SetBranchAddress("W",    &W,    &b_fW);
+	//Data->SetBranchAddress("R",    &R,    &b_fR);
 
 	Data->SetBranchAddress("E_A", &E_A, &b_fEnergyA);
 	Data->SetBranchAddress("P_A", &P_A, &b_fMomentA);

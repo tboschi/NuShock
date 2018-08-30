@@ -30,11 +30,16 @@ Neutrino::Neutrino(double Mass, unsigned int Options) //:
 Neutrino::~Neutrino()
 {
 	delete fMixings;
+	fMixings = 0;
 
 	delete TheDecayRates;
+	TheDecayRates = 0;
 	delete TheProduction;
+	TheProduction = 0;
 	delete TheProdLightN;
+	TheProdLightN = 0;
 	delete ThePhaseSpace;
+	ThePhaseSpace = 0;
 }
 
 void Neutrino::SetParent(Amplitude *Object)

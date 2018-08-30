@@ -148,21 +148,33 @@ int main(int argc, char** argv)
 
 	//Binding neutrino to driver
 	TheEngine->BindNeutrino(TheNu0_L, Engine::FHC, 0);
-	TheEngine->BindNeutrino(TheNuB_L, Engine::RHC, 0);
 	TheEngine->BindNeutrino(TheNu0_R, Engine::FHC, 1);
+	TheEngine->BindNeutrino(TheNuB_L, Engine::RHC, 0);
 	TheEngine->BindNeutrino(TheNuB_R, Engine::RHC, 1);
 
-	TheEngine->ScaleDetector(TheBox);
 	TheEngine->MakeFlux();
+	TheEngine->ScaleArea(TheBox);
+	TheEngine->ScaleBaseline(TheBox);
+	TheEngine->ScalePOT(1e20);
+
+	double S, E;
 	std::vector<double> vWeight;
 	double Total = TheEngine->MakeSampler(TheBox, vWeight);
+	std::vector<double> vRatio = vWeight;
 	for (unsigned int i = 0; i < vWeight.size(); ++i)
-		vWeight.at(i) /= Total;
+	{
+		vRatio.at(i) = vWeight.at(i) / Total;
+		vWeight.at(i) /= Nevent * TheEngine->RangeWidth(S, E);
+	}
+	//if (!Dirac)
+	//	for (unsigned int i = vWeight.size()/2; i > 0; --i)
+	//	{
+	//		vWeight.at(i-1) += vWeight.at(i-1 + vWeight.size()/2);
+	//		vWeight.pop_back();
+	//	}
 
-	unsigned int SaveMe = 0;
-
-	double True, W;
-	bool L, R;
+	double True, W, R;
+	bool H, P;
 	double EnergyA, EnergyB, Energy0;
 	double MomentA, MomentB, Moment0;
 	double TransvA, TransvB, Transv0;
@@ -173,13 +185,14 @@ int main(int argc, char** argv)
 	double InnB, OutB, TotB;
 	double Angle;				//separation between A & B
 
-	//TRandom3 *Rand = new TRandom3(0);
+	TRandom3 *Ran = new TRandom3(0);
 	TTree *Data = new TTree("Data", "Particle tracks");
 
 	Data->Branch("True",   &True,   "fTrue/D");
 	Data->Branch("W", &W, "fW/D");
-	Data->Branch("L", &L, "bL/O");
-	Data->Branch("R", &R, "bR/O");
+	Data->Branch("R", &R, "fR/D");
+	Data->Branch("H", &H, "bH/O");
+	Data->Branch("P", &P, "bP/O");
 
 	Data->Branch("E_A",   &EnergyA, "fEnergyA/D");
 	Data->Branch("P_A",   &MomentA, "fMomentA/D");
@@ -219,36 +232,82 @@ int main(int argc, char** argv)
 	unsigned int ND = 0, ID;
 	for (ID = 0; ID < Nevent; ++ND)
 	{
-		std::vector<double> vEnergy = TheEngine->SampleEnergy();
+		std::vector<double> vEnergy, vIntens;
+		TheEngine->SampleEnergy(vEnergy, vIntens);
+
 		Neutrino *TheNu;
 		for (unsigned int i = 0; i < vEnergy.size(); ++i)
 		{
 			if (vEnergy.at(i) < 0)
 				continue;
 
-			switch (i)
+			if (Dirac)
 			{
-				case 0:
-					TheNu = TheNu0_L;
-					L = true;
-					R = false;
-					break;
-				case 1:
-					TheNu = TheNu0_R;
-					L = false;
-					R = true;
-					break;
-				case 2:
-					TheNu = TheNuB_L;
-					L = true;
-					R = false;
-					break;
-				case 3:
-					TheNu = TheNuB_R;
-					L = false;
-					R = true;
-					break;
+				True = vEnergy.at(i);
+				W = vWeight.at(i);
+				R = vRatio.at(i);
+				switch (i)
+				{
+					case 0:
+						TheNu = TheNu0_L;
+						H = false;
+						P = true;
+						break;
+					case 1:
+						TheNu = TheNu0_R;
+						H = true;
+						P = true;
+						break;
+					case 2:
+						TheNu = TheNuB_L;
+						H = false;
+						P = false;
+						break;
+					case 3:
+						TheNu = TheNuB_R;
+						H = true;
+						P = false;
+						break;
+				}
 			}
+			else if (i < 2)
+			{
+				W = vWeight.at(i) + vWeight.at(i+2);
+				R = vRatio.at(i) + vRatio.at(i+2);
+				double i0 = vIntens.at(i);
+				double iB = vIntens.at(i+2); 
+				switch (i)
+				{
+					case 0:
+						if (Ran->Rndm() < i0/(iB+i0))
+						{
+							TheNu = TheNu0_L;
+							True = vEnergy.at(i);
+						}
+						else
+						{
+							TheNu = TheNuB_L;
+							True = vEnergy.at(i+2);
+						}
+						H = false;
+						break;
+					case 1:
+						if (Ran->Rndm() < i0/(iB+i0))
+						{
+							TheNu = TheNu0_R;
+							True = vEnergy.at(i);
+						}
+						else
+						{
+							TheNu = TheNuB_R;
+							True = vEnergy.at(i);
+						}
+						H = true;
+						break;
+				}
+			}
+			else
+				continue;
 
 			TheNu->SetEnergy(vEnergy.at(i));
 			std::vector<Particle*> vParticle = TheNu->DecayPS();
@@ -283,9 +342,6 @@ int main(int argc, char** argv)
 
 			if (ParticleA && ParticleB)
 			{
-				True   = vEnergy.at(i);
-				W      = vWeight.at(i);
-
 				EnergyA = ParticleA->Energy();
 				MomentA = ParticleA->Momentum();
 				TransvA = ParticleA->Transverse();
@@ -321,11 +377,10 @@ int main(int argc, char** argv)
 				++ID;
 			}
 
-			if (SaveMe++ > 10000)
+			if (ID % 10000 == 0)
 			{
 				OutFile->cd();
 				Data->Write();
-				SaveMe = 0;
 			}
 
 			//delete ParticleA, ParticleB;
@@ -336,10 +391,27 @@ int main(int argc, char** argv)
 		}
 	}
 
-	std::cout << "Above detection thresholds there are " << (ID * 100.0 / vWeight.size())/ND << "\% of simulated particles" << std::endl;
+	unsigned int Size = vWeight.size() / (Dirac ? 1 : 2);
+	std::cout << "Above detection thresholds there are " << (ID * 100.0 / Size)/ND << "\% of simulated particles" << std::endl;
 	OutFile->cd();
         Data->Write();
 	OutFile->Close();
+
+	//delete Ran;
+	//Ran = 0;
+	//delete TheNu0_L;
+	//TheNu0_L = 0;
+	//delete TheNuB_L;
+	//TheNuB_L = 0;
+	//delete TheNu0_R;
+	//TheNu0_R = 0;
+	//delete TheNuB_R;
+	//TheNuB_R = 0;
+
+	//delete TheBox;
+	//TheBox = 0;
+	//delete TheEngine;
+	//TheEngine = 0;
 
 	return 0;
 }

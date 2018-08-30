@@ -1,0 +1,17 @@
+set macro
+#path = sprintf("ls %s*.dat", base)
+path = sprintf("find %s/ -type f -size +30c | sort", nu)
+files = system(path)
+print files
+set format y "%g"
+set log xy
+set yr [1e-10:1e1]
+set xr [0.01:2]
+nw = words(files)
+pause 2
+do for [m=1:nw] {
+	set title sprintf("%s", word(files, m))
+	plot word(files, m) u 1:2 w l not
+	pause 0.1
+}
+pause -1

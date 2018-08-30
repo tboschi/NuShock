@@ -80,13 +80,13 @@ void Exclusion::Split(std::list<double> &ll)
 {
 	bool Ret = false;
 	std::list<double>::iterator il = ll.begin(), ip = il;
-	double f0 = Function(ll.front());
-	double f1;
+	//double f0 = Function(ll.front());
+	//double f1;
 
 	for (++il; il != ll.end(); ++il, ++ip)
 	{
 		double M = (*ip + *il) / 2.0;
-		ll.insert(il, M);
+		ip = ll.insert(il, M);
 	}
 }
 
@@ -138,7 +138,6 @@ void Exclusion::SetMix(double lu2)
 				else if (vFlag.at(f) == 'T')
 					ut = uu;
 			}
-			//std::cout << ue << "\t" << um << "\t" << ut << std::endl;
 			NN->SetMixings(ue, um, ut);
 		}
 	}
