@@ -29,7 +29,7 @@ set style circle radius graph 0.02
 set style ellipse size graph 0.05, 0.03 angle 0 units xy
 set dummy x, y
 set format x "% h" 
-set format y "% h" 
+set format y "\\np\{e%T\}" 
 set format x2 "% h" 
 set format y2 "% h" 
 set format z "% h" 
@@ -44,8 +44,8 @@ unset raxis
 set theta counterclockwise right
 set style parallel front  lt black linewidth 2.000 dashtype solid
 set key title "" center
-set key fixed right top vertical Right noreverse enhanced autotitle nobox
-set key noinvert samplen 4 spacing 1 width 0 height 0 
+set key fixed right top vertical Left reverse enhanced autotitle nobox
+set key noinvert samplen 1 spacing 1.2 width 0 height 0 
 set key maxcolumns 0 maxrows 0
 set key noopaque
 unset label
@@ -93,6 +93,7 @@ unset y2zeroaxis
 set xyplane relative 0.5
 set tics scale  1, 0.5, 1, 1, 1
 set mxtics default
+set mxtics 10
 set mytics default
 set mztics default
 set mx2tics default
@@ -102,8 +103,10 @@ set mrtics default
 set nomttics
 set xtics border in scale 1,0.5 mirror norotate  autojustify
 set xtics  norangelimit logscale autofreq 
+set xtics add (0.05, 0.5, 2)
 set ytics border in scale 1,0.5 mirror norotate  autojustify
 set ytics  norangelimit logscale autofreq 
+set ytics 1e-10, 100, 1
 set ztics border in scale 1,0.5 nomirror norotate  autojustify
 set ztics  norangelimit autofreq 
 unset x2tics
@@ -121,17 +124,17 @@ set timestamp  font "" norotate
 set trange [ * : * ] noreverse nowriteback
 set urange [ * : * ] noreverse nowriteback
 set vrange [ * : * ] noreverse nowriteback
-set xlabel "" 
+set xlabel "Mass (GeV)" 
 set xlabel  font "" textcolor lt -1 norotate
 set x2label "" 
 set x2label  font "" textcolor lt -1 norotate
-set xrange [ 0.100000 : 2.00000 ] noreverse writeback
+set xrange [ 0.400000 : 2.00000 ] noreverse writeback
 set x2range [ * : * ] noreverse writeback
-set ylabel "" 
+set ylabel "\$|U_\{e 4\}|^2\$" 
 set ylabel  font "" textcolor lt -1 rotate
 set y2label "" 
 set y2label  font "" textcolor lt -1 rotate
-set yrange [ 1.00000e-10 : 1.00000 ] noreverse writeback
+set yrange [ 1.00000e-9 : 1.00000 ] noreverse writeback
 set y2range [ * : * ] noreverse writeback
 set zlabel "" 
 set zlabel  font "" textcolor lt -1 norotate
@@ -147,10 +150,10 @@ set logscale y 10
 set logscale x 10
 unset jitter
 set zero 1e-08
-set lmargin  -1
-set bmargin  -1
-set rmargin  -1
-set tmargin  -1
+set lmargin -1
+set bmargin -1
+set rmargin -1
+set tmargin -1
 set locale "en_GB.UTF-8"
 set pm3d explicit at s
 set pm3d scansautomatic
@@ -166,9 +169,10 @@ set fontpath
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
 GNUTERM = "qt"
+
 ## Last datafile plotted: "m/nRHO0_E_m_U.dat"
-plot "m/nETA_E_m_U.dat"   u 1:2 w l lw 2 lc 1, "d/nETA_E_d_U.dat"   u 1:2 w l lw 2 lc 1 dt 2,\
-     "m/nETAi_E_m_U.dat"  u 1:2 w l lw 2 lc 2, "d/nETAi_E_d_U.dat"  u 1:2 w l lw 2 lc 2 dt 2,\
-     "m/nOMEGA_E_m_U.dat" u 1:2 w l lw 2 lc 3, "d/nOMEGA_E_d_U.dat" u 1:2 w l lw 2 lc 3 dt 2,\
-     "m/nPHI_E_m_U.dat"   u 1:2 w l lw 2 lc 4, "d/nPHI_E_d_U.dat"   u 1:2 w l lw 2 lc 4 dt 2,\
+plot "m/nETA_E_m_U.dat"   u 1:2 w l lw 2 lc 1 t "\$\\nu\\eta\$"  , "d/nETA_E_d_U.dat"   u 1:2 w l lw 2 lc 1 dt 2 not,\
+     "m/nETAi_E_m_U.dat"  u 1:2 w l lw 2 lc 2 t "\$\\nu\\eta'\$" , "d/nETAi_E_d_U.dat"  u 1:2 w l lw 2 lc 2 dt 2 not,\
+     "m/nOMEGA_E_m_U.dat" u 1:2 w l lw 2 lc 3 t "\$\\nu\\omega\$", "d/nOMEGA_E_d_U.dat" u 1:2 w l lw 2 lc 3 dt 2 not,\
+     "m/nPHI_E_m_U.dat"   u 1:2 w l lw 2 lc 4 t "\$\\nu\\phi\$"  , "d/nPHI_E_d_U.dat"   u 1:2 w l lw 2 lc 4 dt 2 not,\
 #    EOF
