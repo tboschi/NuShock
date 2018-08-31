@@ -1,0 +1,49 @@
+#set term qt size 1500, 525
+set term epslatex color size 10in, 3.5in linewidth 2
+set output "sensmulti_EW.tex"
+
+#ytics margin size
+MT = 0.04
+#spacing between plots
+MP = (1-MT)/3.0
+
+set tmargin 0
+set rmargin 0
+set bmargin 2
+#set lmargin 0
+set xtics 0.01, 10, 10 nomirror
+set xtics add (0.05, 0.5)
+set ytics 1e-12, 100, 1 nomirror
+set xlabel "Mass (GeV)"
+set log xy
+set xrange [0.01:2]
+set yrange [5e-11:1]
+set key samplen 1 spacing 1.2 top left reverse Left
+#set multiplot layout 1, 3 spacing screen 0
+set multiplot
+#plot 1
+set lmargin at screen MT
+set size MT+MP, 1
+set origin 0, 0
+set format y "\\np\{e%T\}"
+set ylabel "$ |U_{e 4}|^2 $" 
+plot "m/nEE_E_m_U.dat" u 1:2 w l t "\$\\nu e e \$ Majorana" lw 2 lc 1, "m/nEE_W_E_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/nEE_E_d_U.dat" u 1:2 w l t "\$\\nu e e \$ Dirac" lw 2 lc 2, "d/nEE_W_E_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \
+"m/nMM_E_m_U.dat" u 1:2 w l t "\$\\nu \\mu \\mu \$ Majorana" lw 2 lc 3, "m/nMM_W_E_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nMM_E_d_U.dat" u 1:2 w l t "\$\\nu \\mu \\mu \$ Dirac" lw 2 lc 7, "d/nMM_W_E_d_U.dat" u 1:2 w l not lw 2 lc 7 dt 3
+#plot 2
+set lmargin 0
+set size MP, 1
+set origin MT+MP, 0
+set format y ""
+unset ylabel
+plot "m/EPI_E_m_U.dat" u 1:2 w l t "\$e \\pi \$ Majorana" lw 2 lc 1, "m/EPI_W_E_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/EPI_E_d_U.dat" u 1:2 w l t "\$e \\pi \$ Dirac" lw 2 lc 2, "d/EPI_W_E_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \
+"m/nEM_E_m_U.dat" u 1:2 w l t "\$\\nu e \\mu \$ Majorana" lw 2 lc 3, "m/nEM_W_E_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nEM_E_d_U.dat" u 1:2 w l t "\$\\nu e \\mu \$ Dirac" lw 2 lc 7, "d/nEM_W_E_d_U.dat" u 1:2 w l not lw 2 lc 7 dt 3
+#plot 3
+set lmargin 0
+set size MP, 1
+set origin MT+2*MP, 0
+set format y ""
+unset ylabel
+plot "m/nGAMMA_E_m_U.dat" u 1:2 w l t "\$\\nu \\gamma \$ Majorana" lw 2 lc 1, "m/nGAMMA_W_E_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/nGAMMA_E_d_U.dat" u 1:2 w l t "\$\\nu \\gamma \$ Dirac" lw 2 lc 2, "d/nGAMMA_W_E_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \
+"m/nPI0_E_m_U.dat" u 1:2 w l t "\$\\nu \\pi^0 \$ Majorana" lw 2 lc 3, "m/nPI0_W_E_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nPI0_E_d_U.dat" u 1:2 w l t "\$\\nu \\pi^0 \$ Dirac" lw 2 lc 7, "d/nPI0_W_E_d_U.dat" u 1:2 w l not lw 2 lc 7 dt 3
+unset multiplot
+unset output

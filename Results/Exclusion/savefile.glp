@@ -1,0 +1,16 @@
+set terminal epslatex color size 5in, 3.5in linewidth 2
+set output "sens_EV_0.tex"
+load "Sens_EV_0.plt"
+unset output
+set output "sens_EV_1.tex"
+load "Sens_EV_1.plt"
+unset output
+set output "sens_MV_0.tex"
+load "Sens_MV_0.plt"
+unset output
+set output "sens_MV_1.tex"
+load "Sens_MV_1.plt"
+unset output
+set output "sens_TV_0.tex"
+load "Sens_TV_0.plt"
+unset output
