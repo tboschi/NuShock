@@ -46,6 +46,7 @@ bool PhaseSpace::Generate(Channel Name)
 	{
 		do
 		{
+			++cc;
 			Event->Generate();
 			Val = Ratio(Name);
 		}

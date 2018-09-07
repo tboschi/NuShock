@@ -144,8 +144,8 @@ int main(int argc, char** argv)
 	std::vector<Particle*> vProductDs, vProductTau;
 	std::vector<Particle*>::iterator iP;
 
-	unsigned int DecayCount = 0, InNDCount = 0;
-	for (unsigned int ID = 0; ID < Nevent; ++ID)
+	unsigned int DecayCount = 0, InNDCount = 0, ID;
+	for (ID = 0; ID < Nevent; ++ID)
 	{
 		double pt, xf;
 		do
@@ -281,7 +281,9 @@ int main(int argc, char** argv)
 	hTotalB->Write("htotal");
 
 	std::cout << "Ds meson decays are " << 100.0 * DecayCount / double(Nevent) << " %\n";
-	std::cout << "Products in ND are " << 100.0 * (1.0 - InNDCount / double(Nevent)) << " %\n";
+	//std::cout << "Products in ND are " << 100.0 * (1.0 - InNDCount / double(Nevent)) << " %\n";
+	std::cout << "Neutrinos in ND are " << 100.0 * (hCharmT->GetEntries() / double(Nevent)) << " %\n";
+	std::cout << "Antineuts in ND are " << 100.0 * (hPion->GetEntries() / double(DecayCount)) << " %\n";
 	std::cout  << "Neutrinos simulated " << hTotal_->GetEntries();
 	std::cout << " (" << hTotal_->GetEntries()*100.0/double(Nevent) << " %)";
 	std::cout << ", saved in " << FileOut_->GetName() << std::endl;

@@ -32,24 +32,24 @@ ChanThree=("$ch3_0" "$ch3_1" "$ch3_2" "$ch3_3" "$ch3_4" "$ch3_5" "$ch3_6" "$ch3_
 # Run the tasks:
 for i in "${ChanTwo[@]}"
 do
-	echo $Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
+	echo $Exec -o Results/Kinematic/"Kine_2"${i}".dat" -c "${i}"
 
 	if [ "${i}" = "${OptArr[7]}" ]
 	then
-		$Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
+		$Exec -o Results/Kinematic/"Kine_2"${i}".dat" -c "${i}"
 	else
-		$Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}" &
+		$Exec -o Results/Kinematic/"Kine_2"${i}".dat" -c "${i}" &
 	fi
 done
 
 for i in "${ChanThree[@]}"
 do
-	echo $Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
+	echo $Exec -o Results/Kinematic/"Kine_2"${i}".dat" -c "${i}"
 
 	if [ "${i}" = "${OptThree[10]}" ]
 	then
-		$Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}"
+		$Exec -o Results/Kinematic/"Kine_2"${i}".dat" -c "${i}"
 	else
-		$Exec -o Results/Kinematic/"Kine_"${i}".dat" -c "${i}" &
+		$Exec -o Results/Kinematic/"Kine_2"${i}".dat" -c "${i}" &
 	fi
 done

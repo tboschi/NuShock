@@ -632,7 +632,7 @@ double Amplitude::M2_MesonThree(double s, double t, double x, double y, double z
 	double C = (1 + y - t) * 2*z + (1 + z - s) * (2*y + Helicity() * SqrtKallen(u, y, z)) -
 		   Helicity() * (u - z + y) * SqrtKallen(1, z, s);
 
-	return Const::fGF2 * ( (F*F) * A + (G*G) * B - (F*G) * C ) / 2.0;
+	return Const::fGF2 * Mass(4) * ( (F*F) * A + (G*G) * B - (F*G) * C ) / 2.0;
 }
 
 //Generic function set up for template analysis

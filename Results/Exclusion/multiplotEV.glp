@@ -1,6 +1,6 @@
-#set term qt size 1500, 525
-set term epslatex color size 10in, 3.5in linewidth 2
-set output "sensmulti_EW.tex"
+set term qt size 1500, 525
+#set term epslatex color size 10in, 3.5in linewidth 2
+#set output "sensmulti_EW.tex"
 
 #ytics margin size
 MT = 0.04

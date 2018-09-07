@@ -517,6 +517,59 @@ double Production::I_MesonTwo(double x, double y)	//symetric in x and y
 	return dGammad0_2B(M2, x, y);
 }
 
+/////from 1805.08567
+double Production::MesonThreeDecay2(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0)	//decay constant not important
+{
+	SetMass(M_Meson0);
+	double x = M_Meson*M_Meson/Mass(2);
+	double y = M_Lepton*M_Lepton/Mass(2);
+	double z = MassN(2)/Mass(2);	
+
+	F_var.clear();
+
+	F_var.push_back(x);	//0	//c2
+	F_var.push_back(y);	//1	//b2
+	F_var.push_back(z);	//2	//a2
+	//F_var.push_back(cos0);	//3	//theta
+	F_var.push_back(L_);	//4	//linear dep for decay constant
+	F_var.push_back(L0);	//5	//linear dep for decay constant
+
+	//int Trial, Fail;
+	//double Error, Chi2Prob;
+
+	SetFunction(&Production::I_MesonThree_2);
+	double Int = Inte::BooleIntegration(this); 		//switch to Vega
+	return Const::fGF2 * Mass(5) / (64.0 * Const::fPi3) * pow(Const::fU_us, 2) * Int;
+}
+double Production::I_MesonThree_2(double s)
+{
+	//aliases for clarity
+	double z = F_var.at(0);	//h'
+	double y = F_var.at(1);	//l
+	double x = F_var.at(2);	//N
+	//const double &cos0 = F_var.at(3);
+	double L0 = F_var.at(3);
+	double L_ = F_var.at(4);
+
+	double sInf = x + y + 2*sqrt(x*y);
+	double sSup = 1 + z - 2*sqrt(z);
+	double fc = sSup - sInf;
+	double s_ = sInf + fc*s;
+
+	double G = s_ * (x+y) - pow((x-y), 2);
+	double L = SqrtKallen(1, z, s_)*SqrtKallen(s_, x, y);
+
+	double fp = Const::fKaPi * (1 + L_ * s_);
+	double f0 = fp + s_ * Const::fKaPi * (L0 - L_);
+
+	double I1 = fp*fp * L*L*L / (3 * s_*s_*s_);
+	double I2 = fp*fp * L * G * Kallen(1, z, s_) / (2 * s_*s_*s_);
+	double I3 = f0*f0 * L * G * (1-z)*(1-z) / (2 * s_*s_*s_);
+
+	return I1 + I2 + I3;
+}
+
+
 double Production::MesonThreeDecay(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0)	//decay constant not important
 {
 	SetMass(M_Meson0);

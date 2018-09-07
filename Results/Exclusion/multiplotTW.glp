@@ -28,7 +28,7 @@ set origin 0, 0
 set format y "\\np\{e%T\}"
 set ylabel "$ |U_{\\tau 4}|^2 $" 
 plot "m/nEE_T_m_U.dat" u 1:2 w l t "\$\\nu e e \$ Majorana" lw 2 lc 1, "m/nEE_W_T_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/nEE_T_d_U.dat" u 1:2 w l t "\$\\nu e e \$ Dirac" lw 2 lc 2, "d/nEE_W_T_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \
-"m/nMM_T_m_U.dat" u 1:2 w l t "\$\\nu \\mu \\mu \$ Majorana" lw 2 lc 3, "m/nMM_W_T_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nMM_T_d_U.dat" u 1:2 w l t "\$\\nu \\mu \\mu \$ Dirac" lw 2 lc 7, "d/nMM_W_T_d_U.dat" u 1:2 w l not lw 2 lc 7 dt 3
+"m/nMM_T_m_U.dat" u 1:2 w l t "\$\\nu \\mu \\mu \$ Majorana" lw 2 lc 3, "m/nMM_W_T_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nMM_T_d_U.dat" u 1:2 w l t "\$\\nu \\mu \\mu \$ Dirac" lw 2 lc 4, "d/nMM_W_T_d_U.dat" u 1:2 w l not lw 2 lc 4 dt 3
 #plot 2
 #set lmargin 0
 #set size MP, 1
@@ -36,15 +36,16 @@ plot "m/nEE_T_m_U.dat" u 1:2 w l t "\$\\nu e e \$ Majorana" lw 2 lc 1, "m/nEE_W_
 #set format y ""
 #unset ylabel
 #plot "m/EPI_T_m_U.dat" u 1:2 w l t "\$e \\pi \$ Majorana" lw 2 lc 1, "m/EPI_W_T_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/EPI_T_d_U.dat" u 1:2 w l t "\$e \\pi \$ Dirac" lw 2 lc 2, "d/EPI_W_T_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \
-#"m/nEM_T_m_U.dat" u 1:2 w l t "\$\\nu e \\mu \$ Majorana" lw 2 lc 3, "m/nEM_W_T_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nEM_T_d_U.dat" u 1:2 w l t "\$\\nu e \\mu \$ Dirac" lw 2 lc 7, "d/nEM_W_T_d_U.dat" u 1:2 w l not lw 2 lc 7 dt 3
+#"m/nEM_T_m_U.dat" u 1:2 w l t "\$\\nu e \\mu \$ Majorana" lw 2 lc 6, "m/nEM_W_T_m_U.dat" u 1:2 w l not lw 2 lc 6 dt 3, "d/nEM_T_d_U.dat" u 1:2 w l t "\$\\nu e \\mu \$ Dirac" lw 2 lc 7, "d/nEM_W_T_d_U.dat" u 1:2 w l not lw 2 lc 7 dt 3
 #plot 3
 set lmargin 0
 set size MP, 1
 set origin MT+1.5*MP, 0
 set format y ""
 unset ylabel
-plot "m/nGAMMA_T_m_U.dat" u 1:2 w l t "\$\\nu \\gamma \$ Majorana" lw 2 lc 1, "m/nGAMMA_W_T_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/nGAMMA_T_d_U.dat" u 1:2 w l t "\$\\nu \\gamma \$ Dirac" lw 2 lc 2, "d/nGAMMA_W_T_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \
-"m/nPI0_T_m_U.dat" u 1:2 w l t "\$\\nu \\pi^0 \$ Majorana" lw 2 lc 3, "m/nPI0_W_T_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nPI0_T_d_U.dat" u 1:2 w l t "\$\\nu \\pi^0 \$ Dirac" lw 2 lc 7, "d/nPI0_W_T_d_U.dat" u 1:2 w l not lw 2 lc 7 dt 3
+set xtics add (2)
+plot "m/nPI0_T_m_U.dat" u 1:2 w l t "\$\\nu \\pi^0 \$ Majorana" lw 2 lc 3, "m/nPI0_W_T_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nPI0_T_d_U.dat" u 1:2 w l t "\$\\nu \\pi^0 \$ Dirac" lw 2 lc 4, "d/nPI0_W_T_d_U.dat" u 1:2 w l not lw 2 lc 4 dt 3
 unset multiplot
 unset output
+#plot "m/nGAMMA_T_m_U.dat" u 1:2 w l t "\$\\nu \\gamma \$ Majorana" lw 2 lc 1, "m/nGAMMA_W_T_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/nGAMMA_T_d_U.dat" u 1:2 w l t "\$\\nu \\gamma \$ Dirac" lw 2 lc 2, "d/nGAMMA_W_T_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \
 #pause -1

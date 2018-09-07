@@ -57,13 +57,14 @@ int main(int argc, char** argv)
 	TH1D *TheAll, *TheCut;
 	Efficiency *MakeEff = new Efficiency(InFile);
 	MakeEff->LoopFile();
-	MakeEff->MakeFunction();
-	
-	OutFile->cd();
-	TheFunction = MakeEff->GetFunction();
+	//MakeEff->MakeFunction();
+	//
+	//OutFile->cd();
+	//TheFunction = MakeEff->GetFunction();
 	//TheAll = MakeEff->GetAll();
-	//TheCut = MakeEff->GetCut();
-	TheFunction->Write();
+	TheCut = MakeEff->GetCut();
+	std::cout << "Entries " << TheCut->GetEntries() << std::endl;
+	//TheFunction->Write();
 	//TheAll->Write();
 	//TheCut->Write();
 

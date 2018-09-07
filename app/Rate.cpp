@@ -141,9 +141,9 @@ int main(int argc, char** argv)
 	Out << "Tot numb of neutrinos per 1e20 POT is " << Npot*1e20 << std::endl;
 	Out << "Total number of CC events per 1e20 POT is " << NtargetPer*RateCC*1e20 << std::endl;
 	Out << "Total number of NC events per 1e20 POT is " << NtargetPer*RateNC*1e20 << std::endl;
-	Out << "Frequency of CC events is " << NtargetPer*RateCC*TheBox->Get("POT/s") << " Hz on average" << std::endl;
-	Out << "Frequency of NC events is " << NtargetPer*RateNC*TheBox->Get("POT/s") << " Hz on average" << std::endl;
-	Out << "Frequency of total events is " << NtargetPer*(RateNC+RateCC)*TheBox->Get("POT/s") << " Hz on average" << std::endl;
+	Out << "Frequency of CC events is " << NtargetPer*RateCC*TheBox->Get("POT/s")*Ysec << " Hz on average" << std::endl;
+	Out << "Frequency of NC events is " << NtargetPer*RateNC*TheBox->Get("POT/s")*Ysec << " Hz on average" << std::endl;
+	Out << "Frequency of total events is " << NtargetPer*(RateNC+RateCC)*TheBox->Get("POT/s")*Ysec << " Hz on average" << std::endl;
 	Out << "Percentage of CC over total " << RateCC/(RateNC+RateCC) << std::endl;
 	Out << "Percentage of NC over total " << RateNC/(RateNC+RateCC) << std::endl;
 

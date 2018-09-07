@@ -72,6 +72,8 @@ class Production : public Amplitude
 		double I_MesonThree_s(double s);
 		double I_MesonThree_t(double t);
 		double I_MesonThree_D(double *x);
+		double MesonThreeDecay2(double M_Meson0, double M_Meson1, double M_Lepton, double L_, double L0);
+		double I_MesonThree_2(double s);
 
 		void Reset();
 		void SetFunction(double (Production::*FF)(double));
