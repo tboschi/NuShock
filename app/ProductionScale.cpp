@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 	Nu0->SetProductionChannel(Channel);
 
 	//Out << "#MS\tElPi\tElKa\tElCh\tMuPi\tMuKa\tMuCh" << std::endl;
-	for (double t = 0.0; t < 2.0; t += 0.0001)
+	for (double t = 0.0; t < 0.35; t += 0.001)
 	{
 		NuL->SetMass(t);
 		NuR->SetMass(t);

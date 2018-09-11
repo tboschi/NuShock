@@ -144,7 +144,9 @@ double Production::Gamma(Channel Name, bool Unitary)
 		SetUt(Mix[2]);
 	}
 
-	return (Result < 1e-27 ? 0.0 : Result);
+	if (Result < 1e-27)
+		Result = 0.0;
+	return (Helicity() ? 1.0 : 2.0) * Result;
 }
 
 double Production::Scale(Channel Name)
@@ -326,7 +328,8 @@ double Production::Kaon0E()
 	if (fKaon0E < 0)// || IsChanged())
 		fKaon0E = IsAllowed(_Kaon0E) ?
 			pow(Const::fU_us * Const::fKaPi, 2) * 
-			MesonThreeDecay(M_Kaon0, M_Pion, M_Electron, Const::fK0L_, Const::fK0L0) : 0.0;
+			//MesonThreeDecay(M_Kaon0, M_Pion, M_Electron, Const::fK0L_, Const::fK0L0) : 0.0;
+			MesonThreeDecay(M_Kaon0, M_Pion, M_Electron, 0, 0) : 0.0;
 
 	return fKaon0E * Ue(2);
 }
@@ -559,14 +562,18 @@ double Production::I_MesonThree_2(double s)
 	double G = s_ * (x+y) - pow((x-y), 2);
 	double L = SqrtKallen(1, z, s_)*SqrtKallen(s_, x, y);
 
-	double fp = Const::fKaPi * (1 + L_ * s_);
-	double f0 = fp + s_ * Const::fKaPi * (L0 - L_);
+	//double fp = Const::fKaPi * (1 - L_ * s_ / x);
+	//double f0 = Const::fKaPi * (1 - L0 * s_ / x);
+	double fp = Const::fKaPi;
+	double f0 = Const::fKaPi;
 
-	double I1 = fp*fp * L*L*L / (3 * s_*s_*s_);
-	double I2 = fp*fp * L * G * Kallen(1, z, s_) / (2 * s_*s_*s_);
-	double I3 = f0*f0 * L * G * (1-z)*(1-z) / (2 * s_*s_*s_);
+	double I1 = fp*fp * L * L * L			/ (3 * s_*s_*s_);
+	double I2 = fp*fp * L * G * Kallen(1, z, s_)	/ (2 * s_*s_*s_);
+	double I3 = f0*f0 * L * G * (1-z)*(1-z)		/ (2 * s_*s_*s_);
+	if (s_ == 0)
+		return 0.0;
 
-	return I1 + I2 + I3;
+	return fc * (I1 + I2 + I3);
 }
 
 

@@ -441,7 +441,9 @@ double Amplitude::Limit(double &s, double &t, double x, double y, double z)
 	double Kal = SqrtKallen(s, y, x) * SqrtKallen(1, s, z);
 	double tInf = z + x + ((1 - s - z) * (s - y + x) - Kal) / (2 * s);
 	double tSup = z + x + ((1 - s - z) * (s - y + x) + Kal) / (2 * s);
-	t = tInf + (tSup - tInf) * t;	//this is t
+	if (s == 0)
+		tInf = tSup = z + x;
+	t = tInf + (tSup - tInf) * t;
 
 	return (sSup - sInf) * (tSup - tInf);
 }
@@ -632,7 +634,7 @@ double Amplitude::M2_MesonThree(double s, double t, double x, double y, double z
 	double C = (1 + y - t) * 2*z + (1 + z - s) * (2*y + Helicity() * SqrtKallen(u, y, z)) -
 		   Helicity() * (u - z + y) * SqrtKallen(1, z, s);
 
-	return Const::fGF2 * Mass(4) * ( (F*F) * A + (G*G) * B - (F*G) * C ) / 2.0;
+	return Const::fGF2 * Mass(4) * ( (F*F) * A + (G*G) * B - (F*G) * C );
 }
 
 //Generic function set up for template analysis

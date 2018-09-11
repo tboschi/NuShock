@@ -18,7 +18,8 @@ LDLIBS   := -lcuba
 CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
 #apps and exctuables
-CPP =	Kaon	
+CPP =	Kaon	\
+	ProductionScale	\
 #	AvgBack	\
 	FluxDs		\
 	Tree2Dat
@@ -26,7 +27,6 @@ CPP =	Kaon
 	#Efficiency	\
 	#ToPlot	\
 	#FastExclusion	\
-	ProductionScale	\
 	#Faster	\
 	#MakeFlux	\
 	Exclusion	\
