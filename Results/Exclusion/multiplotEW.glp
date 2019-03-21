@@ -1,11 +1,13 @@
 #set term qt size 1500, 525
 set term epslatex color size 10in, 3.5in linewidth 2
-set output "sensmulti_EW.tex"
+set output "sensmulti_EW2.tex"
 
 #ytics margin size
 MT = 0.04
 #spacing between plots
 MP = (1-MT)/3.0
+
+set colorsequence classic
 
 set tmargin 0
 set rmargin 0
@@ -17,30 +19,43 @@ set ytics 1e-12, 100, 1 nomirror
 set xlabel "Mass (GeV)"
 set log xy
 set xrange [0.01:2]
-set yrange [5e-11:1]
+set yrange [5e-11:1e-2]
 set key samplen 1 spacing 1.2 top left reverse Left
 #set multiplot layout 1, 3 spacing screen 0
 set multiplot
 #plot 1
+set key at 0.015, 5e-3
 set lmargin at screen MT
 set size MT+MP, 1
 set origin 0, 0
 set format y "\\np\{e%T\}"
 set ylabel "$ |U_{e 4}|^2 $" 
-plot "m/nEE_E_m_U.dat" u 1:2 w l t "\$\\nu e e \$ Majorana" lw 2 lc 1, "m/nEE_W_E_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/nEE_E_d_U.dat" u 1:2 w l t "\$\\nu e e \$ Dirac" lw 2 lc 2, "d/nEE_W_E_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \
-"m/nMM_E_m_U.dat" u 1:2 w l t "\$\\nu \\mu \\mu \$ Majorana" lw 2 lc 3, "m/nMM_W_E_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nMM_E_d_U.dat" u 1:2 w l t "\$\\nu \\mu \\mu \$ Dirac" lw 2 lc 4, "d/nMM_W_E_d_U.dat" u 1:2 w l not lw 2 lc 4 dt 3
+plot "m/nEE_E_m_U.dat"   u 1:2 w l lw 2 lc rgb "black" t "\$\\nu e e \$ Majorana",\
+     "m/nEE_W_E_m_U.dat" u 1:2 w l lw 2 lc rgb "black" dt "-" not,\
+     "d/nEE_E_d_U.dat"   u 1:2 w l lw 2 lc rgb "blue"  t "\$\\nu e e \$ Dirac",\
+     "d/nEE_W_E_d_U.dat" u 1:2 w l lw 2 lc rgb "blue"  dt "-" not, \
+     "m/nMM_E_m_U.dat"   u 1:2 w l lw 2 lc rgb "red"   t "\$\\nu \\mu \\mu \$ Majorana",\
+     "m/nMM_W_E_m_U.dat" u 1:2 w l lw 2 lc rgb "red"   dt "-" not,\
+     "d/nMM_E_d_U.dat"   u 1:2 w l lw 2 lc rgb "web-green" t "\$\\nu \\mu \\mu \$ Dirac",\
+     "d/nMM_W_E_d_U.dat" u 1:2 w l lw 2 lc rgb "web-green" dt "-" not
 #plot 2
-set key top right
+set key at 0.15, 5e-3
 set lmargin 0
 set size MP, 1
 set origin MT+MP, 0
 set format y ""
 unset ylabel
 set xrange [0.1:2]
-plot "m/EPI_E_m_U.dat" u 1:2 w l t "\$e \\pi \$ Maj" lw 2 lc 1, "m/EPI_W_E_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/EPI_E_d_U.dat" u 1:2 w l t "\$e \\pi \$ Dir" lw 2 lc 2, "d/EPI_W_E_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \
-"m/nEM_E_m_U.dat" u 1:2 w l t "\$\\nu e \\mu \$ Maj" lw 2 lc 3, "m/nEM_W_E_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nEM_E_d_U.dat" u 1:2 w l t "\$\\nu e \\mu \$ Dir" lw 2 lc 4, "d/nEM_W_E_d_U.dat" u 1:2 w l not lw 2 lc 4 dt 3
+plot "m/EPI_E_m_U.dat"   u 1:2 w l lw 2 lc rgb "black" t "\$e \\pi \$ Majorana",\
+     "m/EPI_W_E_m_U.dat" u 1:2 w l lw 2 lc rgb "black" dt "-" not,\
+     "d/EPI_E_d_U.dat"   u 1:2 w l lw 2 lc rgb "blue" t "\$e \\pi \$ Dirac",\
+     "d/EPI_W_E_d_U.dat" u 1:2 w l lw 2 lc rgb "blue" dt "-" not, \
+     "m/nEM_E_m_U.dat"   u 1:2 w l lw 2 lc rgb "red" t "\$\\nu e \\mu \$ Majorana",\
+     "m/nEM_W_E_m_U.dat" u 1:2 w l lw 2 lc rgb "red" dt "-" not,\
+     "d/nEM_E_d_U.dat"   u 1:2 w l lw 2 lc rgb "web-green" t "\$\\nu e \\mu \$ Dirac",\
+     "d/nEM_W_E_d_U.dat" u 1:2 w l lw 2 lc rgb "web-green" dt "-" not
 #plot 3
-set key top left
+set key at 0.015, 5e-3
 set lmargin 0
 set size MP, 1
 set origin MT+2*MP, 0
@@ -48,7 +63,10 @@ set format y ""
 unset ylabel
 set xtics add (2)
 set xrange [0.01:2]
-plot "m/nPI0_E_m_U.dat" u 1:2 w l t "\$\\nu \\pi^0 \$ Majorana" lw 2 lc 3, "m/nPI0_W_E_m_U.dat" u 1:2 w l not lw 2 lc 3 dt 3, "d/nPI0_E_d_U.dat" u 1:2 w l t "\$\\nu \\pi^0 \$ Dirac" lw 2 lc 4, "d/nPI0_W_E_d_U.dat" u 1:2 w l not lw 2 lc 4 dt 3
+plot "m/nPI0_E_m_U.dat"   u 1:2 w l lw 2 lc rgb "black" t "\$\\nu \\pi^0 \$ Majorana",\
+     "m/nPI0_W_E_m_U.dat" u 1:2 w l lw 2 lc rgb "black" dt "-" not,\
+     "d/nPI0_E_d_U.dat"   u 1:2 w l lw 2 lc rgb "blue" t "\$\\nu \\pi^0 \$ Dirac",\
+     "d/nPI0_W_E_d_U.dat" u 1:2 w l lw 2 lc rgb "blue" dt "-" not
 unset multiplot
 unset output
 #plot "m/nGAMMA_E_m_U.dat" u 1:2 w l t "\$\\nu \\gamma \$ Majorana" lw 2 lc 1, "m/nGAMMA_W_E_m_U.dat" u 1:2 w l not lw 2 lc 1 dt 3, "d/nGAMMA_E_d_U.dat" u 1:2 w l t "\$\\nu \\gamma \$ Dirac" lw 2 lc 2, "d/nGAMMA_W_E_d_U.dat" u 1:2 w l not lw 2 lc 2 dt 3, \

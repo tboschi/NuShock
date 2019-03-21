@@ -2,8 +2,9 @@
 
 for i in $(seq $1 $2)
 do
+	./batches/QbatchLNV $i
 	#./batches/QbatchExclusion $i
 	#./batches/QbatchExclusionMix $i
-	./batches/QbatchExclusionW $i
+	#./batches/QbatchExclusionW $i
 	#./Batches/NuTauFlux $i
 done

@@ -7,9 +7,9 @@
 #include "TTree.h"
 #include "TFile.h"
 
-#include "Background.h"
-#include "Particle.h"
-#include "Detector.h"
+#include "tools.h"
+#include "detector.h"
+#include "background.h"
 
 void Usage(char *Name);
 int main(int argc, char** argv)
@@ -18,8 +18,8 @@ int main(int argc, char** argv)
 	const struct option longopts[] = 
 	{
 		{"detconfig", 	required_argument,	0, 'd'},
-		{"geniedb", 	required_argument,	0, 'i'},
-		{"root", 	required_argument,	0, 'r'},
+		{"geniefile", 	required_argument,	0, 'i'},
+		{"output", 	required_argument,	0, 'r'},
 		{"channel", 	required_argument,	0, 'c'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
@@ -29,8 +29,7 @@ int main(int argc, char** argv)
 	int iarg = 0;
 	opterr = 1;
 	
-	std::ofstream OutFile;
-	std::string InFile, DetConfig, Channel;
+	std::string inFile, detConfig, channel;
 	//std::string RootFile;
 	TFile *RootFile;
 	
@@ -39,29 +38,17 @@ int main(int argc, char** argv)
 		switch(iarg)
 		{
 			case 'd':
-				DetConfig.assign(optarg);
+				detConfig.assign(optarg);
 				break;
 			case 'i':
-				InFile.assign(optarg);
+				inFile.assign(optarg);
 				break;
 			case 'r':
 				RootFile = new TFile(optarg, "RECREATE");
 				//RootFile.assign(optarg);
 				break;
 			case 'c':
-				Channel.assign(optarg);
-				if (Channel !=  "nGAMMA" &&
-				    Channel !=  "nEE" &&
-				    Channel !=  "nEMU" &&
-				    Channel !=  "nMUE" &&
-				    Channel !=  "nPI0" &&
-				    Channel !=  "EPI" &&
-				    Channel !=  "nMUMU" &&
-				    Channel !=  "MUPI")
-				{
-					std::cerr << "Channel unknown!" << std::endl;
-					return 1;
-				}
+				channel.assign(optarg);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -72,22 +59,28 @@ int main(int argc, char** argv)
 	
 	}
 
-	//To have multiple output, handled by usage
-	//std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	TTree *Event = new TTree("Event", "Event");
-	//Background *Bkg = new Background(InFile, DetConfig, RootFile, Channel);
-	Background *Bkg = new Background(InFile, DetConfig, Channel);
+	GenieBack *bkg = new GenieBack(inFile);
+	Tracker *detector = new Tracker(detConfig);
 
-	RootFile->cd();
-	Bkg->InitTree();
-	int NumWrite = 10;
-	for (unsigned int i = 0; i < NumWrite; ++i)	//save at least 100 times
+	// here you need to implement your definition of process, i.e. what final state you are looking for
+	// I define it as a map of 2 integers: a pdg code and the number of particles I want
+	// e.g. final state 2 muons, 1 elec
+	std::map<int, int> process;
+	if (channel == "MME")
 	{
-		Bkg->Loop(NumWrite);	//loop over the events...
-		//std::cout << "now writing" << std::endl;
-		Event = Bkg->GetTree();
-		Event->Write();
+		process[13] = 2;		//muon: PDG 13, number 2
+		process[11] = 1;		//elec: PDG 11, number 1
+	}
+
+	TTree *genie;
+	RootFile->cd();
+
+	int save = 10;
+	for (unsigned int i = 0; i < save; ++i)
+	{
+		genie = bkg->FindBackground(detector, process, save);	//loop over the events..
+		genie->Write();
 	}
 
 	RootFile->Close();
@@ -102,8 +95,8 @@ void Usage(char *Name)
 	std::cout << Name << " [OPTIONS]" << std::endl;
 	std::cout <<"\n  -d,  --detconfig" << std::endl;
 	std::cout << "\t\tDetector config file" << std::endl;
-	std::cout <<"\n  -i,  --geniedb" << std::endl;
-	std::cout << "\t\tGENIE input file" << std::endl;
+	std::cout <<"\n  -i,  --geniefile" << std::endl;
+	std::cout << "\t\tGENIE input file, converted with gntpc" << std::endl;
 	std::cout <<"\n  -o,  --output" << std::endl;
 	std::cout << "\t\tLog output file" << std::endl;
 	std::cout <<"\n  -r,  --root" << std::endl;

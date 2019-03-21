@@ -18,7 +18,7 @@
 #Home="/data/tboschi/NewSupershock/"
 #cd $HOME
 
-Exec="./bin/FastExclusion"
+Exec="./bin/FastExclusion_new"
 
 #Channel=$(./EchoChannel $SGE_TASK_ID)
 Channel=$(./EchoChannel $1)
@@ -68,34 +68,59 @@ Opt33=("--majorana -E")
 Opt34=("--majorana -M")
 Opt35=("--majorana -T")
 
+Opt36=("--majorana -A -L -E")
+Opt37=("--majorana -A -L -M")
+Opt38=("--majorana -A -L -T")
+Opt39=("--majorana -A -R -E")
+Opt40=("--majorana -A -R -M")
+Opt41=("--majorana -A -R -T")
+Opt42=("--majorana -A -E")
+Opt43=("--majorana -A -M")
+Opt44=("--majorana -A -T")
+
 #splitting array to ease cpu overload
 OptA_0=("$Opt00" "$Opt01" "$Opt02" "$Opt03" "$Opt04" "$Opt05" "$Opt06" "$Opt07" "$Opt08"
 	"$Opt09" "$Opt10" "$Opt11" "$Opt12" "$Opt13" "$Opt14" "$Opt15" "$Opt16" "$Opt17")
 OptA_1=("$Opt18" "$Opt19" "$Opt20" "$Opt21" "$Opt22" "$Opt23" "$Opt24" "$Opt25" "$Opt26"
 	"$Opt27" "$Opt28" "$Opt29" "$Opt30" "$Opt31" "$Opt32" "$Opt33" "$Opt34" "$Opt35")
 
+#Special for LNV of Majorana, Dirac already done
+OptA_special=("$Opt36" "$Opt37" "$Opt38" "$Opt39" "$Opt40" "$Opt41" "$Opt42" "$Opt44" "$Opt44")
+
 # Run the tasks:
 #first array
-for i in "${OptA_0[@]}"
+#for i in "${OptA_0[@]}"
+#do
+#	echo $Exec $Config -o Results/Exclusion/$Channel -c $Channel "${i}"
+#
+#	if [ "${i}" = "${OptA_0[@]: -1}" ]
+#	then
+#		$Exec $Config -o Results/Exclusion/tmp/$Channel -c $Channel ${i}
+#	else
+#		$Exec $Config -o Results/Exclusion/tmp/$Channel -c $Channel ${i} &
+#	fi
+#done
+##second array
+#for i in "${OptA_1[@]}"
+#do
+#	echo $Exec $Config -o Results/Exclusion/$Channel -c $Channel "${i}"
+#
+#	if [ "${i}" = "${OptA_1[@]: -1}" ]
+#	then
+#		$Exec $Config -o Results/Exclusion/tmp/$Channel -c $Channel ${i}
+#	else
+#		$Exec $Config -o Results/Exclusion/tmp/$Channel -c $Channel ${i} &
+#	fi
+#done
+#special array
+for i in "${OptA_special[@]}"
 do
-	echo $Exec $Config -o Results/Exclusion/$Channel -c $Channel "${i}"
+	echo $Exec $Config -o Results/Exclusion/tmp/$Channel -c $Channel "${i}"
 
-	if [ "${i}" = "${OptA_0[@]: -1}" ]
+	if [ "${i}" = "${OptA_special[@]: -1}" ]
 	then
-		$Exec $Config -o Results/Exclusion/$Channel -c $Channel ${i}
+		$Exec $Config -o Results/Exclusion/tmp/$Channel -c $Channel ${i}
 	else
-		$Exec $Config -o Results/Exclusion/$Channel -c $Channel ${i} &
-	fi
-done
-#second array
-for i in "${OptA_1[@]}"
-do
-	echo $Exec $Config -o Results/Exclusion/$Channel -c $Channel "${i}"
-
-	if [ "${i}" = "${OptA_1[@]: -1}" ]
-	then
-		$Exec $Config -o Results/Exclusion/$Channel -c $Channel ${i}
-	else
-		$Exec $Config -o Results/Exclusion/$Channel -c $Channel ${i} &
+		$Exec $Config -o Results/Exclusion/tmp/$Channel -c $Channel ${i} &
 	fi
 done

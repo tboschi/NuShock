@@ -1,10 +1,10 @@
-#!/usr/local/bin/gnuplot -persist
+#!/data/tboschi/gnuplot/bin/gnuplot -persist
 #
 #    
 #    	G N U P L O T
-#    	Version 5.0 patchlevel 2    last modified 2015-12-24 
+#    	Version 5.2 patchlevel 4    last modified 2018-06-01 
 #    
-#    	Copyright (C) 1986-1993, 1998, 2004, 2007-2015
+#    	Copyright (C) 1986-1993, 1998, 2004, 2007-2018
 #    	Thomas Williams, Colin Kelley and many others
 #    
 #    	gnuplot home:     http://www.gnuplot.info
@@ -15,7 +15,7 @@
 unset clip points
 set clip one
 unset clip two
-set bar 1.000000 front
+set errorbars front 1.000000 
 set border 31 front lt black linewidth 1.000 dashtype solid
 set zdata 
 set ydata 
@@ -23,10 +23,10 @@ set xdata
 set y2data 
 set x2data 
 set boxwidth
-set style fill solid 0.30 border
+set style fill   solid 0.30 noborder
 set style rectangle back fc  bgnd fillstyle   solid 1.00 border lt -1
-set style circle radius graph 0.02, first 0.00000, 0.00000 
-set style ellipse size graph 0.05, 0.03, first 0.00000 angle 0 units xy
+set style circle radius graph 0.02 
+set style ellipse size graph 0.05, 0.03 angle 0 units xy
 set dummy x, y
 set format x "% h" 
 set format y "e%T" 
@@ -35,24 +35,27 @@ set format y2 "% h"
 set format z "% h" 
 set format cb "% h" 
 set format r "% h" 
+set ttics format "% h"
 set timefmt "%d/%m/%y,%H:%M"
 set angles radians
 set tics front
 unset grid
-set raxis
+unset raxis
+set theta counterclockwise right
 set style parallel front  lt black linewidth 2.000 dashtype solid
 set key title "" center
-set key inside left top vertical Right reverse enhanced autotitle nobox
-set key invert samplen 1.5 spacing 1.2 width 0 height 0 
+set key inside left top vertical Left reverse enhanced autotitle nobox
+set key invert samplen 1.2 spacing 1.2 width 0 height 0 
 set key maxcolumns 0 maxrows 0
 set key noopaque
+set key at 0.015, 0.6
 unset label
-set label 1 "PS191" at 0.100000, 1.00000e-06, 0.00000 left norotate front textcolor rgb "#009e73"  nopoint
-set label 2 "NuTeV" at 0.500000, 0.000100000, 0.00000 left norotate front textcolor rgb "#e51e10"  nopoint
-set label 3 "Peak search" at 0.0800000, 0.0100000, 0.00000 right norotate front textcolor rgb "#e69f00"  nopoint
+set label 1 "color{ps191}PS191" at 0.100000, 0.000100000, 0.00000 left norotate front textcolor rgb "#009e73"  nopoint
+set label 2 "color{nutev}NuTeV" at 0.500000, 1.00000e-05, 0.00000 left norotate front textcolor rgb "grey"  nopoint
+set label 3 "color{peak}Peak search" at 0.0800000, 0.0100000, 0.00000 right norotate front textcolor rgb "#e69f00"  nopoint
+set label 4 "color{charm}CHARM" at 0.500000, 0.0100000, 0.00000 left norotate back textcolor rgb "red"  nopoint
 set label 5 "Weyl state" at 0.0500000, 1.00000e-11, 0.00000 left norotate front textcolor lt -1 nopoint
 set label 6 "Pseudo-Dirac pair" at 0.0800000, 0.000100000, 0.00000 right norotate front textcolor lt -1 nopoint
-set label 7 "CHARM" at 1.00000, 0.100000, 0.00000 center norotate back textcolor rgb "#56b4e9"  nopoint
 set label 8 "Type I" at 0.0600000, 1.00000e-09, 0.00000 left rotate by -5 front nopoint
 unset arrow
 set style increment default
@@ -60,14 +63,7 @@ unset style line
 unset style arrow
 set style histogram clustered gap 2 title textcolor lt -1
 unset object
-set style textbox transparent margins  1.0,  1.0 border
-unset logscale
-set logscale x 10
-set logscale y 10
-set logscale x2 10
-set logscale y2 10
-set logscale z 10
-set logscale cb 10
+set style textbox transparent margins  1.0,  1.0 border  lt -1 linewidth  1.0
 set offsets 0, 0, 0, 0
 set pointsize 1
 set pointintervalbox 1
@@ -75,7 +71,11 @@ set encoding default
 unset polar
 unset parametric
 unset decimalsign
+unset micro
+unset minussign
 set view 60, 30, 1, 1
+set view azimuth 0
+set rgbmax 255
 set samples 100, 100
 set isosamples 10, 10
 set surface 
@@ -86,7 +86,8 @@ set datafile separator whitespace
 unset hidden3d
 set cntrparam order 4
 set cntrparam linear
-set cntrparam levels auto 5
+set cntrparam levels auto 5 unsorted
+set cntrparam firstlinetype 0
 set cntrparam points 5
 set size ratio 0 1,1
 set origin 0,0
@@ -100,25 +101,27 @@ unset y2zeroaxis
 set xyplane relative 0.5
 set tics scale  1, 0.5, 1, 1, 1
 set mxtics 10.000000
-set mytics default
+set mytics 10.000000
 set mztics default
 set mx2tics default
 set my2tics default
 set mcbtics default
 set mrtics default
+set nomttics
 set xtics border in scale 1,0.5 mirror norotate  autojustify
-set xtics  norangelimit autofreq 
+set xtics  norangelimit logscale autofreq 
 set xtics add  (0.0500000, 0.500000, 2.00000)
 set ytics border in scale 1,0.5 mirror norotate  autojustify
-set ytics  norangelimit 1.00000e-15,10,1.00000
+set ytics  norangelimit logscale 1.00000e-14,100,1.00000
 set ztics border in scale 1,0.5 nomirror norotate  autojustify
-set ztics  norangelimit autofreq 
+set ztics  norangelimit logscale autofreq 
 unset x2tics
 unset y2tics
 set cbtics border in scale 1,0.5 mirror norotate  autojustify
-set cbtics  norangelimit autofreq 
+set cbtics  norangelimit logscale autofreq 
 set rtics axis in scale 1,0.5 nomirror norotate  autojustify
 set rtics  norangelimit autofreq 
+unset ttics
 set paxis 1 tics border in scale 1,0.5 nomirror norotate  autojustify
 set paxis 1 tics  rangelimit autofreq 
 set paxis 2 tics border in scale 1,0.5 nomirror norotate  autojustify
@@ -138,7 +141,6 @@ set title  font "" norotate
 set timestamp bottom 
 set timestamp "" 
 set timestamp  font "" norotate
-set rrange [ * : * ] noreverse nowriteback
 set trange [ * : * ] noreverse nowriteback
 set urange [ * : * ] noreverse nowriteback
 set vrange [ * : * ] noreverse nowriteback
@@ -147,19 +149,22 @@ set xlabel  font "" textcolor lt -1 norotate
 set x2label "" 
 set x2label  font "" textcolor lt -1 norotate
 set xrange [ 0.0100000 : 2.00000 ] noreverse nowriteback
-set x2range [ * : * ] noreverse nowriteback
+set x2range [ * : * ] noreverse writeback
 set ylabel "$|U_{\\mu 4}|^2$" 
-set ylabel  font "" textcolor lt -1 rotate by -270
+set ylabel  font "" textcolor lt -1 rotate
 set y2label "" 
-set y2label  font "" textcolor lt -1 rotate by -270
+set y2label  font "" textcolor lt -1 rotate
 set yrange [ 1.00000e-12 : 1.00000 ] noreverse nowriteback
-set y2range [ * : * ] noreverse nowriteback
+set y2range [ * : * ] noreverse writeback
 set zlabel "" 
 set zlabel  font "" textcolor lt -1 norotate
-set zrange [ * : * ] noreverse nowriteback
+set zrange [ * : * ] noreverse writeback
 set cblabel "" 
-set cblabel  font "" textcolor lt -1 rotate by -270
-set cbrange [ * : * ] noreverse nowriteback
+set cblabel  font "" textcolor lt -1 rotate
+set cbrange [ * : * ] noreverse writeback
+set rlabel "" 
+set rlabel  font "" textcolor lt -1 norotate
+set rrange [ * : * ] noreverse writeback
 set paxis 1 range [ * : * ] noreverse nowriteback
 set paxis 2 range [ * : * ] noreverse nowriteback
 set paxis 3 range [ * : * ] noreverse nowriteback
@@ -167,19 +172,28 @@ set paxis 4 range [ * : * ] noreverse nowriteback
 set paxis 5 range [ * : * ] noreverse nowriteback
 set paxis 6 range [ * : * ] noreverse nowriteback
 set paxis 7 range [ * : * ] noreverse nowriteback
+unset logscale
+set logscale z 10
+set logscale y 10
+set logscale x 10
+set logscale cb 10
+set logscale y2 10
+set logscale x2 10
+unset jitter
 set zero 1e-08
 set lmargin  -1
-set bmargin  -1
-set rmargin  -1
-set tmargin  -1
+set bmargin  2
+set rmargin  2
+set tmargin  0
 set locale "en_GB.UTF-8"
 set pm3d explicit at s
 set pm3d scansautomatic
 set pm3d interpolate 1,1 flush begin noftriangles noborder corners2color mean
+set pm3d nolighting
 set palette positive nops_allcF maxcolors 0 gamma 1.5 color model RGB 
 set palette rgbformulae 7, 5, 15
 set colorbox default
-set colorbox vertical origin screen 0.9, 0.2, 0 size screen 0.05, 0.6, 0 front bdefault
+set colorbox vertical origin screen 0.9, 0.2 size screen 0.05, 0.6 front  noinvert bdefault
 set style boxplot candles range  1.50 outliers pt 7 separation 1 labels auto unsorted
 set loadpath 
 set fontpath 
@@ -187,17 +201,20 @@ set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
 GNUTERM = "qt"
 x = 0.0
-## Last datafile plotted: "ExpALL_M.dat"
-plot "../Limits/linetable_Weyl_M.dat" u 1:2 w filledcurve not lc 5, \
-     "../Limits/linetable_TwoTwo_M.dat" u 1:2 w filledcurve not lc 6, \
-     "../Limits/typeI.dat" w filledcurve lc 7 not, \
-     "../Limits/lim_peakUm.dat" w l not dt 4 lc 4 lw 2, \
-     "../Limits/lim_ps191Um.dat" w l not dt 4 lc 2 lw 2, \
-     "../Limits/lim_nutevUm.dat" w l not dt 4 lc 7 lw 2, \
-     "../Limits/lim_charmUm.dat" w l not dt 4 lc 3 lw 2, \
-     "../Limits/line_expall_m.dat" w l t "SBND" lc 8 lw 2, \
-     "../Limits/fulllinetable_TwoTwo_M.dat" w l lw 1 lc 6 dt "_ " not, \
-     "../Limits/linetable_Weyl_M.dat" w l lc 5 lw 2 dt "_ " not, \
-     "m/ExpALL_M_m_U.dat" w l lw 2 lc 1 t "DUNE", \
-     "d/ExpALL_M_d_U.dat" w l lw 2 lc 1 dt 2 not, \
+## Last datafile plotted: "d/ExpALL_M_d_U.dat"
+plot "../Limits/linetable_Weyl_M.dat"	w filledcurve lc 5 not,\
+      "../Limits/linetable_TwoTwo_M.dat"	w filledcurve lc 6 not,\
+      "../Limits/fadetypeI.dat"	w l lw 2 lt rgb "#ff8080" not, \
+      "../Limits/linetable_Weyl_M.dat"       w l lw 2 lc 5 dt 3 not,\
+      "../Limits/fulllinetable_TwoTwo_M.dat" w l lw 2 lc 6 dt 3 not,\
+      "../Limits/lim_peakUm.dat"  w l not dt 1 lc 4 lw 2,\
+      "../Limits/lim_e949Um.dat"  w l not dt 1 lc 4 lw 2,\
+      "../Limits/lim_ps191Um.dat" w l not dt 1 lc 2 lw 2,\
+      "../Limits/lim_charmUm.dat" w l not dt 1 lc 7 lw 2,\
+      "../Limits/lim_nutevUm.dat" w l not dt 1 lc rgb "#787878" lw 2,\
+      "../Limits/lim_na62Um.dat"	   w l t "NA62" lc 8 lw 2 dt 3,\
+      "../Limits/lim_shipUm.dat"	   w l t "SHiP" lc 8 lw 2 dt 2,\
+      "../Limits/line_expall_m.dat" w l t "SBND" lc 8 lw 2,\
+      "m/ExpALL_M_m_U.dat" w l lw 2 lc 1 t "DUNE",\
+      "d/ExpALL_M_d_U.dat" w l lw 2 lc 1 dt 2 not
 #    EOF
