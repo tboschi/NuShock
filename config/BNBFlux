@@ -1,7 +1,0 @@
-#Flux configuration file
-#Define a file for each type of neutrino
-Muon_		data/muBNB.root
-Electron_	data/elBNB.root
-#Electron_	data/elBNB2.root
-
-Kinematics	data/Enhancement.root
