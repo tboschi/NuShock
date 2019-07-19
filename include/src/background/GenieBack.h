@@ -40,7 +40,7 @@ class GenieBack
 
 		int checkPt;
 
-		int ID, np;
+		int ID, np, nr;
 
 		double *energy,
 		       *moment,
@@ -49,7 +49,16 @@ class GenieBack
                        *phi,
                        *mass,
                        *lenOut,
-                       *lenIn;
+                       *lenIn,
+		       *r_energy,
+		       *r_moment,
+		       *r_transv,
+		       *r_theta, 
+		       *r_phi,   
+		       *r_mass,  
+		       *r_angle; 
+
+
 };
 
 #endif

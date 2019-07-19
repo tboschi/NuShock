@@ -1,0 +1,107 @@
+#Detector configuration file
+#Name of detector: LArTPC for DUNE
+#
+#baseline from beam source and beginning of detector
+Baseline	574
+
+#3D sizes in meters
+#
+#LArTPC
+LengthLAr	4
+WidthLAr	2
+HeightLAr	6
+#weight in tons
+WeightLAr	50.0
+
+#MPD is a 5x5x5 cylinder, laid on the side, so effective area is 5x5
+#i					   and effective length is pi/4 x 5
+LengthFGT	3.9270
+WidthFGT	5
+HeightFGT	5
+WeightFGT	1.0
+
+#define your fidicial volume, so effective volume in fraction of 1
+Fiducial	1.00
+#POT/s of the neutrino beam
+POT/s		2.205e14
+#total number of years with POTS above. 1 year is defined as 10e7 seconds
+Years		6
+
+#1: LAr, 2: HP Ar, 3: Fe
+#Target material for the detector
+#TargetOut is the material outside the detector: you want particles to dies quickly when they exit, Pb is a good choice.
+TargetLAr	LAr
+TargetFGT	GasAr
+TargetOut	Pb
+
+#Threshold in GeV
+#Resolutions in fractons of 1 for :
+#	angle with the beamline
+#	energy whith scales as sigma = energy res / sqrt(energy)
+#	if there is, a bias is added too
+#	Range and Exiti are momentum resolution to be used 
+#	if the particle is staying or escaping the detecor
+#
+Thres_Hadron	0.050
+Angle_Hadron	5.0
+Energ_Hadron	0.30
+Ebias_Hadron	0.05
+Range_Hadron	0.0
+Exiti_Hadron	0.0
+
+Thres_Muon	0.030
+Angle_Muon	1.0
+Energ_Muon	0.0
+Ebias_Muon	0.0
+Range_Muon	0.05
+Exiti_Muon	0.30
+
+Thres_Pion	0.100
+Angle_Pion	1.0
+Energ_Pion	0.0
+Ebias_Pion	0.0
+Range_Pion	0.05
+Exiti_Pion	0.30
+
+Thres_Gamma	0.030
+Angle_Gamma	1.0
+Energ_Gamma	0.15
+Ebias_Gamma	0.02
+Range_Gamma	0.0
+Exiti_Gamma	0.0
+
+Vertex		0.001
+
+#Rejection methods
+#to provide some misidentification for background
+#
+#is shorter than 2cm, a ptohon is an electron from pair conversion
+ConversionEM	0.020
+#if longer than 2 meters, a pion track is mistaken for a muon
+LengthMIP	2.0
+#80% the track insie and then the track is contaneid
+Containment	0.80
+#3deg to define an ee pair
+PairAngle	3.0
+#resolution for pion0 mass in reconstruction
+ResPi0Mass	0.040
+
+#Efficiency file
+#dirac
+D	EPI		Results/Efficiency/EPI_dirac.root
+D	MPI		Results/Efficiency/EPI_dirac.root
+D	nEE		Results/Efficiency/nEE_dirac.root
+D	nEM		Results/Efficiency/nEM_dirac.root
+#D	nME		Results/Efficiency/nME_dirac.root
+D	nMM		Results/Efficiency/nMM_dirac.root
+D	nGAMMA		Results/Efficiency/nGAMMA_dirac.root
+D	nPI0		Results/Efficiency/nPI0_dirac.root
+#majorana
+M	EPI		Results/Efficiency/EPI_major.root
+M	MPI		Results/Efficiency/EPI_major.root
+M	nEE		Results/Efficiency/nEE_major.root
+M	nEM		Results/Efficiency/nEM_major.root
+#M	nME		Results/Efficiency/nME_major.root
+M	nMM		Results/Efficiency/nMM_major.root
+M	nGAMMA		Results/Efficiency/nGAMMA_major.root
+M	nPI0		Results/Efficiency/nPI0_major.root

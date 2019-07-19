@@ -28,6 +28,7 @@ void GenieBack::InitInTree(std::string backFile)
 	genie->fChain->SetBranchStatus("pyl",  1);	//lepton py
 	genie->fChain->SetBranchStatus("pzl",  1);	//lepton pz
 	genie->fChain->SetBranchStatus("nf",   1);	//number of final states
+	//vectors of size nf
 	genie->fChain->SetBranchStatus("pdgf", 1);	//final pdg
 	genie->fChain->SetBranchStatus("Ef",   1);	//final E
 	genie->fChain->SetBranchStatus("pxf",  1);	//final px
@@ -43,7 +44,7 @@ void GenieBack::InitOutTree()
 
 	data->Branch("ID", &ID, "iID/I");	//global event ID
 
-	data->Branch("np", &np, "inp/I");	//number of particles
+	data->Branch("np", &np, "inp/I");	//number of particle
 
 	data->Branch("E",   energy, "energy[np]/D");
 	data->Branch("P",   moment, "moment[np]/D");
@@ -54,27 +55,55 @@ void GenieBack::InitOutTree()
 	data->Branch("In",  lenOut, "lenOut[np]/D");
 	data->Branch("Out", lenIn,  "lenIn[np]/D");
 
+	data->Branch("nr", &nr, "inr/I");	//number of couples
+
+	data->Branch("E0",   r_energy, "energy0[nr]/D");
+	data->Branch("P0",   r_moment, "moment0[nr]/D");
+	data->Branch("T0",   r_transv, "transv0[nr]/D");
+	data->Branch("The0", r_theta,  "theta0[nr]/D");
+	data->Branch("Phi0", r_phi,    "phi0[nr]/D");
+	data->Branch("M0",   r_mass,   "mass0[nr]/D");
+	data->Branch("Sep",  r_angle,  "angle0[nr]/D");	//separating angle
+
 	//and other variables
 }
 
 //Load tree
-void GenieBack::LoadTree(const std::vector<Particle> &vPart)
+void GenieBack::LoadTree(const std::vector<Particle> &particle)
 {
-	np = vPart.size();
-	for (int i = 0; i < vPart.size(); ++i)
+	np = particle.size();
+	for (int i = 0; i < particle.size(); ++i)
 	{
-		energy[i] = vPart.at(i).Energy();
-		moment[i] = vPart.at(i).Momentum();
-		transv[i] = vPart.at(i).Transverse();
-		theta [i] = vPart.at(i).Theta();
-		phi   [i] = vPart.at(i).Phi();
-		mass  [i] = vPart.at(i).Mass();
-		lenIn [i] = vPart.at(i).TrackIn();
-		lenOut[i] = vPart.at(i).TrackOut();
+		energy[i] = particle.at(i).Energy();
+		moment[i] = particle.at(i).Momentum();
+		transv[i] = particle.at(i).Transverse();
+		theta [i] = particle.at(i).Theta();
+		phi   [i] = particle.at(i).Phi();
+		mass  [i] = particle.at(i).Mass();
+		lenIn [i] = particle.at(i).TrackIn();
+		lenOut[i] = particle.at(i).TrackOut();
 	}
 
-	//and other observables, like separation angle between particles
-	//....
+	nr = particle.size();
+	nr *= (nr - 1) / 2.0;
+	for (int i = 0; i < particle.size(); ++i)
+	{
+		for (int j = i+1; j < particle.size(); ++j)
+		{
+			Particle reco(0, particle[i].Energy()+particle[j].Energy(),
+					 particle[i].MomentumX()+particle[j].MomentumX(),
+					 particle[i].MomentumY()+particle[j].MomentumY(),
+					 particle[i].MomentumZ()+particle[j].MomentumZ(),
+					 0, 0, 0);
+			r_energy[i] = reco.Energy();
+			r_moment[i] = reco.Momentum();
+			r_transv[i] = reco.Transverse();
+			r_theta [i] = reco.Theta();
+			r_phi   [i] = reco.Phi();
+			r_mass  [i] = reco.Mass();
+			r_angle [i] = particle[i].Direction().Angle(particle[j].Direction());
+		}
+	}
 
 	data->Fill();
 }
@@ -98,7 +127,7 @@ TTree *GenieBack::FindBackground(Tracker *theTrack, std::map<int, int> &process,
 	{
 		genie->GetEntry(ID);	//get event from ID
 
-		std::vector<Particle> vParticle;
+		std::vector<Particle> particle;
 
 		//outgoing lepton from neutrino
 		//if NC event, the pdg is the same of the probe
@@ -123,41 +152,41 @@ TTree *GenieBack::FindBackground(Tracker *theTrack, std::map<int, int> &process,
 				theTrack->Pi0Decay(p, pA, pB);
 
 				if (theTrack->Reconstruct(pA))
-					vParticle.push_back(pA);
+					particle.push_back(pA);
 				if (theTrack->Reconstruct(pB))
-					vParticle.push_back(pB);
+					particle.push_back(pB);
 			}
 			else if (abs(p.Pdg()) < 1e9)	//no nucleus
 				//if true particle can be detected I will add it to the vector
 				if (theTrack->Reconstruct(p))
-					vParticle.push_back(p);
+					particle.push_back(p);
 				//sould contains muons, electron, pions, protons, kaons and other strange and charmed kaons
 		}
 
 		//make some simple misidentification of events
-		MisIdentify(vParticle, theTrack);
+		MisIdentify(particle, theTrack);
 
-		//go through the particles and count if there is the number of particles we expect for process
-		if (Identify(vParticle, process))
-			LoadTree(vParticle);
+		//go through the particle and count if there is the number of particle we expect for process
+		if (Identify(particle, process))
+			LoadTree(particle);
 	}
 	checkPt = ID;	//ID should be +1 
 	return data;
 }
 
-/***** Identification of single particles and counting *****/
-bool GenieBack::MisIdentify(std::vector<Particle> &vPart, Tracker *theTrack)
+/***** Identification of single particle and counting *****/
+bool GenieBack::MisIdentify(std::vector<Particle> &particle, Tracker *theTrack)
 {
-	std::vector<Particle> vElectron, vPhoton;
+	std::vector<Particle> electrons, photons;
 	std::vector<Particle>::iterator ip, ie;
 
-	for (ip = vPart.begin(); ip != vPart.end(); )
+	for (ip = particle.begin(); ip != particle.end(); )
 	{
 		if (!theTrack->IsDetectable(*ip))
-			ip = vPart.erase(ip);
+			ip = particle.erase(ip);
 		else
 		{
-			bool electron = true;
+			bool elec = true;
 			switch (abs(ip->Pdg()))
 			{
 				case 13:
@@ -179,13 +208,15 @@ bool GenieBack::MisIdentify(std::vector<Particle> &vPart, Tracker *theTrack)
 					}
 					break;
 				case 11:
-					electron = true;
-					for (ie = vElectron.begin(); ie != vElectron.end(); )
+					elec = true;
+					for (ie = electrons.begin(); ie != electrons.end(); )
 					{
-						if (ip->Direction().Angle(ie->Direction()) < theTrack->Get("PairAngle") / Const::Deg)
+						double angle = ip->Direction().Angle(ie->Direction());
+						if (angle < theTrack->Get("PairAngle") / Const::Deg)
 						{				//two track are too close, it can be a pair production
 							TVector3 mom = ip->Direction() + ie->Direction();
-							double dist = sqrt(pow(ip->TrackIn(), 2) + pow(ie->TrackIn(), 2));
+							double dist = sqrt(pow(ip->TrackIn(), 2) + pow(ie->TrackIn(), 2)
+									+ 2*ip->TrackIn()*ie->TrackIn()*cos(angle));
 							TLorentzVector GammaReco(mom, ip->Energy() + ie->Energy());
 
 							*ip = Particle(22, GammaReco);
@@ -193,14 +224,14 @@ bool GenieBack::MisIdentify(std::vector<Particle> &vPart, Tracker *theTrack)
 							ip->SetTrackIn(dist);
 
 							--ip;			//must recheck (for thr for instance)
-							ie = vElectron.erase(ie);
-							electron = false;
+							ie = electrons.erase(ie);
+							elec = false;
 							break;
 						}
 						else ++ie;
 					}
-					if (electron)
-						vElectron.push_back(*ip);
+					if (elec)
+						electrons.push_back(*ip);
 					break;
 				case 22:
 					if(ip->TrackIn() < theTrack->Get("ConversionEM"))	//short displacement > 2cm
@@ -218,12 +249,12 @@ bool GenieBack::MisIdentify(std::vector<Particle> &vPart, Tracker *theTrack)
 	}
 }
 
-//verify that vPart contains the particles sought for, in mProc
-bool GenieBack::Identify(const std::vector<Particle> &vPart, const std::map<int, int> mProc)
+//verify that particle contains the particle sought for, in mProc
+bool GenieBack::Identify(const std::vector<Particle> &particle, const std::map<int, int> mProc)
 {
 	std::map<int, int> mCount;
 	std::vector<Particle>::const_iterator ip;
-	for (ip = vPart.begin(); ip != vPart.end(); ++ip)
+	for (ip = particle.begin(); ip != particle.end(); ++ip)
 	{
 		mCount[ip->Pdg()]++;
 	}

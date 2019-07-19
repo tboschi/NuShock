@@ -83,15 +83,13 @@ Detector::Material Detector::FindMaterial(std::string Name)
 		return Fe;
 }
 
-/*
-double Detector::Efficiency(Neutrino *Nu)
+double Detector::Efficiency(const Neutrino &Nu)
 {
 	if (EffSet)
-		return Efficiency(Nu->Energy(), Nu->Mass());
+		return Efficiency(Nu.Energy(), Nu.Mass());
 	else
 		return 1.0;
 }
-*/
 
 double Detector::Efficiency(double Energy, double Mass)
 {
@@ -352,11 +350,10 @@ bool Detector::IsInsideFGT(const Particle &P)
 		P.X() > XstartFGT() && P.X() < XendFGT());
 }
 
-//special, neutrino class required
-//double Detector::DecayProb(Neutrino *Nu)
-//{
-//	return DecayProb(Nu, Nu->DecayTotal(), Nu->DecayBranch());
-//}
+double Detector::DecayProb(Neutrino &Nu)
+{
+	return DecayProb(Nu, Nu.DecayTotal(), Nu.DecayBranch());
+}
 
 double Detector::DecayProb(const Particle &P, double Total, double Branch)	//reaching the detector and decaying
 {
@@ -369,6 +366,8 @@ double Detector::DecayProb(const Particle &P, double Total, double Branch)	//rea
 		double Length = Const::M2GeV * Get("Baseline");
 		double Lambda = Const::M2GeV * Zsize();
 		double Lorentz = P.Beta() * P.Gamma();
+
+		//std::cout << "Length " << Length << "\tLambda " << Lambda << "\tLorentz " << Lorentz << "\tTotal " << Total << "\tBranch " << Branch << std::endl;
 
 		return exp(- Total * Length / Lorentz) * (1 - exp(- Total * Lambda / Lorentz)) * Branch;
 	}

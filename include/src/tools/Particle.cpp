@@ -67,8 +67,11 @@ void Particle::Init(double Px, double Py, double Pz, double E, double X, double 
 	particleVec = TLorentzVector(Px, Py, Pz, E);
 	particlePos = TVector3(X, Y, Z);
 
-	if (Mass() < 0)
-		std::cerr << "Caution! Irregular four-vector given to particle " << Pdg() << std::endl;
+	if (Mass() < -1e8)
+	{
+		std::cout << "Caution! Irregular four-vector given to particle " << Pdg() << std::endl;
+	}
+	else
 
 	trackIn   = -1.;
 	trackBack = -1.;

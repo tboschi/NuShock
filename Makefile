@@ -16,7 +16,7 @@ ROOTCXX		= $(shell root-config --cflags)
 
 LDFLAGS  := -Wl,--no-as-needed $(LDFLAGS) $(ROOTLIB) $(GENIELIB) $(CUBALIB) $(LHAPDFLIB) -L$(LIBDIR)
 #LDLIBS   := -lcuba
-CXXFLAGS := $(CXXFLAGS) -fPIC -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
+CXXFLAGS := $(CXXFLAGS) -fPIC -fopenmp -std=c++11 -O3 -mavx $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
 #apps and exctuables
 CPP := $(shell find $(APPDIR) -maxdepth 1 -name '*.cpp')
@@ -36,7 +36,7 @@ all: $(TGT)
 	@mkdir -p $(BINDIR)
 	@echo "Cleaning up..."
 	@cp $(DEP) $(LIBDIR)
-	@mv $(TGT) $(BINDIR)
+	@cp $(TGT) $(BINDIR)
 	@echo "Done!"
 
 $(TGT): $(DEP)

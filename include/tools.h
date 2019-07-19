@@ -25,5 +25,6 @@
 //#include "Tools/Kine.h"
 #include "src/tools/Const.h"
 //#include "src/tools/Integration.h"
+#include "src/tools/Numerical.h"
 #include "src/tools/Particle.h"
 //#include "Tools/Library.h"

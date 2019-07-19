@@ -23,7 +23,7 @@
 #include "TH2.h"
 
 #include "tools.h"
-//#include "src/physics/Neutrino.h"
+#include "physics.h"
 
 class Detector
 {
@@ -54,7 +54,7 @@ class Detector
 		Detector::Material GetMaterial(std::string Key);
 		Detector::Material FindMaterial(std::string Key);
 
-		//double Efficiency(Neutrino *Nu);
+		double Efficiency(const Neutrino &Nu);
 		double Efficiency(double Energy, double Mass);
 		void SetEfficiency(std::string Channel, bool U);
 
@@ -95,7 +95,7 @@ class Detector
 		bool IsInsideFGT(const Particle &P);
 		bool IsInside(const Particle &P);
 
-		//double DecayProb(Neutrino *N);
+		double DecayProb(Neutrino &N);
 		double DecayProb(const Particle &P, double Total, double Branch);
 
 	protected:
