@@ -120,6 +120,9 @@ int main(int argc, char** argv)
 
 	std::vector<char> vFlag;
 
+	if (fileName.find(".dat") == std::string::npos)
+		fileName += ".dat";
+
 	if (UeFlag)
 		fileName.insert(fileName.find(".dat"), "_E");
 	if (UmFlag)
