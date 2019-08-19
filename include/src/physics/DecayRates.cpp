@@ -12,7 +12,7 @@ Amplitude::Channel DecayRates::FindChannel(std::string Name)
 		LoadMap();
 
 	std::map<Amplitude::Channel, std::string>::iterator it = chMap.begin();
-	for (std::advance(it, 2); it != chMap.end(); ++it)
+	for (std::advance(it, 1); it != chMap.end(); ++it)
 		if (it->second == Name)
 			return it->first;
 

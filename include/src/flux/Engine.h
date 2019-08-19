@@ -36,6 +36,7 @@ class Engine
 		void Reset();
 
 		void BindNeutrino(std::string uuid, Neutrino &N, Current horn);
+		void ReleaseNeutrino(std::string uuid);
 		Neutrino& GetNeutrino(std::string uuid);
 
 		void MakeFlux();

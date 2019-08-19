@@ -22,9 +22,6 @@ int main(int argc, char** argv)
 		{"threshold", 	required_argument,	0, 't'},
 		{"massdepend", 	required_argument,	0, 'q'},
 		{"efficiency", 	no_argument,		0, 'W'},
-		{"particle", 	no_argument,		0, 'P'},
-		{"antipart", 	no_argument,		0, 'A'},
-		{"dirac", 	no_argument,		0, 'r'},
 		{"majorana", 	no_argument,		0, 'j'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
@@ -41,8 +38,6 @@ int main(int argc, char** argv)
 	double mass = 0;
 	
 	bool left = false, right = false;	//default unpolarised
-	bool particle = false, antipart = false;	//default both for dirac, used in lnv studies
-	bool dirac = false;				//default majorana neutrino
 
 	while((iarg = getopt_long(argc,argv, "d:f:c:m:E:M:T:LRrjAPh", longopts, &index)) != -1)
 	{
@@ -77,20 +72,6 @@ int main(int argc, char** argv)
 				left = false;
 				right = true;
 				break;
-			case 'r':
-				dirac = true;
-				break;
-			case 'j':
-				dirac = false;
-				break;
-			case 'P':
-				particle = true;
-				antipart = false;
-				break;
-			case 'A':
-				particle = false;
-				antipart = true;
-				break;
 			case 'h':
 				Usage(argv[0]);
 				return 1;
@@ -118,32 +99,34 @@ int main(int argc, char** argv)
 	Detector *theBox = new Detector(detConfig);
 	Engine *theEngine = new Engine(fluxConfig);
 
-	Neutrino diracNu0(mass, optHel | Neutrino::Dirac);
-	Neutrino diracNuB(mass, optHel | Neutrino::Dirac | Neutrino::Antiparticle);
-	Neutrino majorNu0(mass, optHel | Neutrino::Majorana);
+	Neutrino dNu0(mass, optHel | Neutrino::Dirac);
+	Neutrino dNuB(mass, optHel | Neutrino::Dirac | Neutrino::Antiparticle);
+	Neutrino mNu0(mass, optHel | Neutrino::Majorana);
 	//Neutrino majorNuB(0, optHel | Neutrino::Majorana | Neutrino::Antiparticle);
 
-	diracNu0.SetDecayChannel(channel);
-	diracNuB.SetDecayChannel(channel);
-	majorNu0.SetDecayChannel(channel);
+	dNu0.SetDecayChannel(channel);
+	dNuB.SetDecayChannel(channel);
+	mNu0.SetDecayChannel(channel);
 	//majorNuB.SetDecayChannel(channel);
 
-	theEngine->BindNeutrino("dirac_nu0", diracNu0, Engine::FHC);
-	theEngine->BindNeutrino("dirac_nuB", diracNuB, Engine::RHC);
-	theEngine->BindNeutrino("major_nu0", majorNu0, Engine::FHC);
-	theEngine->BindNeutrino("major_nuB", majorNu0, Engine::RHC);
+	theEngine->BindNeutrino("dirac_nu0", dNu0, Engine::FHC);
+	theEngine->BindNeutrino("dirac_nuB", dNuB, Engine::RHC);
+	theEngine->BindNeutrino("major_nu0", mNu0, Engine::FHC);
+	theEngine->BindNeutrino("major_nuB", mNu0, Engine::RHC);
 
 	theEngine->MakeFlux();
 	theEngine->ScaleToDetector(theBox);
 
-	std::cout << "computing for " << ue << "\t" << um << "\t" << ut << "\t" << mass << std::endl;
+	std::cout << "computing for " << mass << ", ("
+		  << ue << ",\t" << um << ",\t" << ut << ")" << std::endl;
+	std::cout << "and channel " << channel << std::endl;
 
-	std::vector<double> numevts;
+	std::map<std::string, double> numevts;
 	double tot = theEngine->MakeSampler(theBox, numevts, ue, um, ut);
 
-	double vDirac0 = numevts[0];
-	double vDiracB = numevts[1];
-	double vMajor  = (numevts[2]+numevts[3]) / 2.0;
+	double vDirac0 = numevts["dirac_nu0"];
+	double vDiracB = numevts["dirac_nuB"];
+	double vMajor  = (numevts["major_nu0"]+numevts["major_nuB"]) / 2.0;
 
 	std::cout << "Number of events " << vDirac0 << "\t" << vDiracB << "\t" << vMajor << std::endl;
 
@@ -160,22 +143,12 @@ void Usage(char* argv0)
 	std::cout << "\t\tDetector configuration file" << std::endl;
 	std::cout <<"\n  -f,  --fluxconfig [CONFIG]" << std::endl;
 	std::cout << "\t\tFlux configuration file" << std::endl;
-	std::cout <<"\n  -o,  --output [path/STRING]" << std::endl;
-	std::cout << "\t\tBase name of output file" << std::endl;
 	std::cout <<"\n  -c,  --channel [STRING]" << std::endl;
 	std::cout << "\t\tDecay channel, defaul ALL" << std::endl;
-	std::cout <<"\n  -t,  --threshold [FLOAT]" << std::endl;
-	std::cout << "\t\tThreshold intercept. If -q not set, then is mass independent. Defaul 2.44" << std::endl;
-	std::cout <<"\n  -q,  --massdepend [FLOAT]" << std::endl;
-	std::cout << "\t\tMass dependance of threshold. Needs -t flag. Defaul 0" << std::endl;
 	std::cout <<"\n  -E,  -M,  -T" << std::endl;
 	std::cout << "\t\tSelect which mixing element. Multiple selection allowed" << std::endl;
 	std::cout <<"\n  -L,  -R,  -U" << std::endl;
 	std::cout << "\t\tSelect neutrino polarisation." << std::endl;
-	std::cout <<"\n  --dirac,  --majorana" << std::endl;
-	std::cout << "\t\tSelect fermionic nature of neutrino. Default Majorana" << std::endl;
-	std::cout <<"\n  -P, -A {incompatible with --majorana}" << std::endl;
-	std::cout << "\t\tSelect either neutrino or antineutrino components for dirac. Default, both are used." << std::endl;
 	std::cout <<"\n  -h,  --help" << std::endl;
 	std::cout << "\t\tPrint this message and exit" << std::endl;
 }

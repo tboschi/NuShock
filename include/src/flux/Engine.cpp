@@ -39,7 +39,13 @@ Neutrino& Engine::GetNeutrino(std::string uuid)
 //load neutrino to mDriver with specific current. ID is user input and must be remembered
 void Engine::BindNeutrino(std::string uuid, Neutrino &N, Current horn)
 {
-	uuid += "_" + HornName(horn);
+	//uuid += "_" + HornName(horn);
+
+	if (mNeutrino.count(uuid))
+	{
+		std::cout << "UUID already in use! Call ReleaseNeutrino(UUID) first" << std::endl;
+		return;
+	}
 
 	mNeutrino[uuid] = N;
 
@@ -52,6 +58,11 @@ void Engine::BindNeutrino(std::string uuid, Neutrino &N, Current horn)
 			mDriver[uuid] = new Driver(fluxConfig, 0);
 			break;
 	}
+}
+
+void Engine::ReleaseNeutrino(std::string uuid)
+{
+	mNeutrino.erase(uuid);
 }
 
 void Engine::SampleEnergy(std::map<std::string, double> &mE,
