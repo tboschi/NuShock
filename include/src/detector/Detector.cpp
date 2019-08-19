@@ -63,9 +63,12 @@ std::vector<std::string> Detector::ListChannel()
 	return List;
 }
 
-double Detector::Get(std::string Key)
+double Detector::Get(std::string key)
 {
-	return mDetector[Key];
+	if (mDetector.count(key))
+		return mDetector[key];
+	else
+		return 0.0;
 }
 
 Detector::Material Detector::GetMaterial(std::string Key)
@@ -178,13 +181,13 @@ double Detector::Efficiency(std::string Channel, double Energy)
 
 double Detector::XsizeLAr()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialLAr"), 1.0/3.0);
 	return Get("WidthLAr") * (F > 0.0 ?  F : 1.0);
 }
 
 double Detector::XstartLAr()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialLAr"), 1.0/3.0);
 	return - 0.5 * Get("WidthLAr") * (F > 0.0 ? F : 1.0);
 }
 
@@ -195,13 +198,13 @@ double Detector::XendLAr()
 
 double Detector::YsizeLAr()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialLAr"), 1.0/3.0);
 	return Get("HeightLAr") * (F > 0.0 ? F : 1.0);
 }
 
 double Detector::YstartLAr()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialLAr"), 1.0/3.0);
 	return - 0.5 * Get("HeightLAr") * (F > 0.0 ? F : 1.0);
 }
 
@@ -212,14 +215,14 @@ double Detector::YendLAr()
 
 double Detector::ZsizeLAr()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialLAr"), 1.0/3.0);
 	return Get("LengthLAr") * (F > 0.0 ? F : 1.0);
 }
 
 double Detector::ZstartLAr()
 {
-	double F = (1 - pow(Get("Fiducial"), 1.0/3.0)) / 2.0;
-	return F > 0.0 ? F * Get("LengthFGT") : 0.0;
+	double F = pow(Get("FiducialLAr"), 1.0/3.0);
+	return - Get("LengthLAr") * (F > 0.0 ? (1 + F) / 2.0 : 1.0);
 }
 
 double Detector::ZendLAr()
@@ -229,13 +232,13 @@ double Detector::ZendLAr()
 
 double Detector::XsizeFGT()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialFGT"), 1.0/3.0);
 	return Get("WidthFGT") * (F > 0.0 ?  F : 1.0);
 }
 
 double Detector::XstartFGT()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialFGT"), 1.0/3.0);
 	return - 0.5 * Get("WidthFGT") * (F > 0.0 ? F : 1.0);
 }
 
@@ -246,13 +249,13 @@ double Detector::XendFGT()
 
 double Detector::YsizeFGT()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialFGT"), 1.0/3.0);
 	return Get("HeightFGT") * (F > 0.0 ? F : 1.0);
 }
 
 double Detector::YstartFGT()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialFGT"), 1.0/3.0);
 	return - 0.5 * Get("HeightFGT") * (F > 0.0 ? F : 1.0);
 }
 
@@ -263,14 +266,14 @@ double Detector::YendFGT()
 
 double Detector::ZsizeFGT()
 {
-	double F = pow(Get("Fiducial"), 1.0/3.0);
+	double F = pow(Get("FiducialFGT"), 1.0/3.0);
 	return Get("LengthFGT") * (F > 0.0 ? F : 1.0);
 }
 
 double Detector::ZstartFGT()
 {
-	double F = (1 - pow(Get("Fiducial"), 1.0/3.0)) / 2.0;
-	return ZstartLAr() + (F > 0.0 ? F * Get("LengthFGT") : 0.0);
+	double F = pow(Get("FiducialFGT"), 1.0/3.0);
+	return Get("LengthFGT") * (F > 0.0 ? (1 - F) / 2.0 : 1.0);
 }
 
 double Detector::ZendFGT()
@@ -280,12 +283,12 @@ double Detector::ZendFGT()
 
 double Detector::Xsize()
 {
-	return std::max(XsizeLAr(), XsizeFGT());
+	return std::min(XsizeLAr(), XsizeFGT());
 }
 
 double Detector::Ysize()
 {
-	return std::max(YsizeLAr(), YsizeFGT());
+	return std::min(YsizeLAr(), YsizeFGT());
 }
 
 double Detector::Zstart()

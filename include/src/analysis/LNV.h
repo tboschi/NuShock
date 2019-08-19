@@ -3,16 +3,9 @@
 #include <algorithm>
 #include <cmath>
 
+#include "src/tools/Sort.h"
 #include <omp.h>
 
-class decrease
-{
-	private:
-		std::vector<double> vInd;
-	public:
-		decrease(std::vector<double>& vect) : vInd(vect) {}
-		bool operator()(int i, int j) const { return vInd.at(i) > vInd.at(j); }
-};
 
 double Poisson(int n, double s)
 {
@@ -40,6 +33,60 @@ void feldcous(double nFHC, double nRHC, int np, int nm, double &p0, double &rB)
 	rB = Ratio(np, nFHC, std::max(np, 0))
 		* Ratio(nm, nRHC, std::max(nm, 0));
 }
+
+double Belt(int b, double CL, int &nA, int &nB)
+{
+	double s = sqrt(2.5*b);
+	nA = 0;
+	while (nA < b+1)
+	{
+		std::vector<double> vp0, vrB;
+		std::vector<int> vN, vI;
+
+		s += 0.005;
+
+		double lim = 70*log(b + 270);	//from plot
+		for (int n = std::max(0, b-1), j = 0; n < b + lim; ++n, ++j)
+		//for (unsigned int n = 140; n < 160; ++n, ++j)
+		{
+			double p0 = Poisson(n, s+b);
+			double rB = Ratio(n, s+b, std::max(0, int(n-b)) + b);
+
+			vp0.push_back(p0);
+			vrB.push_back(rB);
+			vN.push_back(n);
+			vI.push_back(j);
+
+			//std::cout << "n " << n << "\ts " << s << "\tu " << std::max(0,int(n-b));
+			//std::cout << "\tp0 " << p0 << "\tPA " << PA;
+			//std::cout << "\tR " << Ratio << std::endl;
+		}
+		std::sort(vI.begin(), vI.end(), Sort(vrB, Sort::descending));
+
+		double sum = vp0[vI.front()];
+		nA = nB = vN[vI.front()];
+		for (int i = 1; i < vI.size(); ++i)
+		{
+			if (sum <= CL)
+			{
+				int j = vI[i];
+				sum += vp0[j];
+
+				if (nA > vN[j])
+					nA = vN[j];
+				if (nB < vN[j])
+					nB = vN[j];
+			}
+			else
+				break;
+		}
+		//std::cout << "signal " << s << "\tsum " << sum << "\tA " << nA << "\tB " << nB << "\tfrom " << std::max(0,b-5) << "\tto " << b+lim+20 << std::endl;
+		//std::cout << s << "\tA " << nA << "\tB " << nB << std::endl;
+	}
+
+	return s;
+}
+
 
 int Limits(double x, int &min_x, int &max_x)
 {
@@ -142,10 +189,10 @@ bool IsSensitiveToLNV(double nFHC, double nRHC, double nLNV, double CL)
 #pragma omp parallel sections
 	{
 	#pragma omp section
-		std::sort(idx_LNC.begin(), idx_LNC.end(), decrease(vRatio_LNC));
+		std::sort(idx_LNC.begin(), idx_LNC.end(), Sort(vRatio_LNC, Sort::descending));
 
 	#pragma omp section
-		std::sort(idx_LNV.begin(), idx_LNV.end(), decrease(vRatio_LNV));
+		std::sort(idx_LNV.begin(), idx_LNV.end(), Sort(vRatio_LNV, Sort::descending));
 	}
 
 	double sum_LNC = 0;

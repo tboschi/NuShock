@@ -44,6 +44,7 @@ int main(int argc, char** argv)
 	bool dirac = false;				//default majorana neutrino
 	double CL = 0.90;			//confidence level
 	double thr = 2.44, qct = 0.0;
+	double ue = -1, um = -1, ut = -1;
 
 	while((iarg = getopt_long(argc,argv, "d:f:c:o:C:t:q:EMTLRrjAPh", longopts, &index)) != -1)
 	{
@@ -71,13 +72,13 @@ int main(int argc, char** argv)
 				qct = std::strtod(optarg, NULL);
 				break;
 			case 'E':
-				UeFlag = true;
+				ue = std::strtod(optarg, NULL);
 				break;
 			case 'M':
-				UmFlag = true;
+				um = std::strtod(optarg, NULL);
 				break;
 			case 'T':
-				UtFlag = true;
+				ut = std::strtod(optarg, NULL);
 				break;
 			case 'L':
 				left = true;
@@ -112,7 +113,7 @@ int main(int argc, char** argv)
 	//constructing the detector
 	unsigned int opt0, optB, optHel;
 
-	if (!UeFlag && !UmFlag && !UtFlag)
+	if (ue < 0 && um < 0 && ut < 0)
 	{
 		std::cerr << "You have to select at least one mixing, -E -M or -T" << std::endl;
 		return 1;

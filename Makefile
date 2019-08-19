@@ -23,27 +23,22 @@ CPP := $(shell find $(APPDIR) -maxdepth 1 -name '*.cpp')
 SRC := $(shell find $(SRCDIR) -maxdepth 2 -name '*.cpp')
 
 #main target
-TGT := $(CPP:.cpp=)
-DEP := $(SRC:.cpp=.o)
+TARGET := $(CPP:.cpp=)
+DEPEND := $(SRC:.cpp=.o)
 
-#dependencies of target
-#INCDEP := $(HPP:%=$(INCDIR)/%/*.cpp)
-#INCDEP := $(HPP:%=$(INCDIR)/%.cpp)
-#DEP :=	$(patsubst %.cpp,%.o,$(wildcard $(INCDEP)))
-
-all: $(TGT)
+all: $(TARGET)
 	@mkdir -p $(LIBDIR)
 	@mkdir -p $(BINDIR)
 	@echo "Cleaning up..."
-	@cp $(DEP) $(LIBDIR)
-	@cp $(TGT) $(BINDIR)
+	@cp $(DEPEND) $(LIBDIR)
+	@cp $(TARGET) $(BINDIR)
 	@echo "Done!"
 
-$(TGT): $(DEP)
+$(TARGET): $(DEPEND)
 
 include:
-	$(eval DEP := $(shell find $(LIBDIR) -maxdepth 1 -name '*.o'))
-	echo "dep " $(DEP)
+	$(eval DEPEND := $(shell find $(LIBDIR) -maxdepth 1 -name '*.o'))
+	echo "dep " $(DEPEND)
 
 clean:
 	-find $(SRCDIR) -name "*.o" -delete

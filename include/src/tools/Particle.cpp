@@ -18,13 +18,13 @@ Particle::Particle(int pdgCode, TLorentzVector *vec, TVector3 *pos) :
 		     pos->X(), pos->Y(), pos->Z());
 }
 
-Particle::Particle(int pdgCode, TLorentzVector &Vector) :
+Particle::Particle(int pdgCode, const TLorentzVector &Vector) :
 	pdg(pdgCode)
 {
 	Init(Vector.Px(), Vector.Py(), Vector.Pz(), Vector.E(), 0, 0, 0);
 }
 
-Particle::Particle(int pdgCode, TLorentzVector &vec, TVector3 &pos) :
+Particle::Particle(int pdgCode, const TLorentzVector &vec, const TVector3 &pos) :
 	pdg(pdgCode)
 {
 	Init(vec.Px(), vec.Py(), vec.Pz(), vec.E(), 
@@ -37,7 +37,6 @@ Particle::Particle(const Particle &P) :
 	particleVec(P.particleVec),
 	particlePos(P.particlePos),
 	trackIn(P.trackIn),
-	trackBack(P.trackBack),
 	trackOut(P.trackOut),
 	kShower(P.kShower)
 {
@@ -51,7 +50,6 @@ Particle& Particle::operator=(const Particle &P)
 	particlePos = P.particlePos;
 
 	trackIn   = P.trackIn;
-	trackBack = P.trackBack;
 	trackOut  = P.trackOut;
 
 	kShower = P.kShower;
@@ -74,7 +72,6 @@ void Particle::Init(double Px, double Py, double Pz, double E, double X, double 
 	else
 
 	trackIn   = -1.;
-	trackBack = -1.;
 	trackOut  = -1.;
 	kShower   = false;
 }
@@ -271,11 +268,6 @@ double Particle::TrackIn() const
 	return trackIn;
 }
 
-double Particle::TrackBack() const
-{
-	return trackBack;
-}
-
 double Particle::TrackOut() const
 {
 	return trackOut;
@@ -283,7 +275,7 @@ double Particle::TrackOut() const
 
 double Particle::TrackTot() const
 {
-	return TrackIn() + TrackBack() + TrackOut();
+	return TrackIn() + TrackOut();
 }
 
 //////// non const functions
@@ -396,11 +388,6 @@ void Particle::SetZ(double X)
 void Particle::SetTrackIn(double X)
 {
 	trackIn = X;
-}
-
-void Particle::SetTrackBack(double X)
-{
-	trackBack = X;
 }
 
 void Particle::SetTrackOut(double X)

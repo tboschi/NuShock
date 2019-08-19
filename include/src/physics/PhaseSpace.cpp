@@ -2,9 +2,9 @@
 
 PhaseSpace::PhaseSpace() :
 	Event(new TGenPhaseSpace),
-	GenMT(new TRandom3(0)),
-	P_labf(new TLorentzVector()),
-	P_rest(new TLorentzVector())
+	GenMT(new TRandom3(0))
+	//P_labf(new TLorentzVector()),
+	//P_rest(new TLorentzVector())
 {
 	Reset();
 }
@@ -13,8 +13,8 @@ PhaseSpace::~PhaseSpace()
 {
 	delete Event;
 	delete GenMT;
-	delete P_labf;
-	delete P_rest;
+	//delete P_labf;
+	//delete P_rest;
 }
 
 bool PhaseSpace::SetDecay(Channel Name)
@@ -35,7 +35,8 @@ bool PhaseSpace::SetDecay(Channel Name)
 	for (int i = 1; i < Daughters(); ++i)
 		MassArray[i] = vMass.at(i);
 
-	return Event->SetDecay(*Parent(RestFrame), Daughters(), MassArray);
+	TLorentzVector vec = Parent(restFrame);
+	return Event->SetDecay(vec, Daughters(), MassArray);
 }
 
 bool PhaseSpace::Generate(Channel Name)
@@ -983,9 +984,14 @@ double PhaseSpace::max_MesonThree_D(double *p)
 //
 void PhaseSpace::Kinematic_2B(double &cos0)
 {
-	TLorentzVector *vec1 = DaughterVector(1, RestFrame);
+	if (Daughters() <= 2)
+	{
+		TLorentzVector vec1 = DaughterVector(1, restFrame);
 
-	cos0 = cos(vec1->Theta());
+		cos0 = cos(vec1.Theta());
+	}
+	else
+		std::cout << "Kinematic_2B error" << std::endl;
 
 	//delete vec1;
 }
@@ -996,47 +1002,45 @@ void PhaseSpace::Kinematic_2B(double &cos0)
 //u -> p1
 void PhaseSpace::Kinematic_3B(double &s, double &t, double &u, double &cos0s, double &cos0t, double &cos0u)
 {
-	TLorentzVector *vec1 = DaughterVector(0, RestFrame);
-	TLorentzVector *vec2 = DaughterVector(1, RestFrame);
-	TLorentzVector *vec3 = DaughterVector(2, RestFrame);
-
-	TLorentzVector vec_u = *Parent(RestFrame) - *vec1;
-	TLorentzVector vec_t = *Parent(RestFrame) - *vec2;
-	TLorentzVector vec_s = *Parent(RestFrame) - *vec3;
-
-	u = vec_u.M2()/Mass(2);
-	t = vec_t.M2()/Mass(2);
-	s = vec_s.M2()/Mass(2);
-
-	cos0u = cos(vec1->Theta());
-	cos0t = cos(vec2->Theta());
-	cos0s = cos(vec3->Theta());
-}
-
-//////////
-//	//
-//	//
-//////////
-
-TLorentzVector* PhaseSpace::DaughterVector(int i, Reference Frame)
-{
-	if (i < Daughters())
+	if (Daughters() <= 3)
 	{
-		TLorentzVector *D_vec = Event->GetDecay(i);
-		D_vec->Boost(Parent(Frame)->BoostVector());
+		TLorentzVector vec1 = DaughterVector(0, restFrame);
+		TLorentzVector vec2 = DaughterVector(1, restFrame);
+		TLorentzVector vec3 = DaughterVector(2, restFrame);
 
-		return D_vec;
+		TLorentzVector vec_u = Parent(restFrame) - vec1;
+		TLorentzVector vec_t = Parent(restFrame) - vec2;
+		TLorentzVector vec_s = Parent(restFrame) - vec3;
+
+		u = vec_u.M2()/Mass(2);
+		t = vec_t.M2()/Mass(2);
+		s = vec_s.M2()/Mass(2);
+
+		cos0u = cos(vec1.Theta());
+		cos0t = cos(vec2.Theta());
+		cos0s = cos(vec3.Theta());
 	}
 	else
-		return 0;
+		std::cout << "Kinematic_3B Error" << std::endl;
 }
 
-Particle* PhaseSpace::Daughter(int i, Reference Frame)
+//////////
+//	//
+//	//
+//////////
+
+TLorentzVector PhaseSpace::DaughterVector(int i, Reference frame)
 {
-	if (i < Daughters())
-		return new Particle(vPdg.at(i), DaughterVector(i, Frame));
-	else
-		return 0;
+	TLorentzVector D_vec = *Event->GetDecay(i);
+	D_vec.Boost(Parent(frame).BoostVector());
+
+	return D_vec;
+}
+
+Particle PhaseSpace::Daughter(int i, Reference frame)
+{
+	TLorentzVector vec;
+	return Particle(vPdg.at(i), DaughterVector(i, frame));
 }
 
 int PhaseSpace::Daughters()
@@ -1044,38 +1048,36 @@ int PhaseSpace::Daughters()
 	return vMass.size();
 }
 
-TLorentzVector* PhaseSpace::Parent(Reference Frame)
+TLorentzVector PhaseSpace::Parent(Reference frame)
 {
-	switch (Frame)
+	switch (frame)
 	{
-		case RestFrame:
-			return Rest();
-		case LabFrame:
-			return LabF();
-		default:
-			return 0;
+		case restFrame:
+			return RestFrame();
+		case labFrame:
+			return LabFrame();
 	}
 }
 
-TLorentzVector* PhaseSpace::Rest()
+TLorentzVector PhaseSpace::RestFrame()
 {
-	return P_rest;
+	return pRestFrame;
 }
 
-TLorentzVector* PhaseSpace::LabF()
+TLorentzVector PhaseSpace::LabFrame()
 {
-	return P_labf;
+	return pLabFrame;
 }
 
-void PhaseSpace::SetLabf(TLorentzVector &Vec)	//parent labframe
+void PhaseSpace::SetLabFrame(TLorentzVector vec)	//parent labframe
 {
-	P_labf = &Vec;
-	SetRest(P_labf->M());
+	pLabFrame = vec;
+	SetRestFrame(vec.M());
 }
 
-void PhaseSpace::SetRest(double Mass)		//parent rest frame
+void PhaseSpace::SetRestFrame(double Mass)		//parent rest frame
 {
-	P_rest->SetPxPyPzE(0, 0, 0, Mass);
+	pRestFrame.SetPxPyPzE(0, 0, 0, Mass);
 }
 
 void PhaseSpace::Reset()

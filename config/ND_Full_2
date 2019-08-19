@@ -7,21 +7,23 @@ Baseline	574
 #3D sizes in meters
 #
 #LArTPC
-LengthLAr	4
-WidthLAr	2
-HeightLAr	6
+LengthLAr	5
+HeightLAr	3
+WidthLAr	7
 #weight in tons
 WeightLAr	50.0
+#define your fidicial volume, so effective volume in fraction of 1
+FiducialLAr	0.512
 
 #MPD is a 5x5x5 cylinder, laid on the side, so effective area is 5x5
 #i					   and effective length is pi/4 x 5
-LengthFGT	3.9270
+LengthFGT	4.431
+HeightFGT	4.431
 WidthFGT	5
-HeightFGT	5
 WeightFGT	1.0
-
 #define your fidicial volume, so effective volume in fraction of 1
-Fiducial	1.00
+FiducialFGT	1.00
+
 #POT/s of the neutrino beam
 POT/s		2.205e14
 #total number of years with POTS above. 1 year is defined as 10e7 seconds

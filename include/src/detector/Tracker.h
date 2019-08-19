@@ -30,7 +30,7 @@ class Detector;
 class Tracker : public Detector
 {
 	public:
-		Tracker(std::string ConfigFile);
+		Tracker(std::string ConfigFile, std::string mod = "");
 
 		bool Reconstruct(Particle &P);
 		void Vertex(Particle &P);
@@ -48,13 +48,14 @@ class Tracker : public Detector
 		double Bethe(const Particle &P, double Density, double I, int Z, int A);
 
 		bool IsDecayed(const Particle &P, double dx);
-		bool IsDetectable(const Particle &P);
+		bool IsDetectable(const Particle &P, bool print = false);
 		void Pi0Decay(Particle &Pi0, Particle &PA, Particle &PB);
 
 		void Focus(Particle &P);
 
 	private:
 		//TRandom3 *GenMT;
+		std::string module;
 		TFile *FuncFile;
 		TH2D *hhFunc;
 		TH1D *hTemp, *hEfficiency;

@@ -27,8 +27,8 @@ class Particle
 		Particle(int pdgCode = 0,  double Px = 0, double Py = 0, double Pz = 0,
 			 double E = 0,     double X = 0,  double Y = 0,  double Z = 0);
 		Particle(int pdgCode, TLorentzVector *Vector, TVector3 *Position = 0);
-		Particle(int pdgCode, TLorentzVector &Vector);
-		Particle(int pdgCode, TLorentzVector &Vector, TVector3 &Position);
+		Particle(int pdgCode, const TLorentzVector &Vector);
+		Particle(int pdgCode, const TLorentzVector &Vector, const TVector3 &Position);
 		Particle(const Particle &P);
 		Particle& operator=(const Particle &rhs);
 		~Particle();
@@ -64,7 +64,6 @@ class Particle
 		double Z() const;
 		double Dist() const;
 		double TrackIn() const;
-		double TrackBack() const;
 		double TrackOut() const;
 		double TrackTot() const;
 		
@@ -84,7 +83,6 @@ class Particle
 		void SetY(double X);
 		void SetZ(double X);
 		void SetTrackIn(double X);
-		void SetTrackBack(double X);
 		void SetTrackOut(double X);
 		void SetShower(bool X);
 
@@ -92,7 +90,7 @@ class Particle
 		TLorentzVector particleVec;
 		TVector3 particlePos;
 		int pdg;
-		double trackIn, trackBack, trackOut;
+		double trackIn, trackOut;
 		bool kShower;
 };
 

@@ -36,20 +36,30 @@ class Engine
 		void Reset();
 
 		void BindNeutrino(std::string uuid, Neutrino &N, Current horn);
+		Neutrino& GetNeutrino(std::string uuid);
 
 		void MakeFlux();
 		void MakeFlux(Current horn);
 		void MakeFlux(std::string uuid);
 
-		void SampleEnergy(std::vector<double> &vE, std::vector<double> &vI);
-		void SampleEnergy(std::vector<double> &vE, std::vector<double> &vI, Current horn);
+		void SampleEnergy(std::map<std::string, double> &mE,
+				  std::map<std::string, double> &mI);
+		void SampleEnergy(std::map<std::string, double> &mE,
+				  std::map<std::string, double> &mI,
+				  Current horn);
 		double SampleEnergy(std::string uuid);
 
-		double MakeSampler(Detector *box, double ue = -1, double um = -1, double ut = -1);
-		double MakeSampler(Detector *box, Current horn, double ue = -1, double um = -1, double ut = -1);
-		double MakeSampler(Detector *box, std::vector<double>&, double ue = -1, double um = -1, double ut = -1);
-		double MakeSampler(Detector *box, std::vector<double>&, Current horn, double ue = -1, double um = -1, double ut = -1);
-		double MakeSampler(Detector *box, std::string uuid, double ue = -1, double um = -1, double ut = -1);
+		double MakeSampler(Detector *box,
+				   double ue = -1, double um = -1, double ut = -1);
+		double MakeSampler(Detector *box, Current horn,
+				   double ue = -1, double um = -1, double ut = -1);
+		double MakeSampler(Detector *box, std::map<std::string, double> &mInt,
+				   double ue = -1, double um = -1, double ut = -1);
+		double MakeSampler(Detector *box, std::map<std::string, double> &mInt,
+				   Current horn,
+				   double ue = -1, double um = -1, double ut = -1);
+		double MakeSampler(Detector *box, std::string uuid,
+				   double ue = -1, double um = -1, double ut = -1);
 
 		double DecayNumber(Detector *box);
 		double DecayNumber(Detector *box, Current horn);
@@ -71,6 +81,7 @@ class Engine
 		void Scale(double X, std::string uuid);
 
 		double BinNumber();
+		double RangeWidth();
 		double RangeWidth(double &start, double &end);
 
 		std::string HornName(Current horn);
@@ -78,8 +89,8 @@ class Engine
 	private:
 		std::string fluxConfig;
 
-		std::map<std::string, Neutrino*> mNeutrino;
-		std::map<std::string, Neutrino*>::iterator iN;
+		std::map<std::string, Neutrino> mNeutrino;
+		std::map<std::string, Neutrino>::iterator iN;
 
 		std::map<std::string, Driver*> mDriver;
 		std::map<std::string, Driver*>::iterator iD;

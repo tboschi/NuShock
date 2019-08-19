@@ -28,52 +28,59 @@ void Engine::Reset()
 	sampleNu.clear();
 }
 
+Neutrino& Engine::GetNeutrino(std::string uuid)
+{
+	if (mNeutrino.count(uuid))
+		return mNeutrino[uuid];
+	else
+		Neutrino();
+}
+
 //load neutrino to mDriver with specific current. ID is user input and must be remembered
 void Engine::BindNeutrino(std::string uuid, Neutrino &N, Current horn)
 {
 	uuid += "_" + HornName(horn);
 
-	mNeutrino[uuid] = &N;
+	mNeutrino[uuid] = N;
 
 	switch (horn)
 	{
 		case FHC:
-			mDriver[uuid] = new Driver(fluxConfig, FHC);
+			mDriver[uuid] = new Driver(fluxConfig, 1);
 			break;
 		case RHC:
-			mDriver[uuid] = new Driver(fluxConfig, RHC);
+			mDriver[uuid] = new Driver(fluxConfig, 0);
 			break;
 	}
 }
 
-void Engine::SampleEnergy(std::vector<double> &vE, std::vector<double> &vI)
+void Engine::SampleEnergy(std::map<std::string, double> &mE,
+			  std::map<std::string, double> &mI)
 {
-	std::vector<double> vEnergyF, vEnergyR;
-	std::vector<double> vIntensF, vIntensR;
-	SampleEnergy(vEnergyF, vIntensF, FHC);
-	SampleEnergy(vEnergyR, vIntensR, RHC);
-
-	vE.clear();
-	vE.insert(vE.end(), vEnergyF.begin(), vEnergyF.end());
-	vE.insert(vE.end(), vEnergyR.begin(), vEnergyR.end());
-
-	vI.clear();
-	vI.insert(vI.end(), vIntensF.begin(), vIntensF.end());
-	vI.insert(vI.end(), vIntensR.begin(), vIntensR.end());
+	mE.clear();
+	mI.clear();
+	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
+	{
+		mE[iD->first] = SampleEnergy(iD->first);
+		mI[iD->first] = IntensitySample(iD->first, mE[iD->first]);
+	}
 }
 
-void Engine::SampleEnergy(std::vector<double> &vE, std::vector<double> &vI, Current horn)
+void Engine::SampleEnergy(std::map<std::string, double> &mE,
+			  std::map<std::string, double> &mI,
+			  Current horn)
 {
-	vE.clear();
-	vI.clear();
+	if (horn == both)
+		return SampleEnergy(mE, mI);
 
-	double integral = 0;
+	mE.clear();
+	mI.clear();
 	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
 	{
 		if (iD->first.find(HornName(horn)) != std::string::npos)
 		{
-			vE.push_back(SampleEnergy(iD->first));
-			vI.push_back(IntensitySample(iD->first, vE.back()));
+			mE[iD->first] = SampleEnergy(iD->first);
+			mI[iD->first] = IntensitySample(iD->first, mE[iD->first]);
 		}
 	}
 }
@@ -88,7 +95,8 @@ double Engine::SampleEnergy(std::string uuid)
 }
 
 //create sample for every mDriver
-double Engine::MakeSampler(Detector *box, double ue, double um, double ut)
+double Engine::MakeSampler(Detector *box,
+			   double ue, double um, double ut)
 {
 	double integral = 0;
 	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
@@ -98,7 +106,8 @@ double Engine::MakeSampler(Detector *box, double ue, double um, double ut)
 }
 
 //create sample for every mDriver of same current
-double Engine::MakeSampler(Detector *box, Current horn, double ue, double um, double ut)
+double Engine::MakeSampler(Detector *box, Current horn,
+			   double ue, double um, double ut)
 {
 	if (horn == both)
 		return MakeSampler(box, ue, um, ut);
@@ -112,35 +121,35 @@ double Engine::MakeSampler(Detector *box, Current horn, double ue, double um, do
 }
 
 //create sample for every mDriver and saving each integral into a vector
-double Engine::MakeSampler(Detector *box, std::vector<double> &vInt, double ue, double um, double ut)
+double Engine::MakeSampler(Detector *box, std::map<std::string, double> &mInt,
+			   double ue, double um, double ut)
 {
-	vInt.clear();
+	mInt.clear();
 	double integral = 0;
 	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
 	{
-		double ret = MakeSampler(box, iD->first, ue, um, ut);
-		vInt.push_back(ret);
-		integral += ret;
+		mInt[iD->first] = MakeSampler(box, iD->first, ue, um, ut);
+		integral += mInt[iD->first];
 	}
 
 	return integral;
 }
 
 //create sample for every mDriver with same current and saving each integral into a vector
-double Engine::MakeSampler(Detector *box, std::vector<double> &vInt, Current horn, double ue, double um, double ut)
+double Engine::MakeSampler(Detector *box, std::map<std::string, double> &mInt, Current horn,
+			   double ue, double um, double ut)
 {
 	if (horn == both)
-		return MakeSampler(box, vInt, ue, um, ut);
+		return MakeSampler(box, mInt, ue, um, ut);
 
-	vInt.clear();
+	mInt.clear();
 	double integral = 0;
 	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
 	{
 		if (iD->first.find(HornName(horn)) != std::string::npos)
 		{
-			double ret = MakeSampler(box, iD->first, ue, um, ut);
-			vInt.push_back(ret);
-			integral += ret;
+			mInt[iD->first] = MakeSampler(box, iD->first, ue, um, ut);
+			integral += mInt[iD->first];
 		}
 	}
 
@@ -152,7 +161,6 @@ double Engine::MakeSampler(Detector *box, std::string uuid, double ue, double um
 {
 	//delete old sample
 	std::string name = "sample_" + uuid;
-
 	delete sampleNu[name];
 
 	double start, end;
@@ -160,18 +168,18 @@ double Engine::MakeSampler(Detector *box, std::string uuid, double ue, double um
 	TH1D *hSample = new TH1D(name.c_str(), "Neutrinos in detector", BinNumber(), start, end);
 
 	if (ue < 0)
-		ue = mNeutrino[uuid]->Ue();
+		ue = mNeutrino[uuid].Ue();
 	if (um < 0)
-		um = mNeutrino[uuid]->Um();
+		um = mNeutrino[uuid].Um();
 	if (ut < 0)
-		ut = mNeutrino[uuid]->Ut();
+		ut = mNeutrino[uuid].Ut();
 
-	mNeutrino[uuid]->SetMixings(ue, um, ut);
+	mNeutrino[uuid].SetMixings(ue, um, ut);
 
 	double integral = 0;
 	for (double energy = start; energy < end; energy += enStep)
 	{
-		mNeutrino[uuid]->SetEnergy(energy);
+		mNeutrino[uuid].SetEnergy(energy);
 
 		double weight = DecayNumber(box, uuid);
 		hSample->Fill(energy + enStep, weight);
@@ -212,7 +220,10 @@ double Engine::DecayNumber(Detector *box, Current horn)
 
 double Engine::DecayNumber(Detector *box, std::string uuid)
 {
-	return box->Efficiency(*mNeutrino[uuid]) * box->DecayProb(*mNeutrino[uuid]) * Intensity(uuid);
+	//std::cout << uuid << " W : " << box->Efficiency(mNeutrino[uuid]) << ", "
+	//	  << box->DecayProb(mNeutrino[uuid]) << ", "
+	//	  << Intensity(uuid) << std::endl;
+	return box->Efficiency(mNeutrino[uuid]) * box->DecayProb(mNeutrino[uuid]) * Intensity(uuid);
 }
 
 //make all the fluxes
@@ -231,17 +242,17 @@ void Engine::MakeFlux(Current horn)
 
 void Engine::MakeFlux(std::string uuid)
 {
-	mDriver[uuid]->MakeFlux(*mNeutrino[uuid]);
+	mDriver[uuid]->MakeFlux(mNeutrino[uuid]);
 }
 
 double Engine::Intensity(std::string uuid)
 {
-	return mDriver[uuid]->Intensity(*mNeutrino[uuid]);
+	return mDriver[uuid]->Intensity(mNeutrino[uuid]);
 }
 
 double Engine::IntensitySample(std::string uuid)
 {
-	return IntensitySample(uuid, mNeutrino[uuid]->EnergyKin());
+	return IntensitySample(uuid, mNeutrino[uuid].EnergyKin());
 }
 
 double Engine::IntensitySample(std::string uuid, double Energy)
@@ -310,6 +321,12 @@ double Engine::BinNumber()
 		return mDriver.begin()->second->BinNumber();
 	else
 		return -1.0;
+}
+
+double Engine::RangeWidth()
+{
+	double start, end;
+	return RangeWidth(start, end);
 }
 
 double Engine::RangeWidth(double &start, double &end)

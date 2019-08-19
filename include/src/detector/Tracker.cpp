@@ -1,13 +1,14 @@
 #include "Tracker.h"
 
-Tracker::Tracker(std::string ConfigName) :
-	Detector(ConfigName)
+Tracker::Tracker(std::string configName, std::string mod) :
+	Detector(configName),
+	module(mod)
 {
 }
 
 bool Tracker::Reconstruct(Particle &P)
 {
-	if (P.Pdg())	//valid particle
+	if (P.Pdg() && IsDetectable(P, true))	//valid particle
 	{
 		if (P.Dist() == 0.0)
 			Vertex(P);
@@ -16,12 +17,7 @@ bool Tracker::Reconstruct(Particle &P)
 			Length(P);
 
 		Smearing(P);
-
-		if (IsDetectable(P))
-			return true;
-		else
-			return false;
-			//P.SetPdg(0);
+		return true;
 	}
 	else
 		return false;
@@ -29,17 +25,32 @@ bool Tracker::Reconstruct(Particle &P)
 
 void Tracker::Vertex(Particle &P)
 {
-	double X, Y;
-	double Z = GenMT->Uniform(Zstart(), Zend());
-	if (Z > ZstartLAr() && Z < ZendLAr())
+	double X, Y, Z;
+	if (module == "LAr")
 	{
 		X = GenMT->Uniform(XstartLAr(), XendLAr());
 		Y = GenMT->Uniform(YstartLAr(), YendLAr());
+		Z = GenMT->Uniform(ZstartLAr(), ZendLAr());
 	}
-	else if (Z > ZstartFGT() && Z < ZendFGT())
+	else if (module == "FGT")
 	{
 		X = GenMT->Uniform(XstartFGT(), XendFGT());
 		Y = GenMT->Uniform(YstartFGT(), YendFGT());
+		Z = GenMT->Uniform(ZstartLAr(), ZendLAr());
+	}
+	else if (module.empty())
+	{
+		Z = GenMT->Uniform(Zstart(), Zend());
+		if (Z > ZstartLAr() && Z < ZendLAr())
+		{
+			X = GenMT->Uniform(XstartLAr(), XendLAr());
+			Y = GenMT->Uniform(YstartLAr(), YendLAr());
+		}
+		else if (Z > ZstartFGT() && Z < ZendFGT())
+		{
+			X = GenMT->Uniform(XstartFGT(), XendFGT());
+			Y = GenMT->Uniform(YstartFGT(), YendFGT());
+		}
 	}
 
 	P.SetPosition(X, Y, Z);
@@ -56,7 +67,7 @@ void Tracker::Smearing(Particle &P)
 	double StatE, SystE;
 	double Ratio;
 
-	switch (abs(P.Pdg()))
+	switch (std::abs(P.Pdg()))
 	{
 		case 11:
 		case 22:
@@ -72,16 +83,23 @@ void Tracker::Smearing(Particle &P)
 			break;
 		case 13:
 			SigmaA = Get("Angle_Muon") / Const::Deg;
-			Ratio = P.TrackIn()/P.TrackTot();
+			Ratio = P.TrackTot() ? P.TrackIn()/P.TrackTot() : 0.0;
 
-			if (Ratio > Get("Containment"))	//90% of track inside
-				SigmaP = Get("Range_Muon");
+			if (Ratio > Get("Containment"))	//80% of track inside
+			{
+				//std::cout << "muon in range, ";
+				SigmaP = Get("Range_Muon") * iP;
 				//double StatP = Get("Range_Muon") / iP;
 				//SigmaP = StatP * iP;
+			}
 			else
+			{
+				//std::cout << "muon escaping, ";
 				SigmaP = Get("Exiti_Muon") * iP;
 				//double StatP = Get("Exiti_Muon");
 				//SigmaP = StatP * iP;
+			}
+			//std::cout << P.TrackIn() << " - " << P.TrackOut() << " - " << P.TrackTot() << "; " << Ratio << std::endl;
 
 			P.SetMomentum(GenMT->Gaus(iP, SigmaP));
 			P.SetTheta(GenMT->Gaus(iTheta, SigmaA));
@@ -93,13 +111,20 @@ void Tracker::Smearing(Particle &P)
 			Ratio = P.TrackIn()/P.TrackTot();
 
 			if (!P.IsShower() && Ratio > Get("Containment"))	//pion track, not shower
-				SigmaP = Get("Range_Pion");
+			{
+				//std::cout << "pion in range, ";
+				SigmaP = Get("Range_Pion") * iP;
 				//double StatP = Get("Range_Pion") / iP;
 				//SigmaP = StatP * iP;
+			}
 			else
+			{
+				//std::cout << "pion escaping, ";
 				SigmaP = Get("Exiti_Pion") * iP;
 				//double StatP = Get("Exiti_Pion");
 				//SigmaP = StatP * iP;
+			}
+			//std::cout << P.TrackIn() << " - " << P.TrackOut() << " - " << P.TrackTot() << "; " << Ratio << std::endl;
 
 			P.SetMomentum(GenMT->Gaus(iP, SigmaP));
 			P.SetTheta(GenMT->Gaus(iTheta, SigmaA));
@@ -107,7 +132,7 @@ void Tracker::Smearing(Particle &P)
 
 			break;
 		default:
-			if (P.Charge() != 0)	//other and protons?
+			if (std::abs(P.Pdg()) == 2112 || P.Charge() != 0)	//other and protons?
 			{
 				SigmaA = Get("Angle_Hadron") / Const::Deg;
 				StatE = Get("Energ_Hadron") / sqrt(iEkin);
@@ -132,11 +157,11 @@ void Tracker::Smearing(Particle &P)
 		P.SetTrackOut(0);
 }
 
-void Tracker::Length(Particle &P)	//This should not change *P
+void Tracker::Length(Particle &P)	//This should not change P
 {
 	double tmax, Depth;
 	double iE, iM, dE;
-	double dStep = 0.01, dx;
+	double dStep = 0.05, dx;	//step of 5cm
 	double LengthIn = 0.0, LengthBack = 0.0, LengthOut = 0.0;
 	double TotTrack = 0, Layer = 0;
 
@@ -144,16 +169,18 @@ void Tracker::Length(Particle &P)	//This should not change *P
 	TVector3 Pos(P.Position());
 	TVector3 Start(P.Position());
 
-	switch (abs(P.Pdg()))
+	switch (std::abs(P.Pdg()))
 	{
 		case 11:
 			tmax = log(P.Energy()/CriticalEnergy(P)) - 1.0;
 			Depth = RadiationLength(P) * GenMT->Gaus(tmax, 0.3*tmax);
 
 			P.SetTrackIn(Depth);
+			P.SetTrackOut(0);
 			break;
 		case 22:
 			P.SetTrackIn(GammaDecay(P));
+			P.SetTrackOut(0);
 			break;
 		case 13:
 			iE = P.Energy();
@@ -175,7 +202,6 @@ void Tracker::Length(Particle &P)	//This should not change *P
 			}
 
 			P.SetTrackIn(LengthIn);
-			//P.SetTrackBack(LengthBack);
 			P.SetTrackOut(LengthOut);
 			P.SetEnergy(iE);		//reset to original energy
 			P.SetPosition(Start);		//reset to original position
@@ -219,7 +245,6 @@ void Tracker::Length(Particle &P)	//This should not change *P
 			else P.SetShower(false);
 
 			P.SetTrackIn(LengthIn);
-			//P.SetTrackBack(LengthBack);
 			P.SetTrackOut(LengthOut);
 			P.SetEnergy(iE);			//reset to original energy
 			P.SetPosition(Start);		//reset to original position
@@ -338,9 +363,10 @@ double Tracker::BetheLoss(const Particle &P, Material Target)
 		case LAr:
 			return Bethe(P, 1.3945, 188.0, 18, 40);
 		case GasAr:
-			return Bethe(P, 0.1020, 188.0, 18, 40);
+			//return Bethe(P, 0.1020, 188.0, 18, 40);
+			return Bethe(P, 0.024, 188.0, 18, 40);	//10 atm, 293 K
 		case Fe:
-			return Bethe(P, 7.874, 286.0, 26, 56);
+			return Bethe(P, 7.875, 286.0, 26, 56);
 		case Pb:
 			return Bethe(P, 11.34, 823.0, 82, 207);
 		default:
@@ -369,11 +395,11 @@ bool Tracker::IsDecayed(const Particle &P, double dx)	//Threshold check
 	return GenMT->Rndm() > exp(-dx/(Const::C * P.LabSpace()));	//this should quit when particle decays too!
 }
 
-bool Tracker::IsDetectable(const Particle &P)	//Threshold check
+bool Tracker::IsDetectable(const Particle &P, bool print)	//Threshold check
 {
 	double Threshold = 0.0;
 
-	switch (abs(P.Pdg()))
+	switch (std::abs(P.Pdg()))
 	{
 		case 11:
 		case 22:
@@ -385,6 +411,15 @@ bool Tracker::IsDetectable(const Particle &P)	//Threshold check
 		case 211:
 			Threshold = Get("Thres_Pion");
 			break;
+		case 2112:	//neutrons
+			if (GenMT->Rndm() < 0.1)	//10% chance escape
+				Threshold = 1 + P.EnergyKin();
+			else
+				Threshold = Get("Thres_Hadron");
+			break;
+		case 2212:	//protons
+			Threshold = Get("Thres_Hadron");
+			break;
 		default:
 			if (P.Charge() != 0)
 				Threshold = Get("Thres_Hadron");
@@ -393,49 +428,49 @@ bool Tracker::IsDetectable(const Particle &P)	//Threshold check
 			break;
 	}
 
+	if (print)
+		std::cout << "detectable " << P.Pdg() << ": "
+			  << P.EnergyKin() << " > " << Threshold << std::endl;
 	return (P.EnergyKin() > Threshold);
 }
 
-void Tracker::Pi0Decay(Particle &Pi0, Particle &PA, Particle &PB)
+void Tracker::Pi0Decay(Particle &pi0, Particle &pA, Particle &pB)
 {
-	//in rest frame
-	double M_Pion0 = Const::MPion0;
+	//Vertex(Pi0);
+	TVector3 bst(pi0.FourVector().BoostVector());
+	TVector3 start(pi0.Position());		//starting point is vertex
 
-	Vertex(Pi0);
-	TVector3 vBoost(Pi0.FourVector().BoostVector());
-	TVector3 Start(Pi0.Position());		//starting point is vertex
+	TLorentzVector gammaA(0, 0,  Const::MPion0/2.0, Const::MPion0/2.0); 
+	TLorentzVector gammaB(0, 0, -Const::MPion0/2.0, Const::MPion0/2.0); 
+	double the = GenMT->Uniform(-Const::pi, Const::pi);
+	double phi = GenMT->Uniform(-Const::pi, Const::pi);
+	gammaA.SetTheta(the);
+	gammaB.SetTheta(the + Const::pi);
+	gammaA.SetPhi(phi);
+	gammaB.SetPhi(phi + Const::pi);
+	gammaA.Boost(bst);
+	gammaB.Boost(bst);
 
-	TLorentzVector GammaA(0, 0,  M_Pion0/2.0, M_Pion0/2.0); 
-	TLorentzVector GammaB(0, 0, -M_Pion0/2.0, M_Pion0/2.0); 
-	double Theta = GenMT->Uniform(-Const::pi, Const::pi);
-	double Phi   = GenMT->Uniform(-Const::pi, Const::pi);
-	GammaA.SetTheta(Theta);
-	GammaB.SetTheta(Theta + Const::pi);
-	GammaA.SetPhi(Phi);
-	GammaB.SetPhi(Phi + Const::pi);
-	GammaA.Boost(vBoost);
-	GammaB.Boost(vBoost);
+	pA = Particle(22, gammaA, start);	//here are the photons
+	pB = Particle(22, gammaB, start);	//position should be different
 
-	PA = Particle(22, GammaA, Start);	//here are the photons
-	PB = Particle(22, GammaB, Start);	//position should be different
+	TVector3 moveA(gammaA.Vect().Unit());
+	TVector3 moveB(gammaB.Vect().Unit());
+	moveA *= GammaDecay(pA);
+	moveB *= GammaDecay(pB);
+	moveA += start;
+	moveB += start;
 
-	TVector3 MoveA(GammaA.Vect().Unit());
-	TVector3 MoveB(GammaB.Vect().Unit());
-	MoveA *= GammaDecay(PA);
-	MoveB *= GammaDecay(PB);
-	MoveA += Start;
-	MoveB += Start;
-
-	PA.SetPosition(MoveA);
-	PB.SetPosition(MoveB);
+	pA.SetPosition(moveA);
+	pB.SetPosition(moveB);
 }
 
 //special use for neutrino beam
 void Tracker::Focus(Particle &P)
 {
-	double Radius = sqrt(pow(Xsize(), 2) + pow(Ysize(), 2));
-	double SigmaT = atan2(Radius, Get("Baseline"));	//3sigma will be inside the detector (better distribution needed)
+	double radius = sqrt(pow(P.X(), 2) + pow(P.Y(), 2));
+	double zlength = Get("Baseline") + ZsizeLAr() + P.Z();
 
-	P.SetTheta( abs(GenMT->Gaus(0, SigmaT)) );	
-	P.SetPhi( GenMT->Uniform(-Const::pi, Const::pi) );
+	P.SetTheta( atan2(radius, zlength) );
+	P.SetPhi( atan2(P.Y(), P.X()) );
 }

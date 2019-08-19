@@ -24,8 +24,8 @@ class PhaseSpace : public Amplitude
 	public:
 		enum Reference
 		{
-			RestFrame = 0,
-			LabFrame = 1,
+			restFrame = 0,
+			labFrame = 1,
 		};
 
 		PhaseSpace();
@@ -149,14 +149,14 @@ class PhaseSpace : public Amplitude
 		void Kinematic_3B(double &s, double &t, double &u, double &coss, double &cost, double &cosu);
 
 		int Daughters();
-		TLorentzVector* DaughterVector(int i, Reference Frame = RestFrame);
-		Particle* Daughter(int i, Reference Frame = RestFrame);
-		TLorentzVector *LabF();
-		TLorentzVector *Rest();
-		TLorentzVector *Parent(Reference Frame = RestFrame);
+		TLorentzVector DaughterVector(int i, Reference Frame = restFrame);
+		Particle Daughter(int i, Reference Frame = restFrame);
+		TLorentzVector LabFrame();
+		TLorentzVector RestFrame();
+		TLorentzVector Parent(Reference Frame = restFrame);
 
-		void SetLabf(TLorentzVector &Vec);
-		void SetRest(double Mass);
+		void SetLabFrame(TLorentzVector vec);
+		void SetRestFrame(double Mass);
 
 		void Reset();
 		void SetFunction(double (PhaseSpace::*FF)(double));
@@ -165,7 +165,7 @@ class PhaseSpace : public Amplitude
 	private:
 		TGenPhaseSpace *Event;
 		TRandom3 *GenMT;
-		TLorentzVector *P_labf, *P_rest;
+		TLorentzVector pLabFrame, pRestFrame;
 		int nDaughter;
 
 		double (Amplitude::*M2_Function)(double, double, double);

@@ -1,173 +1,187 @@
 #include "Efficiency.h"
 
-Efficiency::Efficiency(std::string InFile)
+Efficiency::Efficiency(std::string mcFile) :
+	hAll(NULL),
+	hCut(NULL),
+	W(1)
 {
-	double Mass;
-	std::string Line, SimFile, CutFile, BkgName;
-	std::stringstream ssL;
+	inFile = new TFile(mcFile.c_str());
+	TTree *data = dynamic_cast<TTree*> (inFile->Get("Data"));
 
-	std::ifstream Input(InFile.c_str());
-	while (std::getline(Input, Line))
-	{
-		if (Line[0] == '#') continue;
-
-		ssL.str("");
-		ssL.clear();
-		ssL << Line;
-
-		ssL >> Mass >> SimFile >> CutFile;
-		std::cout << Mass << "\t" << SimFile << "\t" << CutFile << std::endl;
-
-		vMass.push_back(Mass);
-		vSim.push_back(SimFile);
-		vCut.push_back(CutFile);
-	}	
+	LoadTree(data);
 }
 
-void Efficiency::InitFunc()	//energies from 0 to 20, 100 bin; masses from 0 to 2.0, 400 bin
+Efficiency::~Efficiency()
 {
-	hhFunc = new TH2D("hhfunc", "Efficiency function", 100, 0, 20, 400, 0, 2.0);
-	hCut = new TH1D("hcut", "Energy after cut", 100, 0, 20);
-	hAll = new TH1D("hall", "Energy before cut", 100, 0, 20);
+	hAll->Delete();
+	hCut->Delete();
+	inFile->Close();
 }
 
-void Efficiency::LoopFile()
+void Efficiency::LoadTree(TTree *tree)
 {
-	InitFunc();
-	for (unsigned int i = 0; i < vMass.size(); ++i)
-	{
-		TreeFile = new TFile(vSim.at(i).c_str(), "OPEN");
-		TreeFile->cd();
-	 	Data = dynamic_cast<TTree*> (TreeFile->Get("Data"));
-		InitTree();
-		LoadCut(vCut.at(i));
-
-		LoopTree();
-		LoadFunction(vMass.at(i));
-
-		TreeFile->Close();
-	}		
-}
-
-void Efficiency::LoopTree()
-{
-	hAll->Reset("ICES");
-	hCut->Reset("ICES");
-
-	for (unsigned int i = 0; i < Data->GetEntries(); ++i)
-	{
-		Data->GetEntry(i);
-
-		FillAll();
-		FillCut();
-	}
-}
-
-void Efficiency::InitTree()
-{
-	Data->SetBranchAddress("True", &True, &b_fTrue);
-	Data->SetBranchAddress("W",    &W,    &b_fW);
-	//Data->SetBranchAddress("R",    &R,    &b_fR);
+	if (!tree)
+		return;
+	Data = tree;
 
 	Data->SetBranchAddress("E_A", &E_A, &b_fEnergyA);
 	Data->SetBranchAddress("P_A", &P_A, &b_fMomentA);
 	Data->SetBranchAddress("T_A", &T_A, &b_fTransvA);
 	Data->SetBranchAddress("TheA", &TheA, &b_fThetaA);
 	Data->SetBranchAddress("PhiA", &PhiA, &b_fPhiA);
-	//Data->SetBranchAddress("M_A", &M_A, &b_fMassA);
+	Data->SetBranchAddress("M_A", &M_A, &b_fMassA);
+	Data->SetBranchAddress("In_A", &In_A, &b_fLengthA);
+	Data->SetBranchAddress("Out_A", &Out_A, &b_fLengthoA);
 	Data->SetBranchAddress("E_B", &E_B, &b_fEnergyB);
 	Data->SetBranchAddress("P_B", &P_B, &b_fMomentB);
 	Data->SetBranchAddress("T_B", &T_B, &b_fTransvB);
 	Data->SetBranchAddress("TheB", &TheB, &b_fThetaB);
 	Data->SetBranchAddress("PhiB", &PhiB, &b_fPhiB);
-	//Data->SetBranchAddress("M_B", &M_B, &b_fMassB);
+	Data->SetBranchAddress("M_B", &M_B, &b_fMassB);
+	Data->SetBranchAddress("In_B", &In_B, &b_fLengthB);
+	Data->SetBranchAddress("Out_B", &Out_B, &b_fLengthoB);
 	Data->SetBranchAddress("Angle", &Angle, &b_fAngle);
 	Data->SetBranchAddress("E_0", &E_0, &b_fEnergy0);
 	Data->SetBranchAddress("P_0", &P_0, &b_fMoment0);
 	Data->SetBranchAddress("T_0", &T_0, &b_fTransv0);
-	Data->SetBranchAddress("The0", &The0, &b_fTheta0);
-	//Data->SetBranchAddress("Phi0", &Phi0, &b_fPhi0);
+	Data->SetBranchAddress("The0", &The0, &b_fTh0ta0);
+	Data->SetBranchAddress("Phi0", &Phi0, &b_fPhi0);
 	Data->SetBranchAddress("M_0", &M_0, &b_fMass0);
+
+	if (Data->GetBranch("True"))
+	{
+		Data->SetBranchAddress("True", &True);//, &b_fTrue);
+		Data->SetBranchAddress("W",    &W);//,    &b_fW);
+		Hist = &True;
+	}
+	else
+		Hist = &E_0;
 }
 
-void Efficiency::LoadCut(std::string CutFile)
+void Efficiency::LoadCut(std::string cutFile)
 {
 	Data->SetBranchStatus("*", 0);		// disable all branches
-	Data->SetBranchStatus("True", 1);	// always on
-	Data->SetBranchStatus("W",    1);	// always on
+	if (Data->GetBranch("True"))
+	{
+		Data->SetBranchStatus("True", 1);
+		Data->SetBranchStatus("W",    1);
+	}
+	else
+		Data->SetBranchStatus("E_0", 1);
+
 	mRef.clear();
 	mCutLo.clear();
 	mCutUp.clear();
 	mSpecialLo.clear();
 	mSpecialUp.clear();
 
-	double Lower, Upper;
-	std::string Line, BranchName;
-	std::stringstream ssL;
+	double lower, upper;
+	std::string line, branchName;
 
-	std::ifstream Input(CutFile.c_str());
-	while (std::getline(Input, Line))
+	std::ifstream in(cutFile.c_str());
+	while (std::getline(in, line))
 	{
-		if (Line[0] == '#') continue;
+		if (line.find_first_of('#') != std::string::npos)
+			line.erase(line.find_first_of('#'));
+		if (line.empty())
+			continue;
 
-		ssL.str("");
-		ssL.clear();
-		ssL << Line;
+		std::stringstream ssl(line);
+		ssl >> branchName >> lower >> upper;
 
-		ssL >> BranchName >> Lower >> Upper;
-
-		if (BranchName == "E_A")
-			SetMap(BranchName, &E_A, Lower, Upper);
-		else if (BranchName == "P_A")
-			SetMap(BranchName, &P_A, Lower, Upper);
-		else if (BranchName == "T_A")
-			SetMap(BranchName, &T_A, Lower, Upper);
-		else if (BranchName == "TheA")
-			SetMap(BranchName, &TheA, Lower, Upper);
-		else if (BranchName == "PhiA")
-			SetMap(BranchName, &PhiA, Lower, Upper);
-		else if (BranchName == "E_B")
-			SetMap(BranchName, &E_B, Lower, Upper);
-		else if (BranchName == "P_B")
-			SetMap(BranchName, &P_B, Lower, Upper);
-		else if (BranchName == "T_B")
-			SetMap(BranchName, &T_B, Lower, Upper);
-		else if (BranchName == "TheB")
-			SetMap(BranchName, &TheB, Lower, Upper);
-		else if (BranchName == "PhiB")
-			SetMap(BranchName, &PhiB, Lower, Upper);
-		else if (BranchName == "E_0")
-			SetMap(BranchName, &E_0, Lower, Upper);
-		else if (BranchName == "P_0")
-			SetMap(BranchName, &P_0, Lower, Upper);
-		else if (BranchName == "T_0")
-			SetMap(BranchName, &T_0, Lower, Upper);
-		else if (BranchName == "The0")
-			SetMap(BranchName, &The0, Lower, Upper);
-		else if (BranchName == "M_0")
-			SetMap(BranchName, &M_0, Lower, Upper);
-		else if (BranchName == "Angle")
-			SetMap(BranchName, &Angle, Lower, Upper);
-		else if (BranchName == "CosAB")		//cos(PhiA-PhiB)
-			SetSpecial(0, Lower, Upper);
-		else if (BranchName == "aCosAB")	//abs(cos(PhiA-PhiB))
-			SetSpecial(1, Lower, Upper);
-		else if (BranchName == "CircAB")	//E_A*E_A+E_B*E_B
-			SetSpecial(2, Lower, Upper);
-		else if (BranchName == "atAB0")		//fabs(TheA-TheB)/The0
-			SetSpecial(3, Lower, Upper);
-		else if (BranchName == "T_A+B")		//T_A+T_B
-			SetSpecial(4, Lower, Upper);
-		else if (BranchName == "T_AB0")		//(T_A+T_B)/T_0
-			SetSpecial(5, Lower, Upper);
-		else if (BranchName == "TTA")		//(T_A+T_B)/T_0
-			SetSpecial(6, Lower, Upper);
+		if (branchName == "E_A")
+			SetCut(branchName, &E_A, lower, upper);
+		else if (branchName == "P_A")
+			SetCut(branchName, &P_A, lower, upper);
+		else if (branchName == "T_A")
+			SetCut(branchName, &T_A, lower, upper);
+		else if (branchName == "TheA")
+			SetCut(branchName, &TheA, lower, upper);
+		else if (branchName == "PhiA")
+			SetCut(branchName, &PhiA, lower, upper);
+		else if (branchName == "E_B")
+			SetCut(branchName, &E_B, lower, upper);
+		else if (branchName == "P_B")
+			SetCut(branchName, &P_B, lower, upper);
+		else if (branchName == "T_B")
+			SetCut(branchName, &T_B, lower, upper);
+		else if (branchName == "TheB")
+			SetCut(branchName, &TheB, lower, upper);
+		else if (branchName == "PhiB")
+			SetCut(branchName, &PhiB, lower, upper);
+		else if (branchName == "E_0")
+			SetCut(branchName, &E_0, lower, upper);
+		else if (branchName == "P_0")
+			SetCut(branchName, &P_0, lower, upper);
+		else if (branchName == "T_0")
+			SetCut(branchName, &T_0, lower, upper);
+		else if (branchName == "The0")
+			SetCut(branchName, &The0, lower, upper);
+		else if (branchName == "M_0")
+			SetCut(branchName, &M_0, lower, upper);
+		else if (branchName == "Angle")
+			SetCut(branchName, &Angle, lower, upper);
+		else if (branchName == "CosAB")		//cos(PhiA-PhiB)
+			SetSpecial(0, lower, upper);
+		else if (branchName == "aCosAB")	//abs(cos(PhiA-PhiB))
+			SetSpecial(1, lower, upper);
+		else if (branchName == "CircAB")	//E_A*E_A+E_B*E_B
+			SetSpecial(2, lower, upper);
+		else if (branchName == "atAB0")		//fabs(TheA-TheB)/The0
+			SetSpecial(3, lower, upper);
+		else if (branchName == "T_A+B")		//T_A+T_B
+			SetSpecial(4, lower, upper);
+		else if (branchName == "T_AB0")		//(T_A+T_B)/T_0
+			SetSpecial(5, lower, upper);
+		else if (branchName == "TTA")		//(T_A+T_B)/T_0
+			SetSpecial(6, lower, upper);
 		else
-			std::cout << BranchName << ": branch unknown!" << std::endl;
+			std::cout << branchName << ": branch unknown!" << std::endl;
 	}
 }
 
-void Efficiency::SetMap(std::string BN, double *Address, double Lo, double Up)
+void Efficiency::LoadSpectra(double mass)
+{
+	if (hAll)
+		hAll->Delete();
+	if (hCut)
+		hCut->Delete();
+
+	hAll = new TH1D("hall", "Energy before cut", 100, 0, 20);
+	hCut = new TH1D("hcut", "Energy after cut", 100, 0, 20);
+
+	for (int i = 0; i < Data->GetEntries(); ++i)
+	{
+		Data->GetEntry(i);
+
+		hAll->Fill(*Hist, W);
+		if (PassCut() && SpecialCut())
+			hCut->Fill(*Hist, W);
+	}
+
+	//if (mass >= 0.0)	//store if mass is positive, for function extrapoltion
+	//{
+	//	if (mAll.count(mass))
+	//		delete mAll[mass];
+	//	if (mCut.count(mass))
+	//		delete mCut[mass];
+
+	//	mAll[mass] = hAll;
+	//	mCut[mass] = hCut;
+	//}
+}
+
+double Efficiency::EventsLeft()
+{
+	return hCut->Integral();
+}
+
+double Efficiency::ReductionFactor()
+{
+	return hCut->Integral() / hAll->Integral();
+}
+
+void Efficiency::SetCut(std::string BN, double *Address, double Lo, double Up)
 {
 	Data->SetBranchStatus(BN.c_str(), 1);		// activate branchname
 	mRef[BN] = Address;
@@ -175,9 +189,9 @@ void Efficiency::SetMap(std::string BN, double *Address, double Lo, double Up)
 	mCutUp[BN] = Up;
 }
 
-void Efficiency::SetSpecial(int CutNumber, double Lo, double Up)
+void Efficiency::SetSpecial(int cutNumber, double Lo, double Up)
 {
-	switch (CutNumber)
+	switch (cutNumber)
 	{
 		case 0:		//Special cut CosAB
 		case 1:		//Special cut AbsAB
@@ -208,43 +222,30 @@ void Efficiency::SetSpecial(int CutNumber, double Lo, double Up)
 			break;
 	}
 
-	mSpecialLo[CutNumber] = Lo;
-	mSpecialUp[CutNumber] = Up;
-}
-
-void Efficiency::FillAll()
-{
-	hAll->Fill(True, W);
-}
-
-void Efficiency::FillCut()
-{
-	if (PassCut() && SpecialCut())
-		hCut->Fill(True, W);
+	mSpecialLo[cutNumber] = Lo;
+	mSpecialUp[cutNumber] = Up;
 }
 
 bool Efficiency::PassCut()
 {
-	bool Ret = true;
-
+	bool ret = true;
 	for (im = mRef.begin(); im != mRef.end(); ++im)
 	{
 		double Value = *(im->second);
 		if (!(Value > mCutLo[im->first] && 
 		      Value < mCutUp[im->first]))
 		{
-			Ret = false;
+			ret = false;
 			break;
 		}
 	}
 
-	return Ret;
+	return ret;
 }
 
 bool Efficiency::SpecialCut()
 {
-	bool Ret = true;
-
+	bool ret = true;
 	for (is = mSpecialLo.begin(); is != mSpecialLo.end(); ++is)
 	{
 		double Value;
@@ -278,28 +279,36 @@ bool Efficiency::SpecialCut()
 		if (!(Value > is->second &&
 		      Value < mSpecialUp[is->first]))
 		{
-			Ret = false;
+			ret = false;
 			break;
 		}
 	}
 
-	return Ret;
+	return ret;
 }
 
-void Efficiency::LoadFunction(double Mass)
+/*
+TH2D* Efficiency::MakeFunction()
 {
-	for (int Bin = 1; Bin < hAll->GetNbinsX()+1; ++Bin)
+	TH2D* hhFunc = new TH2D("hhfunc", "Efficiency function", 100, 0, 20, 400, 0, 2.0);
+
+	//loop through masses and histograms and lohad TH2
+	std::map<double, TH1D*>::iterator im;
+	for (im = mAll.begin(); im != mAll.end(); ++im)
 	{
-		int yBin = hhFunc->GetYaxis()->FindBin(Mass);
-		double Ratio = hAll->GetBinContent(Bin) == 0 ? 1.0 : hCut->GetBinContent(Bin)/hAll->GetBinContent(Bin);
+		for (int bin = 1; bin < im->second->GetNbinsX()+1; ++bin)
+		{
+			int yBin = hhFunc->GetYaxis()->FindBin(im->first);
+			double frac = (im->second->GetBinContent(Bin) == 0 ? 1.0 :
+					mCut[im->first]->GetBinContent(Bin) / 
+					mAll[im->first]->GetBinContent(Bin);
 
-		hhFunc->SetBinContent(Bin, yBin, Ratio);
+			hhFunc->SetBinContent(bin, yBin, frac);
+		}
 	}
-}
 
+	//complete hhFunc by extrapolation
 
-void Efficiency::MakeFunction()
-{
 	TRandom3 MT;
 	TH1D *ProjX = hhFunc->ProjectionX();	//energies
 	TH1D *ProjY = hhFunc->ProjectionY();	//masses
@@ -310,8 +319,8 @@ void Efficiency::MakeFunction()
 
 	for (int Ebin = 1; Ebin < ProjX->GetNbinsX()+1; ++Ebin)
 	{
-		BinMass0 = ProjY->FindBin(vMass.at(0));	//0
-		BinMass1 = ProjY->FindBin(vMass.at(1));	//1
+		BinMass0 = ProjY->FindFirstBin();
+		BinMass1 = ProjY->FindFirstBin(0, 1, BinMass0);
 
 		f0 = hhFunc->GetBinContent(Ebin, BinMass0);
 		f1 = hhFunc->GetBinContent(Ebin, BinMass1);
@@ -335,6 +344,7 @@ void Efficiency::MakeFunction()
 				hhFunc->SetBinContent(Ebin, Mbin, Eff);
 		}
 
+		while (BinMass1 < ProjY->GetNbinsX())
 		for (int i = 1; i < vMass.size()-1; i++)	//loop from i = 1 to i = n
 		{
 			BinMass0 = ProjY->FindBin(vMass.at(i));	//i
@@ -378,11 +388,7 @@ void Efficiency::MakeFunction()
 		}
 	}
 }
-
-TH2D *Efficiency::GetFunction()
-{
-	return hhFunc;
-}
+*/
 
 TH1D *Efficiency::GetAll()
 {
