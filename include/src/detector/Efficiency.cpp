@@ -352,9 +352,15 @@ void Efficiency::Reset()
 	mLower.clear();
 	mUpper.clear();
 	if (hAll)
+	{
 		hAll->Delete();
+		hAll = NULL;
+	}
 	if (hCut)
+	{
 		hCut->Delete();
+		hCut = NULL;
+	}
 }
 
 void Efficiency::SetCut(std::string name, double lower, double upper)

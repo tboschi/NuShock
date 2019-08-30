@@ -222,6 +222,7 @@ int main(int argc, char** argv)
 		outName.insert(outName.find(".dat"), "_U");
 	}
 
+
 	//neutrino classes and decay channels
 	//
 	Neutrino nu0(0, opt0 | optHel);
@@ -267,6 +268,8 @@ int main(int argc, char** argv)
 
 	//Detector class
 	//
+	if (!module.empty())
+		outName.insert(outName.find(".dat"), module);
 	Detector *ndBox = new Detector(detConfig, module);
 
 	std::vector<std::vector<double> > backCurve(channels.size());//a collection of parabolas for each channel
