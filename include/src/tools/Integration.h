@@ -11,7 +11,7 @@
 #include <limits>
 
 #include "cuba.h"
-#include "Tools/asa047.hpp"
+#include "src/tools/asa047.hpp"
 
 namespace Inte
 {

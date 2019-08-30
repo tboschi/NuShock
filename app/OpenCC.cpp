@@ -48,8 +48,8 @@ int main(int argc, char** argv)
 
 	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	double mp = Const::fMProton;
-	double mn = Const::fMNeutron;
+	double mp = Const::MProton;
+	double mn = Const::MNeutron;
 	double Mass;
 	unsigned int A;
 	std::string tName;
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	{
 		CCxsec->SetProb(sqrt(cmE*cmE - mp*mp), 0, 0, cmE);
 		double Err, Chi;
-		Out << cmE << "\t" << sqrt(CCxsec->s()) << "\t" << Const::fGeV2ub * A * CCxsec->Total(Err, Chi) << "\t" << Err << std::endl;
+		Out << cmE << "\t" << sqrt(CCxsec->s()) << "\t" << Const::GeV2ub * A * CCxsec->Total(Err, Chi) << "\t" << Err << std::endl;
 	}
 
 	/*

@@ -623,7 +623,7 @@ double PhaseSpace::max_NeutrinoLeptonLepton(double x, double y, double z, double
 	F_var.push_back(gR);	//4
 
 	SetFunction_D(&PhaseSpace::max_NeutrinoLeptonLepton_D);
-	return num::NelMedSolver(this, 4, num::Max);
+	return NelMedSolver(this, 4, -1);	//invert for max
 }
 
 double PhaseSpace::max_NeutrinoLeptonLepton_D(double *p)
@@ -710,7 +710,7 @@ double PhaseSpace::max_ToPseudoMeson(double x, double y)
 	F_var.push_back(y);
 
 	SetFunction(&PhaseSpace::max_ToPseudoMeson_cos0);
-	return num::GoldRatioSolver(this, num::Max);
+	return GoldRatioSolver(this, -1);	//-1 to invert function
 }
 
 double PhaseSpace::max_ToPseudoMeson_cos0(double cos0)
@@ -784,7 +784,7 @@ double PhaseSpace::max_ToVectorMeson(double x, double y)
 	F_var.push_back(y);
 
 	SetFunction(&PhaseSpace::max_ToVectorMeson_cos0);
-	return num::GoldRatioSolver(this, num::Max);
+	return GoldRatioSolver(this, -1);	//-1 to invert function
 }
 
 double PhaseSpace::max_ToVectorMeson_cos0(double cos0)
@@ -841,7 +841,7 @@ double PhaseSpace::max_LeptonNeutrino(double x, double y, double z)
 	F_var.push_back(z);	//2	//z
 
 	SetFunction(&PhaseSpace::max_LeptonNeutrino_u);
-	return num::GoldRatioSolver(this, num::Max);
+	return GoldRatioSolver(this, -1);	//-1 to invert function
 }
 
 double PhaseSpace::max_LeptonNeutrino_u(double u)	//vars is s 
@@ -890,7 +890,7 @@ double PhaseSpace::max_AntiLeptonNeutrino(double x, double y, double z)	//vars i
 	F_var.push_back(z);	//2	//z
 
 	SetFunction(&PhaseSpace::max_AntiLeptonNeutrino_s);
-	return num::GoldRatioSolver(this, num::Max);
+	return GoldRatioSolver(this, -1);	//-1 to invert function
 }
 
 double PhaseSpace::max_AntiLeptonNeutrino_s(double s)	//vars is s 
@@ -971,7 +971,7 @@ double PhaseSpace::max_MesonThree(double x, double y, double z, double L_, doubl
 	F_var.push_back(L0);	//5	//linear dep for decay constant
 
 	SetFunction_D(&PhaseSpace::max_MesonThree_D);
-	return num::NelMedSolver(this, 2, num::Max);
+	return NelMedSolver(this, 2, -1);
 }
 
 double PhaseSpace::max_MesonThree_D(double *p)

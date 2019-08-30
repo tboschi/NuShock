@@ -490,9 +490,9 @@ void Efficiency::ApplyCut(double mass)
 
 	if (funcSet)
 	{
+		int y = hhFunc->GetYaxis()->FindBin(mass);
 		for (int x = 1; x < hAll->GetNbinsX()+1; ++x)
 		{
-			int y = hhFunc->GetYaxis()->FindBin(mass);
 			double frac = hAll->GetBinContent(x) == 0 ? 1.0 :
 				      hCut->GetBinContent(x) / hAll->GetBinContent(x);
 

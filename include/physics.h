@@ -4,3 +4,4 @@
 #include "src/physics/PhaseSpace.h"
 //#include "src/physics/Scattering.h"
 #include "src/physics/Neutrino.h"
+#include "src/physics/Hadron.h"

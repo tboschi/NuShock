@@ -56,7 +56,7 @@ namespace Const
 	static const double MQuarkU   = 2.2e-3;
 	static const double MQuarkD   = 4.7e-3;
 	static const double MQuarkS   = 96e-3;
-	static const double MQuarkC   = 1.28;
+	static const double MQuarkC   = 1.27;
 	static const double MQuarkB   = 4.18;
 	static const double MQuarkT   = 173.1;
 	static const double MPhoton   = 0.0;

@@ -394,7 +394,7 @@ double Production::I_LeptonNeutrino(double x, double y, double z)//, double thet
 	//F_var.push_back(cos0);	//3	//theta
 
 	SetFunction(&Production::I_LeptonNeutrino_u);
-	return num::BooleIntegration(this); 
+	return BooleIntegration(this); 
 }
 
 double Production::I_LeptonNeutrino_u(double u)	//fixing one variable
@@ -437,7 +437,7 @@ double Production::I_AntiLeptonNeutrino(double x, double y, double z)//, double 
 	//F_var.push_back(cos0);	//3	//theta
 
 	SetFunction(&Production::I_AntiLeptonNeutrino_s);
-	return num::BooleIntegration(this);
+	return BooleIntegration(this);
 }
 
 double Production::I_AntiLeptonNeutrino_s(double s)	//the term is written for a neutrino production
@@ -493,7 +493,7 @@ double Production::I_LeptonThree(double x, double y, double z)
 	F_var.push_back(z);	//2	//a2
 
 	SetFunction(&Production::I_LeptonThree_s);
-	return num::BooleIntegration(this); 		//switch to Vega
+	return BooleIntegration(this); 		//switch to Vega
 }
 
 double Production::I_LeptonThree_s(double s)
@@ -544,7 +544,7 @@ double Production::MesonThreeDecay2(double M_Meson0, double M_Meson, double M_Le
 	//double Error, Chi2Prob;
 
 	SetFunction(&Production::I_MesonThree_2);
-	double Int = num::BooleIntegration(this); 		//switch to Vega
+	double Int = BooleIntegration(this); 		//switch to Vega
 	return Const::GF2 * Mass(5) / (64.0 * Const::pi3) * pow(Const::U_us, 2) * Int;
 }
 double Production::I_MesonThree_2(double s)
@@ -605,7 +605,7 @@ double Production::I_MesonThree(double x, double y, double z, double L_, double 
 	//double Error, Chi2Prob;
 
 	SetFunction(&Production::I_MesonThree_s);
-	return num::BooleIntegration(this); 		//switch to Vega
+	return BooleIntegration(this); 		//switch to Vega
 }
 
 double Production::I_MesonThree_s(double s)	//fixing one variable
@@ -613,7 +613,7 @@ double Production::I_MesonThree_s(double s)	//fixing one variable
 	F_var.push_back(s);	//6	//x var
 
 	SetFunction(&Production::I_MesonThree_t);
-	double Ret = num::BooleIntegration(this);
+	double Ret = BooleIntegration(this);
 
 	F_var.pop_back();
 	SetFunction(&Production::I_MesonThree_s);
