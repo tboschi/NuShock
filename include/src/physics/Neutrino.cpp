@@ -102,9 +102,18 @@ void Neutrino::SetParent(Amplitude *Object)
 //////////
 ///DECAY///
 //////////
-double Neutrino::DecayThreshold()
+
+double Neutrino::DecayThreshold(std::string name)
 {
-	if (DecayChannel() == Amplitude::_undefined)
+	if (name.empty())
+		return DecayThreshold(DecayChannel());
+	else
+		return DecayThreshold(theDecayRates->FindChannel(name));
+}
+
+double Neutrino::DecayThreshold(Amplitude::Channel name)
+{
+	if (name == Amplitude::_undefined)
 	{
 		std::vector<Amplitude::Channel> vChan = theDecayRates->ListChannels();
 		double Limit = Const::MZ;
@@ -119,23 +128,23 @@ double Neutrino::DecayThreshold()
 		return Limit;
 	}
 	else
-		return DecayThreshold(DecayChannel());
+	{
+		SetParent(theDecayRates);
+		return theDecayRates->MassThreshold(name);
+	}
 }
 
-double Neutrino::DecayThreshold(std::string Name)
+bool Neutrino::IsDecayAllowed(std::string name)
 {
-	return DecayThreshold(theDecayRates->FindChannel(Name));
+	if (name.empty())
+		return IsDecayAllowed(DecayChannel());
+	else
+		return IsDecayAllowed(theDecayRates->FindChannel(name));
 }
 
-double Neutrino::DecayThreshold(Amplitude::Channel Name)
+bool Neutrino::IsDecayAllowed(Amplitude::Channel name)
 {
-	SetParent(theDecayRates);
-	return theDecayRates->MassThreshold(Name);
-}
-
-bool Neutrino::IsDecayAllowed()
-{
-	if (DecayChannel() == Amplitude::_undefined)
+	if (name == Amplitude::_undefined)
 	{
 		std::vector<Amplitude::Channel> vChan = theDecayRates->ListChannels();
 		bool Ret = false;
@@ -145,18 +154,10 @@ bool Neutrino::IsDecayAllowed()
 		return Ret;
 	}
 	else
-		return IsDecayAllowed(DecayChannel());
-}
-
-bool Neutrino::IsDecayAllowed(std::string Name)
-{
-	return IsDecayAllowed(theDecayRates->FindChannel(Name));
-}
-
-bool Neutrino::IsDecayAllowed(Amplitude::Channel Name)
-{
-	SetParent(theDecayRates);
-	return theDecayRates->IsAllowed(Name);
+	{
+		SetParent(theDecayRates);
+		return theDecayRates->IsAllowed(name);
+	}
 }
 
 void Neutrino::DecayChannels(std::vector<std::string> &vChan)
@@ -172,46 +173,51 @@ double Neutrino::DecayTotal()
 	return DecayWidth(Amplitude::_ALL);
 }
 
-double Neutrino::DecayWidth()
+double Neutrino::DecayWidth(std::string name)
 {
-	return DecayWidth(DecayChannel());
+	if (name.empty())
+		return DecayWidth(DecayChannel());
+	else
+		return DecayWidth(theDecayRates->FindChannel(name));
 }
 
-double Neutrino::DecayWidth(std::string Name)
-{
-	return DecayWidth(theDecayRates->FindChannel(Name));
-}
-
-double Neutrino::DecayWidth(Amplitude::Channel Name)
+double Neutrino::DecayWidth(Amplitude::Channel name)
 {
 	SetParent(theDecayRates);
-	//return (IsMajorana() ? 2.0 : 1.0) * theDecayRates->Gamma(Name);
-	return theDecayRates->Gamma(Name);
+	//return (IsMajorana() ? 2.0 : 1.0) * theDecayRates->Gamma(name);
+	return theDecayRates->Gamma(name);
 }
 
-double Neutrino::DecayBranch()
+double Neutrino::DecayBranch(std::string name)
 {
-	return DecayBranch(DecayChannel());
+	if (name.empty())
+		return DecayBranch(DecayChannel());
+	else
+		return DecayBranch(theDecayRates->FindChannel(name));
 }
 
-double Neutrino::DecayBranch(std::string Name)
-{
-	return DecayBranch(theDecayRates->FindChannel(Name));
-}
-
-double Neutrino::DecayBranch(Amplitude::Channel Name)
+double Neutrino::DecayBranch(Amplitude::Channel name)
 {
 	SetParent(theDecayRates);
-	return theDecayRates->Branch(Name);
+	return theDecayRates->Branch(name);
 }
 
 ////////////////
 ///PRODUCTION///
 ////////////////
 //
-double Neutrino::ProductionThreshold()
+
+double Neutrino::ProductionThreshold(std::string name)
 {
-	if (ProductionChannel() == Amplitude::_undefined)
+	if (name.empty())
+		return ProductionThreshold(ProductionChannel());
+	else
+		return ProductionThreshold(theProduction->FindChannel(name));
+}
+
+double Neutrino::ProductionThreshold(Amplitude::Channel name)
+{
+	if (name == Amplitude::_undefined)
 	{
 		std::vector<Amplitude::Channel> vChan = theProduction->ListChannels();
 		double Limit = 0.0;
@@ -226,23 +232,23 @@ double Neutrino::ProductionThreshold()
 		return Limit;
 	}
 	else
-		return ProductionThreshold(ProductionChannel());
+	{
+		SetParent(theProduction);
+		return theProduction->MassThreshold(name);
+	}
 }
 
-double Neutrino::ProductionThreshold(std::string Name)
+bool Neutrino::IsProductionAllowed(std::string name)
 {
-	return ProductionThreshold(theProduction->FindChannel(Name));
+	if (name.empty())
+		return IsProductionAllowed(ProductionChannel());
+	else
+		return IsProductionAllowed(theProduction->FindChannel(name));
 }
 
-double Neutrino::ProductionThreshold(Amplitude::Channel Name)
+bool Neutrino::IsProductionAllowed(Amplitude::Channel name)
 {
-	SetParent(theProduction);
-	return theProduction->MassThreshold(Name);
-}
-
-bool Neutrino::IsProductionAllowed()
-{
-	if (ProductionChannel() == Amplitude::_undefined)
+	if (name == Amplitude::_undefined)
 	{
 		std::vector<Amplitude::Channel> vChan = theProduction->ListChannels();
 		bool Ret = false;
@@ -252,18 +258,10 @@ bool Neutrino::IsProductionAllowed()
 		return Ret;
 	}
 	else
-		return IsProductionAllowed(ProductionChannel());
-}
-
-bool Neutrino::IsProductionAllowed(std::string Name)
-{
-	return IsProductionAllowed(theProduction->FindChannel(Name));
-}
-
-bool Neutrino::IsProductionAllowed(Amplitude::Channel Name)
-{
-	SetParent(theProduction);
-	return theProduction->IsAllowed(Name);
+	{
+		SetParent(theProduction);
+		return theProduction->IsAllowed(name);
+	}
 }
 
 void Neutrino::ProductionChannels(std::vector<std::string> &vChan)
@@ -274,107 +272,111 @@ void Neutrino::ProductionChannels(std::vector<std::string> &vChan)
 		vChan.push_back(theProduction->FindChannel(vAmpChan[ch]));
 }
 
-double Neutrino::ProductionWidth()
+double Neutrino::ProductionWidth(std::string name)
 {
-	return ProductionWidth(ProductionChannel());
+	if (name.empty())
+		return ProductionWidth(ProductionChannel());
+	else
+		return ProductionWidth(theProduction->FindChannel(name));
 }
 
-double Neutrino::ProductionWidth(std::string Name)
-{
-	return ProductionWidth(theProduction->FindChannel(Name));
-}
-
-double Neutrino::ProductionWidth(Amplitude::Channel Name)
+double Neutrino::ProductionWidth(Amplitude::Channel name)
 {
 	SetParent(theProduction);
-	return theProduction->Gamma(Name);
+	return theProduction->Gamma(name);
 }
 
-double Neutrino::ProductionScale()
+double Neutrino::ProductionScale(std::string name)
 {
-	return ProductionScale(ProductionChannel());
+	if (name.empty())
+		return ProductionScale(ProductionChannel());
+	else
+		return ProductionScale(theProduction->FindChannel(name));
 }
 
-double Neutrino::ProductionScale(std::string Name)
-{
-	return ProductionScale(theProduction->FindChannel(Name));
-}
-
-double Neutrino::ProductionScale(Amplitude::Channel Name)
+double Neutrino::ProductionScale(Amplitude::Channel name)
 {
 	SetParent(theProduction);
-	//return theProduction->Gamma(Name, true) / theProdLightN->Gamma(Name) /
+	//return theProduction->Gamma(name, true) / theProdLightN->Gamma(name) /
 	//	(Helicity() ? 2.0 : 1.0);
-	return theProduction->Gamma(Name, true) / theProdLightN->Gamma(Name);
+	return theProduction->Gamma(name, true) / theProdLightN->Gamma(name);
 }
 
-std::vector<Particle> Neutrino::DecayPS()	//neutrino is labframe
+std::vector<Particle> Neutrino::DecayPS(std::string name)	//neutrino is labframe
 {
-	return DecayPS(DecayChannel());
+	if (name.empty())
+		return DecayPS(DecayChannel());
+	else
+		return DecayPS(theDecayRates->FindChannel(name));
 }
 
-std::vector<Particle> Neutrino::DecayPS(Amplitude::Channel Name)	//neutrino is labframe
+std::vector<Particle> Neutrino::DecayPS(Amplitude::Channel name)	//neutrino is labframe
 {
 	SetParent(thePhaseSpace);
 	//TLorentzVector vec = FourVector();
 	thePhaseSpace->SetLabFrame(FourVector());
 
 	std::vector<Particle> daughters;
-	if (thePhaseSpace->Generate(Name))
+	double val;
+	if (thePhaseSpace->Generate(name, val))
 		for (int i = 0; i < thePhaseSpace->Daughters(); ++i)
 			daughters.push_back(thePhaseSpace->Daughter(i, PhaseSpace::labFrame));
 	else
-		std::cout << "generation failed" << std::endl;
+		std::cout << "generation failed " << val << std::endl;
 
 	return daughters;
 }
 
-std::vector<Particle> Neutrino::ProductionPS(TLorentzVector &Vec)	//other particle is labframe
+std::vector<Particle> Neutrino::ProductionPS(TLorentzVector &vec, std::string name)	//other particle is labframe
 {
-	return ProductionPS(ProductionChannel(), Vec);
+	if (name.empty())
+		return ProductionPS(vec, DecayChannel());
+	else
+		return ProductionPS(vec, theProduction->FindChannel(name));
 }
 
-std::vector<Particle> Neutrino::ProductionPS(Amplitude::Channel Name, TLorentzVector &vec)
+std::vector<Particle> Neutrino::ProductionPS(TLorentzVector &vec, Amplitude::Channel name)
 {
 	SetParent(thePhaseSpace);
 	thePhaseSpace->SetLabFrame(vec);
 
 	std::vector<Particle> daughters;
-	if (thePhaseSpace->Generate(Name))
+	double val;
+	if (thePhaseSpace->Generate(name, val))
 		for (int i = 0; i < thePhaseSpace->Daughters(); ++i)
 			daughters.push_back(thePhaseSpace->Daughter(i, PhaseSpace::labFrame));
 	else
-		std::cout << "generation failed" << std::endl;
+		std::cout << "generation failed " << val << std::endl;
 
 	return daughters;
 }
 
-void Neutrino::SetDecayChannel(std::string Name)
+void Neutrino::SetDecayChannel(std::string name)
 {
-	chDecay = theDecayRates->FindChannel(Name);
+	chDecay = theDecayRates->FindChannel(name);
 }
 
-void Neutrino::SetProductionChannel(std::string Name)
+void Neutrino::SetProductionChannel(std::string name)
 {
-	chProduction = theProduction->FindChannel(Name);
+	chProduction = theProduction->FindChannel(name);
 }
 
-Amplitude::Channel Neutrino::DecayChannel()
+Amplitude::Channel Neutrino::DecayChannel() const
 {
 	return chDecay;
 }
 
-Amplitude::Channel Neutrino::ProductionChannel()
+Amplitude::Channel Neutrino::ProductionChannel() const
 {
 	return chProduction;
 }
 
-std::string Neutrino::DecayChannelName()
+std::string Neutrino::DecayChannelName() const
 {
 	return theDecayRates->ShowChannel(DecayChannel());
 }
 
-std::string Neutrino::ProductionChannelName()
+std::string Neutrino::ProductionChannelName() const
 {
 	return theProduction->ShowChannel(ProductionChannel());
 }

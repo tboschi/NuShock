@@ -16,6 +16,7 @@
 class CardDealer
 {
 	public:
+		CardDealer(bool verbosity = false);
 		CardDealer(std::string cardFile, bool verbosity = false);
 
 		bool Status();

@@ -55,7 +55,6 @@ class Tracker : public Detector
 
 	private:
 		//TRandom3 *GenMT;
-		std::string module;
 		TFile *FuncFile;
 		TH2D *hhFunc;
 		TH1D *hTemp, *hEfficiency;

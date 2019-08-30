@@ -32,7 +32,7 @@ class PhaseSpace : public Amplitude
 		~PhaseSpace();
 
 		bool SetDecay(Channel Name);
-		bool Generate(Channel Name);
+		bool Generate(Channel Name, double &val);
 		double Ratio(Channel Name);
 
 		double nEE_ratio();

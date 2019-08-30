@@ -123,11 +123,12 @@ int main(int argc, char** argv)
 
 	double RateCC = 0, RateNC = 0;
 	double Npot = 0;
-	for (unsigned int i = 0; i < hFlux->GetNbinsX(); ++i)
+	for (unsigned int i = 1; i < hFlux->GetNbinsX()+1; ++i)
 	{
 		Npot += hFlux->GetBinContent(i) * 0.2;
 		RateCC += hFlux->GetBinContent(i) * hXsecCC->GetBinContent(i) * 0.2;
 		RateNC += hFlux->GetBinContent(i) * hXsecNC->GetBinContent(i) * 0.2;
+		std::cout << i << " : " << hFlux->GetBinContent(i) << "\t" << hXsecCC->GetBinContent(i) << std::endl;
 	}
 	std::cout << "Rate CC " << RateCC << "\tRate NC " << RateNC << std::endl;
 	//RateCC *= TheBox->GetElement("Fiducial");		//fiducial volume

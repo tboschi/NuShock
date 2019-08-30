@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 
 	std::string Channel = "ALL", module;
 	
-	while((iarg = getopt_long(argc,argv, "d:l:f:m:n:c:o:LRDjE:M:T:x:h", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "d:l:f:m:n:c:o:LRDjE:M:T:X:h", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
@@ -125,6 +125,11 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	std::string catChannel = "_" + channel;
+	std::string catModule  = "_" + module;
+	outName.insert(outName.find(".root"), catChannel);
+	outName.insert(outName.find(".root"), catModule);
+
 	Tracker *theBox = new Tracker(detConfig, module);
 	Engine *theEngine = new Engine(fluxConfig);	//creating 1FHC and 1RHC fluxedrivers
 
@@ -160,7 +165,7 @@ int main(int argc, char** argv)
 		theEngine->BindNeutrino("nu_L", nu_L, Engine::FHC);
 		theEngine->BindNeutrino("nu_R", nu_R, Engine::RHC);
 
-		outName.insert(outName.find(".root"), "_major");
+		outName.insert(outName.find(".root"), "_major_");
 	}
 
 	std::stringstream ssm;
@@ -193,11 +198,13 @@ int main(int argc, char** argv)
 	bool H, P;
 	int PdgA, PdgB;
 	double E_A, P_A, T_A, TheA, PhiA, M_A, In_A, Out_A;
-	double e_A, p_A, t_A, theA, phiA;
+	double e_a, p_a, t_a, thea, phia;
 	double E_B, P_B, T_B, TheB, PhiB, M_B, In_B, Out_B;
-	double e_B, p_B, t_B, theB, phiB;
+	double e_b, p_b, t_b, theb, phib;
 	double E_0, P_0, T_0, The0, Phi0, M_0;
+	double e_0, p_0, t_0, the0, phi0, m_0;
 	double Angle;
+	double angle;
 
 	//CREATING TREE
 	//
@@ -221,11 +228,11 @@ int main(int argc, char** argv)
 	//data->Branch("M_A", &M_A, "fMassA/D");
 	data->Branch("In_A", &In_A, "fLengthA/D");
 	data->Branch("Out_A", &Out_A, "fLengthoA/D");
-	//data->Branch("e_A", &e_A, "fenergyA/D");
-	//data->Branch("p_A", &p_A, "fmomentA/D");
-	//data->Branch("t_A", &t_A, "ftransvA/D");
-	//data->Branch("theA", &theA, "fthetaA/D");
-	//data->Branch("phiA", &phiA, "fphiA/D");
+	//data->Branch("e_a", &e_a, "fenergya/D");
+	//data->Branch("p_a", &p_a, "fmomenta/D");
+	//data->Branch("t_a", &t_a, "ftransva/D");
+	//data->Branch("thea", &thea, "fthetaa/D");
+	//data->Branch("phia", &phia, "fphia/D");
 
 	//Particle B
 	data->Branch("PdgB", &PdgB, "fPdgB/I");		//true PDG code
@@ -237,11 +244,11 @@ int main(int argc, char** argv)
 	//data->Branch("M_B", &M_B, "fMassB/D");
 	data->Branch("In_B", &In_B, "fLengthB/D");
 	data->Branch("Out_B", &Out_B, "fLengthoB/D");
-	//data->Branch("e_B", &e_B, "fenergyB/D");
-	//data->Branch("p_B", &p_B, "fmomentB/D");
-	//data->Branch("t_B", &t_B, "ftransvB/D");
-	//data->Branch("theB", &theB, "fthetaB/D");
-	//data->Branch("phiB", &phiB, "fphiB/D");
+	//data->Branch("e_b", &e_b, "fenergyb/D");
+	//data->Branch("p_b", &p_b, "fmomentb/D");
+	//data->Branch("t_b", &t_b, "ftransvb/D");
+	//data->Branch("theb", &theb, "fthetab/D");
+	//data->Branch("phib", &phib, "fphib/D");
 
 	data->Branch("Angle", &Angle, "fAngle/D");
 
@@ -252,6 +259,12 @@ int main(int argc, char** argv)
 	data->Branch("The0", &The0, "fTh0ta0/D");
 	data->Branch("Phi0", &Phi0, "fPhi0/D");
 	data->Branch("M_0", &M_0, "fMass0/D");
+	//data->Branch("e_0", &e_0, "fenergy0/D");
+	//data->Branch("p_0", &p_0, "fmoment0/D");
+	//data->Branch("t_0", &t_0, "ftransv0/D");
+	//data->Branch("the0", &the0, "ftheta0/D");
+	//data->Branch("phi0", &phi0, "fphi0/D");
+	//data->Branch("m_0", &m_0, "fmass0/D");
 	//
 	//
 	//END TREE
@@ -292,6 +305,7 @@ int main(int argc, char** argv)
 			theBox->Focus(nu);
 			std::vector<Particle> product = nu.DecayPS(), particle;
 			std::vector<Particle>::iterator ip;
+			std::vector<Particle> original;
 
 			for (ip = product.begin(); ip != product.end(); ++ip)
 			{
@@ -307,9 +321,14 @@ int main(int argc, char** argv)
 					theBox->Pi0Decay(*ip, pA, pB);
 					particle.push_back(pA);
 					particle.push_back(pB);
+					original.push_back(pA);
+					original.push_back(pB);
 				}
 				else
+				{
 					particle.push_back(*ip);
+					original.push_back(*ip);
+				}
 			}
 
 			if (particle.size() == 2 &&
@@ -325,8 +344,14 @@ int main(int argc, char** argv)
 				//M_A = particle.at(0).Mass();
 				In_A = particle.at(0).TrackIn();
 				Out_A = particle.at(0).TrackOut();
+				//
+				//e_a = original.at(0).Energy();
+				//p_a = original.at(0).Momentum();
+				//t_a = original.at(0).Transverse();
+				//thea = original.at(0).Theta();
+				//phia = original.at(0).Phi();
 
-				PdgB = particle.at(0).Pdg();
+				PdgB = particle.at(1).Pdg();
 				E_B = particle.at(1).Energy();
 				P_B = particle.at(1).Momentum();
 				T_B = particle.at(1).Transverse();
@@ -335,10 +360,18 @@ int main(int argc, char** argv)
 				//M_B = particle.at(1).Mass();
 				In_B = particle.at(1).TrackIn();
 				Out_B = particle.at(1).TrackOut();
+				//
+				//e_b = original.at(1).Energy();
+				//p_b = original.at(1).Momentum();
+				//t_b = original.at(1).Transverse();
+				//theb = original.at(1).Theta();
+				//phib = original.at(1).Phi();
 
 				Angle = particle.at(0).Direction().Angle(particle.at(1).Direction());
+				//angle = original.at(0).Direction().Angle(original.at(1).Direction());
 
 				TLorentzVector Reco = particle.at(0).FourVector() + particle.at(1).FourVector();
+				//TLorentzVector reco = original.at(0).FourVector() + original.at(1).FourVector();
 
 				E_0 = Reco.E();
 				P_0 = Reco.P();
@@ -347,23 +380,12 @@ int main(int argc, char** argv)
 				Phi0 = Reco.Phi();
 				M_0 = Reco.M();
 
-				//TLorentzVector vA = particle.at(0).FourVector();
-				//TLorentzVector vB = particle.at(1).FourVector();
-				//TVector3 bst = - Reco.BoostVector();
-				//vA.Boost(bst);
-				//vB.Boost(bst);
-
-				//e_A  = vA.E();
-				//p_A  = vA.P();
-				//t_A  = vA.Pt();
-				//theA = vA.Theta();
-				//phiA = vA.Phi();
-
-				//e_B  = vB.E();
-				//p_B  = vB.P();
-				//t_B  = vB.Pt();
-				//theB = vB.Theta();
-				//phiB = vB.Phi();
+				//e_0 = reco.E();
+				//p_0 = reco.P();
+				//t_0 = reco.Pt();
+				//the0 = reco.Theta();
+				//phi0 = reco.Phi();
+				//m_0 = reco.M();
 
 				data->Fill();
 

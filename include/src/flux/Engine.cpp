@@ -185,6 +185,7 @@ double Engine::MakeSampler(Detector *box, std::string uuid, double ue, double um
 	if (ut < 0)
 		ut = mNeutrino[uuid].Ut();
 
+	//std::cout << "setting mixings to " << ue << ", " << um << ", " << ut << std::endl;
 	mNeutrino[uuid].SetMixings(ue, um, ut);
 
 	double integral = 0;
@@ -231,7 +232,7 @@ double Engine::DecayNumber(Detector *box, Current horn)
 
 double Engine::DecayNumber(Detector *box, std::string uuid)
 {
-	//std::cout << uuid << " W : " << box->Efficiency(mNeutrino[uuid]) << ", "
+	//std::cout << uuid << " : " << box->Efficiency(mNeutrino[uuid]) << ", "
 	//	  << box->DecayProb(mNeutrino[uuid]) << ", "
 	//	  << Intensity(uuid) << std::endl;
 	return box->Efficiency(mNeutrino[uuid]) * box->DecayProb(mNeutrino[uuid]) * Intensity(uuid);
@@ -269,6 +270,25 @@ double Engine::IntensitySample(std::string uuid)
 double Engine::IntensitySample(std::string uuid, double Energy)
 {
 	return mDriver[uuid]->InterpolateIntensity(sampleNu[uuid], Energy);
+}
+
+void Engine::SetDecay(std::string channel)
+{
+	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
+		SetDecay(iD->first, channel);
+}
+
+void Engine::SetDecay(std::string channel, Current horn)
+{
+	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
+		if (iD->first.find(HornName(horn)) != std::string::npos)
+			SetDecay(iD->first, channel);
+}
+
+void Engine::SetDecay(std::string uuid, std::string channel)
+{
+	if (!channel.empty())
+		mNeutrino[uuid].SetDecayChannel(channel);
 }
 
 void Engine::ScaleToDetector(Detector *box)

@@ -30,4 +30,5 @@
 #include "src/tools/Particle.h"
 #include "src/tools/CardDealer.h"
 #include "src/tools/PolyFit.h"
+#include "src/tools/BinarySearch.h"
 //#include "Tools/Library.h"

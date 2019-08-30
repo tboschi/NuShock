@@ -120,7 +120,7 @@ Amplitude::Process Amplitude::LoadMass(Channel Name)	//return true if Decay, fal
 			vMass.push_back(M_Electron);
 			vMass.push_back(M_Electron);
 			vPdg.push_back(12);
-			vPdg.push_back(11);
+			vPdg.push_back(-11);
 			vPdg.push_back(11);
 			return DecayRates;
 		case _nMM:
@@ -128,7 +128,7 @@ Amplitude::Process Amplitude::LoadMass(Channel Name)	//return true if Decay, fal
 			vMass.push_back(M_Muon);
 			vMass.push_back(M_Muon);
 			vPdg.push_back(12);
-			vPdg.push_back(13);
+			vPdg.push_back(-13);
 			vPdg.push_back(13);
 			return DecayRates;
 			//neutrino lepton lepton AB

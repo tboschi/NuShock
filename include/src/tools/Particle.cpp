@@ -129,7 +129,7 @@ int Particle::Charge() const
 
 double Particle::LifeTime() const
 {
-	switch (Pdg())
+	switch (std::abs(Pdg()))
 	{
 		case 13:
 			return 2.1969811e-6;	//muon

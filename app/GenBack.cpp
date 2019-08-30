@@ -30,23 +30,23 @@ int main(int argc, char** argv)
 	opterr = 1;
 	bool chargeID = false, verbose = false;
 	
-	std::string inFile, detConfig, module, channel, rootFile;
+	std::string inFile, detConfig, module, channel, outName;
 	
-	while((iarg = getopt_long(argc,argv, "d:i:r:m:c:Cvh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "d:i:o:l:c:Cvh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
 			case 'd':
 				detConfig.assign(optarg);
 				break;
-			case 'm':
+			case 'l':
 				module.assign(optarg);
 				break;
 			case 'i':
 				inFile.assign(optarg);
 				break;
-			case 'r':
-				rootFile.assign(optarg);
+			case 'o':
+				outName.assign(optarg);
 				//RootFile.assign(optarg);
 				break;
 			case 'c':
@@ -67,8 +67,19 @@ int main(int argc, char** argv)
 	
 	}
 
+	std::string catChannel = "_" + channel;
+	std::string catModule  = "_" + module;
+	outName.insert(outName.find(".root"), catChannel);
+	outName.insert(outName.find(".root"), catModule);
 
-	GenieBack *bkg = new GenieBack(inFile, rootFile, verbose);
+	if (inFile.find("numu") != std::string::npos)
+		outName.insert(outName.find(".root"), "_M");
+	else if (inFile.find("nue") != std::string::npos)
+		outName.insert(outName.find(".root"), "_E");
+	else if (inFile.find("nubar") != std::string::npos)
+		outName.insert(outName.find(".root"), "_B");
+
+	GenieBack *bkg = new GenieBack(inFile, outName, verbose);
 	Tracker *detector = new Tracker(detConfig, module);
 
 	// here you need to implement your definition of process, i.e. what final state you are looking for

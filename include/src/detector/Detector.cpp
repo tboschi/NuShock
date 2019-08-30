@@ -1,14 +1,19 @@
 #include "Detector.h"
 
-Detector::Detector(std::string ConfigName) :
-	GenMT(new TRandom3(0))
+Detector::Detector(std::string configName, std::string mod) :
+	GenMT(new TRandom3(0)),
+	module(mod)
 {
+	dc.ReadCard(configName);
+
+	/*
 	std::ifstream ConfigFile(ConfigName.c_str());
 
 	std::string Line, Key, Name, Channel;
 	std::stringstream ssL;
 	double Element;
 
+	dc.ReadCard(configName);
 	while (std::getline(ConfigFile, Line))
 	{
 		if (Line[0] == '#') continue;
@@ -35,9 +40,9 @@ Detector::Detector(std::string ConfigName) :
 				mDetector[Key] = Element;
 		}
 	}
+	*/
 
-	FuncFile = new TFile();
-	EffSet = false;
+	effSet = false;
 }
 
 std::vector<std::string> Detector::ListKey()
@@ -65,65 +70,91 @@ std::vector<std::string> Detector::ListChannel()
 
 double Detector::Get(std::string key)
 {
-	if (mDetector.count(key))
-		return mDetector[key];
+	double val;
+	if (dc.Get(key, val))
+		return val;
 	else
 		return 0.0;
 }
 
-Detector::Material Detector::GetMaterial(std::string Key)
+Detector::Material Detector::GetMaterial(std::string key)
 {
-	return mMaterial[Key];
+	std::string mat;
+	if (dc.Get(key, mat))
+		return FindMaterial(mat);
+	else
+		return undefined;
 }
 
-Detector::Material Detector::FindMaterial(std::string Name)
+Detector::Material Detector::FindMaterial(std::string name)
 {
-	if (Name == "LAr" || Name == "LiquidArgon")
+	if (name == "LAr" || name == "LiquidArgon")
 		return LAr;
-	else if (Name == "GasAr" || Name == "GasseousArgon")
+	else if (name == "GasAr" || name == "GasseousArgon")
 		return GasAr;
-	else if (Name == "Fe" || Name == "Iron")
+	else if (name == "Fe" || name == "Iron")
 		return Fe;
+	else if (name == "Pb" || name == "Lead")
+		return Pb;
+	else
+		return undefined;
 }
 
 double Detector::Efficiency(const Neutrino &Nu)
 {
-	if (EffSet)
-		return Efficiency(Nu.Energy(), Nu.Mass());
+	if (effSet)
+		return Efficiency(Nu.Energy(), Nu.Mass(), Nu.DecayChannelName());
 	else
 		return 1.0;
 }
 
-double Detector::Efficiency(double Energy, double Mass)
+double Detector::Efficiency(double energy, double mass, std::string channel)
 {
-	if (hhFunc)
+	if (mhFunc.count(channel))
 	{
-		int Ebin = hhFunc->GetXaxis()->FindBin(Energy);
-		int Mbin = hhFunc->GetYaxis()->FindBin(Mass);
+		int eBin = mhFunc[channel]->GetXaxis()->FindBin(energy);
+		int mBin = mhFunc[channel]->GetYaxis()->FindBin(mass);
 
-		return hhFunc->GetBinContent(Ebin, Mbin);
+		return mhFunc[channel]->GetBinContent(eBin, mBin);
 	}
 	else
+	{
+		std::cout << "efficiency function not set yet" << std::endl;
 		return -1.0;
+	}
 }
 
-void Detector::SetEfficiency(std::string Channel, bool U)
+//key will be a combination such as CHANNEL_MODULE_FERMION
+//e.g. MPI_LAr_dirac
+void Detector::SetEfficiency(std::string key)
 {
-	if (FuncFile != 0 && FuncFile->IsOpen())
-		FuncFile->Close();
-
-	if (U)
+	double rat = 1;
+	if (module.empty())
 	{
-		FuncFile = new TFile(mEfficiencyD[Channel].c_str(), "OPEN");
-		hhFunc = dynamic_cast<TH2D*> (FuncFile->Get("hhfunc"));
-	}
-	else
-	{
-		FuncFile = new TFile(mEfficiencyM[Channel].c_str(), "OPEN");
-		hhFunc = dynamic_cast<TH2D*> (FuncFile->Get("hhfunc"));
+		if (key.find("LAr") != std::string::npos)
+			rat = RatioLAr();
+		else if (key.find("FGT") != std::string::npos)
+			rat = RatioFGT();
 	}
 
-	EffSet = true;
+	std::string file;
+	if (dc.Get(key, file))
+	{
+		std::string channel = key.substr(0, key.find_first_of('_'));
+		TFile funcFile(file.c_str(), "READ");
+
+		TH2D *hist = dynamic_cast<TH2D*> (funcFile.Get("hhfunc"));
+		if (!mhFunc.count(channel))
+		{
+			mhFunc[channel] = dynamic_cast<TH2D*> (hist->Clone());
+			mhFunc[channel]->SetDirectory(0);
+			mhFunc[channel]->Scale(rat);
+		}
+		else
+			mhFunc[channel]->Add(hist, rat);
+
+		effSet = true;
+	}
 }
 
 /*
@@ -181,14 +212,18 @@ double Detector::Efficiency(std::string Channel, double Energy)
 
 double Detector::XsizeLAr()
 {
-	double F = pow(Get("FiducialLAr"), 1.0/3.0);
-	return Get("WidthLAr") * (F > 0.0 ?  F : 1.0);
+	//double F = (Get("FiducialLAr"), 1.0/3.0);
+	//return Get("WidthLAr") * (F > 0.0 ?  F : 1.0);
+	double F = Get("FiducialLAr");
+	return Get("WidthLAr") - 2*F;
 }
 
 double Detector::XstartLAr()
 {
-	double F = pow(Get("FiducialLAr"), 1.0/3.0);
-	return - 0.5 * Get("WidthLAr") * (F > 0.0 ? F : 1.0);
+	//double F = pow(Get("FiducialLAr"), 1.0/3.0);
+	//return - 0.5 * Get("WidthLAr") * (F > 0.0 ? F : 1.0);
+	double F = Get("FiducialLAr");
+	return - 0.5 * (Get("WidthLAr") - 2*F);
 }
 
 double Detector::XendLAr()
@@ -198,14 +233,18 @@ double Detector::XendLAr()
 
 double Detector::YsizeLAr()
 {
-	double F = pow(Get("FiducialLAr"), 1.0/3.0);
-	return Get("HeightLAr") * (F > 0.0 ? F : 1.0);
+	//double F = pow(Get("FiducialLAr"), 1.0/3.0);
+	//return Get("HeightLAr") * (F > 0.0 ? F : 1.0);
+	double F = Get("FiducialLAr");
+	return Get("HeightLAr") - 2*F;
 }
 
 double Detector::YstartLAr()
 {
-	double F = pow(Get("FiducialLAr"), 1.0/3.0);
-	return - 0.5 * Get("HeightLAr") * (F > 0.0 ? F : 1.0);
+	//double F = pow(Get("FiducialLAr"), 1.0/3.0);
+	//return - 0.5 * Get("HeightLAr") * (F > 0.0 ? F : 1.0);
+	double F = Get("FiducialLAr");
+	return - 0.5 * (Get("HeightLAr") - 2*F);
 }
 
 double Detector::YendLAr()
@@ -215,14 +254,18 @@ double Detector::YendLAr()
 
 double Detector::ZsizeLAr()
 {
-	double F = pow(Get("FiducialLAr"), 1.0/3.0);
-	return Get("LengthLAr") * (F > 0.0 ? F : 1.0);
+	//double F = pow(Get("FiducialLAr"), 1.0/3.0);
+	//return Get("LengthLAr") * (F > 0.0 ? F : 1.0);
+	double F = Get("FiducialLAr");
+	return Get("LengthLAr") - 2*F;
 }
 
 double Detector::ZstartLAr()
 {
-	double F = pow(Get("FiducialLAr"), 1.0/3.0);
-	return - Get("LengthLAr") * (F > 0.0 ? (1 + F) / 2.0 : 1.0);
+	//double F = pow(Get("FiducialLAr"), 1.0/3.0);
+	//return - Get("LengthLAr") * (F > 0.0 ? (1 + F) / 2.0 : 1.0);
+	double F = Get("FiducialLAr");
+	return F + Get("Baseline");;
 }
 
 double Detector::ZendLAr()
@@ -232,14 +275,18 @@ double Detector::ZendLAr()
 
 double Detector::XsizeFGT()
 {
-	double F = pow(Get("FiducialFGT"), 1.0/3.0);
-	return Get("WidthFGT") * (F > 0.0 ?  F : 1.0);
+	//double F = pow(Get("FiducialFGT"), 1.0/3.0);
+	//return Get("WidthFGT") * (F > 0.0 ?  F : 1.0);
+	double F = Get("FiducialFGT");
+	return Get("WidthFGT") - 2*F;
 }
 
 double Detector::XstartFGT()
 {
-	double F = pow(Get("FiducialFGT"), 1.0/3.0);
-	return - 0.5 * Get("WidthFGT") * (F > 0.0 ? F : 1.0);
+	//double F = pow(Get("FiducialFGT"), 1.0/3.0);
+	//return - 0.5 * Get("WidthFGT") * (F > 0.0 ? F : 1.0);
+	double F = Get("FiducialFGT");
+	return - 0.5 * (Get("WidthFGT") - 2*F);
 }
 
 double Detector::XendFGT()
@@ -249,14 +296,19 @@ double Detector::XendFGT()
 
 double Detector::YsizeFGT()
 {
-	double F = pow(Get("FiducialFGT"), 1.0/3.0);
-	return Get("HeightFGT") * (F > 0.0 ? F : 1.0);
+	//double F = pow(Get("FiducialFGT"), 1.0/3.0);
+	//return Get("HeightFGT") * (F > 0.0 ? F : 1.0);
+	double F = Get("FiducialFGT");
+	//return Get("HeightFGT") - 2*F;
+	return 2 * (Get("RadiusFGT") - F);
 }
 
 double Detector::YstartFGT()
 {
-	double F = pow(Get("FiducialFGT"), 1.0/3.0);
-	return - 0.5 * Get("HeightFGT") * (F > 0.0 ? F : 1.0);
+	//double F = pow(Get("FiducialFGT"), 1.0/3.0);
+	//return - 0.5 * Get("HeightFGT") * (F > 0.0 ? F : 1.0);
+	double F = Get("FiducialFGT");
+	return - 0.5 * (Get("HeightFGT") - 2*F);
 }
 
 double Detector::YendFGT()
@@ -264,16 +316,26 @@ double Detector::YendFGT()
 	return YsizeFGT() + YstartFGT();
 }
 
+double Detector::YcentreFGT()
+{
+	return 0;
+}
+
 double Detector::ZsizeFGT()
 {
-	double F = pow(Get("FiducialFGT"), 1.0/3.0);
-	return Get("LengthFGT") * (F > 0.0 ? F : 1.0);
+	//double F = pow(Get("FiducialFGT"), 1.0/3.0);
+	//return Get("LengthFGT") * (F > 0.0 ? F : 1.0);
+	double F = Get("FiducialFGT");
+	//return Get("LengthFGT") - 2*F;
+	return 2 * (Get("RadiusFGT") - F);
 }
 
 double Detector::ZstartFGT()
 {
-	double F = pow(Get("FiducialFGT"), 1.0/3.0);
-	return Get("LengthFGT") * (F > 0.0 ? (1 - F) / 2.0 : 1.0);
+	//double F = pow(Get("FiducialFGT"), 1.0/3.0);
+	//return Get("LengthFGT") * (F > 0.0 ? (1 - F) / 2.0 : 1.0);
+	double F = Get("FiducialFGT");
+	return ZstartLAr() + ZsizeLAr() + F;
 }
 
 double Detector::ZendFGT()
@@ -281,29 +343,99 @@ double Detector::ZendFGT()
 	return ZsizeFGT() + ZstartFGT();
 }
 
+double Detector::ZcentreFGT()
+{
+	return ZstartFGT() + 0.5 * ZsizeFGT();
+}
+
+double Detector::Xstart()
+{
+	if (module == "LAr")
+		return XstartLAr();
+	else if (module == "FGT")
+		return XstartFGT();
+	else 
+		return XstartLAr();
+}
+
+double Detector::Xend()
+{
+	if (module == "LAr")
+		return XendLAr();
+	else if (module == "FGT")
+		return XendFGT();
+	else 
+		return XendFGT();
+}
+
 double Detector::Xsize()
 {
-	return std::min(XsizeLAr(), XsizeFGT());
+	if (module == "LAr")
+		return XsizeLAr();
+	else if (module == "FGT")
+		return XsizeFGT();
+	else 
+		return std::min(XsizeLAr(), XsizeFGT());
+}
+
+double Detector::Ystart()
+{
+	if (module == "LAr")
+		return YstartLAr();
+	else if (module == "FGT")
+		return YstartFGT();
+	else 
+		return YstartLAr();
+}
+
+double Detector::Yend()
+{
+	if (module == "LAr")
+		return YendLAr();
+	else if (module == "FGT")
+		return YendFGT();
+	else 
+		return YendFGT();
 }
 
 double Detector::Ysize()
 {
-	return std::min(YsizeLAr(), YsizeFGT());
+	if (module == "LAr")
+		return YsizeLAr();
+	else if (module == "FGT")
+		return YsizeFGT();
+	else 
+		return std::min(YsizeLAr(), YsizeFGT());
 }
 
 double Detector::Zstart()
 {
-	return ZstartLAr();
+	if (module == "LAr")
+		return ZstartLAr();
+	else if (module == "FGT")
+		return ZstartFGT();
+	else 
+		return ZstartLAr();
 }
 
 double Detector::Zend()
 {
-	return ZendFGT();
+	if (module == "LAr")
+		return ZendLAr();
+	else if (module == "FGT")
+		return ZendFGT();
+	else 
+		return ZendFGT();
 }
 
 double Detector::Zsize()
 {
-	return ZsizeLAr() + ZsizeFGT();
+	if (module == "LAr")
+		return ZsizeLAr();
+	else if (module == "FGT")
+		return ZsizeFGT();
+	else 
+		return ZsizeLAr() + ZsizeFGT();
 }
 
 double Detector::AreaLAr()
@@ -318,12 +450,75 @@ double Detector::AreaFGT()
 
 double Detector::Area()
 {
-	return std::max(AreaLAr(), AreaFGT());
+	if (module == "LAr")
+		return AreaLAr();
+	else if (module == "FGT")
+		return AreaFGT();
+	else 
+		return std::max(AreaLAr(), AreaFGT());
 }
 
 double Detector::Radius()
 {
 	return sqrt(Area() / Const::pi);
+}
+
+double Detector::VolumeLAr()
+{
+	return AreaLAr() * ZsizeLAr();
+}
+
+double Detector::VolumeFGT()
+{
+	return AreaFGT() * ZsizeFGT() * Const::pi / 4;
+}
+
+double Detector::Volume()
+{
+	if (module == "LAr")
+		return VolumeLAr();
+	else if (module == "FGT")
+		return VolumeFGT();
+	else 
+		return VolumeLAr() + VolumeFGT();
+}
+
+double Detector::RatioLAr()
+{
+	return VolumeLAr() / Volume();
+}
+
+double Detector::RatioFGT()
+{
+	return VolumeFGT() / Volume();
+}
+
+double Detector::Ratio()
+{
+	if (module == "LAr")
+		return RatioLAr();
+	else if (module == "FGT")
+		return RatioFGT();
+}
+
+double Detector::WeightLAr()
+{
+	return Get("WeightLAr");
+}
+
+double Detector::WeightFGT()
+{
+	return Get("WeightFGT");
+}
+
+double Detector::Weight()
+{
+	if (module == "LAr")
+		WeightLAr();
+	else if (module == "FGT")
+		WeightFGT();
+	else
+		return WeightLAr() + WeightFGT();
 }
 
 double Detector::AngularAcceptance()
@@ -348,8 +543,8 @@ bool Detector::IsInsideLAr(const Particle &P)
 
 bool Detector::IsInsideFGT(const Particle &P)
 {
-	return (P.Z() > ZstartFGT() && P.Z() < ZendFGT() &&
-		P.Y() > YstartFGT() && P.Y() < YendFGT() &&
+	return ( sqrt(pow(P.Z() - ZcentreFGT(), 2) +
+		      pow(P.Y() - YcentreFGT(), 2)) < 0.5 * ZsizeFGT() &&
 		P.X() > XstartFGT() && P.X() < XendFGT());
 }
 
@@ -362,11 +557,11 @@ double Detector::DecayProb(const Particle &P, double Total, double Branch)	//rea
 {
 	if (P.EnergyKin() < 0.0)
 		return 0.0;
-	else if (fabs(P.Beta() - 1.0) < 1e-9)
+	else if (std::abs(P.Beta() - 1.0) < 1e-9)
 		return 1.0;
 	else
 	{
-		double Length = Const::M2GeV * Get("Baseline");
+		double Length = Const::M2GeV * Zstart();
 		double Lambda = Const::M2GeV * Zsize();
 		double Lorentz = P.Beta() * P.Gamma();
 

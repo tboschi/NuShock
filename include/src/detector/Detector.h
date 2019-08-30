@@ -46,7 +46,7 @@ class Detector
 			Lead = Pb,
 		};
 
-		Detector(std::string ConfigFile);
+		Detector(std::string configName, std::string mod = "");
 
 		std::vector<std::string> ListKey();
 		std::vector<std::string> ListChannel();
@@ -55,8 +55,8 @@ class Detector
 		Detector::Material FindMaterial(std::string Key);
 
 		double Efficiency(const Neutrino &Nu);
-		double Efficiency(double Energy, double Mass);
-		void SetEfficiency(std::string Channel, bool U);
+		double Efficiency(double Energy, double Mass, std::string channel);
+		void SetEfficiency(std::string key);
 
 		double XsizeLAr();
 		double XstartLAr();
@@ -74,11 +74,17 @@ class Detector
 		double YsizeFGT();
 		double YstartFGT();
 		double YendFGT();
+		double YcentreFGT();
 		double ZsizeFGT();
 		double ZstartFGT();
 		double ZendFGT();
+		double ZcentreFGT();
 
+		double Xstart();
+		double Xend();
 		double Xsize();
+		double Ystart();
+		double Yend();
 		double Ysize();
 		double Zsize();
 		double Zstart();
@@ -87,6 +93,15 @@ class Detector
 		double AreaLAr();
 		double AreaFGT();
 		double Area();
+		double VolumeLAr();
+		double VolumeFGT();
+		double Volume();
+		double RatioLAr();
+		double RatioFGT();
+		double Ratio();
+		double WeightLAr();
+		double WeightFGT();
+		double Weight();
 
 		double Radius();
 		double AngularAcceptance();
@@ -102,9 +117,12 @@ class Detector
 		TRandom3 *GenMT;
 
 	private:
-		TFile *FuncFile;
-		TH2D *hhFunc;
-		bool EffSet;
+		std::string module;
+		CardDealer dc;
+
+		TFile *funcFile;
+		std::map<std::string, TH2D*> mhFunc;
+		bool effSet;
 
 		std::map<std::string, double> mDetector;
 		std::map<std::string, std::string> mEfficiencyD, mEfficiencyM;

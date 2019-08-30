@@ -7,16 +7,25 @@
 #include <omp.h>
 
 
+double Distribution(int n, double s)
+{
+}
 double Poisson(int n, double s)
 {
 	if (n > 0)
 	{
-		double p = s/n;
-		double ret = 1;
-		for (; n > 0; --n)
-			ret *= exp(-p) * s / n;
+		if (s < 300)	//Poisson
+		{
+			double p = s/n;
+			double ret = 1;
+			for (; n > 0; --n)
+				ret *= exp(-p) * s / n;
 
-		return ret;
+			return ret;
+		}
+		else	//normal appoximation
+			return exp(- pow(n-s, 2) / (2 * s)) /
+				sqrt(2 * Const::pi * s);
 	}
 	else
 		return exp(-s) * pow(s, n);
@@ -24,10 +33,14 @@ double Poisson(int n, double s)
 
 double Ratio(int n, double s, double b)
 {
-	return exp(b-s) * pow(s / b, n);
+	if (s < 300) //poisson
+		return exp(b-s) * pow(s / b, n);
+	else	//normal appoximation
+		return sqrt(b / s) *
+			exp(-0.5 * ( pow(n - s, 2) / s - pow(n - b, 2) / b) );
 }
 
-void feldcous(double nFHC, double nRHC, int np, int nm, double &p0, double &rB)
+void Double(double nFHC, double nRHC, int np, int nm, double &p0, double &rB)
 {
 	p0 = Poisson(np, nFHC) * Poisson(nm, nRHC);
 	rB = Ratio(np, nFHC, std::max(np, 0))
@@ -43,11 +56,11 @@ double Belt(int b, double CL, int &nA, int &nB)
 		std::vector<double> vp0, vrB;
 		std::vector<int> vN, vI;
 
-		s += 0.005;
+		s += 0.01;
 
-		double lim = 70*log(b + 270);	//from plot
-		for (int n = std::max(0, b-1), j = 0; n < b + lim; ++n, ++j)
-		//for (unsigned int n = 140; n < 160; ++n, ++j)
+		int lim = b + 2*s + 1;
+		//std::cout << "lim " << std::max(lim, 20) << std::endl;
+		for (int n = b, j = 0; n < std::max(lim, 20); ++n, ++j)
 		{
 			double p0 = Poisson(n, s+b);
 			double rB = Ratio(n, s+b, std::max(0, int(n-b)) + b);
@@ -57,9 +70,8 @@ double Belt(int b, double CL, int &nA, int &nB)
 			vN.push_back(n);
 			vI.push_back(j);
 
-			//std::cout << "n " << n << "\ts " << s << "\tu " << std::max(0,int(n-b));
-			//std::cout << "\tp0 " << p0 << "\tPA " << PA;
-			//std::cout << "\tR " << Ratio << std::endl;
+			//std::cout << "n " << n << "\ts " << s << "\tu " << std::max(0,int(n-b))
+			//	  << "\tp0 " << p0 << "\tR " << rB << std::endl;
 		}
 		std::sort(vI.begin(), vI.end(), Sort(vrB, Sort::descending));
 
@@ -76,16 +88,25 @@ double Belt(int b, double CL, int &nA, int &nB)
 					nA = vN[j];
 				if (nB < vN[j])
 					nB = vN[j];
+				//std::cout << vN[j] << "\t";
 			}
 			else
 				break;
 		}
-		//std::cout << "signal " << s << "\tsum " << sum << "\tA " << nA << "\tB " << nB << "\tfrom " << std::max(0,b-5) << "\tto " << b+lim+20 << std::endl;
+		//std::cout << std::endl;
+		//std::cout << "signal " << s << "\tsum " << sum << "\tA " << nA << "\tB " << nB << "\tfrom " << 0 << "\tto " << b+lim << std::endl;
 		//std::cout << s << "\tA " << nA << "\tB " << nB << std::endl;
 	}
 
 	return s;
 }
+
+double Belt(int b, double CL)
+{
+	int nA, nB;
+	return Belt(b, CL, nA, nB);
+}
+
 
 
 int Limits(double x, int &min_x, int &max_x)
@@ -127,7 +148,7 @@ bool IsSensitiveToLNV(double nFHC, double nRHC, double nLNV, double CL)
 	//		//std::cout << "t " << omp_get_thread_num() << " : " << t << std::endl;
 
 	//		///////// LNC
-	//		feldcous(nFHC, nRHC, np, nm, p0, rB);
+	//		Double(nFHC, nRHC, np, nm, p0, rB);
 
 	//		vPos_LNC[t]   = np;
 	//		vNeg_LNC[t]   = nm;
@@ -136,7 +157,7 @@ bool IsSensitiveToLNV(double nFHC, double nRHC, double nLNV, double CL)
 	//		idx_LNC[t]    = t;
 
 	//		///////// LNV
-	//		feldcous(nLNV, nLNV, np, nm, p0, rB);
+	//		Double(nLNV, nLNV, np, nm, p0, rB);
 
 	//		vPos_LNV[t]   = np;
 	//		vNeg_LNV[t]   = nm;

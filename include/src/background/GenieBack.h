@@ -78,11 +78,13 @@ class GenieBack
 		double M_A;
 		double In_A;
 		double Out_A;
-		double e_A;
-		double p_A;
-		double t_A;
-		double theA;
-		double phiA;
+		//
+		double e_a;
+		double p_a;
+		double t_a;
+		double thea;
+		double phia;
+		//
 		double E_B;
 		double P_B;
 		double T_B;
@@ -91,45 +93,30 @@ class GenieBack
 		double M_B;
 		double In_B;
 		double Out_B;
-		double e_B;
-		double p_B;
-		double t_B;
-		double theB;
-		double phiB;
+		//
+		double e_b;
+		double p_b;
+		double t_b;
+		double theb;
+		double phib;
+		//
 		double Angle;
+		//
+		double angle;
+		//
 		double E_0;
 		double P_0;
 		double T_0;
 		double The0;
 		double Phi0;
 		double M_0;
-
-		// List of branches
-		TBranch        *b_iID;   //!
-		TBranch        *b_fEnergyA;   //!
-		TBranch        *b_fMomentA;   //!
-		TBranch        *b_fTransvA;   //!
-		TBranch        *b_fThetaA;   //!
-		TBranch        *b_fPhiA;   //!
-		TBranch        *b_fMassA;   //!
-		TBranch        *b_fLengthA;   //!
-		TBranch        *b_fLengthoA;   //!
-		TBranch        *b_fEnergyB;   //!
-		TBranch        *b_fMomentB;   //!
-		TBranch        *b_fTransvB;   //!
-		TBranch        *b_fThetaB;   //!
-		TBranch        *b_fPhiB;   //!
-		TBranch        *b_fMassB;   //!
-		TBranch        *b_fLengthB;   //!
-		TBranch        *b_fLengthoB;   //!
-		TBranch        *b_fAngle;   //!
-		TBranch        *b_fEnergy0;   //!
-		TBranch        *b_fMoment0;   //!
-		TBranch        *b_fTransv0;   //!
-		TBranch        *b_fTh0ta0;   //!
-		TBranch        *b_fPhi0;   //!
-		TBranch        *b_fMass0;   //!
-
+		//
+		double e_0;
+		double p_0;
+		double t_0;
+		double the0;
+		double phi0;
+		double m_0;
 };
 
 #endif

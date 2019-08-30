@@ -1,115 +1,97 @@
 #include "Driver.h"
 
-Driver::Driver(std::string FluxConfig, bool FHC)
+Driver::Driver(std::string fluxConfig, bool FHC) :
+	fxNuElectron(0),
+	fxNuMuon(0),
+	fxNuTau(0),
+	fxHeavyElectron(0),
+	fxHeavyMuon(0),
+	fxHeavyTau(0)
 {
-	fxNuElectron = 0;
-	fxNuMuon = 0;
-	fxNuTau = 0;
+	CardDealer fc(fluxConfig);
 
-	fxHeavyElectron = 0;
-	fxHeavyMuon = 0;
-	fxHeavyTau = 0;
-
-	std::stringstream ssL;
-	std::string Line, Key, Name;
-	
-	std::ifstream ModFile;
-	std::ifstream ConfigFile(FluxConfig.c_str());
-	while (std::getline(ConfigFile, Line))
+	std::string name;
+	if (FHC)
 	{
-		if (Line[0] == '#') continue;
+		if (fc.Get("Electron_", name))
+			fxNuElectron = new Flux(name);
+		if (fc.Get("Muon_", name))
+			fxNuMuon = new Flux(name);
+		if (fc.Get("Tau_", name))
+			fxNuTau = new Flux(name);
+	}
+	else
+	{
+		if (fc.Get("ElectronBar_", name))
+			fxNuElectron = new Flux(name);
+		if (fc.Get("MuonBar_", name))
+			fxNuMuon = new Flux(name);
+		if (fc.Get("TauBar_", name))
+			fxNuTau = new Flux(name);
+	}
 
-		ssL.str("");
-		ssL.clear();
-		ssL << Line;
-
-		//checks if the keyword is in the config file first, then initialiase the correct object
-		//
-		if (ssL >> Key >> Name)
+	std::map<std::string, std::string> mMod;
+	std::map<std::string, std::string>::iterator id;
+	if (fc.Get("Mod_", mMod))
+	{
+		for (id = mMod.begin(); id != mMod.end(); ++id)
 		{
-			if (FHC)
+			std::vector<double> *vM, *vA, *vB, *vP;
+			if (id->first  == "Charm")
 			{
-				if (Key.find("Electron_")    != std::string::npos)
-					fxNuElectron = new Flux(Name);
-				if (Key.find("Muon_")	     != std::string::npos)
-					fxNuMuon = new Flux(Name);
-				if (Key.find("Tau_")	     != std::string::npos)
-					fxNuTau = new Flux(Name);
+				vM = &vM_Charm;
+				vA = &vA_Charm;
+				vB = &vB_Charm;
+				vP = &vP_Charm;
 			}
-			else
+			else if (id->first == "TauE")
 			{
-				if (Key.find("ElectronBar_") != std::string::npos)
-					fxNuElectron = new Flux(Name);
-				if (Key.find("MuonBar_")     != std::string::npos)
-					fxNuMuon = new Flux(Name);
-				if (Key.find("TauBar_")	     != std::string::npos)
-					fxNuTau = new Flux(Name);
+				vM = &vM_TauE;
+				vA = &vA_TauE;
+				vB = &vB_TauE;
+				vP = &vP_TauE;
+			}
+			else if (id->first == "TauM")
+			{
+				vM = &vM_TauM;
+				vA = &vA_TauM;
+				vB = &vB_TauM;
+				vP = &vP_TauM;
+			}
+			else if (id->first == "PPion")
+			{
+				vM = &vM_PPion;
+				vA = &vA_PPion;
+				vB = &vB_PPion;
+				vP = &vP_PPion;
+			}
+			else if (id->first == "Pion")
+			{
+				vM = &vM_Pion;
+				vA = &vA_Pion;
+				vB = &vB_Pion;
+				vP = &vP_Pion;
 			}
 
-			//correction for charm to tau decay
-			//
-			if (Key.find("Mod_") != std::string::npos)
+			std::ifstream inMod(id->second);
+			std::string line;
+			double mass, A, B, P;
+			while (getline(inMod, line))
 			{
-				std::vector<double> *vM, *vA, *vB, *vP;
-				if (Key.find("Charm") != std::string::npos)
-				{
-					ModFile.open(Name.c_str());
-					vM = &vM_Charm;
-					vA = &vA_Charm;
-					vB = &vB_Charm;
-					vP = &vP_Charm;
-				}
-				else if (Key.find("TauE") != std::string::npos)
-				{
-					ModFile.open(Name.c_str());
-					vM = &vM_TauE;
-					vA = &vA_TauE;
-					vB = &vB_TauE;
-					vP = &vP_TauE;
-				}
-				else if (Key.find("TauM") != std::string::npos)
-				{
-					ModFile.open(Name.c_str());
-					vM = &vM_TauM;
-					vA = &vA_TauM;
-					vB = &vB_TauM;
-					vP = &vP_TauM;
-				}
-				else if (Key.find("PPion") != std::string::npos)
-				{
-					ModFile.open(Name.c_str());
-					vM = &vM_PPion;
-					vA = &vA_PPion;
-					vB = &vB_PPion;
-					vP = &vP_PPion;
-				}
-				else if (Key.find("Pion") != std::string::npos)
-				{
-					ModFile.open(Name.c_str());
-					vM = &vM_Pion;
-					vA = &vA_Pion;
-					vB = &vB_Pion;
-					vP = &vP_Pion;
-				}
+				if (line[0] == '#')
+					continue;
 
-				double Mass, A, B, P;
-				while (getline(ModFile, Line))
-				{
-					ssL.str("");
-					ssL.clear();
-					ssL << Line;
+				std::stringstream ssl(line);
+				ssl >> mass >> A >> B >> P;
 
-					ssL >> Mass >> A >> B >> P;
-					vM->push_back(Mass);
-					vA->push_back(A);
-					vB->push_back(B);
-					vP->push_back(P);
-				}
-				ModFile.close();
+				vM->push_back(mass);
+				vA->push_back(A);
+				vB->push_back(B);
+				vP->push_back(P);
 			}
+			inMod.close();
 		}
 	}
-	ConfigFile.close();
 
 	Mass_prev = -1.0;
 }

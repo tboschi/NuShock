@@ -96,7 +96,12 @@ void GenieBack::InitOutTree(std::string outFile)
 	data->Branch("T_A", &T_A, "fTransvA/D");
 	data->Branch("TheA", &TheA, "fThetaA/D");
 	data->Branch("PhiA", &PhiA, "fPhiA/D");
-	//data->Branch("M_A", &M_A, "fMassA/D");
+	//data->Branch("e_a", &e_a, "fenergya/D");	//true
+	//data->Branch("p_a", &p_a, "fmomenta/D");
+	//data->Branch("t_a", &t_a, "ftransva/D");
+	//data->Branch("thea", &thea, "fthetaa/D");
+	//data->Branch("phia", &phia, "fphia/D");
+	////data->Branch("M_A", &M_A, "fMassA/D");
 	data->Branch("In_A", &In_A, "fLengthA/D");
 	data->Branch("Out_A", &Out_A, "fLengthoA/D");
 	//data->Branch("e_A", &e_A, "fenergyA/D");
@@ -112,7 +117,12 @@ void GenieBack::InitOutTree(std::string outFile)
 	data->Branch("T_B", &T_B, "fTransvB/D");
 	data->Branch("TheB", &TheB, "fThetaB/D");
 	data->Branch("PhiB", &PhiB, "fPhiB/D");
-	//data->Branch("M_B", &M_B, "fMassB/D");
+	//data->Branch("e_b", &e_b, "fenergyb/D");	//true
+	//data->Branch("p_b", &p_b, "fmomentb/D");
+	//data->Branch("t_b", &t_b, "ftransvb/D");
+	//data->Branch("theb", &theb, "fthetab/D");
+	//data->Branch("phib", &phib, "fphib/D");
+	////data->Branch("M_B", &M_B, "fMassB/D");
 	data->Branch("In_B", &In_B, "fLengthB/D");
 	data->Branch("Out_B", &Out_B, "fLengthoB/D");
 	//data->Branch("e_B", &e_B, "fenergyB/D");
@@ -122,14 +132,22 @@ void GenieBack::InitOutTree(std::string outFile)
 	//data->Branch("phiB", &phiB, "fphiB/D");
 
 	data->Branch("Angle", &Angle, "fAngle/D");
+	//data->Branch("angle", &angle, "fangle/D");
 
 	//Particle 0 = A + B
 	data->Branch("E_0", &E_0, "fEnergy0/D");
 	data->Branch("P_0", &P_0, "fMoment0/D");
 	data->Branch("T_0", &T_0, "fTransv0/D");
-	data->Branch("The0", &The0, "fTh0ta0/D");
+	data->Branch("The0", &The0, "fTheta0/D");
 	data->Branch("Phi0", &Phi0, "fPhi0/D");
 	data->Branch("M_0", &M_0, "fMass0/D");
+
+	//data->Branch("e_0", &e_0, "fenergy0/D");
+	//data->Branch("p_0", &p_0, "fmoment0/D");
+	//data->Branch("t_0", &t_0, "ftransv0/D");
+	//data->Branch("the0", &the0, "ftheta0/D");
+	//data->Branch("phi0", &phi0, "fphi0/D");
+	//data->Branch("m_0", &m_0, "fmass0/D");
 
 	//and other variables
 }
@@ -185,6 +203,12 @@ void GenieBack::LoadTree(const std::vector<Particle> &particle,
 		M_A = particle.at(0).Mass();
 		In_A = particle.at(0).TrackIn();
 		Out_A = particle.at(0).TrackOut();
+		//
+		//e_a = original.at(0).Energy();
+		//p_a = original.at(0).Momentum();
+		//t_a = original.at(0).Transverse();
+		//thea = original.at(0).Theta();
+		//phia = original.at(0).Phi();
 
 		PdgB = original.at(1).Pdg();
 		E_B = particle.at(1).Energy();
@@ -195,8 +219,15 @@ void GenieBack::LoadTree(const std::vector<Particle> &particle,
 		M_B = particle.at(1).Mass();
 		In_B = particle.at(1).TrackIn();
 		Out_B = particle.at(1).TrackOut();
+		//
+		//e_b = original.at(1).Energy();
+		//p_b = original.at(1).Momentum();
+		//t_b = original.at(1).Transverse();
+		//theb = original.at(1).Theta();
+		//phib = original.at(1).Phi();
 
 		Angle = particle.at(0).Direction().Angle(particle.at(1).Direction());
+		angle = original.at(0).Direction().Angle(original.at(1).Direction());
 
 		TLorentzVector Reco = particle.at(0).FourVector() + particle.at(1).FourVector();
 
@@ -207,23 +238,13 @@ void GenieBack::LoadTree(const std::vector<Particle> &particle,
 		Phi0 = Reco.Phi();
 		M_0 = Reco.M();
 
-		//TLorentzVector vA = particle.at(0).FourVector();
-		//TLorentzVector vB = particle.at(1).FourVector();
-		//TVector3 bst = - Reco.BoostVector();
-		//vA.Boost(bst);
-		//vB.Boost(bst);
-
-		//e_A  = vA.E();
-		//p_A  = vA.P();
-		//t_A  = vA.Pt();
-		//theA = vA.Theta();
-		//phiA = vA.Phi();
-
-		//e_B  = vB.E();
-		//p_B  = vB.P();
-		//t_B  = vB.Pt();
-		//theB = vB.Theta();
-		//phiB = vB.Phi();
+		//TLorentzVector reco = original.at(0).FourVector() + original.at(1).FourVector();
+		//e_0 = reco.E();
+		//p_0 = reco.P();
+		//t_0 = reco.Pt();
+		//the0 = reco.Theta();
+		//phi0 = reco.Phi();
+		//m_0 = reco.M();
 
 		data->Fill();
 	}
@@ -247,8 +268,8 @@ TTree *GenieBack::FindBackground(Tracker *theTrack,
 
 	std::cout << "start at " << checkPt << std::endl;
 	//for (ID = checkPt; ID < checkPt + batch && ID < genie->fChain->GetEntries(); ++ID)
-	for (ID = 0; ID < batch; ++ID)
-	//for (ID = 0; ID < genie->fChain->GetEntries(); ++ID)
+	//for (ID = 0; ID < batch; ++ID)
+	for (ID = 0; ID < genie->fChain->GetEntries(); ++ID)
 	{
 		bool hadronicActivity = false;
 		genie->GetEntry(ID);	//get event from ID
@@ -256,19 +277,29 @@ TTree *GenieBack::FindBackground(Tracker *theTrack,
 
 		//neutrino probe
 		Particle nu(genie->neu, genie->pxv, genie->pyv, genie->pzv, genie->Ev);
-		theTrack->Vertex(nu);
-		theTrack->Focus(nu);
 
-		std::vector<Particle> particle;
+		theTrack->Vertex(nu);
+		theTrack->Focus(nu);		//rotate neutrino probe
+		TRotation rz;
+		rz.SetZAxis(nu.Direction());
+		TVector3 pos = nu.Position();
+
+		std::vector<Particle> particle, original;
 
 		//outgoing lepton from neutrino
 		//if NC event, the pdg is the same of the probe
 		//if CC eventm the pdg is the respective charged lepton
 		int pdgl = genie->cc ? (genie->neu > 0 ? genie->neu - 1 : genie->neu + 1) : genie->neu;
-		Particle p(pdgl, genie->pxl, genie->pyl, genie->pzl, genie->El, 
-				 nu.X(), nu.Y(), nu.Z());
+		TLorentzVector fv(genie->pxl, genie->pyl, genie->pzl, genie->El);
+		fv.Transform(rz);
+		Particle p(pdgl, fv, pos);	//create particle
+		
+		Particle c = p;
 		if (theTrack->Reconstruct(p))
+		{
 			particle.push_back(p);
+			original.push_back(c);
+		}
 
 		if (kVerbose)
 		{
@@ -292,9 +323,15 @@ TTree *GenieBack::FindBackground(Tracker *theTrack,
 
 		for (int i = 0; i < genie->nf; ++i)
 		{
-			p = Particle(genie->pdgf[i],
-				     genie->pxf[i], genie->pyf[i], genie->pzf[i],
-				     genie->Ef[i]);
+			fv = TLorentzVector(genie->pxf[i],
+					    genie->pyf[i],
+					    genie->pzf[i],
+					    genie->Ef[i]);
+			fv.Transform(rz);
+			p = Particle(genie->pdgf[i], fv, pos);	//create particle
+			//p = Particle(,
+			//	     genie->pxf[i], genie->pyf[i], genie->pzf[i],
+			//	     genie->Ef[i]);
 			if (kVerbose)
 				std::cout << "\t" << p.Pdg() << " (" << p.EnergyKin() << "), ";
 
@@ -313,15 +350,29 @@ TTree *GenieBack::FindBackground(Tracker *theTrack,
 				Particle pA, pB;
 				theTrack->Pi0Decay(p, pA, pB);
 
+				c = pA;
 				if (theTrack->Reconstruct(pA))
+				{
 					particle.push_back(pA);
+					original.push_back(c);
+				}
+				c = pB;
 				if (theTrack->Reconstruct(pB))
+				{
 					particle.push_back(pB);
+					original.push_back(c);
+				}
 			}
 			else if (std::abs(p.Pdg()) < 1e9)	//no nucleus
+			{
+				c = p;
 				//if true particle can be detected I will add it to the vector
 				if (theTrack->Reconstruct(p))
+				{
 					particle.push_back(p);
+					original.push_back(p);
+				}
+			}
 				//sould contains muons, electron, pions, protons, kaons and other strange and charmed kaons
 
 			if (particle.size() && IsHadron(particle.back()))
@@ -336,7 +387,6 @@ TTree *GenieBack::FindBackground(Tracker *theTrack,
 		if (!hadronicActivity && particle.size())
 		{
 			//make some simple misidentification of events
-			std::vector<Particle> original = particle;
 			MisIdentify(particle, theTrack);
 
 			if (kVerbose)
@@ -383,7 +433,8 @@ bool GenieBack::MisIdentify(std::vector<Particle> &particle, Tracker *theTrack)
 	std::vector<Particle> electrons, photons;
 	std::vector<Particle>::iterator ip, ie;
 
-	for (ip = particle.begin(); ip != particle.end(); )
+	int n = 0;
+	for (ip = particle.begin(); ip != particle.end(); ++n)
 	{
 		if (!theTrack->IsDetectable(*ip))
 		{
@@ -403,7 +454,7 @@ bool GenieBack::MisIdentify(std::vector<Particle> &particle, Tracker *theTrack)
 					{	//it is a muon
 						if (kVerbose)
 							std::cout << "Pion MisID!" << std::endl;
-						ip->SetPdg(13);
+						ip->SetPdg(ip->Charge() / 3 * 13);
 						ip->SetMass(Const::MMuon);
 						--ip;			//must recheck (for thr for instance)
 					}
@@ -442,7 +493,7 @@ bool GenieBack::MisIdentify(std::vector<Particle> &particle, Tracker *theTrack)
 					{	//conversion before 3cm 
 						if (kVerbose)
 							std::cout << "Photon MisID!" << std::endl;
-						ip->SetPdg(11);
+						ip->SetPdg(n % 2 == 0 ? 11 : -11);
 						ip->SetMass(Const::MElectron);
 
 						--ip;			//must recheck (for thr for instance)

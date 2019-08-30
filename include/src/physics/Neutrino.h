@@ -43,46 +43,40 @@ class Neutrino : public Particle
 		void SetParent(Amplitude *Object);
 		void SetUnitary(Amplitude *Object);
 
-		double DecayThreshold();
-		double DecayThreshold(std::string Name);
-		double DecayThreshold(Amplitude::Channel Name);
-		bool IsDecayAllowed();
-		bool IsDecayAllowed(std::string Name);
-		bool IsDecayAllowed(Amplitude::Channel Name);
+		double DecayThreshold(std::string name = "");
+		double DecayThreshold(Amplitude::Channel name);
+		bool IsDecayAllowed(std::string name = "");
+		bool IsDecayAllowed(Amplitude::Channel name);
 		void DecayChannels(std::vector<std::string> &vChan);
 		double DecayTotal();
-		double DecayWidth();
-		double DecayWidth(std::string Name);
+		double DecayWidth(std::string name = "");
 		double DecayWidth(Amplitude::Channel name);
-		double DecayBranch();
-		double DecayBranch(std::string Name);
+		double DecayBranch(std::string name = "");
 		double DecayBranch(Amplitude::Channel name);
 
-		double ProductionThreshold();
-		double ProductionThreshold(std::string Name);
-		double ProductionThreshold(Amplitude::Channel Name);
-		bool IsProductionAllowed();
-		bool IsProductionAllowed(std::string Name);
-		bool IsProductionAllowed(Amplitude::Channel Name);
+		double ProductionThreshold(std::string name = "");
+		double ProductionThreshold(Amplitude::Channel name);
+		bool IsProductionAllowed(std::string name = "");
+		bool IsProductionAllowed(Amplitude::Channel name);
 		void ProductionChannels(std::vector<std::string> &vChan);
-		double ProductionWidth();
-		double ProductionWidth(std::string Name);
+		double ProductionWidth(std::string name = "");
 		double ProductionWidth(Amplitude::Channel name);
-		double ProductionScale();
-		double ProductionScale(std::string Name);
+		double ProductionScale(std::string name = "");
 		double ProductionScale(Amplitude::Channel name);
 		
-		std::vector<Particle> DecayPS();
-		std::vector<Particle> DecayPS(Amplitude::Channel Name);
-		std::vector<Particle> ProductionPS(TLorentzVector &Vec);
-		std::vector<Particle> ProductionPS(Amplitude::Channel Name, TLorentzVector &Vec);
+		std::vector<Particle> DecayPS(std::string name = "");
+		std::vector<Particle> DecayPS(Amplitude::Channel name);
+		std::vector<Particle> ProductionPS(TLorentzVector &vec,
+						   std::string name = "");
+		std::vector<Particle> ProductionPS(TLorentzVector &vec,
+						   Amplitude::Channel name);
 		
-		void SetDecayChannel(std::string Name);
-		void SetProductionChannel(std::string Name);
-		Amplitude::Channel DecayChannel();
-		Amplitude::Channel ProductionChannel();
-		std::string DecayChannelName();
-		std::string ProductionChannelName();
+		void SetDecayChannel(std::string name);
+		void SetProductionChannel(std::string name);
+		Amplitude::Channel DecayChannel() const;
+		Amplitude::Channel ProductionChannel() const;
+		std::string DecayChannelName() const;
+		std::string ProductionChannelName() const;
 
 		//void SetMass(double Mass = 0.0);
 		void SetMixings(double *Mixings);

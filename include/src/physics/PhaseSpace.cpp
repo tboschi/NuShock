@@ -39,24 +39,23 @@ bool PhaseSpace::SetDecay(Channel Name)
 	return Event->SetDecay(vec, Daughters(), MassArray);
 }
 
-bool PhaseSpace::Generate(Channel Name)
+bool PhaseSpace::Generate(Channel Name, double &val)
 {
 	int cc = 0;
-	double Val;
 	if (SetDecay(Name))
 	{
 		do
 		{
 			++cc;
 			Event->Generate();
-			Val = Ratio(Name);
+			val = Ratio(Name);
 		}
-		while (Val > 0 && GenMT->Rndm() > Val);
+		while (val >= 0 && GenMT->Rndm() > val && cc < 1e4);
 
-		if (Val > 0)
-			return true;
-		else
+		if (cc > 1e3)
 			return false;
+		else
+			return true;
 	}
 	else
 		return false;
@@ -217,6 +216,11 @@ double PhaseSpace::NeutrinoLeptonAA_ratio(double &maxName_u, double &maxName_o, 
 	double fName_u, fName_o;
 	NeutrinoLeptonAA(fName_u, fName_o, vMass.at(0), vMass.at(1));
 
+	if (fName_u < 0)
+		fName_u = 0;
+	if (fName_o < 0)
+		fName_o = 0;
+
 	return (maxName_u > 1e-25 || maxName_o > 1e-25) ? 
 		( fName_u   * (this->*Uu)(2) + fName_o   * (Ue(2) + Um(2) + Ut(2) - (this->*Uu)(2)) ) / 
 		( maxName_u * (this->*Uu)(2) + maxName_o * (Ue(2) + Um(2) + Ut(2) - (this->*Uu)(2)) ) : -1.0;
@@ -246,6 +250,11 @@ double PhaseSpace::NeutrinoLeptonAB_ratio(double &maxName_a, double &maxName_b,
 
 	double fName_a, fName_b;
 	NeutrinoLeptonAB(fName_a, fName_b, vMass.at(0), vMass.at(1), vMass.at(2));
+
+	if (fName_a < 0)
+		fName_a = 0;
+	if (fName_b < 0)
+		fName_b = 0;
 
 	return (maxName_a > 1e-25 || maxName_b > 1e-25) ? 
 		( fName_a   * (this->*Ua)(2) + fName_b   * (this->*Ub)(2) ) / 

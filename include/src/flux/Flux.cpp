@@ -184,12 +184,12 @@ bool Flux::Stretch(Hist Name, double Sx, double Ex)
 
 double Flux::RangeStart()
 {
-	return Get(Total)->GetBinCenter(0) + BinWidth()/2.0;
+	return Get(Total)->GetBinLowEdge(1);
 }
 
 double Flux::RangeEnd()
 {
-	return Get(Total)->GetBinCenter(BinNumber()) + BinWidth()/2.0;
+	return Get(Total)->GetBinLowEdge(BinNumber() + 1);
 }
 
 double Flux::BinNumber()
@@ -199,5 +199,5 @@ double Flux::BinNumber()
 
 double Flux::BinWidth()
 {
-	return (Get(Total)->GetBinCenter(BinNumber()) - Get(Total)->GetBinCenter(0)) / BinNumber();
+	return Get(Total)->GetBinWidth(1);
 }

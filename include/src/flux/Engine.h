@@ -50,7 +50,7 @@ class Engine
 				  Current horn);
 		double SampleEnergy(std::string uuid);
 
-		double MakeSampler(Detector *box,
+		double MakeSampler(Detector *box, 
 				   double ue = -1, double um = -1, double ut = -1);
 		double MakeSampler(Detector *box, Current horn,
 				   double ue = -1, double um = -1, double ut = -1);
@@ -69,6 +69,10 @@ class Engine
 		double Intensity(std::string uuid);
 		double IntensitySample(std::string uuid);
 		double IntensitySample(std::string uuid, double Energy);
+
+		void SetDecay(std::string channel);
+		void SetDecay(std::string channel, Current horn);
+		void SetDecay(std::string uuid, std::string channel);
 
 		void ScaleToDetector(Detector *box);
 		void ScaleBaseline(Detector *box);
