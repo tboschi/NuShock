@@ -269,7 +269,10 @@ int main(int argc, char** argv)
 	//Detector class
 	//
 	if (!module.empty())
+	{
+		outName.insert(outName.find(".dat"), "_");
 		outName.insert(outName.find(".dat"), module);
+	}
 	Detector *ndBox = new Detector(detConfig, module);
 
 	std::vector<std::vector<double> > backCurve(channels.size());//a collection of parabolas for each channel

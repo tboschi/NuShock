@@ -151,6 +151,7 @@ int main(int argc, char** argv)
 	int DecayCount = 0, InNDCount = 0, ID;
 	for (ID = 0; ID < Nevent; ++ID)
 	{
+		std::cout << "I0" << std::endl;
 		double pt, xf;
 		do
 		{
@@ -159,6 +160,7 @@ int main(int argc, char** argv)
 		}
 		while (mt->Rndm() > Ds(xf, pt));
 
+		std::cout << "I1" << std::endl;
 		double px, py;
 		double pz = ptmax * xf / 2.0;
 		mt->Circle(px, py, pt);
@@ -201,9 +203,12 @@ int main(int argc, char** argv)
 			vProductDs = lightNu.ProductionPS(Ds_vec, "CharmT");
 		}
 
+		std::cout << "I4" << std::endl;
+
 		if (vProductDs.size() < 2)
 			continue;	//generation failed
 
+		std::cout << "I5 " << vProductDs.size() << std::endl;
 		//tau decay from Ds
 		TLorentzVector Tau_vec(vProductDs[1].FourVector());
 		for (int i = 0; i < 4; ++i)
@@ -251,22 +256,28 @@ int main(int argc, char** argv)
 
 	}
 
+	std::cout << "C0" << std::endl;
 	hTotal0->Add(hCharmT);
 
+	std::cout << "C1" << std::endl;
 	hTotalB->Add(hTauE);
 	hTotalB->Add(hTauM);
 	hTotalB->Add(hPion);
 	hTotalB->Add(h2Pion);
 
+	std::cout << "C2" << std::endl;
 	FileOut0->cd();
 	FileOut0->Write();
 
+	std::cout << "C3" << std::endl;
 	hTotal0->Write("htotal");
 	//hCharm->Write();
 
+	std::cout << "C4" << std::endl;
 	FileOutB->cd();
 	FileOutB->Write();
 
+	std::cout << "C5" << std::endl;
 	hTotalB->Write("htotal");
 
 	std::cout << "Ds meson decays are " << 100.0 * DecayCount / double(Nevent) << " %\n";
@@ -283,25 +294,34 @@ int main(int argc, char** argv)
 	FileOut0->Close();
 	FileOutB->Close();
 
+	std::cout << "C6" << std::endl;
 	if (!nuEFile.empty())
 	{
 		FileOut0 = new TFile(nuEFile.c_str(), "UPDATE");
 		hTotal0 = dynamic_cast<TH1D*>(FileOut0->Get("htotal"));
-		hTotal0->Add(hCharmE);
-		hTotal0->Write("", TObject::kOverwrite);
+		if (hTotal0)
+		{
+			hTotal0->Add(hCharmE);
+			hTotal0->Write("", TObject::kOverwrite);
+		}
 		hCharmE->Write("hcharm", TObject::kOverwrite);
 		FileOut0->Close();
 	}
 
+	std::cout << "C7" << std::endl;
 	if (!nuEFile.empty())
 	{
 		FileOut0 = new TFile(nuMFile.c_str(), "UPDATE");
 		hTotal0 = dynamic_cast<TH1D*>(FileOut0->Get("htotal"));
-		hTotal0->Add(hCharmE);
-		hTotal0->Write("", TObject::kOverwrite);
+		if (hTotal0)
+		{
+			hTotal0->Add(hCharmE);
+			hTotal0->Write("", TObject::kOverwrite);
+		}
 		hCharmM->Write("hcharm", TObject::kOverwrite);
 		FileOut0->Close();
 	}
+	std::cout << "C8" << std::endl;
 
 	return 0;
 }
