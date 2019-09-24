@@ -127,9 +127,9 @@ void Flux::Add()
 
 void Flux::Add(Hist Name)
 {
-	TH1D* hComponent;
+	TH1D* hComponent = Get(Name);
 
-	if (hComponent = Get(Name))
+	if (hComponent)
 		Get(Total)->Add(hComponent);
 }
 
@@ -147,17 +147,17 @@ void Flux::Scale(double X)
 
 void Flux::Scale(Hist Name, double X)
 {
-	TH1D* hComponent;
+	TH1D* hComponent = Get(Name);
 
-	if (hComponent = Get(Name))
+	if (hComponent)
 		hComponent->Scale(X);
 }
 
 bool Flux::Stretch(Hist Name, double Sx, double Ex)
 {
-	TH1D* hComponent;
+	TH1D* hComponent = Get(Name);
 
-	if ((hComponent = Get(Name)) && Sx >= RangeStart() && Ex <= RangeEnd())
+	if (hComponent && Sx >= RangeStart() && Ex <= RangeEnd())
 	{
 		TH1D *hTemp = dynamic_cast<TH1D*> (hComponent->Clone());
 		hComponent->Reset("ICES");

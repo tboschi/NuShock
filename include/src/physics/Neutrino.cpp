@@ -184,7 +184,6 @@ double Neutrino::DecayWidth(std::string name)
 double Neutrino::DecayWidth(Amplitude::Channel name)
 {
 	SetParent(theDecayRates);
-	//return (IsMajorana() ? 2.0 : 1.0) * theDecayRates->Gamma(name);
 	return theDecayRates->Gamma(name);
 }
 
@@ -327,7 +326,7 @@ std::vector<Particle> Neutrino::DecayPS(Amplitude::Channel name)	//neutrino is l
 	return daughters;
 }
 
-std::vector<Particle> Neutrino::ProductionPS(TLorentzVector &vec, std::string name)	//other particle is labframe
+std::vector<Particle> Neutrino::ProductionPS(const TLorentzVector &vec, std::string name)	//other particle is labframe
 {
 	if (name.empty())
 		return ProductionPS(vec, DecayChannel());
@@ -335,7 +334,7 @@ std::vector<Particle> Neutrino::ProductionPS(TLorentzVector &vec, std::string na
 		return ProductionPS(vec, theProduction->FindChannel(name));
 }
 
-std::vector<Particle> Neutrino::ProductionPS(TLorentzVector &vec, Amplitude::Channel name)
+std::vector<Particle> Neutrino::ProductionPS(const TLorentzVector &vec, Amplitude::Channel name)
 {
 	SetParent(thePhaseSpace);
 	thePhaseSpace->SetLabFrame(vec);

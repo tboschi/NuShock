@@ -30,8 +30,8 @@ FiducialFGT	0.0
 
 #1.1e21 POT / year with 1.7e7 second / year
 #POT/s of the neutrino beam
-#POT/s		2.205e14
-POT/s		1.105e14
+POT/s		2.205e14
+#POT/s		1.105e14
 #total number of years with POTS above. 1 year is defined as 1e7 seconds
 Years		6
 

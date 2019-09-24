@@ -9,6 +9,7 @@
 #include "physics.h"
 #include "flux.h"
 
+#include "TKey.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1D.h"
@@ -179,7 +180,7 @@ int main(int argc, char** argv)
 		{
 			std::vector<Particle> vProductDs = Nu0.ProductionPS(Ds_vec, "CharmM");
 			if (vProductDs.size() && vProductDs[0].Theta() <= th0)
-				hCharmE->Fill(vProductDs[0].Energy(), SF * 5.5e-5);
+				hCharmM->Fill(vProductDs[0].Energy(), SF * 5.5e-3);	//corrected BR
 		}							//BR(Ds -> mu nu)
 
 		//Ds decay into taus
@@ -284,30 +285,78 @@ int main(int argc, char** argv)
 	FileOut0->Close();
 	FileOutB->Close();
 
-	if (!nuEFile.empty())
+	if (!nuEFile.empty())	//creating new files so that it doesn't screw up existing files
 	{
-		FileOut0 = new TFile(nuEFile.c_str(), "UPDATE");
-		hTotal0 = dynamic_cast<TH1D*>(FileOut0->Get("htotal"));
+		TFile fileInE(nuEFile.c_str(), "READ");
+
+		if (nuEFile.find(".root") != std::string::npos)
+			nuEFile.insert(nuEFile.find(".root"), "_new");
+		else
+			nuEFile += "_new.root";
+		TFile fileOutE(nuEFile.c_str(), "RECREATE");
+
+		fileInE.cd();
+		TIter next(fileInE.GetListOfKeys());
+		TKey *kkk;
+		hTotal0 = 0;
+		while (kkk = static_cast<TKey*> (next()))
+		{
+			if (kkk->GetName() == "htotal" || kkk->GetName() == "hcharm")
+				continue;
+			TH1D *hflux = static_cast<TH1D*> (kkk->ReadObj());
+			if (!hTotal0)
+				hTotal0 = hflux;
+			else
+				hTotal0->Add(hflux);
+		}
+
+		fileOutE.cd();
 		if (hTotal0)
 		{
 			hTotal0->Add(hCharmE);
 			hTotal0->Write("", TObject::kOverwrite);
 		}
 		hCharmE->Write("hcharm", TObject::kOverwrite);
-		FileOut0->Close();
+
+		fileInE.Close();
+		fileOutE.Close();
 	}
 
-	if (!nuMFile.empty())
+	if (!nuMFile.empty())	//creating new files so that it doesn't screw up existing files
 	{
-		FileOut0 = new TFile(nuMFile.c_str(), "UPDATE");
-		hTotal0 = dynamic_cast<TH1D*>(FileOut0->Get("htotal"));
+		TFile fileInM(nuMFile.c_str(), "READ");
+
+		if (nuMFile.find(".root") != std::string::npos)
+			nuMFile.insert(nuMFile.find(".root"), "_new");
+		else
+			nuMFile += "_new.root";
+		TFile fileOutM(nuMFile.c_str(), "RECREATE");
+
+		fileInM.cd();
+		TIter next(fileInM.GetListOfKeys());
+		TKey *kkk;
+		hTotal0 = 0;
+		while (kkk = static_cast<TKey*> (next()))
+		{
+			if (kkk->GetName() == "htotal" || kkk->GetName() == "hcharm")
+				continue;
+			TH1D *hflux = static_cast<TH1D*> (kkk->ReadObj());
+			if (!hTotal0)
+				hTotal0 = hflux;
+			else
+				hTotal0->Add(hflux);
+		}
+
+		fileOutM.cd();
 		if (hTotal0)
 		{
-			hTotal0->Add(hCharmE);
+			hTotal0->Add(hCharmM);
 			hTotal0->Write("", TObject::kOverwrite);
 		}
 		hCharmM->Write("hcharm", TObject::kOverwrite);
-		FileOut0->Close();
+
+		fileInM.Close();
+		fileOutM.Close();
 	}
 
 	return 0;

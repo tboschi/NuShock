@@ -66,9 +66,9 @@ class Neutrino : public Particle
 		
 		std::vector<Particle> DecayPS(std::string name = "");
 		std::vector<Particle> DecayPS(Amplitude::Channel name);
-		std::vector<Particle> ProductionPS(TLorentzVector &vec,
+		std::vector<Particle> ProductionPS(const TLorentzVector &vec,
 						   std::string name = "");
-		std::vector<Particle> ProductionPS(TLorentzVector &vec,
+		std::vector<Particle> ProductionPS(const TLorentzVector &vec,
 						   Amplitude::Channel name);
 		
 		void SetDecayChannel(std::string name);

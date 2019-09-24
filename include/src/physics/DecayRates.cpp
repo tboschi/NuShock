@@ -164,7 +164,8 @@ double DecayRates::Other(Channel Name)
 {
 	if (Gamma(Name) < 0.0)
 		return 0.0;
-	else return Gamma(_ALL) - Gamma(Name);
+	else
+		return Gamma(_ALL) - Gamma(Name);
 }
 
 //Return the branching ration
@@ -173,7 +174,8 @@ double DecayRates::Branch(Channel Name)
 {
 	if (Gamma(Name) <= 0.0)
 		return 0.0;
-	else return Gamma(Name)/Gamma(_ALL);
+	else
+		return Gamma(Name)/Gamma(_ALL);
 }
 
 //total decay width
@@ -606,7 +608,7 @@ double DecayRates::I_NeutrinoLeptonLepton(double x, double y, double z, double g
 	//F_var.push_back(theta);	//3
 
 	SetFunction(&DecayRates::I_NeutrinoLeptonLepton_s);
-	return num::BooleIntegration(this); 
+	return BooleIntegration(this); 
 }
 
 double DecayRates::I_NeutrinoLeptonLepton_s(double s)

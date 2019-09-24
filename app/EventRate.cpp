@@ -91,17 +91,22 @@ int main(int argc, char** argv)
 	double maxX = hFlux->GetXaxis()->GetXmax();
 	double bw = hFlux->GetXaxis()->GetBinWidth(1);
 
-	for (int i = 0; i < gXsecCC->GetN(); ++i)
-	{
-		double x, yCC, yNC;
-		gXsecCC->GetPoint(i, x, yCC);
-		gXsecNC->GetPoint(i, x, yNC);
-		hXsec->Fill(x, yCC + yNC);
-		//hXsec->Fill(x, yCC );
-		hNorm->Fill(x);
-	}
+	//for (int i = 0; i < gXsecCC->GetN(); ++i)
+	//{
+	//	double x, yCC, yNC;
+	//	gXsecCC->GetPoint(i, x, yCC);
+	//	gXsecNC->GetPoint(i, x, yNC);
+	//	hXsec->Fill(x, yCC + yNC);
+	//	//hXsec->Fill(x, yCC );
+	//	hNorm->Fill(x);
+	//}
+	//hXsec->Divide(hNorm);
 
-	hXsec->Divide(hNorm);
+	for (int i = 1; i < hXsec->GetNbinsX()+1; ++i)
+	{
+		double E = hXsec->GetBinCenter(i);
+		hXsec->SetBinContent(i, gXsecCC->Eval(E)+gXsecNC->Eval(E));
+	}
 	hXsec->Scale(1.0e-38);	//GENIE units for xsec is 1e-38 cm2
 
 	double mmass = 40.0;

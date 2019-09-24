@@ -197,7 +197,7 @@ int main(int argc, char** argv)
 	if (dirac)
 	{
 		opt0 = Neutrino::Dirac;
-		opt0 = Neutrino::Dirac | Neutrino::Antiparticle;
+		optB = Neutrino::Dirac | Neutrino::Antiparticle;
 		outName.insert(outName.find(".dat"), "_d");
 	}
 	else
@@ -239,7 +239,7 @@ int main(int argc, char** argv)
 	}
 
 	std::vector<std::string> channels;
-	if (channel == "ExpALL")
+	if (channel == "ExpALL" && !background.empty())
 	{
 		if (UeFlag)
 			channels.push_back("EPI");
@@ -316,7 +316,7 @@ int main(int argc, char** argv)
 
 	std::vector<double> masses, mixingBot, mixingTop, numberBot, numberTop;
 	NumberEvents numEvts(theEngine, ndBox, channels, UeFlag, UmFlag, UtFlag);
-	int grid = 100;
+	int grid = 500;
 	double m0 = 0.01, mE = 2.0;
 	double tb = -1, thr = 0;
 	for (int i = 0; i < grid; ++i)
@@ -331,10 +331,11 @@ int main(int argc, char** argv)
 		theEngine->GetNeutrino("nuB").SetMass(mass);
 
 		nu0.SetMass(mass);
-		nu0.SetMixings(UeFlag, UmFlag, UtFlag);
+		nu0.SetMixings(UeFlag ? 1 : 0, UmFlag ? 1 : 0, UtFlag ? 1 : 0);
 		double totalBranch = 0;
-		for (int c = 0; c < channels.size(); ++c)
-			totalBranch += nu0.DecayBranch(channels[c]);
+		if (mCurve.size())
+			for (int c = 0; c < channels.size(); ++c)
+				totalBranch += nu0.DecayBranch(channels[c]);
 
 		double totalBack = 0;
 		for (ic = mCurve.begin(); ic != mCurve.end(); ++ic) //map of channel - paramters

@@ -140,13 +140,13 @@ bool Driver::MakeFlux(Neutrino &N)
                 fxHeavyMuon = 0;
                 fxHeavyTau = 0;
 
-		if (fxNuElectron)
+		if (fxNuElectron && N.Ue() > 0)
 			MakeElecComponent(fxHeavyElectron = new Flux(*fxNuElectron), N);
 
-		if (fxNuMuon)
+		if (fxNuMuon && N.Um() > 0)
 			MakeMuonComponent(fxHeavyMuon = new Flux(*fxNuMuon), N);
 
-		if (fxNuTau)
+		if (fxNuTau && N.Ut() > 0)
 			MakeTauComponent(fxHeavyTau = new Flux(*fxNuTau), N);
 
 		return true;
@@ -205,7 +205,8 @@ void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino &N)
 void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
 {
 	//Ds+ -> tau+ nu_tau
-	if (vM_Charm.size())
+	//if (vM_Charm.size())
+	if (false)
 	{
 		double Sx, Ex;
 		double Mod = Modify(Flux::Charm, Sx, Ex, N.Mass());
@@ -218,7 +219,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
 	fxFlux->Scale(Flux::Charm, N.ProductionScale("CharmT"));
 
 	//tau+ -> pi+ nu_tau
-	if (vM_Pion.size())
+	//if (vM_Pion.size())
+	if (false)
 	{
 		double Sx, Ex;
 		double Mod = Modify(Flux::Pion, Sx, Ex, N.Mass());
@@ -231,7 +233,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
 	fxFlux->Scale(Flux::Pion, N.ProductionScale("TauPI"));
 
 	//tau+ -> pi+ pi0 nu_tau	//crossing simmetries
-	if (vM_PPion.size())
+	//if (vM_PPion.size())
+	if (false)
 	{
 		double Sx, Ex;
 		double Mod = Modify(Flux::PPion, Sx, Ex, N.Mass());
@@ -244,7 +247,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
 	fxFlux->Scale(Flux::PPion, N.ProductionScale("Tau2PI"));
 
 	//tau+ -> nu_tau_bar e+ nu_e
-	if (vM_TauE.size())
+	//if (vM_TauE.size())
+	if (false)
 	{
 		double Sx, Ex;
 		double Mod = Modify(Flux::TauE, Sx, Ex, N.Mass());
@@ -257,7 +261,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
 	fxFlux->Scale(Flux::TauE, N.ProductionScale("TauET"));
 
 	//tau+ -> nu_tau_bar mu+ nu_mu
-	if (vM_TauM.size())
+	//if (vM_TauM.size())
+	if (false)
 	{
 		double Sx, Ex;
 		double Mod = Modify(Flux::TauM, Sx, Ex, N.Mass());

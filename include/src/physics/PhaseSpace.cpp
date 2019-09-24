@@ -173,7 +173,7 @@ double PhaseSpace::Ratio(Channel Name)
 			Ret = CharmE_ratio();
 			break;
 		case _CharmM:				//1
-			Ret = CharmE_ratio();
+			Ret = CharmM_ratio();
 			break;
 		case _CharmT:				//1
 			Ret = CharmT_ratio();
