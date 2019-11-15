@@ -67,19 +67,23 @@ int main(int argc, char** argv)
 	//To have multiple output, handled by usage
 	std::ostream &out = (OutFile.is_open()) ? OutFile : std::cout;
 
-	Detector* theBox = new Detector(DetConfig, module);
+	Detector* theBox = new Detector(DetConfig);
 
-	TH1D* hFlux = dynamic_cast<TH1D*> (FluxFile->Get("htotal"));
-	TH1D* hXsecCC = dynamic_cast<TH1D*> (hFlux->Clone());
-	TH1D* hXsecNC = dynamic_cast<TH1D*> (hFlux->Clone());
+	TH1D* hFluxCC = dynamic_cast<TH1D*> (FluxFile->Get("htotal"));
+	TH1D* hFluxNC = dynamic_cast<TH1D*> (hFluxCC->Clone());
+	TH1D* hXsecCC = dynamic_cast<TH1D*> (hFluxCC->Clone());
+	TH1D* hXsecNC = dynamic_cast<TH1D*> (hFluxCC->Clone());
+	TH1D* hNorm = dynamic_cast<TH1D*> (hFluxCC->Clone());
 	hXsecCC->Reset("ICES");
 	hXsecNC->Reset("ICES");
+	hNorm->Reset("ICES");
 
-	double mmass = 40.0;
-	double tgtXt = 1e6 * Const::Na / mmass;
-	double weight = tgtXt * (theBox->WeightLAr() + 0.8 * theBox->WeightFGT());
-
-	hFlux->Scale(1.0/pow(theBox->Zstart(), 2));
+	std::cout << "at " << theBox->Zstart() << " m\n";
+	std::cout << "with " << 1.0e7 * theBox->Get("Years") * theBox->Get("POT/s") << " POT\n";
+	hFluxCC->Scale(1.0/pow(theBox->Zstart(), 2));
+	hFluxCC->Scale(1.0e14);
+	hFluxNC->Scale(1.0/pow(theBox->Zstart(), 2));
+	hFluxNC->Scale(1.0e14);
 
 	TIter next(XsecFile->GetListOfKeys());
 	TKey *kkk = dynamic_cast<TKey*> (next());
@@ -88,30 +92,38 @@ int main(int argc, char** argv)
 	TGraph * gXsecCC = dynamic_cast<TGraph*> (dir->Get("tot_cc"));
 	TGraph * gXsecNC = dynamic_cast<TGraph*> (dir->Get("tot_nc"));
 
-	for (int i = 1; i < hFlux->GetNbinsX()+1; ++i)
+	double minX = hFluxCC->GetXaxis()->GetXmin();
+	double maxX = hFluxCC->GetXaxis()->GetXmax();
+	double bw = hFluxCC->GetXaxis()->GetBinWidth(1);
+
+	for (int i = 0; i < gXsecCC->GetN(); ++i)
 	{
-		double E = hFlux->GetBinCenter(i);
-		hXsecCC->SetBinContent(i, gXsecCC->Eval(E));
-		hXsecNC->SetBinContent(i, gXsecNC->Eval(E));
+		double x, yCC, yNC;
+		gXsecCC->GetPoint(i, x, yCC);
+		gXsecNC->GetPoint(i, x, yNC);
+		hXsecCC->Fill(x, yCC);
+		hXsecNC->Fill(x, yNC);
+		hNorm->Fill(x);
 	}
+
+	hXsecCC->Divide(hNorm);
 	hXsecCC->Scale(1.0e-38);	//GENIE units for xsec is 1e-38 cm2
+	hXsecNC->Divide(hNorm);
 	hXsecNC->Scale(1.0e-38);	//GENIE units for xsec is 1e-38 cm2
 
-	hXsecCC->Multiply(hFlux);
-	hXsecNC->Multiply(hFlux);
+	double mmass = 40.0;
+	double tgtXg = 1e6 * Const::Na / mmass;
+	if (module == "FGT")
+		tgtXg *= 0.8;
 
-	double tot = hXsecCC->Integral("WIDTH") + hXsecNC->Integral("WIDTH");;
+
+	hFluxCC->Multiply(hXsecCC);
+	hFluxNC->Multiply(hXsecNC);
 
 	out << std::setprecision(10);
-	out << "CC\n";
-	out << "\tEvents:    " << tgtXt * 1e20 * hXsecCC->Integral("WIDTH") << "\n";
-	out << "\tRatio:     " << 100. * hXsecCC->Integral("WIDTH") / tot << " %\n";
-	out << "\tFrequency: " << 1e3 * 1e14 * weight * hXsecCC->Integral("WIDTH") << " e-3 Hz" << "\n";
-	out << "NC\n";
-	out << "\tEvents:    " << tgtXt * 1e20 * hXsecNC->Integral("WIDTH") << "\n";
-	out << "\tRatio:     " << 100. * hXsecNC->Integral("WIDTH") / tot << " %\n";
-	out << "\tFrequency: " << 1e3 * 1e14 * weight * hXsecNC->Integral("WIDTH") << " e-3 Hz" << "\n";
-	//out << "Scale " << module << ": " << tgtXt * theBox->Weight() * hFlux->Integral("WIDTH") << std::endl;
+	//std::cout << tgtXg << ", " << theBox->Weight() << ", " << hFlux->Integral("WIDTH") << std::endl;
+	out << "Frequency CC: " << 1e3 * tgtXg * hFluxCC->Integral("WIDTH") << " e-3 Hz" << std::endl;
+	out << "Frequency NC: " << 1e3 * tgtXg * hFluxNC->Integral("WIDTH") << " e-3 Hz" << std::endl;
 
 	FluxFile->Close();
 	XsecFile->Close();

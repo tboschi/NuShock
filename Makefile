@@ -17,7 +17,7 @@ LHAPDFINC	= -I$(LHAPDF)/include	#includes for LHAPDF
 
 LDFLAGS  := -Wl,--no-as-needed $(LDFLAGS) $(ROOTLIB) $(GENIELIB) $(CUBALIB) $(LHAPDFLIB) -L$(LIBDIR)
 LDLIBS   := -lcuba -lLHAPDF
-CXXFLAGS := $(CXXFLAGS) -fPIC -fopenmp -std=c++11 -O3 -mavx $(ROOTINC) $(CUBAINC) $(LHAPDFINC) -I$(INCDIR)
+CXXFLAGS := $(CXXFLAGS) -fPIC -fopenmp -std=c++11 -O3 -mavx $(ROOTINC) $(CUBAINC) $(LHAPDFINC) -I$(INCDIR) -I$(OSCSRC)/core -I$(OSCSRC)/tools
 
 #apps and exctuables
 CPP := $(shell find $(APPDIR) -maxdepth 1 -name '*.cpp')
