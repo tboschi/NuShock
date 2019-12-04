@@ -141,6 +141,8 @@ int main(int argc, char** argv)
 		Neutrino nuB_L(mass, Neutrino::Left  | Neutrino::Dirac | Neutrino::Antiparticle);
 		Neutrino nuB_R(mass, Neutrino::Right | Neutrino::Dirac | Neutrino::Antiparticle);
 
+
+		std::cout << "With channel " << channel << std::endl;
 		nu0_L.SetDecayChannel(channel);
 		nu0_R.SetDecayChannel(channel);
 		nuB_L.SetDecayChannel(channel);
@@ -179,9 +181,15 @@ int main(int argc, char** argv)
 	std::map<std::string, double>::iterator iw;
 	double total, step = theEngine->RangeWidth();
 	if (mix > 0)
+	{
+		std::cout << "made sample with mix " << mix << std::endl;
 		total = theEngine->MakeSampler(theBox, weights, mix, mix, mix);
+	}
 	else
+	{
+		std::cout << "made sample"  << std::endl;
 		total = theEngine->MakeSampler(theBox, weights, ue, um, ut);
+	}
 	std::cout << "total number of events for " << outName << " is " << total << std::endl;
 
 	for (iw = weights.begin(); iw != weights.end(); ++iw)
@@ -274,6 +282,7 @@ int main(int argc, char** argv)
 	int ND = 0, ID;
 	for (ID = 0; ID < nevent; ++ND)
 	{
+		//std::cout << ND << " nevent " << ID << std::endl;
 		//sampling 2/4 times at the same times
 		//(over all the neutrinos loaded)
 		std::map<std::string, double> energy, intensity;
@@ -281,8 +290,11 @@ int main(int argc, char** argv)
 
 		for (iw = energy.begin(); iw != energy.end(); ++iw)
 		{
+			//std::cout << "energies " << iw->first << ", " << iw->second << std::endl;
 			if (iw->second < 0)
 				continue;
+
+			//std::cout << "energies " << iw->first << ", " << iw->second << std::endl;
 
 			True = iw->second;	//true neutrino energy from sampling
 			W = weights[iw->first];
@@ -330,6 +342,8 @@ int main(int argc, char** argv)
 					original.push_back(*ip);
 				}
 			}
+
+			//std::cout << "particle size " << particle.size() << std::endl;
 
 			if (particle.size() == 2 &&
 				theBox->Reconstruct(particle.at(0)) &&

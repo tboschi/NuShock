@@ -36,8 +36,9 @@ int main(int argc, char** argv)
 	std::string DetConfig;
 	TFile *XsecFile, *FluxFile;
 	std::ofstream OutFile;
+	std::string type;
 	
-	while((iarg = getopt_long(argc,argv, "d:x:f:F:o:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "d:x:f:t:o:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -51,7 +52,10 @@ int main(int argc, char** argv)
 				FluxFile = new TFile(optarg, "OPEN");
 				break;
 			case 'o':
-				OutFile.open(optarg);
+				OutFile.open(optarg, std::ios_base::app);
+				break;
+			case 't':
+				type.assign(optarg);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -62,7 +66,7 @@ int main(int argc, char** argv)
 	}
 
 	//To have multiple output, handled by usage
-	std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
+	std::ostream &out = (OutFile.is_open()) ? OutFile : std::cout;
 
 	Detector * TheBox = new Detector(DetConfig);
 
@@ -140,9 +144,11 @@ int main(int argc, char** argv)
 	double Ysec = 1.0e7 * TheBox->Get("Years");
 	double pot = 1.0e7 * TheBox->Get("Years") * TheBox->Get("POT/s");
 	double weight = TheBox->Get("WeightLAr") + TheBox->Get("WeightFGT");
-	Out << std::setprecision(10);
-	Out << "Scale " << NtargetPer*TheBox->Get("WeightLAr")*(RateCC+RateNC)*pot/1e6 << std::endl;
-	Out << "Scale " << NtargetPer*TheBox->Get("WeightFGT")*(RateCC+RateNC)*pot/1e6 << std::endl;
+	std::cout << "Scale " << NtargetPer*TheBox->Get("WeightLAr")*(RateCC+RateNC)*pot/1e6 << std::endl;
+	std::cout << "Scale " << NtargetPer*TheBox->Get("WeightFGT")*(RateCC+RateNC)*pot/1e6 << std::endl;
+	out << std::setprecision(10);
+	out << "LAr_" << type << "\t" << NtargetPer*TheBox->Get("WeightLAr")*(RateCC+RateNC)*pot/1e6 << std::endl;
+	out << "FGT_" << type << "\t" << NtargetPer*TheBox->Get("WeightFGT")*(RateCC+RateNC)*pot/1e6 << std::endl;
 	//Out << "Tot numb of neutrinos per 1e20 POT is " << Npot*1e20 << std::endl;
 	//Out << "Total number of CC events per 1e20 POT per ton is " << NtargetPer*RateCC*1e20 << std::endl;
 	//Out << "Total number of NC events per 1e20 POT per ton is " << NtargetPer*RateNC*1e20 << std::endl;

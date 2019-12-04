@@ -24,7 +24,8 @@ CPP := $(shell find $(APPDIR) -maxdepth 1 -name '*.cpp')
 SRC := $(shell find $(SRCDIR) -maxdepth 2 -name '*.cpp')
 
 #main target
-TARGET := $(CPP:.cpp=)
+TARGET := $(if $(APP), $(APPDIR)/$(APP), $(CPP:.cpp=))
+#TARGET := $(CPP:.cpp=)
 DEPEND := $(SRC:.cpp=.o)
 
 all: $(TARGET)
@@ -34,6 +35,7 @@ all: $(TARGET)
 	@cp $(DEPEND) $(LIBDIR)
 	@cp $(TARGET) $(BINDIR)
 	@echo "Done!"
+	@echo "If you need to build just one file, do make APP=name"
 
 $(TARGET): $(DEPEND)
 

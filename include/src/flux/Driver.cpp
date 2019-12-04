@@ -8,20 +8,31 @@ Driver::Driver(std::string fluxConfig, bool FHC) :
 	fxHeavyMuon(0),
 	fxHeavyTau(0)
 {
-	CardDealer fc(fluxConfig);
+	CardDealer fc(fluxConfig);//, true);
 
 	std::string name;
 	if (FHC)
 	{
+		//std::cout << "D is FHC" << std::endl;
 		if (fc.Get("Electron_", name))
+		{
 			fxNuElectron = new Flux(name);
+			//std::cout << "E\tflux name " << name << std::endl;
+		}
 		if (fc.Get("Muon_", name))
+		{
+			//std::cout << "M\tflux name " << name << std::endl;
 			fxNuMuon = new Flux(name);
+		}
 		if (fc.Get("Tau_", name))
+		{
+			//std::cout << "T\tflux name " << name << std::endl;
 			fxNuTau = new Flux(name);
+		}
 	}
 	else
 	{
+		//std::cout << "D is RHC" << std::endl;
 		if (fc.Get("ElectronBar_", name))
 			fxNuElectron = new Flux(name);
 		if (fc.Get("MuonBar_", name))
@@ -127,11 +138,13 @@ bool Driver::MakeFlux(Neutrino &N)
 {
 	if (!IsChanged(N))	//compute only if particle is changed
 	{
-		std::cerr << "WARNING: recopmuting flux with same neutrino. This should not be happening!" << std::endl;
+		std::cerr << "WARNING: recopmuting flux with same neutrino. "
+			  << "This should not be happening!" << std::endl;
 		return false;
 	}
 	else
 	{
+		//std::cout << "Making flux in driver" << std::endl;
 		delete fxHeavyElectron;
 		delete fxHeavyMuon;
 		delete fxHeavyTau;
@@ -140,14 +153,24 @@ bool Driver::MakeFlux(Neutrino &N)
                 fxHeavyMuon = 0;
                 fxHeavyTau = 0;
 
-		if (fxNuElectron && N.Ue() > 0)
+		//std::cout << "mixings " << N.Ue() << ", " << N.Um() << ", " << N.Ut() << std::endl;
+		if (fxNuElectron)// && N.Ue() > 0)
+		{
 			MakeElecComponent(fxHeavyElectron = new Flux(*fxNuElectron), N);
+			//std::cout << "making E component " << fxHeavyElectron << std::endl;
+		}
 
-		if (fxNuMuon && N.Um() > 0)
+		if (fxNuMuon)// && N.Um() > 0)
+		{
 			MakeMuonComponent(fxHeavyMuon = new Flux(*fxNuMuon), N);
+			//std::cout << "making M component " << fxHeavyMuon << std::endl;
+		}
 
-		if (fxNuTau && N.Ut() > 0)
+		if (fxNuTau)// && N.Ut() > 0)
+		{
 			MakeTauComponent(fxHeavyTau = new Flux(*fxNuTau), N);
+			//std::cout << "making T component " << fxHeavyTau << std::endl;
+		}
 
 		return true;
 	}
@@ -285,6 +308,7 @@ double Driver::Intensity(Neutrino &N)	//Return flux intensity, given energy, sim
 {
 	double Energy = N.EnergyKin();
 
+	//std::cout << fxHeavyElectron << ", " << fxHeavyMuon << ", " << fxHeavyTau << std::endl;
 	double Intensity = 0;
 	if (fxHeavyElectron)
 		Intensity += N.Ue(2) * InterpolateIntensity(fxHeavyElectron->Get(Flux::Total), Energy);

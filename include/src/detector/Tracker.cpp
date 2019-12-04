@@ -111,7 +111,7 @@ void Tracker::Smearing(Particle &P)
 			else if (P.TrackIn() > ZsizeFGT())
 				hiRes = true;
 
-			std::cout << "HiRes " << std::boolalpha << hiRes << std::endl;
+			//std::cout << "HiRes " << std::boolalpha << hiRes << std::endl;
 			if (!P.IsShower() && hiRes)	//pion track, not shower
 			{
 				//std::cout << "pion in range, ";

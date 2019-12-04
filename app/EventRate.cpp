@@ -36,8 +36,9 @@ int main(int argc, char** argv)
 	std::string DetConfig, module;
 	TFile *XsecFile, *FluxFile;
 	std::ofstream OutFile;
+	std::string type;
 	
-	while((iarg = getopt_long(argc,argv, "d:l:x:f:F:o:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "d:l:x:f:t:o:h", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -54,7 +55,10 @@ int main(int argc, char** argv)
 				FluxFile = new TFile(optarg, "OPEN");
 				break;
 			case 'o':
-				OutFile.open(optarg);
+				OutFile.open(optarg, std::ios_base::app);
+				break;
+			case 't':
+				type.assign(optarg);
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -101,17 +105,22 @@ int main(int argc, char** argv)
 	hXsecNC->Multiply(hFlux);
 
 	double tot = hXsecCC->Integral("WIDTH") + hXsecNC->Integral("WIDTH");;
+	double pot = 1.0e1 * theBox->Get("Years") * theBox->Get("POT/s");
+
+	std::cout << "CC\n";
+	std::cout << "\tEvents:    " << tgtXt * 1e20 * hXsecCC->Integral("WIDTH") << "\n";
+	std::cout << "\tRatio:     " << 100. * hXsecCC->Integral("WIDTH") / tot << " %\n";
+	std::cout << "\tFrequency: " << 1e3 * 1e14 * weight * hXsecCC->Integral("WIDTH") << " e-3 Hz" << "\n";
+	std::cout << "NC\n";
+	std::cout << "\tEvents:    " << tgtXt * 1e20 * hXsecNC->Integral("WIDTH") << "\n";
+	std::cout << "\tRatio:     " << 100. * hXsecNC->Integral("WIDTH") / tot << " %\n";
+	std::cout << "\tFrequency: " << 1e3 * 1e14 * weight * hXsecNC->Integral("WIDTH") << " e-3 Hz" << "\n";
+
+
 
 	out << std::setprecision(10);
-	out << "CC\n";
-	out << "\tEvents:    " << tgtXt * 1e20 * hXsecCC->Integral("WIDTH") << "\n";
-	out << "\tRatio:     " << 100. * hXsecCC->Integral("WIDTH") / tot << " %\n";
-	out << "\tFrequency: " << 1e3 * 1e14 * weight * hXsecCC->Integral("WIDTH") << " e-3 Hz" << "\n";
-	out << "NC\n";
-	out << "\tEvents:    " << tgtXt * 1e20 * hXsecNC->Integral("WIDTH") << "\n";
-	out << "\tRatio:     " << 100. * hXsecNC->Integral("WIDTH") / tot << " %\n";
-	out << "\tFrequency: " << 1e3 * 1e14 * weight * hXsecNC->Integral("WIDTH") << " e-3 Hz" << "\n";
-	//out << "Scale " << module << ": " << tgtXt * theBox->Weight() * hFlux->Integral("WIDTH") << std::endl;
+	out << "LAr_" << type << "\t" << tgtXt * theBox->WeightLAr() * tot * pot << "\n";
+	out << "FGT_" << type << "\t" << tgtXt * theBox->WeightFGT() * tot * pot << std::endl;
 
 	FluxFile->Close();
 	XsecFile->Close();

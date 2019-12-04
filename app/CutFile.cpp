@@ -67,6 +67,8 @@ int main(int argc, char** argv)
 
 	std::map<std::string, double> scaleFacts;
 	sc.GetAll(scaleFacts);
+	std::cout << "scale " << scaleFacts.size() << std::endl;
+	
 
 	std::string head = backPath.substr(backPath.find_last_of('/')+1);
 	std::cout << "Background head " << head << std::endl;
@@ -152,10 +154,13 @@ int main(int argc, char** argv)
 				}
 				out.close();
 
-				int totBkg = 0;
+				double totBkg = 0;
+				double oneBkg = 0;
 				for (ib = backFiles.begin(); ib != backFiles.end(); ++ib)
 				{
-					std::string nd = ib->first.substr(ib->first.find_first_of('_')+1);
+					//std::cout << ib->second << std::endl;
+					//std::string nd = ib->first.substr(ib->first.find_first_of('_')+1);
+					std::string nd = ib->first.substr(ib->first.find(channel[ch])+channel[ch].length()+1);
 					//std::cout << "applying on background " << ib->second << "\n";
 					//load MC in efficiency object
 					Efficiency bkg(ib->second);
@@ -163,12 +168,13 @@ int main(int argc, char** argv)
 					bkg.ApplyCut();
 					std::cout << "\t" << nd << " : " << bkg.EntriesLeft() << ",";
 					totBkg += scaleFacts[nd] * bkg.EntriesLeft();
+					oneBkg += bkg.EntriesLeft();
 				}
 
 
 				std::cout << std::endl;
 
-				std::cout << CL << " : calculated " << totBkg << std::endl;
+				std::cout << "at " << CL << " calculated : " << totBkg << "(" << oneBkg << ")" << std::endl;
 				if (totBkg > totalBackgrounds)
 				{
 					alpha = CL - step;

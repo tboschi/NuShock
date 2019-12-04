@@ -7,7 +7,8 @@ Baseline	574
 #3D sizes in meters
 #
 #LArTPC
-LengthLAr	5
+#LengthLAr	5
+LengthLAr	4	#---> not run with this setting!
 HeightLAr	3
 WidthLAr	7
 #weight in tons
@@ -34,6 +35,7 @@ POT/s		2.205e14
 #POT/s		1.105e14
 #total number of years with POTS above. 1 year is defined as 1e7 seconds
 Years		6
+#Years		3
 
 #1: LAr, 2: HP Ar, 3: Fe
 #Target material for the detector

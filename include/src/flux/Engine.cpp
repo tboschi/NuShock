@@ -49,15 +49,23 @@ void Engine::BindNeutrino(std::string uuid, Neutrino &N, Current horn)
 
 	mNeutrino[uuid] = N;
 
+	bool type;
 	switch (horn)
 	{
-		case FHC:
-			mDriver[uuid] = new Driver(fluxConfig, 1);
-			break;
 		case RHC:
-			mDriver[uuid] = new Driver(fluxConfig, 0);
+			type = false;
+			//std::cout << "RHCtype " << type << std::endl;
+			break;
+		case FHC:
+		default:
+			//std::cout << "FHCtype " << type << std::endl;
+			type = true;
 			break;
 	}
+
+	//std::cout << "type " << type << std::endl;
+
+	mDriver[uuid] = new Driver(fluxConfig, type);
 }
 
 void Engine::ReleaseNeutrino(std::string uuid)
@@ -141,6 +149,7 @@ double Engine::MakeSampler(Detector *box, std::map<std::string, double> &mInt,
 	{
 		mInt[iD->first] = MakeSampler(box, iD->first, ue, um, ut);
 		integral += mInt[iD->first];
+		//std::cout << "making sample " << iD->first << " -> " << mInt[iD->first] << std::endl;
 	}
 
 	return integral;
@@ -234,13 +243,14 @@ double Engine::DecayNumber(Detector *box, std::string uuid)
 {
 	//std::cout << uuid << " : " << box->Efficiency(mNeutrino[uuid]) << ", "
 	//	  << box->DecayProb(mNeutrino[uuid]) << ", "
-	//	  << Intensity(uuid) << std::endl;
+	//	  << b	  << Intensity(uuid) << std::endl;
 	return box->Efficiency(mNeutrino[uuid]) * box->DecayProb(mNeutrino[uuid]) * Intensity(uuid);
 }
 
 //make all the fluxes
 void Engine::MakeFlux()
 {
+	//std::cout << "Making flux" << std::endl;
 	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
 		MakeFlux(iD->first);
 }
@@ -254,6 +264,7 @@ void Engine::MakeFlux(Current horn)
 
 void Engine::MakeFlux(std::string uuid)
 {
+	//std::cout << "Making flux " << uuid << std::endl;
 	mDriver[uuid]->MakeFlux(mNeutrino[uuid]);
 }
 
