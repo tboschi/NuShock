@@ -31,14 +31,16 @@ class Efficiency
 			_T_A,
 			_TheA,
 			_PhiA,
-			_In_A,
+			_LAr_A,
+			_FGT_A,
 			_Out_A,
 			_E_B,
 			_P_B,
 			_T_B,
 			_TheB,
 			_PhiB,
-			_In_B,
+			_LAr_B,
+			_FGT_B,
 			_Out_B,
 			_Angle,
 			_E_0,
@@ -56,15 +58,16 @@ class Efficiency
 			_T_AB0,
 			_TTA,
 			_EAB,
-			_E0Ang
+			_E0Ang,
 		};
 
-		Efficiency(std::string mcFile = "");
+		Efficiency(std::string mcFile = "", int chID = 0, bool Spec = false);
 		~Efficiency();
 		void MapCuts();
 		void LoadFile(std::string mcFile);
 		std::vector<std::string> AvailableCuts(std::string name = "");
 		void Reset();
+		void SetStatus();
 		void LoadTree(TTree *mcData);
 		void GetCutLimits(std::string name, double &cLo, double &cUp);
 		void FindCut(std::string cutName, double &cLo, double &cUp, double CL, double mass = -1);
@@ -75,6 +78,10 @@ class Efficiency
 		void LoadCut(std::string cutFile);
 		void SetCut(std::string name, double lower = 0, double upper = 0);
 		void ApplyCut(double mass = -1.0);
+		void MaxEfficiency(double mass);
+		void MinEfficiency(double mass);
+
+		int ValidEntries();
 		int EntriesLeft();
 		double EventsLeft();
 		double ReductionFactor();
@@ -83,10 +90,11 @@ class Efficiency
 		TH1D *GetCut();
 		int FindFirstBin(TH1D* hist, double thr = 0, int start = -1, int end = -1);
 		void MakeFunction();
-		TH2D* CompleteFunction();
+		TH2D* CompleteFunction(bool debug = false);
 
 	private:
-		bool funcSet;
+		bool funcSet, special;
+		int LN;
 		TTree *Data;
 		TFile *inFile;
 
@@ -103,21 +111,24 @@ class Efficiency
 		double *Hist;
 		double  True, W;
 
-		int PdgA;
+		bool P;
+		int PdgA, ChA;
 		double E_A;
 		double P_A;
 		double T_A;
 		double TheA;
 		double PhiA;
-		double In_A;
+		double LAr_A;
+		double FGT_A;
 		double Out_A;
-		int PdgB;
+		int PdgB, ChB;
 		double E_B;
 		double P_B;
 		double T_B;
 		double TheB;
 		double PhiB;
-		double In_B;
+		double LAr_B;
+		double FGT_B;
 		double Out_B;
 		double Angle;
 		double E_0;
@@ -138,7 +149,10 @@ class Efficiency
 		double E0Ang;
 
 		// List of branches
+		TBranch        *b_fP;   //!
+		TBranch        *b_fTrue;   //!
 		TBranch        *b_fPdgA;   //!
+		TBranch        *b_fChA;   //!
 		TBranch        *b_fEnergyA;   //!
 		TBranch        *b_fMomentA;   //!
 		TBranch        *b_fTransvA;   //!
@@ -147,6 +161,7 @@ class Efficiency
 		TBranch        *b_fLengthA;   //!
 		TBranch        *b_fLengthoA;   //!
 		TBranch        *b_fPdgB;   //!
+		TBranch        *b_fChB;   //!
 		TBranch        *b_fEnergyB;   //!
 		TBranch        *b_fMomentB;   //!
 		TBranch        *b_fTransvB;   //!

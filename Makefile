@@ -28,14 +28,17 @@ TARGET := $(if $(APP), $(APPDIR)/$(APP), $(CPP:.cpp=))
 #TARGET := $(CPP:.cpp=)
 DEPEND := $(SRC:.cpp=.o)
 
-all: $(TARGET)
+all: welcome $(TARGET)
 	@mkdir -p $(LIBDIR)
 	@mkdir -p $(BINDIR)
 	@echo "Cleaning up..."
 	@cp $(DEPEND) $(LIBDIR)
 	@cp $(TARGET) $(BINDIR)
 	@echo "Done!"
+
+welcome:
 	@echo "If you need to build just one file, do make APP=name"
+	@echo "Enjoy your compilation"
 
 $(TARGET): $(DEPEND)
 

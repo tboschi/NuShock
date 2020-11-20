@@ -36,8 +36,10 @@ Particle::Particle(const Particle &P) :
 	pdg(P.pdg),
 	particleVec(P.particleVec),
 	particlePos(P.particlePos),
-	trackIn(P.trackIn),
+	trackLAr(P.trackLAr),
+	trackFGT(P.trackLAr),
 	trackOut(P.trackOut),
+	sagitta(P.sagitta),
 	kShower(P.kShower)
 {
 }
@@ -49,8 +51,10 @@ Particle& Particle::operator=(const Particle &P)
 	particleVec = P.particleVec;
 	particlePos = P.particlePos;
 
-	trackIn   = P.trackIn;
+	trackLAr  = P.trackLAr;
+	trackFGT  = P.trackFGT;
 	trackOut  = P.trackOut;
+	sagitta   = P.sagitta;
 
 	kShower = P.kShower;
 }
@@ -71,7 +75,8 @@ void Particle::Init(double Px, double Py, double Pz, double E, double X, double 
 	}
 	else
 
-	trackIn   = -1.;
+	trackLAr = -1.;
+	trackFGT = -1.;
 	trackOut  = -1.;
 	kShower   = false;
 }
@@ -82,6 +87,11 @@ int Particle::Pdg() const
 }
 
 int Particle::Charge() const
+{
+	return charge;
+}
+
+int Particle::RealCharge() const
 {
 	switch ( abs(Pdg()) )
 	{
@@ -263,9 +273,19 @@ double Particle::Dist() const
 	return particlePos.Mag2();
 }
 
+double Particle::TrackLAr() const
+{
+	return trackLAr;
+}
+
+double Particle::TrackFGT() const
+{
+	return trackFGT;
+}
+
 double Particle::TrackIn() const
 {
-	return trackIn;
+	return TrackLAr() + TrackFGT();
 }
 
 double Particle::TrackOut() const
@@ -278,12 +298,33 @@ double Particle::TrackTot() const
 	return TrackIn() + TrackOut();
 }
 
+double Particle::Sagitta() const
+{
+	return sagitta;
+}
+
 //////// non const functions
 //
 void Particle::SetPdg(int X)
 {
 	pdg = X;
 }
+
+void Particle::ChargeID(int X)
+{
+	charge = X;
+}
+
+void Particle::ChargeID()
+{
+	charge = RealCharge();
+}
+
+void Particle::ChargeMisID()
+{
+	charge = -RealCharge();
+}
+
 
 void Particle::SetFourVector(TLorentzVector &V)
 {
@@ -316,7 +357,6 @@ void Particle::SetEnergy(double dE)
 	double dM = Mass();
 	if (dE < dM)
 		dE = dM;
-
 
 	particleVec.SetE(dE);
 	SetRho(sqrt(dE*dE - dM*dM));
@@ -387,7 +427,16 @@ void Particle::SetZ(double X)
 
 void Particle::SetTrackIn(double X)
 {
-	trackIn = X;
+	trackLAr = X;
+	trackFGT = X;
+}
+
+void Particle::SetTrackIn(double X, bool module)
+{
+	if (module)
+		trackLAr = X;
+	else
+		trackFGT = X;
 }
 
 void Particle::SetTrackOut(double X)
@@ -398,4 +447,9 @@ void Particle::SetTrackOut(double X)
 void Particle::SetShower(bool X)
 {
 	kShower = X;
+}
+
+void Particle::SetSagitta(double X)
+{
+	sagitta = X;
 }

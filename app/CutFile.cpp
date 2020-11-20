@@ -33,9 +33,9 @@ int main(int argc, char** argv)
 	
 	//Initialize variables
 	std::string cutConfig, backPath, scaleConfig, outName;
-	double CL;
+	bool charge = false, special = false;
 	
-	while((iarg = getopt_long(argc,argv, "s:b:o:c:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "s:b:o:c:CSh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -52,7 +52,10 @@ int main(int argc, char** argv)
 				outName.assign(optarg);
 				break;
 			case 'C':
-				CL = std::strtod(optarg, NULL);
+				charge = true;
+				break;
+			case 'S':
+				special = true;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -62,20 +65,27 @@ int main(int argc, char** argv)
 		}
 	}
 
+	//bc has the list of the simulation files
 	CardDealer bc(cutConfig);
+	//sc has the background scaling
 	CardDealer sc(scaleConfig);
 
 	std::map<std::string, double> scaleFacts;
 	sc.GetAll(scaleFacts);
 	std::cout << "scale " << scaleFacts.size() << std::endl;
 	
+	int maxchl = charge ? 2 : 6;
+	int maxlnv = 1 + charge;
 
 	std::string head = backPath.substr(backPath.find_last_of('/')+1);
 	std::cout << "Background head " << head << std::endl;
 	std::string channel[6] = {"EPI", "MPI", "nPI0", "nEE", "nEM", "nMM"};
-	for (int ch = 0; ch < 6; ++ch)
+	std::string lnv[2] = {"LNV", "LNC"};
+	for (int ch = 0; ch < maxchl; ++ch)
+		for (int l = 0; l < maxlnv; ++l)
 	{
-		std::cout << "Channel " << channel[ch] << std::endl;
+		int LN = charge ? 2*l - 1 : 0; 	//is ±1 with charge, 0 without
+		std::cout << "Channel " << channel[ch] << " - " << lnv[l] << std::endl;
 
 		std::map<std::string, std::string> pathMC;
 		std::map<std::string, std::string>::iterator ip;
@@ -87,7 +97,13 @@ int main(int argc, char** argv)
 		{
 			std::cout << "Loading " << ip->second << "\t";
 			//load MC in efficiency object
-			Efficiency eff(ip->second);
+			Efficiency eff(ip->second, LN, special);
+
+			if (eff.ValidEntries() <= 0)
+			{
+				std::cout << "Empty selection, skipping\n";
+				continue;
+			}
 
 			std::vector<std::string> cuts = eff.AvailableCuts(channel[ch]);
 
@@ -115,7 +131,8 @@ int main(int argc, char** argv)
 
 			/* create cut file
 			 */
-			std::string nout = outName + channel[ch] + ip->first;
+			std::string nout = outName + channel[ch] +
+					   (charge ? "_" + lnv[l] : "") + ip->first;
 			std::cout << "and saving in " << nout << std::endl;
 			double alpha = 0, cLo, cUp;	// <-- CL
 			int totalBackgrounds = 5e6;	//can't be bigger than this
@@ -154,6 +171,7 @@ int main(int argc, char** argv)
 				}
 				out.close();
 
+				double valBkg = 0;
 				double totBkg = 0;
 				double oneBkg = 0;
 				for (ib = backFiles.begin(); ib != backFiles.end(); ++ib)
@@ -163,12 +181,22 @@ int main(int argc, char** argv)
 					std::string nd = ib->first.substr(ib->first.find(channel[ch])+channel[ch].length()+1);
 					//std::cout << "applying on background " << ib->second << "\n";
 					//load MC in efficiency object
-					Efficiency bkg(ib->second);
+					Efficiency bkg(ib->second, LN, special);
 					bkg.LoadCut(nout);
 					bkg.ApplyCut();
 					std::cout << "\t" << nd << " : " << bkg.EntriesLeft() << ",";
+
+					if (CL < step)
+						valBkg += bkg.ValidEntries();
+
 					totBkg += scaleFacts[nd] * bkg.EntriesLeft();
 					oneBkg += bkg.EntriesLeft();
+				}
+
+				if (CL < step && valBkg == 0)
+				{
+					alpha = 0;
+					break;
 				}
 
 
@@ -177,7 +205,7 @@ int main(int argc, char** argv)
 				std::cout << "at " << CL << " calculated : " << totBkg << "(" << oneBkg << ")" << std::endl;
 				if (totBkg > totalBackgrounds)
 				{
-					alpha = CL - step;
+					alpha = std::max(0.0, CL - step);
 					break;
 				}
 				else
@@ -215,6 +243,7 @@ int main(int argc, char** argv)
 				}
 			}
 
+			std::cout << "final cut" << std::endl;
 			eff.ApplyCut();
 			out << "\n#efficiency\t" << eff.ReductionFactor() << std::endl;
 			out << "\n#entries\t\t" << eff.EntriesLeft() << std::endl;

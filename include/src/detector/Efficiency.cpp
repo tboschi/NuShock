@@ -1,12 +1,15 @@
 #include "Efficiency.h"
 
-Efficiency::Efficiency(std::string mcFile) :
+Efficiency::Efficiency(std::string mcFile, int chID, bool Spec) :
 	hAll(NULL),
 	hCut(NULL),
 	hhFunc(NULL),
 	inFile(NULL),
+	Data(NULL),
 	funcSet(false),
-	W(1)
+	W(1),
+	LN(chID),
+	special(Spec)
 {
 	MapCuts();
 	LoadFile(mcFile);
@@ -68,6 +71,8 @@ void Efficiency::LoadFile(std::string mcFile)
 		TTree *data = dynamic_cast<TTree*> (inFile->Get("Data"));
 		LoadTree(data);
 	}
+
+	SetStatus();
 }
 
 std::vector<std::string> Efficiency::AvailableCuts(std::string name)
@@ -157,12 +162,19 @@ void Efficiency::LoadTree(TTree *tree)
 
 	if (Data->GetBranch("True"))
 	{
-		Data->SetBranchAddress("True", &True);//, &b_fTrue);
-		Data->SetBranchAddress("W",    &W);//,    &b_fW);
+		Data->SetBranchAddress("True", &True, &b_fTrue);
+		Data->SetBranchAddress("P", &P, &b_fP);
+		//Data->SetBranchAddress("W",    &W,    &b_fW);
 		Hist = &True;
 	}
 	else
 		Hist = &E_0;
+
+	if (LN && Data->GetBranch("ChA") && Data->GetBranch("ChB"))
+	{
+		Data->SetBranchAddress("ChA", &ChA, &b_fChA);
+		Data->SetBranchAddress("ChB", &ChB, &b_fChB);
+	}
 }
 
 //CL regulates the threshold, it varies between 0 and 1
@@ -300,17 +312,6 @@ TH1D* Efficiency::LoadCutSpectrum(std::string name)
 
 void Efficiency::LoadCut(std::string cutFile)
 {
-	Data->SetBranchStatus("*", 0);		// disable all branches
-	Data->SetBranchStatus("PdgA", 1);
-	Data->SetBranchStatus("PdgB", 1);
-	if (Data->GetBranch("True"))
-	{
-		Data->SetBranchStatus("True", 1);
-		Data->SetBranchStatus("W",    1);
-	}
-	else
-		Data->SetBranchStatus("E_0", 1);
-
 	Reset();
 
 	CardDealer cf(cutFile);
@@ -361,13 +362,40 @@ void Efficiency::Reset()
 		hCut->Delete();
 		hCut = NULL;
 	}
+
+	SetStatus();
+}
+
+void Efficiency::SetStatus()
+{
+	if (!Data)
+		return;
+
+	Data->SetBranchStatus("*", 0);		// disable all branches
+	Data->SetBranchStatus("PdgA", 1);
+	Data->SetBranchStatus("PdgB", 1);
+	if (Data->GetBranch("True"))	//Signal
+	{
+		Data->SetBranchStatus("True", 1);
+		Data->SetBranchStatus("P", 1);
+		//Data->SetBranchStatus("W",    1);
+		Hist = &True;
+	}
+	else				//Background
+	{
+		Data->SetBranchStatus("E_0", 1);
+		Hist = &E_0;
+	}
+
+	if (LN)
+	{
+		Data->SetBranchStatus("ChB", 1);
+		Data->SetBranchStatus("ChA", 1);
+	}
 }
 
 void Efficiency::SetCut(std::string name, double lower, double upper)
 {
-	Data->SetBranchStatus("PdgA", 1);
-	Data->SetBranchStatus("PdgB", 1);
-
 	if (Data->GetBranch(name.c_str()))
 		Data->SetBranchStatus(name.c_str(), 1);
 
@@ -483,9 +511,14 @@ void Efficiency::ApplyCut(double mass)
 	{
 		GetEntry(i);
 
-		hAll->Fill(*Hist, W);
-		if (PassCut())
-			hCut->Fill(*Hist, W);
+		//hAll->Fill(*Hist, W);
+		//hCut->Fill(*Hist, W);
+		if (LN * PdgA >= 0) 	//Pdg has sign > 0 for particle, < 0 for antiparticle
+		{
+			hAll->Fill(*Hist);
+			if (PassCut())
+				hCut->Fill(*Hist);
+		}
 	}
 
 	if (funcSet)
@@ -501,14 +534,64 @@ void Efficiency::ApplyCut(double mass)
 	}
 }
 
+void Efficiency::MaxEfficiency(double mass)
+{
+	if (funcSet)
+	{
+		int y = hhFunc->GetYaxis()->FindBin(mass);
+		for (int x = 1; x < hhFunc->GetNbinsX()+1; ++x)
+			hhFunc->SetBinContent(x, y, 1);
+	}
+}
+
+void Efficiency::MinEfficiency(double mass)
+{
+	if (funcSet)
+	{
+		int y = hhFunc->GetYaxis()->FindBin(mass);
+		for (int x = 1; x < hhFunc->GetNbinsX()+1; ++x)
+			hhFunc->SetBinContent(x, y, 0);
+	}
+}
+
+int Efficiency::ValidEntries()
+{
+	int nentries = 0;
+
+	if (LN)
+	{
+		Data->SetBranchStatus("ChB", 1);
+		Data->SetBranchStatus("ChA", 1);
+
+		for (int i = 0; i < Data->GetEntries(); ++i)
+		{
+			GetEntry(i);
+			if ((!special && ChA * ChB < 0 && LN * ChA < 0) ||
+			    (special && LN * ChA < 0))
+					++nentries;
+		}
+	}
+	else
+		nentries = Data->GetEntries();
+
+	std::cout << " There are " << nentries << " entries" << std::endl;
+	return nentries;
+}
+
 int Efficiency::EntriesLeft()
 {
-	return hCut->GetEntries();
+	if (hCut)
+		return hCut->GetEntries();
+	else
+		return -1;
 }
 
 double Efficiency::EventsLeft()
 {
-	return hCut->Integral();
+	if (hCut)
+		return hCut->Integral();
+	else
+		return -1;
 }
 
 double Efficiency::ReductionFactor()
@@ -520,6 +603,7 @@ double Efficiency::ReductionFactor()
 		double frac = hAll->GetBinContent(b) == 0 ? 1.0 :
 			hCut->GetBinContent(b) / hAll->GetBinContent(b);
 
+		//std::cout << "bin " << b << ":\t" << hCut->GetBinContent(b) << " / " << hAll->GetBinContent(b) << " = " << frac << std::endl;
 		hRatio->SetBinContent(b, frac);
 	}
 
@@ -536,6 +620,15 @@ bool Efficiency::PassCut(std::string name)
 		double val = *(im->second);
 		if (!(val >= mLower[im->first] && 
 		      val <= mUpper[im->first]))
+			return false;
+	}
+
+	if (LN)
+	{	//first should return false with zero charge
+		if ((!special && ChA * ChB < 0 && LN * ChA < 0) ||
+		    (special && LN * ChA < 0))
+			return true;
+		else
 			return false;
 	}
 
@@ -576,8 +669,11 @@ int Efficiency::FindFirstBin(TH1D* hist, double thr, int start, int end)
 	return -1;
 }
 
-TH2D* Efficiency::CompleteFunction()
+TH2D* Efficiency::CompleteFunction(bool debug)
 {
+	if (debug)
+		return hhFunc;
+
 	//hhFunc must be filled
 	if (!hhFunc->GetEntries())
 		return 0;

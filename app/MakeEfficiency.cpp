@@ -35,9 +35,9 @@ int main(int argc, char** argv)
 	//Initialize variables
 	std::ofstream out;
 	std::string listConfig, simPath, cutPath, outPath;
-	double CL = 0.9;
+	bool charge = false, only = false, special = false;
 	
-	while((iarg = getopt_long(argc,argv, "i:s:c:o:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "i:s:c:o:CSOh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -54,7 +54,13 @@ int main(int argc, char** argv)
 				outPath.assign(optarg);
 				break;
 			case 'C':
-				CL = std::strtod(optarg, NULL);
+				charge = true;
+				break;
+			case 'S':
+				special = true;
+				break;
+			case 'O':
+				only = true;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -66,25 +72,37 @@ int main(int argc, char** argv)
 
 	CardDealer lc(listConfig);
 
+	int maxchl = charge ? 2 : 6;
+	int maxlnv = 1 + charge;
+
 	std::string channel[6] = {"EPI", "MPI", "nPI0", "nEE", "nEM", "nMM"};
 	std::string module[2] = {"LAr", "FGT"};
 	std::string fermion[2] = {"dirac", "major"};
-	for (int c = 0; c < 6; ++c)
+	std::string lnv[2] = {"LNV", "LNC"};
+	for (int c = 0; c < maxchl; ++c)
 		for (int m = 0; m < 2; ++m)
 			for (int f = 0; f < 2; ++f)
+				for (int l = 0; l < maxlnv; ++l)
 	{
-		std::cout << "Channel " << channel[c] << ", "
-			<< module[m] << ", " << fermion[f]  << std::endl;
+		int LN = charge ? 2*l - 1 : 0; 	//is ±1
+
+		std::cout << "Channel " << channel[c] << " (" << lnv[l] << "), "
+			  << module[m] << ", " << fermion[f]  << std::endl;
 
 		//std::string key = channel[c] + "_" +
 		//		  module[m] + "_" + fermion[f];
 		std::string key = channel[c] + "_" +
+				  (charge ? lnv[l] + "_" : "") +
+				  module[m] + "_" + fermion[f] + "_";
+		std::string sim = channel[c] + "_" + 
 				  module[m] + "_" + fermion[f] + "_";
 		std::map<std::string, std::string> names;
 		std::map<std::string, std::string>::iterator in;
 
+		std::cout << "continue" << std::endl;
 		if (!lc.Get(key, names))
 			continue;
+		std::cout << "no " << names.size() << std::endl;
 
 		std::string outName = outPath;
 
@@ -94,13 +112,13 @@ int main(int argc, char** argv)
 			outName.insert(outName.size(), key, 0, key.size()-1);
 
 		TFile *outFile = new TFile(outName.c_str(), "RECREATE");
-		Efficiency *eff = new Efficiency();
+		Efficiency *eff = new Efficiency("", LN, special);
 
 		eff->MakeFunction();
 
 		for (in = names.begin(); in != names.end(); ++in)
 		{
-			std::string fullName = key + in->first;
+			std::string fullName = sim + in->first;
 			std::cout << "Loading " << fullName << std::endl;
 
 			std::string simName = simPath;
@@ -109,7 +127,7 @@ int main(int argc, char** argv)
 			if (simName.find_last_of('.') != std::string::npos)
 				simName.insert(simName.find_last_of('.'), fullName);
 			else
-				simName.append(fullName);
+				simName.append(fullName + ".root");
 
 			//if (cutName.find_last_of('.') != std::string::npos)
 			//	cutName.insert(cutName.find_last_of('.'), fullName);
@@ -120,14 +138,22 @@ int main(int argc, char** argv)
 			std::cout << "simulation " << simName << std::endl;
 			std::cout << "cut file   " << in->second << std::endl;
 			eff->LoadFile(simName);
-			eff->LoadCut(in->second);
 
 			//std::string mass = in->first.substr(in->first.find_last_of('_')+1);
 			double mass = std::strtod(in->first.c_str(), NULL) / 1e3;
 			std::cout << "with mass " << mass << std::endl;
-			eff->ApplyCut(mass);
+
+			if (eff->ValidEntries() > 0)
+			{
+				if (!only)
+					eff->LoadCut(in->second);
+				eff->ApplyCut(mass);
+			}
+			else	//if no valid entries set minimum efficiency at this mass
+				eff->MinEfficiency(mass);
 		}
 
+		std::cout << "Completing function" << std::endl;
 		TH2D *hhf  = eff->CompleteFunction();
 
 		outFile->cd();

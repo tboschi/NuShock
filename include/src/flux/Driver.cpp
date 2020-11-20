@@ -156,19 +156,22 @@ bool Driver::MakeFlux(Neutrino &N)
 		//std::cout << "mixings " << N.Ue() << ", " << N.Um() << ", " << N.Ut() << std::endl;
 		if (fxNuElectron)// && N.Ue() > 0)
 		{
-			MakeElecComponent(fxHeavyElectron = new Flux(*fxNuElectron), N);
+			//MakeElecComponent(fxHeavyElectron = new Flux(*fxNuElectron), N);
+			fxHeavyElectron = MakeElecComponent(fxNuElectron, N);
 			//std::cout << "making E component " << fxHeavyElectron << std::endl;
 		}
 
 		if (fxNuMuon)// && N.Um() > 0)
 		{
-			MakeMuonComponent(fxHeavyMuon = new Flux(*fxNuMuon), N);
+			//MakeMuonComponent(fxHeavyMuon = new Flux(*fxNuMuon), N);
+			fxHeavyMuon = MakeMuonComponent(fxNuMuon, N);
 			//std::cout << "making M component " << fxHeavyMuon << std::endl;
 		}
 
 		if (fxNuTau)// && N.Ut() > 0)
 		{
-			MakeTauComponent(fxHeavyTau = new Flux(*fxNuTau), N);
+			//MakeTauComponent(fxHeavyTau = new Flux(*fxNuTau), N);
+			fxHeavyTau = MakeTauComponent(fxNuTau, N);
 			//std::cout << "making T component " << fxHeavyTau << std::endl;
 		}
 
@@ -177,8 +180,11 @@ bool Driver::MakeFlux(Neutrino &N)
 }
 
 //Make electronic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void Driver::MakeElecComponent(Flux *fxFlux, Neutrino &N)
+//void Driver::MakeElecComponent(Flux *fxFlux, Neutrino &N)
+Flux* Driver::MakeElecComponent(Flux *light, Neutrino &N)
 {
+	Flux* fxFlux = new Flux(*light);
+
 	//pi+ -> e+ nu_e
 	fxFlux->Scale(Flux::Pion, N.ProductionScale("PionE"));
 
@@ -198,11 +204,16 @@ void Driver::MakeElecComponent(Flux *fxFlux, Neutrino &N)
 	fxFlux->Scale(Flux::Charm, N.ProductionScale("CharmE"));
 
 	fxFlux->Add();
+
+	return fxFlux;
 }
 
 //Make muonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino &N)
+//void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino &N)
+Flux* Driver::MakeMuonComponent(Flux *light, Neutrino &N)
 {
+	Flux* fxFlux = new Flux(*light);
+
 	//pi+ -> mu+ nu_mu
 	fxFlux->Scale(Flux::Pion, N.ProductionScale("PionM"));
 
@@ -222,11 +233,15 @@ void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino &N)
 	fxFlux->Scale(Flux::Charm, N.ProductionScale("CharmM"));
 
 	fxFlux->Add();
+
+	return fxFlux;
 }
 
 //Make tauonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
+//void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
+Flux* Driver::MakeTauComponent(Flux *light, Neutrino &N)
 {
+	Flux* fxFlux = new Flux(*light);
 	//Ds+ -> tau+ nu_tau
 	//if (vM_Charm.size())
 	if (false)
@@ -298,6 +313,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
 	fxFlux->Scale(Flux::TauM, N.ProductionScale("TauMT"));	//Three body
 
 	fxFlux->Add();
+
+	return fxFlux;
 }
 
 
@@ -306,7 +323,8 @@ void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
 
 double Driver::Intensity(Neutrino &N)	//Return flux intensity, given energy, simple linear interpolation
 {
-	double Energy = N.EnergyKin();
+	//double Energy = N.EnergyKin();
+	double Energy = N.Momentum();	//as p ~ E for light neutrinos
 
 	//std::cout << fxHeavyElectron << ", " << fxHeavyMuon << ", " << fxHeavyTau << std::endl;
 	double Intensity = 0;
@@ -324,6 +342,7 @@ double Driver::InterpolateIntensity(TH1D* Hist, double Energy)
 {
 	if (!Hist)
 		return 0.0;
+
 	int Bin = Hist->FindBin(Energy);
 	double I1 = Hist->GetBinContent(Bin);
 	double E1 = Hist->GetBinCenter(Bin);

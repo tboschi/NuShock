@@ -119,14 +119,14 @@ double Detector::Efficiency(double energy, double mass, std::string channel)
 	}
 	else
 	{
-		std::cout << "efficiency function not set yet" << std::endl;
+		std::cout << "efficiency for " << channel << " not set yet" << std::endl;
 		return -1.0;
 	}
 }
 
 //key will be a combination such as CHANNEL_MODULE_FERMION
 //e.g. MPI_LAr_dirac
-void Detector::SetEfficiency(std::string key)
+void Detector::SetEfficiency(std::string key, std::string channel)
 {
 	double rat = 1;
 	if (module.empty())
@@ -138,9 +138,10 @@ void Detector::SetEfficiency(std::string key)
 	}
 
 	std::string file;
+	std::cout << "Setting key " << key << std::endl;
 	if (dc.Get(key, file))
 	{
-		std::string channel = key.substr(0, key.find_first_of('_'));
+		std::cout << "Found" << std::endl;
 		TFile funcFile(file.c_str(), "READ");
 
 		TH2D *hist = dynamic_cast<TH2D*> (funcFile.Get("hhfunc"));
@@ -150,7 +151,7 @@ void Detector::SetEfficiency(std::string key)
 			mhFunc[channel]->SetDirectory(0);
 			mhFunc[channel]->Scale(rat);
 		}
-		else
+		else	//adding module with rate
 			mhFunc[channel]->Add(hist, rat);
 
 		effSet = true;
@@ -558,7 +559,7 @@ double Detector::DecayProb(const Particle &P, double Total, double Branch)	//rea
 	if (P.EnergyKin() < 0.0)
 		return 0.0;
 	else if (std::abs(P.Beta() - 1.0) < 1e-9)
-		return 1.0;
+		return 0.0;
 	else
 	{
 		double Length = Const::M2GeV * Zstart();

@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 		{"fluxconfig", 	required_argument,	0, 'f'},
 		{"channel", 	required_argument,	0, 'c'},
 		{"mass", 	required_argument,	0, 'm'},
+		{"condor-mass",	required_argument,	0, 'k'},
 		{"number", 	required_argument,	0, 'n'},
 		{"output", 	required_argument,	0, 'o'},
 		{"left", 	no_argument,		0, 'L'},
@@ -45,10 +46,11 @@ int main(int argc, char** argv)
 	bool left = false, right = false;	//default unpolarised
 	bool dirac = true;	//default unpolarised
 	double ue = 0, um = 0, ut = 0, mix = 0;
+	int condormass = 0;
 
 	std::string Channel = "ALL", module;
 	
-	while((iarg = getopt_long(argc,argv, "d:l:f:m:n:c:o:LRDjE:M:T:X:h", longopts, &index)) != -1)	
+	while((iarg = getopt_long(argc,argv, "d:l:f:k:m:n:c:o:LRDjE:M:T:X:h", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
@@ -63,6 +65,9 @@ int main(int argc, char** argv)
 				break;
 			case 'm':
 				mass = strtod(optarg, NULL);
+				break;
+			case 'k':
+				condormass = strtol(optarg, NULL, 10);
 				break;
 			case 'n':
 				nevent = strtod(optarg, NULL);
@@ -109,6 +114,12 @@ int main(int argc, char** argv)
 
 	//std::ostream &Out = (OutFile.is_open()) ? OutFile : std::cout;
 	
+	double masses[24] = {0.050, 0.100, 0.150, 0.200, 0.250, 0.300, 0.350, 0.400,
+			     0.450, 0.500, 0.550, 0.600, 0.700, 0.800, 0.900, 1.000,
+			     1.100, 1.200, 1.300, 1.400, 1.500, 1.600, 1.700, 1.800};
+	std::cout << "Using condor mass " << condormass;
+	//mass = masses[condormass];
+	std::cout << " which is " << mass << std::endl;
 	Neutrino testNu(mass);
 	double mass0 = testNu.DecayThreshold(channel);
 	double massE = testNu.ProductionThreshold();
@@ -134,28 +145,42 @@ int main(int argc, char** argv)
 	Engine *theEngine = new Engine(fluxConfig);	//creating 1FHC and 1RHC fluxedrivers
 
 	//creating neutrino objs and loading them in the Engine
+	int opt0_L, optB_L, opt0_R, optB_R;
 	if (dirac)
 	{
-		Neutrino nu0_L(mass, Neutrino::Left  | Neutrino::Dirac );
-		Neutrino nu0_R(mass, Neutrino::Right | Neutrino::Dirac );
-		Neutrino nuB_L(mass, Neutrino::Left  | Neutrino::Dirac | Neutrino::Antiparticle);
-		Neutrino nuB_R(mass, Neutrino::Right | Neutrino::Dirac | Neutrino::Antiparticle);
-
-
-		std::cout << "With channel " << channel << std::endl;
-		nu0_L.SetDecayChannel(channel);
-		nu0_R.SetDecayChannel(channel);
-		nuB_L.SetDecayChannel(channel);
-		nuB_R.SetDecayChannel(channel);
-
-		//Binding will make a copy of neutrino objects
-		theEngine->BindNeutrino("nu0_L", nu0_L, Engine::FHC);
-		theEngine->BindNeutrino("nu0_R", nu0_R, Engine::FHC);
-		theEngine->BindNeutrino("nuB_L", nuB_L, Engine::RHC);
-		theEngine->BindNeutrino("nuB_R", nuB_R, Engine::RHC);
-
+		opt0_L = Neutrino::Left  | Neutrino::Dirac;
+                opt0_R = Neutrino::Right | Neutrino::Dirac;
+                optB_L = Neutrino::Left  | Neutrino::Dirac | Neutrino::Antiparticle;
+                optB_R = Neutrino::Right | Neutrino::Dirac | Neutrino::Antiparticle;
 		outName.insert(outName.find(".root"), "_dirac_");
 	}
+	else //majorana
+	{
+		opt0_L = Neutrino::Left  | Neutrino::Majorana;
+                opt0_R = Neutrino::Right | Neutrino::Majorana;
+                optB_R = Neutrino::Left  | Neutrino::Majorana;
+                optB_L = Neutrino::Right | Neutrino::Majorana;
+		outName.insert(outName.find(".root"), "_major_");
+	}
+
+	Neutrino nu0_L(mass, opt0_L);
+	Neutrino nu0_R(mass, opt0_R);
+	Neutrino nuB_L(mass, optB_L);
+	Neutrino nuB_R(mass, optB_R);
+
+	std::cout << "With channel " << channel << std::endl;
+	nu0_L.SetDecayChannel(channel);
+	nu0_R.SetDecayChannel(channel);
+	nuB_L.SetDecayChannel(channel);
+	nuB_R.SetDecayChannel(channel);
+
+	//Binding will make a copy of neutrino objects
+	theEngine->BindNeutrino("nu0_L", nu0_L, Engine::FHC);
+	theEngine->BindNeutrino("nu0_R", nu0_R, Engine::FHC);
+	theEngine->BindNeutrino("nuB_L", nuB_L, Engine::RHC);
+	theEngine->BindNeutrino("nuB_R", nuB_R, Engine::RHC);
+
+	/*
 	else //majorana
 	{
 		Neutrino nu_L(mass, Neutrino::Left  | Neutrino::Majorana );
@@ -169,6 +194,7 @@ int main(int argc, char** argv)
 
 		outName.insert(outName.find(".root"), "_major_");
 	}
+	*/
 
 	std::stringstream ssm;
 	ssm << std::setfill('0') << std::setw(4) << mass*1000;
@@ -184,11 +210,12 @@ int main(int argc, char** argv)
 	{
 		std::cout << "made sample with mix " << mix << std::endl;
 		total = theEngine->MakeSampler(theBox, weights, mix, mix, mix);
+		std::cout << "made sample of " << total << std::endl;
 	}
 	else
 	{
-		std::cout << "made sample"  << std::endl;
 		total = theEngine->MakeSampler(theBox, weights, ue, um, ut);
+		std::cout << "made sample of " << total << std::endl;
 	}
 	std::cout << "total number of events for " << outName << " is " << total << std::endl;
 
@@ -204,10 +231,10 @@ int main(int argc, char** argv)
 
 	double True, W, R;
 	bool H, P;
-	int PdgA, PdgB;
-	double E_A, P_A, T_A, TheA, PhiA, M_A, In_A, Out_A;
+	int PdgA, PdgB, ChA, ChB;
+	double E_A, P_A, T_A, TheA, PhiA, M_A, LAr_A, FGT_A, Out_A, Sag_A;
 	double e_a, p_a, t_a, thea, phia;
-	double E_B, P_B, T_B, TheB, PhiB, M_B, In_B, Out_B;
+	double E_B, P_B, T_B, TheB, PhiB, M_B, LAr_B, FGT_B, Out_B, Sag_B;
 	double e_b, p_b, t_b, theb, phib;
 	double E_0, P_0, T_0, The0, Phi0, M_0;
 	double e_0, p_0, t_0, the0, phi0, m_0;
@@ -228,14 +255,17 @@ int main(int argc, char** argv)
 
 	//particle A
 	data->Branch("PdgA", &PdgA, "fPdgA/I");
+	data->Branch("ChA", &ChA, "fChA/I");
 	data->Branch("E_A", &E_A, "fEnergyA/D");
 	data->Branch("P_A", &P_A, "fMomentA/D");
 	data->Branch("T_A", &T_A, "fTransvA/D");
 	data->Branch("TheA", &TheA, "fThetaA/D");
 	data->Branch("PhiA", &PhiA, "fPhiA/D");
 	//data->Branch("M_A", &M_A, "fMassA/D");
-	data->Branch("In_A", &In_A, "fLengthA/D");
+	data->Branch("LAr_A", &LAr_A, "fLengthLArA/D");
+	data->Branch("FGT_A", &FGT_A, "fLengthFGTA/D");
 	data->Branch("Out_A", &Out_A, "fLengthoA/D");
+	data->Branch("Sag_A", &Sag_A, "fSagittaA/D");
 	//data->Branch("e_a", &e_a, "fenergya/D");
 	//data->Branch("p_a", &p_a, "fmomenta/D");
 	//data->Branch("t_a", &t_a, "ftransva/D");
@@ -244,14 +274,17 @@ int main(int argc, char** argv)
 
 	//Particle B
 	data->Branch("PdgB", &PdgB, "fPdgB/I");		//true PDG code
+	data->Branch("ChB", &ChB, "fChB/I");		//true PDG code
 	data->Branch("E_B", &E_B, "fEnergyB/D");
 	data->Branch("P_B", &P_B, "fMomentB/D");
 	data->Branch("T_B", &T_B, "fTransvB/D");
 	data->Branch("TheB", &TheB, "fThetaB/D");
 	data->Branch("PhiB", &PhiB, "fPhiB/D");
 	//data->Branch("M_B", &M_B, "fMassB/D");
-	data->Branch("In_B", &In_B, "fLengthB/D");
+	data->Branch("LAr_B", &LAr_B, "fLengthLArB/D");
+	data->Branch("FGT_B", &FGT_B, "fLengthFGTB/D");
 	data->Branch("Out_B", &Out_B, "fLengthoB/D");
+	data->Branch("Sag_B", &Sag_B, "fSagittaB/D");
 	//data->Branch("e_b", &e_b, "fenergyb/D");
 	//data->Branch("p_b", &p_b, "fmomentb/D");
 	//data->Branch("t_b", &t_b, "ftransvb/D");
@@ -277,8 +310,9 @@ int main(int argc, char** argv)
 	//
 	//END TREE
 
-	TRandom3 *ran = new TRandom3(0);
-	
+
+	TRandom3 *mt = new TRandom3(0);
+	//std::cout << theBox->Zstart() << " to " << theBox->Zend() << std::endl;
 	int ND = 0, ID;
 	for (ID = 0; ID < nevent; ++ND)
 	{
@@ -290,7 +324,6 @@ int main(int argc, char** argv)
 
 		for (iw = energy.begin(); iw != energy.end(); ++iw)
 		{
-			//std::cout << "energies " << iw->first << ", " << iw->second << std::endl;
 			if (iw->second < 0)
 				continue;
 
@@ -319,6 +352,7 @@ int main(int argc, char** argv)
 			std::vector<Particle>::iterator ip;
 			std::vector<Particle> original;
 
+			//std::cout << "products " << product.size() << std::endl;
 			for (ip = product.begin(); ip != product.end(); ++ip)
 			{
 				int pdg = std::abs(ip->Pdg());
@@ -345,19 +379,25 @@ int main(int argc, char** argv)
 
 			//std::cout << "particle size " << particle.size() << std::endl;
 
+			//if dirac, sign is given by P, otherwise is random
+			int sign = dirac ? (2*P - 1) : (2*(mt->Rndm() > 0.5) - 1);
+
 			if (particle.size() == 2 &&
 				theBox->Reconstruct(particle.at(0)) &&
 				theBox->Reconstruct(particle.at(1)))
 			{
-				PdgA = particle.at(0).Pdg();
+				PdgA = sign * particle.at(0).Pdg();
+				ChA = sign * particle.at(0).Charge();
 				E_A = particle.at(0).Energy();
 				P_A = particle.at(0).Momentum();
 				T_A = particle.at(0).Transverse();
 				TheA = particle.at(0).Theta();
 				PhiA = particle.at(0).Phi();
 				//M_A = particle.at(0).Mass();
-				In_A = particle.at(0).TrackIn();
+				LAr_A = particle.at(0).TrackLAr();
+				FGT_A = particle.at(0).TrackFGT();
 				Out_A = particle.at(0).TrackOut();
+				Sag_A = particle.at(0).Sagitta();
 				//
 				//e_a = original.at(0).Energy();
 				//p_a = original.at(0).Momentum();
@@ -365,15 +405,18 @@ int main(int argc, char** argv)
 				//thea = original.at(0).Theta();
 				//phia = original.at(0).Phi();
 
-				PdgB = particle.at(1).Pdg();
+				PdgB = sign * particle.at(1).Pdg();
+				ChB = sign * particle.at(1).Charge();
 				E_B = particle.at(1).Energy();
 				P_B = particle.at(1).Momentum();
 				T_B = particle.at(1).Transverse();
 				TheB = particle.at(1).Theta();
 				PhiB = particle.at(1).Phi();
 				//M_B = particle.at(1).Mass();
-				In_B = particle.at(1).TrackIn();
+				LAr_B = particle.at(1).TrackLAr();
+				FGT_B = particle.at(1).TrackFGT();
 				Out_B = particle.at(1).TrackOut();
+				Sag_B = particle.at(1).Sagitta();
 				//
 				//e_b = original.at(1).Energy();
 				//p_b = original.at(1).Momentum();
@@ -420,6 +463,8 @@ int main(int argc, char** argv)
 	outFile->cd();
 	data->Write("", TObject::kWriteDelete);
 	outFile->Close();
+
+	delete mt;
 
 	return 0;
 }

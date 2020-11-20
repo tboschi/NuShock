@@ -17,6 +17,7 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "TH1D.h"
+#include "TRandom3.h"
 
 #include "tools.h"
 #include "detector.h"
@@ -45,6 +46,7 @@ class GenieBack
 		TTree *data;
 		TFile *inBack, *outBack;
 		TH1D* hist;
+		TRandom3 *ran;
 
 		bool chargeID, kVerbose;
 
@@ -69,6 +71,7 @@ class GenieBack
 		       *r_angle; 
 
 		int PdgA, PdgB;
+		int ChA, ChB;
 		double True;
 		double E_A;
 		double P_A;
@@ -76,7 +79,8 @@ class GenieBack
 		double TheA;
 		double PhiA;
 		double M_A;
-		double In_A;
+		double LAr_A;
+		double FGT_A;
 		double Out_A;
 		//
 		double e_a;
@@ -91,7 +95,8 @@ class GenieBack
 		double TheB;
 		double PhiB;
 		double M_B;
-		double In_B;
+		double LAr_B;
+		double FGT_B;
 		double Out_B;
 		//
 		double e_b;

@@ -35,8 +35,10 @@ int main(int argc, char** argv)
 	//Initialize variables
 	std::ofstream out;
 	std::string backFile, signFile, cutFile;
+	int LN = 0;
+	bool special = false;
 	
-	while((iarg = getopt_long(argc,argv, "b:c:s:o:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "b:c:s:o:L:Sh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -52,6 +54,12 @@ int main(int argc, char** argv)
 			case 'o':
 				out.open(optarg);
 				break;
+			case 'L':
+				LN = std::strtol(optarg, NULL, 10);
+				break;
+			case 'S':
+				special = true;
+				break;
 			case 'h':
 				Usage(argv[0]);
 				return 1;
@@ -65,16 +73,17 @@ int main(int argc, char** argv)
 	std::cout << "background before cause  " << data->GetEntries() << std::endl;
 	bf.Close();
 
-	Efficiency effBack(backFile);
-	Efficiency effSign(signFile);
+	Efficiency effBack(backFile, LN, special);
 	effBack.LoadCut(cutFile);
 	effBack.ApplyCut();
+	std::cout << "background events left are " << effBack.EntriesLeft()
+		  << " / " << effBack.ValidEntries()
+		  << " (" << effBack.ReductionFactor()*100.0 << " %)\n";
+	Efficiency effSign(signFile, LN, special);
 	effSign.LoadCut(cutFile);
 	effSign.ApplyCut();
-	std::cout << "background events left are " << effBack.EntriesLeft()
-		  << " (" << effBack.ReductionFactor() << ")\n";
 	std::cout << "simulation events left are " << effSign.EntriesLeft()
-		  << " (" << effSign.ReductionFactor() << ")\n";
+		  << " (" << effSign.ReductionFactor()*100.0 << " %)\n";
 
 	return 0;
 }

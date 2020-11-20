@@ -86,6 +86,7 @@ int main(int argc, char** argv)
 	// I define it as a map of 2 integers: a pdg code and the number of particles I want
 	// e.g. final state 2 muons, 1 elec
 
+	//sum of charges of the two particles is 0
 	std::map<int, int> process;
 	if (channel == "nEE")
 		process[11] = 2;

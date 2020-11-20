@@ -36,8 +36,9 @@ int main(int argc, char** argv)
 	std::ofstream out;
 	std::string backConfig, backPath, scaleConfig;
 	double CL = 0.9;
+	bool charge = false, special = false;
 	
-	while((iarg = getopt_long(argc,argv, "b:s:r:o:C:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "b:s:r:o:l:CSh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -53,8 +54,14 @@ int main(int argc, char** argv)
 			case 'o':
 				out.open(optarg);
 				break;
-			case 'C':
+			case 'l':
 				CL = std::strtod(optarg, NULL);
+				break;
+			case 'C':
+				charge = true;
+				break;
+			case 'S':
+				special = true;
 				break;
 			case 'h':
 				Usage(argv[0]);
@@ -63,6 +70,10 @@ int main(int argc, char** argv)
 				break;
 		}
 	}
+
+	int maxchl = charge ? 2 : 6;
+	int maxlnv = 1 + charge;
+	std::cout << "max channel " << maxchl << std::endl;
 
 	CardDealer bc(backConfig);
 	CardDealer sc(scaleConfig);
@@ -73,7 +84,8 @@ int main(int argc, char** argv)
 	std::string channel[6] = {"EPI", "MPI", "nPI0", "nEE", "nEM", "nMM"};
 	std::string module[2] = {"LAr", "FGT"};
 	std::string fermion[2] = {"dirac", "major"};
-	for (int c = 0; c < 6; ++c)
+	std::string lnv[2] = {"LNV", "LNC"};
+	for (int c = 0; c < maxchl; ++c)
 		for (int m = 0; m < 2; ++m)
 	{
 		std::string cmd = "ls " + backPath + "*" + channel[c]
@@ -96,20 +108,25 @@ int main(int argc, char** argv)
 		{
 			std::cout << "Loading " << ib->first << "\t"
 				  << ib->second << std::endl;
-			//load MC in efficiency object
-			Efficiency eff(ib->second);
 			std::string nd = ib->first.substr(ib->first.find_first_of('_')+1);
 			double scale = scaleFacts[nd];
 
 			for (int f = 0; f < 2; ++f)
+				for (int l = 0; l < maxlnv; ++l)
 			{
+				int LN = charge ? 2*l - 1 : 0; 	//is ±1
+
+				//load MC in efficiency object
+				Efficiency eff(ib->second, LN, special);
+
 				std::cout << "Channel " << channel[c] << ", "
 					<< module[m] << ", " << fermion[f]  << std::endl;
 
-				std::string key = channel[c] + "_" +
+				std::string key = channel[c] + "_" + (charge ? lnv[l] + "_" : "") +
 						  module[m] + "_" + fermion[f];
 				std::map<std::string, std::string> paths;
 				std::map<std::string, std::string>::iterator ip;
+
 				if (!bc.Get(key, paths))
 					continue;
 
@@ -119,18 +136,28 @@ int main(int argc, char** argv)
 				{
 					eff.Reset();
 					std::string mass = ip->first.substr(ip->first.find_last_of('_')+1);
+
+					double evt = 0;
 					std::cout << "Applying " << mass << "\t"
 						<< ip->second << std::endl;
-					eff.LoadCut(ip->second);
-					eff.ApplyCut();
-					double evt = scale * eff.EventsLeft();
-					if (evt == 0)
-						evt = 1.0/sqrt(12.0);
+					if (eff.ValidEntries() > 0)
+					{
+						std::cout << "events left " << eff.EventsLeft() << std::endl;
+						eff.LoadCut(ip->second);
+						eff.ApplyCut();
+						std::cout << "events left " << eff.EventsLeft() << std::endl;
+						evt = scale * eff.EventsLeft();
+					}
 					//double s = Belt(evt, CL);
-					//:std::cout << "events " << evt << " vs " << s << std::endl;
 
 					//events.push_back(evt);
 					//signal.push_back(s);
+	
+					std::cout << "events " << evt << std::endl;
+					if (evt == 0)
+						evt = scale/sqrt(12.0);
+
+					std::cout << "events " << evt << std::endl;
 					signal.push_back(evt);
 					masses.push_back(std::strtod(mass.c_str(), NULL) / 1e3);
 				}
@@ -148,9 +175,8 @@ int main(int argc, char** argv)
 				std::vector<double> beta = pf.LeastSquare(0);
 				beta[0] += offset;
 
-				key += ib->first.substr(ib->first.find_last_of('_'));
 				//out << "# ";
-				out << key;
+				out << key + ib->first.substr(ib->first.find_last_of('_'));
 				for (int b = 0; b < ord+1; ++b)
 					out << "\t" << beta[b];
 				out << std::endl;

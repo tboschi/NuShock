@@ -200,10 +200,10 @@ double Engine::MakeSampler(Detector *box, std::string uuid, double ue, double um
 	double integral = 0;
 	for (double energy = start; energy < end; energy += enStep)
 	{
-		mNeutrino[uuid].SetEnergy(energy);
+		mNeutrino[uuid].SetEnergy(energy + enStep/2.0);
 
 		double weight = DecayNumber(box, uuid);
-		hSample->Fill(energy + enStep, weight);
+		hSample->Fill(energy + enStep/2.0, weight);
 
 		integral += enStep * weight;
 	}
@@ -280,7 +280,8 @@ double Engine::IntensitySample(std::string uuid)
 
 double Engine::IntensitySample(std::string uuid, double Energy)
 {
-	return mDriver[uuid]->InterpolateIntensity(sampleNu[uuid], Energy);
+	std::string name = "sample_" + uuid;
+	return mDriver[uuid]->InterpolateIntensity(sampleNu[name], Energy);
 }
 
 void Engine::SetDecay(std::string channel)

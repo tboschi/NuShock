@@ -5,6 +5,9 @@ GenieBack::GenieBack(std::string backFile, std::string outFile, bool verb) :
 {
 	InitInTree(backFile);
 	InitOutTree(outFile);
+
+	ran = new TRandom3(0);
+	
 	checkPt = 0;
 }
 
@@ -13,14 +16,6 @@ GenieBack::~GenieBack()
 	inBack->Close();
 	data->Write("", TObject::kWriteDelete);
 	outBack->Close();
-}
-
-int GenieBack::Charge(int pdg)
-{
-	if (chargeID)
-		return pdg;
-	else
-		return std::abs(pdg);
 }
 
 void GenieBack::InitInTree(std::string backFile)
@@ -91,6 +86,7 @@ void GenieBack::InitOutTree(std::string outFile)
 
 	//data->Branch("True", &True, "fTrue/D");
 	data->Branch("PdgA", &PdgA, "fPdgA/I");		//true PDG code
+	data->Branch("ChA", &ChA, "fChA/I");		//true PDG code
 	data->Branch("E_A", &E_A, "fEnergyA/D");
 	data->Branch("P_A", &P_A, "fMomentA/D");
 	data->Branch("T_A", &T_A, "fTransvA/D");
@@ -102,7 +98,8 @@ void GenieBack::InitOutTree(std::string outFile)
 	//data->Branch("thea", &thea, "fthetaa/D");
 	//data->Branch("phia", &phia, "fphia/D");
 	////data->Branch("M_A", &M_A, "fMassA/D");
-	data->Branch("In_A", &In_A, "fLengthA/D");
+	data->Branch("LAr_A", &LAr_A, "fLLArA/D");
+	data->Branch("FGT_A", &FGT_A, "fLFGTA/D");
 	data->Branch("Out_A", &Out_A, "fLengthoA/D");
 	//data->Branch("e_A", &e_A, "fenergyA/D");
 	//data->Branch("p_A", &p_A, "fmomentA/D");
@@ -112,6 +109,7 @@ void GenieBack::InitOutTree(std::string outFile)
 
 	//Particle B
 	data->Branch("PdgB", &PdgB, "fPdgB/I");		//true PDG code
+	data->Branch("ChB", &ChB, "fChB/I");		//true PDG code
 	data->Branch("E_B", &E_B, "fEnergyB/D");
 	data->Branch("P_B", &P_B, "fMomentB/D");
 	data->Branch("T_B", &T_B, "fTransvB/D");
@@ -123,7 +121,8 @@ void GenieBack::InitOutTree(std::string outFile)
 	//data->Branch("theb", &theb, "fthetab/D");
 	//data->Branch("phib", &phib, "fphib/D");
 	////data->Branch("M_B", &M_B, "fMassB/D");
-	data->Branch("In_B", &In_B, "fLengthB/D");
+	data->Branch("LAr_B", &LAr_B, "fLLArB/D");
+	data->Branch("FGT_B", &FGT_B, "fLFGTB/D");
 	data->Branch("Out_B", &Out_B, "fLengthoB/D");
 	//data->Branch("e_B", &e_B, "fenergyB/D");
 	//data->Branch("p_B", &p_B, "fmomentB/D");
@@ -195,13 +194,15 @@ void GenieBack::LoadTree(const std::vector<Particle> &particle,
 	if (particle.size() == 2)
 	{
 		PdgA = original.at(0).Pdg();
+		ChA = particle.at(0).Charge();
 		E_A = particle.at(0).Energy();
 		P_A = particle.at(0).Momentum();
 		T_A = particle.at(0).Transverse();
 		TheA = particle.at(0).Theta();
 		PhiA = particle.at(0).Phi();
 		M_A = particle.at(0).Mass();
-		In_A = particle.at(0).TrackIn();
+		LAr_A = particle.at(0).TrackLAr();
+		FGT_A = particle.at(0).TrackFGT();
 		Out_A = particle.at(0).TrackOut();
 		//
 		//e_a = original.at(0).Energy();
@@ -211,13 +212,15 @@ void GenieBack::LoadTree(const std::vector<Particle> &particle,
 		//phia = original.at(0).Phi();
 
 		PdgB = original.at(1).Pdg();
+		ChB = particle.at(1).Charge();
 		E_B = particle.at(1).Energy();
 		P_B = particle.at(1).Momentum();
 		T_B = particle.at(1).Transverse();
 		TheB = particle.at(1).Theta();
 		PhiB = particle.at(1).Phi();
 		M_B = particle.at(1).Mass();
-		In_B = particle.at(1).TrackIn();
+		LAr_B = particle.at(1).TrackLAr();
+		FGT_B = particle.at(1).TrackFGT();
 		Out_B = particle.at(1).TrackOut();
 		//
 		//e_b = original.at(1).Energy();
@@ -407,6 +410,22 @@ TTree *GenieBack::FindBackground(Tracker *theTrack,
 			//the right number of particle we expect for process
 			if (Identify(particle, process))
 			{
+				bool guess = ran->Rndm() < 0.5;
+				std::cout << "\tcharge ID:   ";
+				for (int i = 0; i < particle.size(); ++i)
+				{
+					//assign random charge if not identified
+					if (particle[i].Charge() == 0)
+					{
+						if (guess)
+							particle[i].ChargeID();
+						else
+							particle[i].ChargeMisID();
+					}
+					std::cout << "\t" << particle[i].Charge() << ",";
+				}
+				std::cout << std::endl;
+
 				LoadTree(particle, original);
 				if (kVerbose)
 					std::cout << "TRIGGER!\t" << data->GetEntries() << std::endl;
@@ -510,13 +529,18 @@ bool GenieBack::MisIdentify(std::vector<Particle> &particle, Tracker *theTrack)
 bool GenieBack::Identify(const std::vector<Particle> &particle,
 			 const std::map<int, int> &process)
 {
+	int totCharge = 0;
 	std::map<int, int> mpart;
 	std::map<int, int>::const_iterator im, cm;
 	std::vector<Particle>::const_iterator ip;
-	for (ip = particle.begin(); ip != particle.end(); ++ip)
-		mpart[std::abs(ip->Pdg())]++;
 
-	if (process.size() != mpart.size())
+	for (ip = particle.begin(); ip != particle.end(); ++ip)
+	{
+		totCharge += ip->Charge();
+		mpart[std::abs(ip->Pdg())]++;
+	}
+
+	if (process.size() != mpart.size() || totCharge != 0)
 		return false;
 
 	for (im = process.begin(), cm = mpart.begin(); im != process.end(); ++im, ++cm)

@@ -56,7 +56,7 @@ class Detector
 
 		double Efficiency(const Neutrino &Nu);
 		double Efficiency(double Energy, double Mass, std::string channel);
-		void SetEfficiency(std::string key);
+		void SetEfficiency(std::string key, std::string channel);
 
 		double XsizeLAr();
 		double XstartLAr();

@@ -38,6 +38,7 @@ class Particle
 
 		int Pdg()  const;
 		int Charge() const;
+		int RealCharge() const;
 		double LifeTime() const;
 		double LabLifeTime() const;
 		double LabSpace() const;
@@ -64,10 +65,16 @@ class Particle
 		double Z() const;
 		double Dist() const;
 		double TrackIn() const;
+		double TrackLAr() const;
+		double TrackFGT() const;
 		double TrackOut() const;
 		double TrackTot() const;
+		double Sagitta() const;
 		
 		void SetPdg(int X);
+		void ChargeMisID();
+		void ChargeID();
+		void ChargeID(int X);
 		void SetFourVector(TLorentzVector &V);
 		void SetFourVector(double Px, double Py, double Pz, double E);
 		void SetEnergy(double dE);
@@ -83,14 +90,16 @@ class Particle
 		void SetY(double X);
 		void SetZ(double X);
 		void SetTrackIn(double X);
+		void SetTrackIn(double X, bool module);
 		void SetTrackOut(double X);
 		void SetShower(bool X);
+		void SetSagitta(double X);
 
 	private:
 		TLorentzVector particleVec;
 		TVector3 particlePos;
-		int pdg;
-		double trackIn, trackOut;
+		int pdg, charge;
+		double trackLAr, trackFGT, trackOut, sagitta;
 		bool kShower;
 };
 

@@ -14,6 +14,27 @@ bool Tracker::Reconstruct(Particle &P)
 
 		if (P.TrackOut() < 0)
 			Length(P);
+
+		//with approximation
+		double track2 = pow(P.TrackFGT() * cos(P.Theta()), 2) +
+				pow(P.TrackFGT() * P.Theta() * P.Phi(), 2);
+		double sag = 0.1 * std::abs(P.RealCharge()) * Get("MagneticField") *
+			     track2 / P.Momentum();
+
+		//without approximation
+		//double rad = 0.1 * std::abs(P.RealCharge()) *
+		//	     Get("MagneticField") / P.Momentum();
+		//double track = P.TrackFGT() * sqrt(pow(cos(P.Theta()), 2) +
+		//				   pow(P.Theta() * P.Phi(), 2));
+		//double sag = rad * ( 1 - cos(track/rad) );
+
+		P.SetSagitta(sag);
+		//if SagittaRes <= 0 then this is false
+		if (sag > Get("SagittaRes"))
+			P.ChargeID();
+		else
+			P.ChargeID(0);
+
 		Smearing(P);
 
 		if (IsDetectable(P))
@@ -75,7 +96,8 @@ void Tracker::Smearing(Particle &P)
 
 			//if (Ratio > Get("Containment"))	//80% of track inside
 			hiRes = false;
-			if ( IsInsideLAr(P) && P.TrackIn() < ZsizeLAr() && Ratio > Get("Containment") )
+			if ( IsInsideLAr(P) && P.TrackLAr() < ZsizeLAr()
+					    && Ratio > Get("Containment") )
 				hiRes = true;	//the particle is contained in LAr
 			else if (P.TrackIn() > ZsizeFGT())
 				hiRes = true;
@@ -163,8 +185,9 @@ void Tracker::Length(Particle &P)	//This should not change P
 {
 	double tmax, Depth;
 	double iE, iM, dE;
-	double step = 0.05, dx;	//step of 5cm
-	double LengthIn = 0.0, LengthBack = 0.0, LengthOut = 0.0;
+	//double step = 0.05 + , dx;	//step of 5cm
+	double step = GenMT->Gaus(0.01, Get("Vertex"));	//step of 1cm
+	double LengthLAr = 0.0, LengthFGT = 0.0, LengthOut = 0.0;
 	double length = -1, cover = -2;
 	int layer = 0;
 
@@ -183,37 +206,66 @@ void Tracker::Length(Particle &P)	//This should not change P
 			tmax = log(P.Energy()/CriticalEnergy(P)) - 1.0;
 			Depth = RadiationLength(P) * GenMT->Gaus(tmax, 0.3*tmax);
 
-			P.SetTrackIn(Depth);
+			if (IsInsideLAr(P))
+			{
+				P.SetTrackIn(Depth, 1);
+				P.SetTrackIn(0, 0);
+			}
+			else
+			{
+				P.SetTrackIn(Depth, 0);
+				P.SetTrackIn(0, 1);
+			}
+
 			P.SetTrackOut(0);
 			break;
 		case 22:
-			P.SetTrackIn(GammaDecay(P));
+			if (IsInsideLAr(P))
+			{
+				P.SetTrackIn(GammaDecay(P), 1);
+				P.SetTrackIn(0, 0);
+			}
+			else
+			{
+				P.SetTrackIn(GammaDecay(P), 0);
+				P.SetTrackIn(0, 1);
+			}
+
 			P.SetTrackOut(0);
 			break;
 		case 13:
-			while (IsDetectable(clone) && !IsDecayed(clone, LengthIn+LengthOut))
+			//std::cout << "position " << clone.X() << " - " << clone.Y() << " - " << clone.Z() << std::endl;
+			while (IsDetectable(clone) && !IsDecayed(clone, LengthLAr+LengthFGT+LengthOut))
 				//quit when particle decays too!
 			{
-				bool InOut;
-				double dx = GenMT->Gaus(step, Get("Vertex"));
+				int InOut;
+				//double dx = GenMT->Gaus(step, Get("Vertex"));
+				double dx = step;
 				double loss = EnergyLoss(clone, InOut);
 				double dE = dx * loss;
 
-				if (InOut)	//inside detector
-					LengthIn += dx;
+				//std::cout << "Energy " << dE << "(" << InOut << ")" << std::endl;
+				if (InOut == 1)	//inside detector
+					LengthLAr += dx;
+				else if (InOut == 2)	//inside detector
+					LengthFGT += dx;
 				else		//outside detector
 					LengthOut += dx;
+
 
 				TVector3 pos = clone.Position() + dx * dir;	//move by dx
 				clone.SetEnergy(clone.Energy() - dE);
 				clone.SetPosition(pos);
 			}
+			//std::cout << "position " << clone.X() << " - " << clone.Y() << " - " << clone.Z() << std::endl;
 
-			P.SetTrackIn(LengthIn);
+			P.SetTrackIn(LengthLAr, 1);
+			P.SetTrackIn(LengthFGT, 0);
 			P.SetTrackOut(LengthOut);
+			//std::cout << "Setto " << LengthLAr << ", " << LengthFGT << ", " << LengthOut << std::endl;
 			break;
 		case 211:
-			while (IsDetectable(clone) && !IsDecayed(clone, LengthIn+LengthOut))
+			while (IsDetectable(clone) && !IsDecayed(clone, LengthLAr+LengthFGT+LengthOut))
 			{
 				if (cover >= length)	//distance covered more than interaction length
 				{
@@ -221,7 +273,7 @@ void Tracker::Length(Particle &P)	//This should not change P
 					if (mult > 1)	//multiplicity of hadronic interaction
 					{
 						++layer;	//number of interactions
-						clone.SetEnergyKin(clone.EnergyKin()/mult);
+						//clone.SetEnergyKin(clone.EnergyKin()/mult);
 						//divide energy by number (mult) of duaghter particles
 					}
 					length = -1;	//repeat
@@ -229,18 +281,21 @@ void Tracker::Length(Particle &P)	//This should not change P
 
 				if (length < 0)
 				{
-					length = GenMT->Exp(RadiationLength(clone));
+					length = GenMT->Exp(RadiationLength(clone, 1));
 					cover = 0;
 				}
 
-				bool InOut;
-				double dx = GenMT->Gaus(step, Get("Vertex"));
-				double dE = dx * EnergyLoss(P, InOut);	//inside material
+				int InOut;
+				//double dx = GenMT->Gaus(step, Get("Vertex"));
+				double dx = step;
+				double dE = dx * EnergyLoss(clone, InOut);	//inside material
 
 				cover += dx;	//total distance covered in one layer
 
-				if (InOut)	//inside detector
-					LengthIn += dx;
+				if (InOut == 1)	//inside detector
+					LengthLAr += dx;
+				else if (InOut == 2)	//inside detector
+					LengthFGT += dx;
 				else		//outside detector
 					LengthOut += dx;
 
@@ -254,7 +309,8 @@ void Tracker::Length(Particle &P)	//This should not change P
 			else
 				P.SetShower(false);
 
-			P.SetTrackIn(LengthIn);
+			P.SetTrackIn(LengthLAr, 1);
+			P.SetTrackIn(LengthFGT, 0);
 			P.SetTrackOut(LengthOut);
 			break;
 		default:
@@ -345,21 +401,21 @@ double Tracker::RadiationLength(Detector::Material Element, bool Nuclear)
 		}
 }
 
-double Tracker::EnergyLoss(const Particle &P, bool &inout)
+double Tracker::EnergyLoss(const Particle &P, int &inout)
 {
 	if (IsInsideLAr(P))
 	{
-		inout = true;
+		inout = 1;
 		return BetheLoss(P, GetMaterial("TargetLAr"));
 	}
 	else if (IsInsideFGT(P))
 	{
-		inout = true;
+		inout = 2;
 		return BetheLoss(P, GetMaterial("TargetFGT"));
 	}
 	else
 	{
-		inout = false;
+		inout = 0;
 		return BetheLoss(P, GetMaterial("TargetOut"));
 	}
 }
@@ -430,7 +486,7 @@ bool Tracker::IsDetectable(const Particle &P, bool print)	//Threshold check
 			Threshold = Get("Thres_Hadron");
 			break;
 		default:
-			if (P.Charge() != 0)
+			if (P.RealCharge() != 0)
 				Threshold = Get("Thres_Hadron");
 			else
 				Threshold = 1 + P.EnergyKin();		//not detectable

@@ -32,9 +32,12 @@ class Driver
 
 		void CloneCopy(TH1D*& T, TObject* X);
 		bool MakeFlux(Neutrino &N);
-		void MakeElecComponent(Flux *fxFlux, Neutrino &N);
-		void MakeMuonComponent(Flux *fxFlux, Neutrino &N);
-		void MakeTauComponent(Flux *fxFlux, Neutrino &N);
+		//void MakeElecComponent(Flux *fxFlux, Neutrino &N);
+		//void MakeMuonComponent(Flux *fxFlux, Neutrino &N);
+		//void MakeTauComponent(Flux *fxFlux, Neutrino &N);
+		Flux* MakeElecComponent(Flux *light, Neutrino &N);
+		Flux* MakeMuonComponent(Flux *light, Neutrino &N);
+		Flux* MakeTauComponent(Flux *light, Neutrino &N);
 
 		double Intensity(Neutrino &N);
 		double InterpolateIntensity(TH1D* Hist, double Energy);

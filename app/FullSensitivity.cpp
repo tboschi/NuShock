@@ -275,8 +275,8 @@ int main(int argc, char** argv)
 	}
 	Detector *ndBox = new Detector(detConfig, module);
 
-	std::vector<std::vector<double> > backCurve(channels.size());//a collection of parabolas for each channel
-	std::map<std::string, std::vector<double> > mCurve; //a collection of parabolas for each channel
+	//a collection of parabolas for each channel
+	std::map<std::string, std::vector<double> > mCurve;
 	std::map<std::string, std::vector<double> >::iterator ic;
 	if (!background.empty())
 	{
@@ -291,11 +291,11 @@ int main(int argc, char** argv)
 
 			if (module.empty())
 			{
-				ndBox->SetEfficiency(key + "LAr_" + ferm);
-				ndBox->SetEfficiency(key + "FGT_" + ferm);
+				ndBox->SetEfficiency(key + "LAr_" + ferm, channels[i]);
+				ndBox->SetEfficiency(key + "FGT_" + ferm, channels[i]);
 			}
 			else
-				ndBox->SetEfficiency(key + module + "_" + ferm);
+				ndBox->SetEfficiency(key + module + "_" + ferm, channels[i]);
 
 			std::vector<double> alpha(3);
 			for (ic = mBeta.begin(); ic != mBeta.end(); ++ic)
@@ -344,6 +344,7 @@ int main(int argc, char** argv)
 				     (ic->second[0] + mass * (ic->second[1] + mass * ic->second[2]));
 			totalBack += nBack < 0 ? 0 : nBack;
 		}
+
 		if (tb != totalBack)
 		{
 			thr = Belt(int(totalBack), CL);

@@ -43,7 +43,7 @@ class Tracker : public Detector
 		double CriticalEnergy(Detector::Material Element);
 		double RadiationLength(const Particle &P, bool Nuclear = false);
 		double RadiationLength(Detector::Material Element, bool Nuclear = false);
-		double EnergyLoss(const Particle &P, bool &Contained);
+		double EnergyLoss(const Particle &P, int &inout);
 		double BetheLoss(const Particle &P, Material Target);
 		double Bethe(const Particle &P, double Density, double I, int Z, int A);
 
