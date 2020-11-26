@@ -7,10 +7,10 @@
 #include "src/tools/Sort.h"
 #include <omp.h>
 
+
 double Poisson(int n, double s)
 {
-	if (n > 0)
-	{
+	if (n > 0) {
 		if (s < 300)	//Poisson
 		{
 			double p = s/n;
@@ -26,6 +26,147 @@ double Poisson(int n, double s)
 	}
 	else
 		return exp(-s) * pow(s, n);
+}
+
+double poisson(unsigned int n, double s)
+{
+	if (n > 0) {
+		if (s < 1000) {	//Poisson
+			double p = s / n;
+			double ret = 1;
+			for (; n > 0; --n)
+				ret *= exp(-p) * s / n;
+
+			return ret;
+		}
+		else	//normal appoximation
+			return exp(- pow(n-s, 2) / (2 * s)) /
+				sqrt(2 * Const::pi * s);
+	}
+	else
+		return exp(-s);
+}
+
+// signal and best
+double llratio(size_t n, double s, double b)
+{
+	// correct also if any term is zero
+	return 2 * (s - b - n * (log(s) - log(b)));
+}
+
+double poisson(const Eigen::ArrayXd &ni,
+	       const Eigen::ArrayXd &si,
+	       const Eigen::ArrayXd &bi)
+{
+	double ret = 1;
+	for (size_t i = 0; i < ni.size(); ++i)
+		ret *= poisson(ni(i), si(i) + bi(i));
+	return ret;
+}
+
+// log-likelihood ratio
+double llratio(const Eigen::ArrayXd &ni,
+	       const Eigen::ArrayXd &si,
+	       const Eigen::ArrayXd &bi)
+{
+	Eigen::VectorXd ret = si - bi.max(ni)
+			    - ni * (log(si + bi) - log(bi.max(ni)));
+	return 2 * ret.sum();
+}
+
+// jacobian of log-likelihood ratio
+Eigen::ArrayXd lljacob(const Eigen::ArrayXd &ni,
+		       const Eigen::ArrayXd &si,
+		       const Eigen::ArrayXd &bi)
+{
+	Eigen::VectorXd jac = - log(si + bi) + log(bi.max(ni))
+			    + (ni > bi) * (1 + ni / bi.max(ni));
+	return 2 * jac;
+}
+
+// jacobian of log-likelihood ratio
+Eigen::ArrayXd llhessi(const Eigen::ArrayXd &ni,
+		       const Eigen::ArrayXd &si,
+		       const Eigen::ArrayXd &bi)
+{
+	Eigen::VectorXd hes = (- log(si + bi) + log(bi.max(ni))
+			   += (ni > bi) * (1 + ni / bi.max(ni));
+	return 2 * jac;
+}
+
+Eigen::ArrayXd find_min(const Eigen::ArrayXd &si,
+		        const Eigen::ArrayXd &bi)
+{
+	//find starting point for a, b, c, and d
+	int c = 0;
+	double err = 1e-9;
+	Eigen::VectorXd ni = Eigen::VectorXd::Unos(si.size());
+
+	Eigen::VectorXd delta = ni;
+	while (delta.norm() > err && c < 100)
+	{
+		Eigen::VectorXd jac = lljacob(ni, si, bi).matrix();
+		delta = (jac.transpose() * jac).ldlt().solve(jac.transpose() * delta);	//using Norm eq.
+		ni -= delta;
+
+		++c;
+	}
+
+	return ni.array();
+}
+
+// background, confidence level
+double belt(double bak, double CL, int &nA, int &nB)
+{
+	//int nA = 0, nB = 0;
+	double sig = 0;
+	while (sig += 0.01, nA < bak+1) {
+
+		std::vector<double> probabs, lratios;
+		probabs.reserve(bak + sig);
+		lratios.reserve(bak + sig);
+
+		// n = 0 case
+		probabs.push_back(poisson(0, sig+bak));
+		lratios.push_back(llratio(0, sig+bak, bak));
+
+		double sum = 0;	 // only sum after the peak was reached
+		size_t n = 0;
+		// one direction, likelihood should be unimodal
+		while (++n, sum < CL) {
+			probabs.push_back(poisson(n, sig+bak));
+			lratios.push_back(llratio(n, sig+bak, std::max(bak, double(n))));
+
+			if (lratios.rbegin()[1] < lratios.rbegin()[2]) // going up
+				sum += probabs.back();
+			std::cout << n << "\t" << sum << "\t"
+				  << lratios.rbegin()[0] << std::endl;
+		}
+
+		std::vector<size_t> indeces(lratios.size());
+		std::iota(indeces.begin(), indeces.end(), 0);
+
+		// sort with respect to descending log-likeliheood ratios
+		std::sort(indeces.begin(), indeces.end(),
+				[&](size_t a, size_t bak) -> bool
+				{ return lratios[a] < lratios[bak]; } );
+
+		sum = probabs[indeces.front()];
+		nA = nB = indeces.front() + bak;
+		for (size_t i = 1; i < indeces.size(); ++i) {
+			if (sum > CL)
+				break;
+
+			sum += probabs[indeces[i]];
+
+			if (nA > indeces[i] + bak)
+				nA = indeces[i] + bak;
+			if (nB < indeces[i] + bak)
+				nB = indeces[i] + bak;
+		}
+	}
+
+	return sig;
 }
 
 double Ratio(int n, double s, double b)
