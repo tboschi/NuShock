@@ -1,7 +1,7 @@
-INCDIR = include
 APPDIR = app
+INCDIR = include
+SRCDIR = src
 BINDIR = bin
-DOCDIR = doc
 
 ## root
 ROOTLIB	= $(shell root-config --glibs)
@@ -29,12 +29,12 @@ CXXFLAGS := $(DEBUG) $(WARNING) -fPIC -std=c++11 -O3 $(ARCH)  $(ROOTCXX) $(CUBAC
 
 
 #apps and exctuables
-TARGETS := $(shell find $(APPDIR) -maxdepth 1 -name '*.cpp')
-SOURCES := $(shell find $(INCDIR) -maxdepth 2 -name '*.cpp')
-HEADERS := $(shell find $(INCDIR) -maxdepth 2 -name '*.h')
+TARGETS := $(wildcard $(APPDIR)/*.cpp)
+SOURCES := $(wildcard $(SRCDIR)/*.cpp)
+HEADERS := $(wildcard $(INCDIR)/*/*.h*)
 
-OBJECTS := $(SOURCES:.cpp=.o)
 DEPENDS := $(SOURCES:.cpp=.d)
+OBJECTS := $(SOURCES:.cpp=.o)
 TARGETS := $(if $(APP), $(APPDIR)/$(APP), $(TARGETS:.cpp=))
 
 
@@ -49,7 +49,6 @@ help:
 	@echo Headers found are $(HEADERS)
 	@echo "If you need to build just one file, do make APP=name"
 	@echo "or if you need to specify an architecture, do make ARCH=arch"
-	@echo "To build documentation, make doc"
 	@echo "Enjoy your compilation"
 
 $(TARGETS): $(OBJECTS)
@@ -68,7 +67,4 @@ clean:
 	$(RM) $(DEPENDS)
 	$(RM) -r $(BINDIR)
 
-	$(MAKE) -C $(DOCDIR) clean
-
-
-.PHONY: all doc help clean
+.PHONY: all help clean

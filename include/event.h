@@ -1,2 +1,2 @@
-#include "src/event/Background.h"
-#include "src/event/EventGenerator.h"
+#include "event/Background.h"
+#include "event/EventGenerator.h"

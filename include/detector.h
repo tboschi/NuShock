@@ -1,3 +1,3 @@
-#include "src/detector/Detector.h"
-#include "src/detector/Tracker.h"
-#include "src/detector/Efficiency.h"
+#include "detector/Detector.h"
+#include "detector/Tracker.h"
+#include "detector/Efficiency.h"

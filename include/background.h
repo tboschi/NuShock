@@ -1,2 +1,2 @@
-#include "src/background/GenieBack.h"
-#include "src/background/gst.h"
+#include "background/GenieBack.h"
+#include "background/gst.h"
