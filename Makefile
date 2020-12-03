@@ -1,54 +1,74 @@
-.PHONY: clean include
+INCDIR = include
+APPDIR = app
+BINDIR = bin
+DOCDIR = doc
 
-INCDIR =	include
-SRCDIR =	$(INCDIR)/src
-APPDIR =	app
-BINDIR =	bin
-LIBDIR =	lib
+## root
+ROOTLIB	= $(shell root-config --glibs)
+ROOTCXX	= $(shell root-config --cflags)
 
 ROOTLIB		= $(shell root-config --glibs)	#libs for ROOT
-ROOTINC		= $(shell root-config --cflags)	#libs for ROOT
+ROOTCXX		= $(shell root-config --cflags)	#libs for ROOT
+CUBALIB		= -L$(CUBA)/lib		#libs for CUBA
+CUBACXX		= -I$(CUBA)/include 	#libs for CUBA
+LHAPDFLIB	= -L$(LHAPDF)/lib	#includes for LHAPDF
+LHAPDFCXX	= -I$(LHAPDF)/include	#includes for LHAPDF
+
+# no need to link genie anymore
 #GENIELIB	= $(shell genie-config --libs)	#libs for GENIE
 #GENIEINC	= $(shell genie-config --flags)	#libs for GENIE
-CUBALIB		= -L$(CUBA)/lib		#libs for CUBA
-CUBAINC		= -I$(CUBA)/include 	#libs for CUBA
-LHAPDFLIB	= -L$(LHAPDF)/lib	#includes for LHAPDF
-LHAPDFINC	= -I$(LHAPDF)/include	#includes for LHAPDF
 
-LDFLAGS  := -Wl,--no-as-needed $(LDFLAGS) $(ROOTLIB) $(GENIELIB) $(CUBALIB) $(LHAPDFLIB) -L$(LIBDIR)
+
+#optimization
+ARCH ?= -march=native
+
+LDFLAGS  := -Wl,--no-as-needed $(LDFLAGS) $(ROOTLIB) $(GENIELIB) $(CUBALIB) $(LHAPDFLIB)
 LDLIBS   := -lcuba -lLHAPDF
-CXXFLAGS := $(CXXFLAGS) -fPIC -fopenmp -std=c++11 -O3 -mavx $(ROOTINC) $(CUBAINC) $(LHAPDFINC) -I$(INCDIR) -I$(OSCSRC)/core -I$(OSCSRC)/tools
+CXXFLAGS := $(CXXFLAGS) -fPIC -fopenmp -std=c++11 -O3 -mavx
+CXXFLAGS := $(DEBUG) $(WARNING) -fPIC -std=c++11 -O3 $(ARCH)  $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
+
 
 #apps and exctuables
-CPP := $(shell find $(APPDIR) -maxdepth 1 -name '*.cpp')
-SRC := $(shell find $(SRCDIR) -maxdepth 2 -name '*.cpp')
+TARGETS := $(shell find $(APPDIR) -maxdepth 1 -name '*.cpp')
+SOURCES := $(shell find $(INCDIR) -maxdepth 2 -name '*.cpp')
+HEADERS := $(shell find $(INCDIR) -maxdepth 2 -name '*.h')
 
-#main target
-TARGET := $(if $(APP), $(APPDIR)/$(APP), $(CPP:.cpp=))
-#TARGET := $(CPP:.cpp=)
-DEPEND := $(SRC:.cpp=.o)
+OBJECTS := $(SOURCES:.cpp=.o)
+DEPENDS := $(SOURCES:.cpp=.d)
+TARGETS := $(if $(APP), $(APPDIR)/$(APP), $(TARGETS:.cpp=))
 
-all: welcome $(TARGET)
-	@mkdir -p $(LIBDIR)
+
+all: $(TARGETS)
 	@mkdir -p $(BINDIR)
-	@echo "Cleaning up..."
-	@cp $(DEPEND) $(LIBDIR)
-	@cp $(TARGET) $(BINDIR)
+	@cp $^ $(BINDIR)
 	@echo "Done!"
 
-welcome:
+help:
+	@echo Targets found are $(TARGETS)
+	@echo Sources found are $(SOURCES)
+	@echo Headers found are $(HEADERS)
 	@echo "If you need to build just one file, do make APP=name"
+	@echo "or if you need to specify an architecture, do make ARCH=arch"
+	@echo "To build documentation, make doc"
 	@echo "Enjoy your compilation"
 
-$(TARGET): $(DEPEND)
+$(TARGETS): $(OBJECTS)
 
-include:
-	$(eval DEPEND := $(shell find $(LIBDIR) -maxdepth 1 -name '*.o'))
-	echo "dep " $(DEPEND)
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
+
+-include $(DEPENDS)
+
+#$(OBJECT): $(HEADERS)
+
 
 clean:
-	-find $(SRCDIR) -name "*.o" -delete
-	-find $(INCDIR) -name "*~"  -delete
-	-find $(LIBDIR) -mindepth 1 -name "*"   -delete
-	-find $(APPDIR) -mindepth 1 -name "*~"  -delete
-	-find $(BINDIR) -mindepth 1 -name "*"   -delete
+	$(RM) $(TARGETS)
+	$(RM) $(OBJECTS)
+	$(RM) $(DEPENDS)
+	$(RM) -r $(BINDIR)
+
+	$(MAKE) -C $(DOCDIR) clean
+
+
+.PHONY: all doc help clean
