@@ -19,35 +19,32 @@ class Production : public Amplitude
 	public:
 		Production();
 
-		Amplitude::Channel FindChannel(std::string Name);
-		std::string FindChannel(Amplitude::Channel Name);
-		std::vector<Amplitude::Channel> ListChannels();
+		bool IsAllowed(const Channel::Name &chan);
+		double MassThreshold(const Channel::Name &chan);
+		double Gamma(Channel::Name chan, const std::array<double, 3> &mix);
+		double Gamma(Channel::Name chan, double ue = 0., double um = 0., double ut = 0.);
+		double Scale(const Channel::Name &chan);
 
-		bool IsAllowed(Channel Name);
-		double MassThreshold(Channel Name);
-		double Gamma(Channel Name, bool Unitary = false);
-		double Scale(Channel Name);
-
-		double Total();
-		double MuonE();
-                double MuonM();
-                double TauEE();
-                double TauET();
-                double TauMM();
-                double TauMT();
-		double TauPI();
-		double Tau2PI();
-                double PionE();
-                double PionM();
-                double KaonE();
-                double KaonM();
-                double CharmE();
-                double CharmM();
-                double CharmT();
-                double Kaon0E();
-                double Kaon0M();
-		double KaonCE();
-                double KaonCM();
+		double Total(double ue = 0., double um = 0., double ut = 0.);
+		double MuonE(double ue = 0., double um = 0., double ut = 0.);
+                double MuonM(double ue = 0., double um = 0., double ut = 0.);
+                double TauEE(double ue = 0., double um = 0., double ut = 0.);
+                double TauET(double ue = 0., double um = 0., double ut = 0.);
+                double TauMM(double ue = 0., double um = 0., double ut = 0.);
+                double TauMT(double ue = 0., double um = 0., double ut = 0.);
+		double TauPI(double ue = 0., double um = 0., double ut = 0.);
+		double Tau2PI(double ue = 0., double um = 0., double ut = 0.);
+                double PionE(double ue = 0., double um = 0., double ut = 0.);
+                double PionM(double ue = 0., double um = 0., double ut = 0.);
+                double KaonE(double ue = 0., double um = 0., double ut = 0.);
+                double KaonM(double ue = 0., double um = 0., double ut = 0.);
+                double CharmE(double ue = 0., double um = 0., double ut = 0.);
+                double CharmM(double ue = 0., double um = 0., double ut = 0.);
+                double CharmT(double ue = 0., double um = 0., double ut = 0.);
+                double Kaon0E(double ue = 0., double um = 0., double ut = 0.);
+                double Kaon0M(double ue = 0., double um = 0., double ut = 0.);
+		double KaonCE(double ue = 0., double um = 0., double ut = 0.);
+                double KaonCM(double ue = 0., double um = 0., double ut = 0.);
 
 		double AntiLeptonNeutrinoDecay(double M_LeptonA, double M_LeptonB, double M_Neut);
 		double I_AntiLeptonNeutrino(double x, double y, double z);
@@ -71,13 +68,8 @@ class Production : public Amplitude
 		double I_MesonThree(double x, double y, double z, double L_, double L0);
 		double I_MesonThree_s(double s);
 		double I_MesonThree_t(double t);
-		double I_MesonThree_D(double *x);
-		double MesonThreeDecay2(double M_Meson0, double M_Meson1, double M_Lepton, double L_, double L0);
-		double I_MesonThree_2(double s);
 
 		void Reset();
-		void SetFunction(double (Production::*FF)(double));
-		void SetFunction_D(double (Production::*FF)(double*));
 
 	private:
 

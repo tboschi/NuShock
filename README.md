@@ -8,49 +8,41 @@ Tools for background estimations are also available.
 
 ## Installation
 
-The installation requires only the ROOT package (version 5 or newer)
-and its environmental variables already set.
-The standard c++11 is preferable, even though compatibility with c++0x is ok.
+### Requirments
 
-```bash
+* make
+* C++11 compiler
+* [cuba](http://www.feynarts.de/cuba/)
+* [LHAPDF](https://lhapdf.hepforge.org/index.html)
+* [ROOT](https://root.cern.ch/)
+
+Set the variables:
+* `$CUBA` to point to the installation path for cuba
+* `$LHAPDF` to point to the installation path for LHAPDF
+* `$ROOTSYS` to point to the installation path for ROOT (this already part of the installation process)
+
+If ROOT is properly set, `root-config` should be in the user's `$PATH` and so the Makefile can find the includes and libraries on its own.
+
+### Compilation
+
+Simply doing 
+```
 make
 ```
-
-If your g++ or preferred c++ compiler does not support c++11 please change the Makefile accordingly, 
-replacing the flag 
-```
--std=c++11
-```
-with 
-```
--std=c++0x
-```
-
-Recompile with make everytime you change something in the source code or if you create new executables.
+is enough.
+This will create binaries in the `bin` folder.
 
 ## Usage of the framework
 
-The main functions are to be placed in the app/ folder and the exectuables are moved to the bin/ folder
-after compilation.
-They can use any of the library inside the include/src/<package-name> folder.
-It is best to use the header files in include/ to make the code clean and readable.
-If you create a new class which is not included in the header files under include/,
-please change them or properly include them in the pre-compiler instructions.
+The main functions are to be placed in the `app/` folder and the exectuables are moved to the `bin/` folder after compilation.
 These are, at the moment
 
-- `tools.h`	for constants and particle definition
-- `flux.h`	for flux handling
-- `physics.h`	for HNL physics
-- `detector.h`	for detector description
-
-The rest is still in development (not on github) as I recently changed a few things.
 
 ### Configuration files
 
-Most of the classes, like flux or detector, use description files contained in the config/ subfolder.
+Most of the classes, like flux or detector, use description files contained in the `config/` subfolder.
 
-The detector configuration, for example ND_Full, described the DUNE near detector, composed of two parts:
-a LArTPC and a FGT.
+The detector configuration, for example ND_Full describes the DUNE near detector, composed of two parts: a LArTPC and a FGT.
 Sizes and dimensions are desribed in the file, as well as resolutions for some particle detections.
 At the end there is a list of efficiency files, used to estimate sensitivty including background.
 

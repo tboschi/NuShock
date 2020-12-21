@@ -1,3 +1,6 @@
 [submodule "fccl"]
 	path = fccl
 	url = https://github.com/tboschi/fccl
+[submodule "lhapdf"]
+	path = lhapdf
+	url = https://gitlab.com/hepcedar/lhapdf/

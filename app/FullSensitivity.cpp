@@ -10,6 +10,8 @@
 #include "physics.h"
 #include "analysis.h"
 
+#include "tools/CardDealer.h"
+
 class NumberEvents
 {
 	public:
@@ -63,7 +65,7 @@ class NumberEvents
 		double threshold;
 };
 
-void Usage(char* argv0);
+void usage(char* argv0);
 int main(int argc, char** argv)
 {
 	const struct option longopts[] = 
@@ -155,7 +157,7 @@ int main(int argc, char** argv)
 				antipart = true;
 				break;
 			case 'h':
-				Usage(argv[0]);
+				usage(argv[0]);
 				return 1;
 			default:
 				break;
@@ -391,10 +393,10 @@ int main(int argc, char** argv)
 	return 0;
 }
 	
-void Usage(char* argv0)
+void usage(char* argv0)
 {
 	std::cout << "Description" << std::endl;
-	std::cout << "Usage : " << std::endl;
+	std::cout << "usage : " << std::endl;
 	std::cout << argv0 << " [OPTIONS]" << std::endl;
 	std::cout <<"\n  -d,  --detconfig [CONFIG]" << std::endl;
 	std::cout << "\t\tDetector configuration file" << std::endl;

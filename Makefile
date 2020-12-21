@@ -1,11 +1,12 @@
 APPDIR = app
+TESTDIR = test
 INCDIR = include
 SRCDIR = src
 BINDIR = bin
 
-## root
-ROOTLIB	= $(shell root-config --glibs)
-ROOTCXX	= $(shell root-config --cflags)
+CUBA ?= cuba
+LHAPDF ?= lhapdf
+
 
 ROOTLIB		= $(shell root-config --glibs)	#libs for ROOT
 ROOTCXX		= $(shell root-config --cflags)	#libs for ROOT
@@ -23,24 +24,31 @@ LHAPDFCXX	= -I$(LHAPDF)/include	#includes for LHAPDF
 ARCH ?= -march=native
 
 LDFLAGS  := -Wl,--no-as-needed $(LDFLAGS) $(ROOTLIB) $(GENIELIB) $(CUBALIB) $(LHAPDFLIB)
-LDLIBS   := -lcuba -lLHAPDF
+#LDLIBS   := -lcuba -lLHAPDF
 CXXFLAGS := $(CXXFLAGS) -fPIC -fopenmp -std=c++11 -O3 -mavx
 CXXFLAGS := $(DEBUG) $(WARNING) -fPIC -std=c++11 -O3 $(ARCH)  $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
 
 
 #apps and exctuables
 TARGETS := $(wildcard $(APPDIR)/*.cpp)
-SOURCES := $(wildcard $(SRCDIR)/*.cpp)
-HEADERS := $(wildcard $(INCDIR)/*/*.h*)
+TESTS   := $(wildcard $(TESTDIR)/*.cpp)
+#SOURCES := $(wildcard $(SRCDIR)/*.cpp)
+#HEADERS := $(wildcard $(INCDIR)/*/*.h*)
+SOURCES := $(SRCDIR)/Particle.cpp $(SRCDIR)/Track.cpp $(SRCDIR)/OpenQQ.cpp
+HEADERS := $(INCDIR)/physics/Particle.h $(INCDIR)/physics/Track.h $(INCDIR)/physics/OpenQQ.h
 
 DEPENDS := $(SOURCES:.cpp=.d)
 OBJECTS := $(SOURCES:.cpp=.o)
 TARGETS := $(if $(APP), $(APPDIR)/$(APP), $(TARGETS:.cpp=))
+TESTS   := $(if $(TEST), $(TESTDIR)/$(TEST), $(TESTS:.cpp=))
 
 
 all: $(TARGETS)
 	@mkdir -p $(BINDIR)
 	@cp $^ $(BINDIR)
+	@echo "Done!"
+
+test: $(TESTS)
 	@echo "Done!"
 
 help:
@@ -53,6 +61,8 @@ help:
 
 $(TARGETS): $(OBJECTS)
 
+$(TESTS): $(OBJECTS)
+
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
@@ -62,9 +72,10 @@ $(TARGETS): $(OBJECTS)
 
 
 clean:
-	$(RM) $(TARGETS)
-	$(RM) $(OBJECTS)
-	$(RM) $(DEPENDS)
-	$(RM) -r $(BINDIR)
+	@$(RM) $(TARGETS)
+	@$(RM) $(TESTS)
+	@$(RM) $(OBJECTS)
+	@$(RM) $(DEPENDS)
+	@$(RM) -r $(BINDIR)
 
-.PHONY: all help clean
+.PHONY: all test help clean

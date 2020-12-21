@@ -1,63 +1,43 @@
 #include "Flux.h"
 
 //ctor
-Flux::Flux(std::string HistFile) :
-	hTotal(0),
-        hPion(0),
-        hPPion(0),
-        hKaon(0),
-        hKaon0(0),
-        hCharm(0),
-        hMuon(0),
-        hTauE(0),
-        hTauM(0)
+Flux::Flux(const std::string &histFile) :
 {
-	TFile* InFile = new TFile(HistFile.c_str(), "READ");
-	if (InFile->IsZombie())
-		std::cout << "File " << HistFile << " does not exist" << std::endl;
+	TFile infile(histFile.c_str(), "READ");
+	if (infile.IsZombie())
+		throw std::invalid_argument("Flux: file does not exist\n");
 
-	CloneCopy(hTotal, InFile->Get("htotal"));
-	CloneCopy(hPion,  InFile->Get("hpion"));
-	CloneCopy(hPPion, InFile->Get("h2pion"));
-	CloneCopy(hKaon,  InFile->Get("hkaon"));
-	CloneCopy(hKaon0, InFile->Get("hkaon0"));
-	CloneCopy(hCharm, InFile->Get("hcharm"));
-	CloneCopy(hMuon,  InFile->Get("hmuon"));
-	CloneCopy(hTauE,  InFile->Get("htaue"));
-	CloneCopy(hTauM,  InFile->Get("htaum"));
 
-	InFile->Close();
+	TIter next(infile.GetListOfKeys());
+	TKey* k;
+	while (k = static_cast<TKey*>(next())) {
+		std::string name = k->GetName();
+		std::shared_ptr<TH1D> hflux(static_cast<TH1D*>(infile.Get(name.c_str())));
+		hflux->SetDirectory(0);
+		_hists[name] = std::move(hflux);
+	}
 
+	if (!_hists.size())
+		throw std::logic_error("No histogram collected! Very bad\n")
+
+	if (!_hists.count("htotal")) {
+		_hists["htotal"] = std::shared_ptr<TH1D>(*_hists.begin());
+		Combine();
+	}
 }
 
-//copy ctor
-Flux::Flux(const Flux & f)
-{
-	CloneCopy(hTotal, f.Get(Total));
-	CloneCopy(hPion,  f.Get(Pion));
-	CloneCopy(hPPion, f.Get(PPion));
-	CloneCopy(hKaon,  f.Get(Kaon));
-	CloneCopy(hKaon0, f.Get(Kaon0));
-	CloneCopy(hCharm, f.Get(Charm));
-	CloneCopy(hMuon,  f.Get(Muon));
-	CloneCopy(hTauE,  f.Get(TauE));
-	CloneCopy(hTauM,  f.Get(TauM));
-}
+	//CloneCopy(hTotal, InFile->Get("htotal"));
+	//CloneCopy(hPion,  InFile->Get("hpion"));
+	//CloneCopy(hPPion, InFile->Get("h2pion"));
+	//CloneCopy(hKaon,  InFile->Get("hkaon"));
+	//CloneCopy(hKaon0, InFile->Get("hkaon0"));
+	//CloneCopy(hCharm, InFile->Get("hcharm"));
+	//CloneCopy(hMuon,  InFile->Get("hmuon"));
+	//CloneCopy(hTauE,  InFile->Get("htaue"));
+	//CloneCopy(hTauM,  InFile->Get("htaum"));
 
-//detor
-Flux::~Flux()
-{
-	delete hTotal;
-	delete hPion;
-	delete hPPion;
-	delete hKaon;
-	delete hKaon0;
-	delete hCharm;
-	delete hMuon;
-	delete hTauE;
-	delete hTauM;
-}
 
+/*
 //Clone functions, so that an object from this class owns valid copies of the histograms
 void Flux::CloneCopy(TH1D*& T, TObject* X)
 {
@@ -80,124 +60,109 @@ void Flux::CloneCopy(TH1D*& T, TH1D* X)
 	else
 		T = NULL;
 }
+*/
 
 
 //Get functions
 
-TH1D* Flux::Get(Hist Name) const
+
+std::shared_ptr<TH1D> Flux::Get(const std::string &name) const
 {
-	switch (Name)
+	if (_hists.count(name))
+		return _hists[name];
+	return nullptr;
+}
+
+std::shared_ptr<TH1D> Flux::Get(const Component &name) const
+{
+	switch (name)
 	{
 		case Total:
-			return hTotal;
+			return _hists["htotal"];
 		case Pion:
-			return hPion;
+			return _hists["hpion"];
 		case PPion:
-			return hPPion;
+			return _hists["hppion"];
 		case Kaon:
-			return hKaon;
+			return _hists["hkaon"];
 		case Kaon0:
-			return hKaon0;
+			return _hists["hkaon0"];
 		case Charm:
-			return hCharm;
+			return _hists["hcharm"];
 		case Muon:
-			return hMuon;
+			return _hists["hmuon"];
 		case TauE:
-			return hTauE;
+			return _hists["htaue"];
 		case TauM:
-			return hTauM;
+			return _hists["htaum"];
 		default:
-			return NULL;
+			return nullptr;
 	}
 }
 
-void Flux::Add()
+void Flux::Combine()
 {
-	Get(Total)->Reset("ICES");
-
-	Add(Pion);
-	Add(PPion);
-	Add(Kaon);
-	Add(Kaon0);
-	Add(Charm);
-	Add(Muon);
-	Add(TauE);
-	Add(TauM);
-}
-
-void Flux::Add(Hist Name)
-{
-	TH1D* hComponent = Get(Name);
-
-	if (hComponent)
-		Get(Total)->Add(hComponent);
+	_hists["htotal"]->Reset("ICES");
+	for (const auto &ih : _hists)
+		_hists["htotal"]->Add(ih.second.get());
 }
 
 void Flux::Scale(double X)
 {
-	Scale(Pion, X);
-	Scale(PPion, X);
-	Scale(Kaon, X);
-	Scale(Kaon0, X);
-	Scale(Charm, X);
-	Scale(Muon, X);
-	Scale(TauE, X);
-	Scale(TauM, X);
+	for (const auto &ih : _hists)
+		ih.second->Scale(x);
 }
 
-void Flux::Scale(Hist Name, double X)
+void Flux::Scale(const Component &name, double x)
 {
-	TH1D* hComponent = Get(Name);
-
-	if (hComponent)
-		hComponent->Scale(X);
+	if (_hists.count(name))
+		_hists[name]->Scale(x);
 }
 
-bool Flux::Stretch(Hist Name, double Sx, double Ex)
+// stretch the flux such that it has starting and ending energies at sx and ex
+bool Flux::Stretch(const Component &name, double sx, double ex)
 {
-	TH1D* hComponent = Get(Name);
+	if (!_hists.count(name))
+		return false;
 
-	if (hComponent && Sx >= RangeStart() && Ex <= RangeEnd())
+	if (sx >= RangeStart() && ex <= RangeEnd())
 	{
-		TH1D *hTemp = dynamic_cast<TH1D*> (hComponent->Clone());
-		hComponent->Reset("ICES");
+		TH1D *htmp = static_cast<TH1D*>(_hists[name]->Clone());
+		htmp->Reset("ICES");
 
-		double A = hTemp->GetXaxis()->GetBinCenter(hTemp->FindFirstBinAbove(0));
-		double B = hTemp->GetXaxis()->GetBinCenter(hTemp->FindLastBinAbove(0));
-
-		double m = (Ex - Sx) / (B - A);
-		double Start = RangeStart();
-		double End   = RangeEnd();
-		double EnStep = (End - Start) / BinNumber();
-		for (double Energy = Start; Energy < End; Energy += EnStep)
-		{
-			double Flux = hTemp->GetBinContent(hTemp->FindBin(Energy));
-			hComponent->Fill( Sx + (Energy - A) * (Ex - Sx) / (B - A), Flux * (Ex - Sx) / (B - A) );
+		int ia = htmp->FindFirstBinAbove();
+		int ib = htmp->FindLastBinAbove();
+		double eA = htmp->GetBinContent(ia);
+		double eB = htmp->GetBinContent(ib);
+		for (int i = ia; i <= ib; ++i) {
+			double shifted = sx + (htpm->GetBinContent(i) - eA) * (ex - sx);
+			_hists[name]->SetBinContent(htmp->FindBin(shifted),
+						    htmp->GetBinContent(i) * (ex - sx) / (eB - eA));
 		}
 
-		delete hTemp;
+		delete htmp;
 		return true;
 	}
-	else
-		return false;
+
+	return false;
 }
 
 double Flux::RangeStart()
 {
-	return Get(Total)->GetBinLowEdge(1);
+	return _hists["htotal"]->GetBinLowEdge(1);
 }
 
 double Flux::RangeEnd()
 {
-	return Get(Total)->GetBinLowEdge(BinNumber() + 1);
+	return _hists["htotal"]->GetBinLowEdge(BinNumber() + 1);
 }
 
 double Flux::BinNumber()
 {
-	return Get(Total)->GetNbinsX();
+	return _hists["htotal"]->GetNbinsX();
 }
 
 double Flux::BinWidth()
 {
-	return Get(Total)->GetBinWidth(1);
+	return _hists["htotal"]->GetBinWidth(1);
 }

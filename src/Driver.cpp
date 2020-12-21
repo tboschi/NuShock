@@ -1,335 +1,67 @@
 #include "Driver.h"
 
-Driver::Driver(std::string fluxConfig, bool FHC) :
-	fxNuElectron(0),
-	fxNuMuon(0),
-	fxNuTau(0),
-	fxHeavyElectron(0),
-	fxHeavyMuon(0),
-	fxHeavyTau(0)
+Driver::Driver(const std::string &card)
 {
-	CardDealer fc(fluxConfig);//, true);
+	CardDealer cd(fluxConfig);
 
-	std::string name;
-	if (FHC)
-	{
-		//std::cout << "D is FHC" << std::endl;
-		if (fc.Get("Electron_", name))
-		{
-			fxNuElectron = new Flux(name);
-			//std::cout << "E\tflux name " << name << std::endl;
-		}
-		if (fc.Get("Muon_", name))
-		{
-			//std::cout << "M\tflux name " << name << std::endl;
-			fxNuMuon = new Flux(name);
-		}
-		if (fc.Get("Tau_", name))
-		{
-			//std::cout << "T\tflux name " << name << std::endl;
-			fxNuTau = new Flux(name);
-		}
-	}
-	else
-	{
-		//std::cout << "D is RHC" << std::endl;
-		if (fc.Get("ElectronBar_", name))
-			fxNuElectron = new Flux(name);
-		if (fc.Get("MuonBar_", name))
-			fxNuMuon = new Flux(name);
-		if (fc.Get("TauBar_", name))
-			fxNuTau = new Flux(name);
-	}
+	// create production object for light neutrino
+	Neutrino nu();
+	_light = Production(nu);
 
-	std::map<std::string, std::string> mMod;
-	std::map<std::string, std::string>::iterator id;
-	if (fc.Get("Mod_", mMod))
-	{
-		for (id = mMod.begin(); id != mMod.end(); ++id)
-		{
-			std::vector<double> *vM, *vA, *vB, *vP;
-			if (id->first  == "Charm")
-			{
-				vM = &vM_Charm;
-				vA = &vA_Charm;
-				vB = &vB_Charm;
-				vP = &vP_Charm;
-			}
-			else if (id->first == "TauE")
-			{
-				vM = &vM_TauE;
-				vA = &vA_TauE;
-				vB = &vB_TauE;
-				vP = &vP_TauE;
-			}
-			else if (id->first == "TauM")
-			{
-				vM = &vM_TauM;
-				vA = &vA_TauM;
-				vB = &vB_TauM;
-				vP = &vP_TauM;
-			}
-			else if (id->first == "PPion")
-			{
-				vM = &vM_PPion;
-				vA = &vA_PPion;
-				vB = &vB_PPion;
-				vP = &vP_PPion;
-			}
-			else if (id->first == "Pion")
-			{
-				vM = &vM_Pion;
-				vA = &vA_Pion;
-				vB = &vB_Pion;
-				vP = &vP_Pion;
-			}
-
-			std::ifstream inMod(id->second);
-			std::string line;
-			double mass, A, B, P;
-			while (getline(inMod, line))
-			{
-				if (line[0] == '#')
-					continue;
-
-				std::stringstream ssl(line);
-				ssl >> mass >> A >> B >> P;
-
-				vM->push_back(mass);
-				vA->push_back(A);
-				vB->push_back(B);
-				vP->push_back(P);
-			}
-			inMod.close();
-		}
-	}
-
-	Mass_prev = -1.0;
+	Init(cd);
 }
 
-//deconstructor
-Driver::~Driver()
+// load fluxes for neutrinos and antineutrinos
+void Init(const CardDealer &cd)
 {
-	delete fxNuElectron;
-	delete fxNuMuon;
-	delete fxNuTau;
+	std::map<std::string, std::string> > files;
+	if (!cd.Get("flux_", files))
+		throw std::invalid_argument("Driver: flux card does not contain any flux description\n");
 
-	delete fxHeavyElectron;
-	delete fxHeavyMuon;
-	delete fxHeavyTau;
-}
+	for (const auto &ff : files)
+		_fxNu[Flavour::fromString(ff.first)] = std::move(Flux(ff.second));
 
-//clones the histograms in the kinematic files
-void Driver::CloneCopy(TH1D*& T, TObject* X)
-{
-	if (X)
-	{
-		T = dynamic_cast<TH1D*> (X->Clone());
-		T->SetDirectory(0);
-	}
-	else
-		T = NULL;
-}
+	// load tau flux modifiers
+	if (!fc.Get("mod_", files))
+		return;
 
-//make flux, only input needed is the mass of the neutrino
-//return true if successful
-//
-bool Driver::MakeFlux(Neutrino &N)
-{
-	if (!IsChanged(N))	//compute only if particle is changed
-	{
-		std::cerr << "WARNING: recopmuting flux with same neutrino. "
-			  << "This should not be happening!" << std::endl;
-		return false;
-	}
-	else
-	{
-		//std::cout << "Making flux in driver" << std::endl;
-		delete fxHeavyElectron;
-		delete fxHeavyMuon;
-		delete fxHeavyTau;
-		
-		fxHeavyElectron = 0;
-                fxHeavyMuon = 0;
-                fxHeavyTau = 0;
+	for (const auto &id : files) {
+		Modifier mod;
+		std::string line;
+		std::ifstream inmod(id.second);
+		while (std::getline(inmod, line)) {
+			if (line.find_first_of('#') != std::string::npos)
+				line.erase(line.find_first_of('#'));
 
-		//std::cout << "mixings " << N.Ue() << ", " << N.Um() << ", " << N.Ut() << std::endl;
-		if (fxNuElectron)// && N.Ue() > 0)
-		{
-			//MakeElecComponent(fxHeavyElectron = new Flux(*fxNuElectron), N);
-			fxHeavyElectron = MakeElecComponent(fxNuElectron, N);
-			//std::cout << "making E component " << fxHeavyElectron << std::endl;
+			if (line.empty())
+				continue;
+			std::array<double, 4> entry;
+			std::stringstream ssl(line);
+			ssl >> entry[0] >> entry[1] >> entry[2] >> entry[3];
+			mod.push_back(std::move(entry));
 		}
-
-		if (fxNuMuon)// && N.Um() > 0)
-		{
-			//MakeMuonComponent(fxHeavyMuon = new Flux(*fxNuMuon), N);
-			fxHeavyMuon = MakeMuonComponent(fxNuMuon, N);
-			//std::cout << "making M component " << fxHeavyMuon << std::endl;
-		}
-
-		if (fxNuTau)// && N.Ut() > 0)
-		{
-			//MakeTauComponent(fxHeavyTau = new Flux(*fxNuTau), N);
-			fxHeavyTau = MakeTauComponent(fxNuTau, N);
-			//std::cout << "making T component " << fxHeavyTau << std::endl;
-		}
-
-		return true;
+		_modifiers[Flux::fromString(id.first)] = std::move(modifier);
 	}
 }
-
-//Make electronic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-//void Driver::MakeElecComponent(Flux *fxFlux, Neutrino &N)
-Flux* Driver::MakeElecComponent(Flux *light, Neutrino &N)
-{
-	Flux* fxFlux = new Flux(*light);
-
-	//pi+ -> e+ nu_e
-	fxFlux->Scale(Flux::Pion, N.ProductionScale("PionE"));
-
-	//K+ -> pi0 e+ nu_e	(5.07 %)	//I just assume that both decays are equally probable 
-	//K+ -> e+ nu_e		(1.582e-3)	//for each different energy, so it is a linear combination
-	double KaonFactor = 1.582e-3/(1.582e-3+5.07) * N.ProductionScale("KaonE") +
-			    5.07/(1.582e-3+5.07) * N.ProductionScale("KaonCE");
-	fxFlux->Scale(Flux::Kaon, KaonFactor);
-
-	//K0 -> pi+ e+ nu_e
-	fxFlux->Scale(Flux::Kaon0, N.ProductionScale("Kaon0E"));
-
-	//mu+ -> nu_mu_bar e+ nu_e
-	fxFlux->Scale(Flux::Muon, N.ProductionScale("MuonE"));
-
-	//Ds+ -> e+ nu_e
-	fxFlux->Scale(Flux::Charm, N.ProductionScale("CharmE"));
-
-	fxFlux->Add();
-
-	return fxFlux;
-}
-
-//Make muonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-//void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino &N)
-Flux* Driver::MakeMuonComponent(Flux *light, Neutrino &N)
-{
-	Flux* fxFlux = new Flux(*light);
-
-	//pi+ -> mu+ nu_mu
-	fxFlux->Scale(Flux::Pion, N.ProductionScale("PionM"));
-
-	//K+ -> mu+ nu_mu	(63.56%)
-	//K+ -> pi0 mu+ nu_mu	(3.53%)
-	double KaonFactor = 63.56/(63.56+3.35) * N.ProductionScale("KaonM") +
-			    3.35/(63.56+3.35) * N.ProductionScale("KaonCM");
-	fxFlux->Scale(Flux::Kaon, KaonFactor);
-
-	//K0 -> pi- mu+ nu_mu
-	fxFlux->Scale(Flux::Kaon0, N.ProductionScale("Kaon0M"));
-
-	//mu- -> nu_mu e- nu_e_bar
-	fxFlux->Scale(Flux::Muon, N.ProductionScale("MuonM"));
-
-	//Ds+ -> mu+ nu_mu
-	fxFlux->Scale(Flux::Charm, N.ProductionScale("CharmM"));
-
-	fxFlux->Add();
-
-	return fxFlux;
-}
-
-//Make tauonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
-//void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
-Flux* Driver::MakeTauComponent(Flux *light, Neutrino &N)
-{
-	Flux* fxFlux = new Flux(*light);
-	//Ds+ -> tau+ nu_tau
-	//if (vM_Charm.size())
-	if (false)
-	{
-		double Sx, Ex;
-		double Mod = Modify(Flux::Charm, Sx, Ex, N.Mass());
-
-		if (fxFlux->Stretch(Flux::Charm, Sx, Ex))
-			fxFlux->Scale(Flux::Charm, Mod);
-		else
-			fxFlux->Scale(Flux::Charm, 0.0);
-	}
-	fxFlux->Scale(Flux::Charm, N.ProductionScale("CharmT"));
-
-	//tau+ -> pi+ nu_tau
-	//if (vM_Pion.size())
-	if (false)
-	{
-		double Sx, Ex;
-		double Mod = Modify(Flux::Pion, Sx, Ex, N.Mass());
-
-		if (fxFlux->Stretch(Flux::Pion, Sx, Ex))
-			fxFlux->Scale(Flux::Pion, Mod);
-		else
-			fxFlux->Scale(Flux::Pion, 0.0);
-	}
-	fxFlux->Scale(Flux::Pion, N.ProductionScale("TauPI"));
-
-	//tau+ -> pi+ pi0 nu_tau	//crossing simmetries
-	//if (vM_PPion.size())
-	if (false)
-	{
-		double Sx, Ex;
-		double Mod = Modify(Flux::PPion, Sx, Ex, N.Mass());
-
-		if (fxFlux->Stretch(Flux::PPion, Sx, Ex))
-			fxFlux->Scale(Flux::PPion, Mod);
-		else
-			fxFlux->Scale(Flux::PPion, 0.0);
-	}
-	fxFlux->Scale(Flux::PPion, N.ProductionScale("Tau2PI"));
-
-	//tau+ -> nu_tau_bar e+ nu_e
-	//if (vM_TauE.size())
-	if (false)
-	{
-		double Sx, Ex;
-		double Mod = Modify(Flux::TauE, Sx, Ex, N.Mass());
-
-		if (fxFlux->Stretch(Flux::TauE, Sx, Ex))
-			fxFlux->Scale(Flux::TauE, Mod);
-		else
-			fxFlux->Scale(Flux::TauE, 0.0);
-	}
-	fxFlux->Scale(Flux::TauE, N.ProductionScale("TauET"));
-
-	//tau+ -> nu_tau_bar mu+ nu_mu
-	//if (vM_TauM.size())
-	if (false)
-	{
-		double Sx, Ex;
-		double Mod = Modify(Flux::TauM, Sx, Ex, N.Mass());
-
-		if (fxFlux->Stretch(Flux::TauM, Sx, Ex))
-			fxFlux->Scale(Flux::TauM, Mod);
-		else
-			fxFlux->Scale(Flux::TauM, 0.0);
-	}
-	fxFlux->Scale(Flux::TauM, N.ProductionScale("TauMT"));	//Three body
-
-	fxFlux->Add();
-
-	return fxFlux;
-}
-
 
 //return the intensity of the flux at given energy
 //
-
-double Driver::Intensity(Neutrino &N)	//Return flux intensity, given energy, simple linear interpolation
+double Driver::Intensity(Neutrino &N, bool neut) const
 {
 	//double Energy = N.EnergyKin();
-	double Energy = N.Momentum();	//as p ~ E for light neutrinos
+	double en = N.Momentum();	//as p ~ E for light neutrinos
+	if (neut)
+		for (auto ff = std::begin(Nu::Neut); ff != std::end(Nu::Neut); ++f)
+			MakeComponent(*ff, fxHNL[*ff], N);
+	else
+		for (auto ff = std::begin(Nu::Anti); ff != std::end(Nu::Anti); ++f)
+			MakeComponent(*ff, fxHNL[*ff], N);
 
+	std::accumulate(std::begin(
 	//std::cout << fxHeavyElectron << ", " << fxHeavyMuon << ", " << fxHeavyTau << std::endl;
 	double Intensity = 0;
 	if (fxHeavyElectron)
-		Intensity += N.Ue(2) * InterpolateIntensity(fxHeavyElectron->Get(Flux::Total), Energy);
+		Intensity += N.Ue(2) * InterpolateIntensity(fxHeavyElectron->Get(Flux:::Total), Energy);
 	if (fxHeavyMuon)
 		Intensity += N.Um(2) * InterpolateIntensity(fxHeavyMuon->Get(Flux::Total), Energy);
 	if (fxHeavyTau)
@@ -338,169 +70,215 @@ double Driver::Intensity(Neutrino &N)	//Return flux intensity, given energy, sim
 	return Intensity;
 }
 
-double Driver::InterpolateIntensity(TH1D* Hist, double Energy)
+// prepare flux by scaling each component by the neutrino
+// production rate. HNL flux is just each component times
+// time the production rate
+//
+// opt can be Neutrino::particle or Neutrino::antiparticle
+std::unordered_map<Nu::Flavour, std::shared_ptr<TH1D> > Driver::MakeFlux(const Neutrino &N)
 {
-	if (!Hist)
-		return 0.0;
+	// production for HNL
+	Production hnl(N);
 
-	int Bin = Hist->FindBin(Energy);
-	double I1 = Hist->GetBinContent(Bin);
-	double E1 = Hist->GetBinCenter(Bin);
-	double I2, E2;
+	std::map<Nu::Flavour, std::shared_ptr<TH1D> > dist;
+	if (N.IsParticle())
+		for (const auto flv : Nu::Neut)
+			dist[flv] = MakeComponent(hnl, flv, N.M());
+	else if (N.IsAntiParticle())
+		for (const auto flv : Nu::Anti)
+			dist[flv] = MakeComponent(hnl, flv, N.M());
 
-	double Ret = 0.0;
-	if (Bin > 1 && Bin < BinNumber())
-	{
-		if (Energy < Hist->GetBinCenter(Bin))
-		{
-			I2 = Hist->GetBinContent(Bin-1);
-			E2 = Hist->GetBinCenter(Bin-1);
-		}
-		else
-		{
-			I2 = Hist->GetBinContent(Bin+1);
-			E2 = Hist->GetBinCenter(Bin+1);
-		}
+	return dist;
+}
 
-		return (Energy-E1)*(I2-I1)/(E2-E1) + I1;
+std::shared_ptr<TH1D> MakeComponent(Production &hnl, Nu::Flavour nu, double mass) {
+	switch (nu) {
+		case Nu::E_:
+		case Nu::Eb:
+			return MakeElectron(hnl, _fxNu[nu]);
+		case Nu::M_:
+		case Nu::Mb:
+			return MakeMuon(hnl, _fxNu[nu]);
+		case Nu::T_:
+		case Nu::Tb: // only tau component requires neutrino mass
+			return MakeTau(hnl, _fxNu[nu], mass);
+		default:
+			throw std::invalid_argument("Driver: unknwon neutrino flavour\n");
 	}
-	else
-		return 0.0;
 }
 
-void Driver::Scale(double X)
+//Make electronic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
+//void Driver::MakeElecComponent(Flux *fxFlux, Neutrino &N)
+std::shared_ptr<TH1D> Driver::MakeElectron(Production &heavy, const Flux::Component &fxNu)
 {
-	if(fxHeavyElectron)
-		fxHeavyElectron->Scale(Flux::Total, X);
-	if(fxHeavyMuon)
-		fxHeavyMuon->Scale(Flux::Total, X);
-	if(fxHeavyTau)
-		fxHeavyTau->Scale(Flux::Total, X);
-}
+	auto fxHNL = fxNu;
 
-bool Driver::IsChanged(Neutrino &N)
-{
-	bool Ret = (fabs(N.Mass() - Mass_prev) > 1e-9) ||
-	           (N.Helicity() != Helicity_prev) ||
-		   (N.IsParticle() != Particle_prev);
+	//pi+ -> e+ nu_e
+	if (fxHNL.count(Flux::Parent::Pion))
+		fxHNL[Flux::Parent::Pion]->Scale(heavy.Scale(Channel::PionE)
+					      / _light.Scale(Channel::PionE));
 
-	if (Ret)
-	{
-		Mass_prev = N.Mass();
-		Helicity_prev = N.Helicity();
-		Particle_prev = N.IsParticle();
+	//K+ -> pi0 e+ nu_e	(5.07 %)	//I just assume that both decays are equally probable 
+	//K+ -> e+ nu_e		(1.582e-3)	//for each different energy, so it is a linear combination
+	if (fxHNL.count(Flux::Parent::Kaon)) {
+		double kf = (1.582e-3 * heavy.Scale(Channel::KaonE) / _light.Scale(Channel::KaonE)
+			       + 5.07 * heavy.Scale(Channel::KaonCE) / _light.Scale(Channel::KaonE))
+			  / (1.582e-3 + 5.07);
+		fxHNL[Flux::Parent::Kaon]->Scale(kf);
 	}
 
-	return Ret;
+	//K0 -> pi+ e+ nu_e
+	if (fxHNL.count(Flux::Parent::Kaon0))
+		fxHNL[Flux::Parent::Kaon0]->Scale(heavy.Scale(Channel::Kaon0E)
+					       / _light.Scale(Channel::Kaon0E));
+
+	//mu+ -> nu_mu_bar e+ nu_e
+	if (fxHNL.count(Flux::Parent::Muon))
+		fxHNL[Flux::Parent::Muon]->Scale(heavy.Scale(Channel::MuonE)
+					      / _light.Scale(Channel::MuonE));
+
+	//Ds+ -> e+ nu_e
+	if (fxHNL.count(Flux::Parent::Charm))
+		fxHNL[Flux::Parent::Charm]->Scale(heavy.Scale(Channel::CharmE)
+					       / _light.Scale(Channel::CharmE));
+
+	// combine into total
+	return std::accumulate(fxHNL.begin()+1, fxHNL.end(), fxHNL.begin(),
+			[](std::shared_ptr<TH1D> total, std::shared_ptr<TH1D> hist) {
+				total->Add(hist);
+				return total; } );
 }
+
+//Make muonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
+//void Driver::MakeMuonComponent(Flux *fxFlux, Neutrino &N)
+std::shared_ptr<TH1D> Driver::MakeMuon(Production &heavy, const Flux::Component &fxNu)
+{
+	auto fxHNL = fxNu;
+
+	//pi+ -> mu+ nu_mu
+	if (fxHNL.count(Flux::Parent::Pion))
+		fxHNL[Flux::Parent::Pion]->Scale(heavy.Scale(Channel::PionM)
+					      / _light.Scale(Channel::PionM));
+
+	//K+ -> mu+ nu_mu	(63.56%)
+	//K+ -> pi0 mu+ nu_mu	(3.53%)
+	if (fxHNL.count(Flux::Parent::Kaon)) {
+		double kf = (63.56 * heavy.Scale(Channel::KaonM) / _light.Scale(Channel::KaonM)
+			    + 3.35 * heavy.Scale(Channel::KaonCM) / _light.Scale(Channel::KaonM))
+			  / (63.56 + 3.35);
+		fxHNL[Flux::Parent::Kaon]->Scale(kf);
+	}
+
+	//K0 -> pi- mu+ nu_mu
+	if (fxHNL.count(Flux::Parent::Kaon0))
+		fxHNL[Flux::Parent::Kaon0]->Scale(heavy.Scale(Channel::Kaon0M)
+					       / _light.Scale(Channel::Kaon0M));
+
+	//mu- -> nu_mu e- nu_e_bar
+	if (fxHNL.count(Flux::Parent::Muon))
+	fxHNL[Flux::Parent::Muon]->Scale(heavy.Scale(Channel::MuonM)
+				      / _light.Scale(Channel::MuonM));
+
+	//Ds+ -> mu+ nu_mu
+	if (fxHNL.count(Flux::Parent::Charm))
+		fxHNL[Flux::Parent::Charm]->Scale(heavy.Scale(Channel::CharmM)
+					       / _light.Scale(Channel::CharmM));
+
+	return std::accumulate(fxHNL.begin()+1, fxHNL.end(), fxHNL.begin(),
+			[](std::shared_ptr<TH1D> total, std::shared_ptr<TH1D> hist) {
+				total->Add(hist);
+				return total; } );
+}
+
+//Make tauonic components, requires Neutrino (T if neutrino, F if antineutrino), the Flux object, the mass
+//void Driver::MakeTauComponent(Flux *fxFlux, Neutrino &N)
+std::shared_ptr<TH1D> Driver::MakeTau(Production &heavy, const Flux::Component &fxNu, double mass)
+{
+	auto fxHNL = fxNu;
+
+	//Ds+ -> tau+ nu_tau
+	if (fxHNL.count(Flux::Parent::Charm)) {
+		double mul = 1.;
+		if (modifiers.count(Flux::Parent::Charm))
+			mul = Stretch(fxHNL[Flux::Parent::Charm], modifiers[Flux::Parent::Charm], mass);
+		fxHNL[Flux::Parent::Charm]->Scale(heavy.Scale(Channel::CharmT) * mul
+					       / _light.Scale(Channel::CharmT));
+	}
+
+	//tau+ -> pi+ nu_tau
+	if (fxHNL.count(Flux::Parent::Pion)) {
+		double mul = 1.;
+		if (modifiers.count(Flux::Parent::Pion))
+			mul = Stretch(fxHNL[Flux::Parent::Pion], modifiers[Flux::Parent::Pion], mass)
+		fxHNL[Flux::Parent::Pion]->Scale(heavy.Scale(Channel::TauPI) * mul
+					      / _light.Scale(Channel::TauPI));
+	}
+
+	//tau+ -> pi+ pi0 nu_tau	//crossing simmetries
+	if (fxHNL.count(Flux::Parent::PPion)) {
+		double mul = 1.;
+		if (modifiers.count(Flux::Parent::PPion))
+			mul = Stretch(fxHNL[Flux::Parent::PPion], modifiers[Flux::Parent::PPion], mass);
+		fxHNL[Flux::Parent::PPion]->Scale(heavy.Scale(Channel::Tau2PI) * mul
+					       / _light.Scale(Channel::Tau2PI));
+	}
+
+	//tau+ -> nu_tau_bar e+ nu_e
+	if (fxHNL.count(Flux::Parent::TauE)) {
+		double mul = 1.;
+		if (modifiers.count(Flux::Parent::TauE))
+			mul = Stretch(fxHNL[Flux::Parent::TauE], modifiers[Flux::Parent::TauE], mass);
+		fxHNL[Flux::Parent::TauE]->Scale(heavy.Scale(Channel::TauET) * mul
+					      / _light.Scale(Channel::TauET));
+	}
+
+	//tau+ -> nu_tau_bar mu+ nu_mu
+	if (fxHNL.count(Flux::Parent::TauM)) {
+		double mul = 1.;
+		if (modifiers.count(Flux::Parent::TauM))
+			mul = Stretch(fxHNL[Flux::Parent::TauM], modifiers[Flux::Parent::TauM], mass)
+		fxHNL[Flux::Parent::TauM]->Scale(heavy.Scale(Channel::TauMT) * mul
+					      / _light.Scale(Channel::TauMT));
+	}
+
+	fxHNL[Flux::Parent::Total]->Reset("ICES");
+	for (const auto &ih : fxHNL)
+		if (ih.first != Flux::Parent::Total)
+			fxHNL[Flux::Parent::Total]->Add(ih.second.get());
+
+	return std::accumulate(fxHNL.begin()+1, fxHNL.end(), fxHNL.begin(),
+			[](std::shared_ptr<TH1D> total, std::shared_ptr<TH1D> hist) {
+				total->Add(hist);
+				return total; } );
+}
+
 
 //Modificator for charm to tau flux
-double Driver::Modify(Flux::Hist Name, double &A, double &B, double Mass)
+double Driver::Stretch(std::shared_ptr<TH1D> hist, const Modifier &mod, double mass)
 {
-	std::vector<double> *vM, *vA, *vB, *vP;
-	switch (Name)
-	{
-		case Flux::Charm:
-			vM = &vM_Charm;
-			vA = &vA_Charm;
-			vB = &vB_Charm;
-			vP = &vP_Charm;
+	double sx = 0., ex = 0., vp = 0.;
+	for (const auto &m : mod)
+		if (m[0] > mass || std::abs(m[0] - mass) < 1.e-9) {
+			sx = m[1]; ex = m[2]; vp = 1./m[3];
 			break;
-		case Flux::TauE:
-			vM = &vM_TauE;
-			vA = &vA_TauE;
-			vB = &vB_TauE;
-			vP = &vP_TauE;
-			break;
-		case Flux::TauM:
-			vM = &vM_TauM;
-			vA = &vA_TauM;
-			vB = &vB_TauM;
-			vP = &vP_TauM;
-			break;
-		case Flux::Pion:
-			vM = &vM_Pion;
-			vA = &vA_Pion;
-			vB = &vB_Pion;
-			vP = &vP_Pion;
-			break;
-		case Flux::PPion:
-			vM = &vM_PPion;
-			vA = &vA_PPion;
-			vB = &vB_PPion;
-			vP = &vP_PPion;
-			break;
-	}
-
-	for (unsigned int i = 0; i < vM->size(); ++i)
-	{
-		if (vM->at(i) > Mass || fabs(Mass - vM->at(i)) < 1e-9)
-		{
-			A = vA->at(i);
-			B = vB->at(i);
-			return 1.0/vP->at(i);
 		}
+
+	if (sx >= hist->GetXaxis()->GetXmin() && ex <= hist->GetXaxis()->GetXmax())
+	{
+		TH1D *htmp = static_cast<TH1D*>(hist->Clone());
+		hist->Reset("ICES");
+
+		int ia = htmp->FindFirstBinAbove();
+		int ib = htmp->FindLastBinAbove();
+		double eA = htmp->GetBinContent(ia);
+		double eB = htmp->GetBinContent(ib);
+		for (int i = ia; i <= ib; ++i) {
+			double shif = sx + (htpm->GetBinContent(i) - eA) * (ex - sx);
+			hist->SetBinContent(htmp->FindBin(shif),
+					    htmp->GetBinContent(i) * (ex - sx) / (eB - eA));
+		}
+		return 1.;
 	}
 
-	return 0.0;
-}
-
-double Driver::RangeWidth()
-{
-	double Start, End;
-	return RangeWidth(Start, End);
-}
-
-double Driver::RangeWidth(double &Start, double &End)
-{
-	return Range(Start, End) / BinNumber();
-}
-
-double Driver::Range()
-{
-	double Start, End;
-	return Range(Start, End);
-}
-
-double Driver::Range(double &Start, double &End)
-{
-	Start = RangeStart();
-	End = RangeEnd();
-	return End - Start;
-}
-
-double Driver::RangeStart()
-{
-	if (fxNuElectron)
-		return fxNuElectron->RangeStart();
-	else if (fxNuMuon)
-		return fxNuMuon->RangeStart();
-	else if (fxNuTau)
-		return fxNuTau->RangeStart();
-	else
-		return -1.0;
-}
-
-double Driver::RangeEnd()
-{
-	if (fxNuElectron)
-		return fxNuElectron->RangeEnd();
-	else if (fxNuMuon)
-		return fxNuMuon->RangeEnd();
-	else if (fxNuTau)
-		return fxNuTau->RangeEnd();
-	else
-		return -1.0;
-}
-
-int Driver::BinNumber()
-{
-	if (fxNuElectron)
-		return fxNuElectron->BinNumber();
-	else if (fxNuMuon)
-		return fxNuMuon->BinNumber();
-	else if (fxNuTau)
-		return fxNuTau->BinNumber();
-	else
-		return -1.0;
+	return 0.;
 }

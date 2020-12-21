@@ -9,6 +9,8 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
+#include <map>
 
 #include "TObject.h"
 #include "TFile.h"
@@ -19,7 +21,7 @@
 class Flux
 {
 	public:
-		enum Hist
+		enum Component
 		{
 			Total,
 			Pion,
@@ -30,6 +32,7 @@ class Flux
 			Muon,
 			TauE,
 			TauM,
+			_undefined = -1;
 		};
 
 		Flux(std::string HistFile);
@@ -39,13 +42,13 @@ class Flux
 		void CloneCopy(TH1D*& T, TObject* X);
 		void CloneCopy(TH1D*& T, TH1D* X);
 
-		TH1D* Get(Hist Name) const;
+		TH1D* Get(Component Name) const;
 
-		void Add();
-		void Add(Hist Name);
+		void Combine();
+		void Add(Component Name);
 		void Scale(double X);
-		void Scale(Hist Name, double X);
-		bool Stretch(Hist Name, double Sx, double Ex);
+		void Scale(Component Name, double X);
+		bool Stretch(Component Name, double Sx, double Ex);
 
 		double RangeStart();
 		double RangeEnd();
@@ -53,15 +56,7 @@ class Flux
 		double BinWidth();
 
 	private:
-		TH1D *hTotal;
-		TH1D *hPion;
-		TH1D *hPPion;
-		TH1D *hKaon;
-		TH1D *hKaon0;
-		TH1D *hCharm;
-		TH1D *hMuon;
-		TH1D *hTauE;
-		TH1D *hTauM;
+		std::map<Component, TH1D*> hists;
 };
 
 #endif

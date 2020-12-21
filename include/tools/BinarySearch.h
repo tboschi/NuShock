@@ -2,81 +2,66 @@
 #define BinarySearch_H
 
 #include <iostream>
-#include <cmath>
-#include <algorithm>
 
-template<class T>
-double bisect(const T& obj, double start = 0, double end = 1, double err = 1e-6)
-{
-	if (start > end)
+// solve func(x) = c for x
+// returns all solutions
+
+namespace BinarySearch {
+
+	// return best in the direction of start
+	template<typename F, typename T>
+	T search(F func, T c, T start = 0., T end = 1., T err = 1e-6)
 	{
-		double tmp = end;
-		end = start;
-		start = tmp;
-	}
+		if (start > end) // basic check
+			std::swap(start, end);
 
-	double fS = obj(start);
-	double fE = obj(end);
+		T fS = func(start) - c;
+		T fE = func(end) - c;
 
-	if (fS * fE > 0)
-	{
-		//std::cout << "No zero point between " << start << " and " << end << std::endl;
-		if (fS > 0 && fE > 0)
-			return end;
-		else 
+		if (fS * fE > 0)
+			return search(func, c, start, (start+end) / 2., err);
+
+		if (fS == 0)
 			return start;
-	}
-	else if (fS == 0)
-		return start;
-	else if (fE == 0)
-		return end;
 
-	while (std::abs(start - end) > err)
+		if (fE == 0)
+			return end;
+
+		// else fS * fE < 0
+		while (std::abs(start - end) > err) {
+			T fM = func((start + end) / 2.) - c;
+
+			if (fS * fM < 0) {
+				end = (start + end) / 2.;
+				fE = fM;
+			}
+			else if (fE * fM < 0) {
+				start = (start + end) / 2.;
+				fS = fM;
+			}
+			else // (fM == 0)
+				break;
+		}
+
+		return (start + end) / 2.0;
+	}
+
+	template<typename F, typename T>
+	std::vector<T> solve(F func, T c, T start = 0., T end = 1., T err = 1e-6)
 	{
-		//std::cout << "Ranging " << S << " (" << fS << ") - "
-		//			<< E << " (" << fE << ")" << std::endl;
-		double mid = (start + end) / 2.0;
-		double fM = obj(mid);
+		std::vector<T> res;
+		if (std::abs(start - end) > err) {
+			T mid = search(func, c, start, end, err);
+			std::vector<T> low = solve(func, c, start, mid, err);
+			std::vector<T> hig = solve(func, c, mid, end, err);
 
-		if (fM == 0)
-		{
-			start = mid;
-			end = mid;
+			res.insert(res.end(), std::make_move_iterator(low.begin()),
+					      std::make_move_iterator(low.end()));
+			res.insert(res.end(), std::make_move_iterator(hig.begin()),
+					      std::make_move_iterator(hig.end()));
 		}
-		else if (fS * fM < 0)
-		{
-			end = mid;
-			fE = fM;
-		}
-		else if (fE * fM < 0)
-		{
-			start = mid;
-			fS = fM;
-		}
+		return res;
 	}
-
-	return (start + end) / 2.0;
-}
-
-template<class T>
-double findInterval(const T& obj, double start = 0, double end = 1, int depth = 8)
-{
-	double fS = obj(start);
-	double fE = obj(end);
-
-	for (int i = 0; i < depth; ++i)	//max 2^8 = 256 intervals
-	{
-		double split = (end - start) / pow (2, i+1);
-		for (int n = 1; n < pow(2, i+1); n += 2)
-		{
-			double fM = obj(start + n*split);
-
-			if (fS * fM < 0)
-				return start + n * split;
-		}
-	}
-
-	return start + end;
 }
 
 #endif

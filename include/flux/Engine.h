@@ -24,13 +24,6 @@ class Engine
 {
 	public:
 
-		enum Current
-		{
-			RHC = 0,
-			FHC = 1,
-			both = 2,
-		};
-
 		Engine(std::string fc);
 		~Engine();
 		void Reset();

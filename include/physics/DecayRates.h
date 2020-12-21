@@ -17,96 +17,67 @@
 class DecayRates : public Amplitude
 {
 	public:
-		DecayRates();
+		DecayRates(const Neutrino &N);
 
-		Amplitude::Channel FindChannel(std::string Name);
-		std::string FindChannel(Amplitude::Channel Name);
-		std::vector<Amplitude::Channel> ListChannels();
+		bool IsAllowed(Channel::Name chan);
+		double MassThreshold(Channel::Name chan);
 
-		bool IsAllowed(Channel Name);
-		double MassThreshold(Channel Name);
-		double Gamma(Channel Name);
-		double Other(Channel Name);
-		double Branch(Channel Name);
+		double Gamma(Channel::Name chan, const std::array<double, 3> &mix);
+		double Gamma(Channel::Name chan, double ue = 0., double um = 0., double ut = 0.);
+		double Other(Channel::Name chan, const std::array<double, 3> &mix);
+		double Other(Channel::Name chan, double ue = 0., double um = 0., double ut = 0.);
+		double Branch(Channel::Name chan, const std::array<double, 3> &mix);
+		double Branch(Channel::Name chan, double ue = 0., double um = 0., double ut = 0.);
 
-		double Total();
-		double ExpALL();
+		double Total(double ue = 0., double um = 0., double ut = 0.);
+		double ExpALL(double ue = 0., double um = 0., double ut = 0.);
 
-		double nnn();
-		double nGAMMA();
-		double nEE();
-		double nEM();
-		double nMM();
-		double nET();
-		double nMT();
-		double nPI0();
-		double EPI();
-		double MPI();
-		double TPI();
-		double EKA();
-		double MKA();
-		double EKAx();
-		double MKAx();
-		double nRHO0();
-		double ERHO();
-		double MRHO();
-		double nOMEGA();
-		double nETA();
-		double nETAi();
-		double nPHI();
-		double ECHARM();
+		double nnn(double ue = 0., double um = 0., double ut = 0.);
+		double nGAMMA(double ue = 0., double um = 0., double ut = 0.);
+		double nEE(double ue = 0., double um = 0., double ut = 0.);
+		double nEM(double ue = 0., double um = 0., double ut = 0.);
+		double nMM(double ue = 0., double um = 0., double ut = 0.);
+		double nET(double ue = 0., double um = 0., double ut = 0.);
+		double nMT(double ue = 0., double um = 0., double ut = 0.);
+		double nPI0(double ue = 0., double um = 0., double ut = 0.);
+		double EPI(double ue = 0., double um = 0., double ut = 0.);
+		double MPI(double ue = 0., double um = 0., double ut = 0.);
+		double TPI(double ue = 0., double um = 0., double ut = 0.);
+		double EKA(double ue = 0., double um = 0., double ut = 0.);
+		double MKA(double ue = 0., double um = 0., double ut = 0.);
+		double EKAx(double ue = 0., double um = 0., double ut = 0.);
+		double MKAx(double ue = 0., double um = 0., double ut = 0.);
+		double nRHO0(double ue = 0., double um = 0., double ut = 0.);
+		double ERHO(double ue = 0., double um = 0., double ut = 0.);
+		double MRHO(double ue = 0., double um = 0., double ut = 0.);
+		double nOMEGA(double ue = 0., double um = 0., double ut = 0.);
+		double nETA(double ue = 0., double um = 0., double ut = 0.);
+		double nETAi(double ue = 0., double um = 0., double ut = 0.);
+		double nPHI(double ue = 0., double um = 0., double ut = 0.);
+		double ECHARM(double ue = 0., double um = 0., double ut = 0.);
 
-		double LeptonPseudoMeson(double M_Lepton, double M_Meson);
-		double NeutrinoPseudoMeson(double M_Meson, double fDecay2);
-		double LeptonVectorMeson(double M_Lepton, double M_Meson);
-		double NeutrinoVectorMeson(double M_Meson, double fDecay2);
+		double LeptonPseudoMeson(double m_lepton, double m_meson);
 		double I_LeptonPseudoMeson(double x, double y);
+
+		double NeutrinoPseudoMeson(double m_lepton, double m_meson);
 		double I_NeutrinoPseudoMeson(double x, double y);
+
+		double LeptonVectorMeson(double m_lepton, double m_meson);
 		double I_LeptonVectorMeson(double x, double y);
+
+		double NeutrinoVectorMeson(double m_lepton, double m_meson);
 		double I_NeutrinoVectorMeson(double x, double y);
 
-		double NeutrinoLeptonAA(double &Amp_Uu, double &Amp_Uo, double M_Neut, double M_Lepton);
-		double NeutrinoLeptonAB(double &Amp_Ua, double &Amp_Ub, double M_Neut, double M_LeptonA, double M_LeptonB);
+		std::pair<double, double> NeutrinoLeptonAA(double m_neut, double m_lepton);
+		std::pair<double, double> NeutrinoLeptonAB(double m_neut, double m_leptona, double m_leptonb);
 		double NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
 		double I_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);//, double theta)
 		double I_NeutrinoLeptonLepton_s(double s);
 
-		//Set and Get
-		//std::vector<std::string> ListChannels();
-		//std::vector<ChannelName> ListNameKeys();
-
 		void Reset();
-		void SetFunction(double (DecayRates::*FF)(double));
 
 	private:
-		double fnnn,
-                       fnGAMMA,
-                       fnEE_e,	
-                       fnEE_o,	
-                       fnEM_e,	
-                       fnEM_m,	
-                       fnMM_m,	
-                       fnMM_o,	
-                       fnET_e,	
-                       fnET_t,	
-                       fnMT_m,	
-                       fnMT_t,	
-                       fnPI0,	
-                       fEPI,	
-                       fMPI,	
-                       fTPI,	
-                       fEKA,	
-                       fMKA,	
-                       fnRHO0,	
-                       fERHO,	
-                       fMRHO,	
-                       fEKAx,	
-                       fMKAx,	
-                       fnETA,	
-                       fnETAi,	
-                       fnOMEGA,
-                       fnPHI,	
-                       fECHARM;
+		std::map<Channel::Name, double> fdecay;
 };
 
 #endif

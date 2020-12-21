@@ -29,6 +29,8 @@ class Detector;
 
 class Tracker : public Detector
 {
+	using Event = std::pair<Particle, Track>;
+
 	public:
 		Tracker(std::string ConfigFile, std::string mod = "");
 

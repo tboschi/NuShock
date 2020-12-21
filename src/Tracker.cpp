@@ -338,22 +338,6 @@ double Tracker::CriticalEnergy(const Particle &P)
 	return CriticalEnergy(Element);
 }
 
-double Tracker::CriticalEnergy(Detector::Material Element)	//assuming same for positron and electron
-{
-	switch (Element)
-	{
-		case LAr:
-			return 0.03284;	//GeV
-		case GasAr:
-			return 0.03803;	//GeV
-		case Fe:
-			return 0.02168;	//GeV
-		case Pb:
-			return 0.00743;	//GeV
-		default:
-			return 0;
-	}
-}
 
 double Tracker::RadiationLength(const Particle &P, bool Nuclear)
 {
@@ -367,38 +351,6 @@ double Tracker::RadiationLength(const Particle &P, bool Nuclear)
 		Element = GetMaterial("TargetOut"), Nuclear;
 
 	return RadiationLength(Element, Nuclear);
-}
-
-double Tracker::RadiationLength(Detector::Material Element, bool Nuclear)
-{
-	if (!Nuclear)
-		switch (Element)
-		{
-			case LAr:
-				return 19.55/1.3945 / 100;
-			case GasAr:
-				return 19.55/0.1020 / 100;
-			case Fe:
-				return 13.84/7.874 / 100;
-			case Pb:
-				return 6.37 /11.34 / 100;
-			default:
-				return 0;
-		}
-	else
-		switch (Element)
-		{
-			case LAr:
-				return 119.7/1.3945 / 100;
-			case GasAr:
-				return 119.7/0.1020 / 100;
-			case Fe:
-				return 132.1/7.874 / 100;
-			case Pb:
-				return 199.6/11.34 / 100;
-			default:
-				return 0;
-		}
 }
 
 double Tracker::EnergyLoss(const Particle &P, int &inout)
@@ -437,6 +389,8 @@ double Tracker::BetheLoss(const Particle &P, Material Target)
 			0;
 	}
 }
+
+// Bethe formula is missing charge of particle
 							//I is in eV
 double Tracker::Bethe(const Particle &P, double Density, double I, int Z, int A)	//GeV/m
 {

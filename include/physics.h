@@ -1,7 +1,0 @@
-#include "physics/Amplitude.h"
-#include "physics/DecayRates.h"
-#include "physics/Production.h"
-#include "physics/PhaseSpace.h"
-#include "physics/Neutrino.h"
-#include "physics/Hadron.h"
-//#include "src/physics/Scattering.h"

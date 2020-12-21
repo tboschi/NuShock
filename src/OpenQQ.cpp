@@ -1,4 +1,4 @@
-#include "OpenQQ.h"
+#include "physics/OpenQQ.h"
 
 OpenQQ::OpenQQ(char * cardname)
 {
@@ -41,6 +41,7 @@ void OpenQQ::Init(const CardDealer &cd)
 	//_partonPS = new TGenPhaseSpace;
 
 	// care mostly about charm
+	char quark;
 	if (!cd.Get("valence_quark", quark))
 		quark = 'c';
 
@@ -83,7 +84,7 @@ void OpenQQ::Init(const CardDealer &cd)
 	if (!cd.("renormalization_scale", _re_scale))
 		_re_scale = 1.6;
 	if (!cd.("factorization_scale", _fac_scale))
-		_fac_scale = 1.6;
+		_fac_scale = 2.1;
 
 	// VEGAS parameters
 	if (!cd.("relative_error"), _err_rel)
@@ -144,21 +145,21 @@ void OpenQQ::SetFromPS()
 
 double OpenQQ::dXSdQ2_qq()	//differential cross section (dXS/dQ2) for qq_ into qq_
 {
-	double aS = _probe_PFD->alphaQ2(_fm2 * std::pow(_re_scale, 2));
+	double aS = _probe_PFD->alphaQ2(_m2 * std::pow(_re_scale, 2));
 	return  4. * aS * Const::pi / (9. * std::pow(_s, 4)) *
 		(_t * _t + _u * _u + 2. * _m2 * _s) ;
 }
 
 double OpenQQ::dXSdQ2_gg()	//differential cross section (dXS/dQ2) for gg into qq_
 {
-	double aS = _probe_PFD->alphaQ2(_fm2 * std::pow(_re_scale, 2));
+	double aS = _probe_PFD->alphaQ2(_m2 * std::pow(_re_scale, 2));
 	return  aS * Const::pi / (_s * _s) * (4./3. - 3. _t * _u / (_s * _s)) / 8. *
 		(_t / _u + _u / _t + 4. * _m2 _s / (_t * _u) * (1. - _m2 * _s / (_t * _u) ) );
 }
 
 double OpenQQ::dXSdOmega_qq()	//differential cross section (dXS/dOmega) for qq_ into qq_
 {
-	double aS = _probe_PFD->alphaQ2(_fm2 * std::pow(_re_scale, 2));
+	double aS = _probe_PFD->alphaQ2(_m2 * std::pow(_re_scale, 2));
 	return aS / (9. * std::pow(_s, 3)) * std::sqrt(1. - 4 * _m2 / _s) *
 		(_t * _t + _u * _u + 2 * _m2 * _s);
 	}
@@ -166,7 +167,7 @@ double OpenQQ::dXSdOmega_qq()	//differential cross section (dXS/dOmega) for qq_ 
 
 double OpenQQ::dXSdOmega_gg()	//differential cross section (dXS/dOmega) for gg into qq_
 {
-	double aS = _probe_PFD->alphaQ2(_fm2 * std::pow(_re_scale, 2));
+	double aS = _probe_PFD->alphaQ2(_m2 * std::pow(_re_scale, 2));
 	return aS / (32. * _s) * std::sqrt(1. - 4. * _m2 / _s) *
 		(6. * _t * _u / _s - _m2 *  (_s - 4 * _m2)  / (3. * _t * _u) + 
 		 4. * (_t * _u - 2 * _m2 * (2. * _m2 + _t)) / (3. * _t * _t) +

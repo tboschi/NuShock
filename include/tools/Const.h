@@ -76,7 +76,7 @@ namespace Const
 	static const double MKaonx    = 891.76e-3;
 	static const double MKaon0x   = 682e-3;
 	static const double MPhi      = 1019.460e-3;
-	static const double MCharm    = 1869.56e-3;
+	static const double MD	      = 1869.56e-3;
 	static const double MDs       = 1968.28e-3;
 	static const double MProton   = 938.272081e-3;
 	static const double MNeutron  = 939.565143e-3;

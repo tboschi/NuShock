@@ -63,7 +63,7 @@ namespace Inte
 		return Integral;
 	}
 
-	template<class TempClass>
+	template<class T>
 	double BooleIntegration(TempClass *TempObject)
 	{
 		double a = 0, b = 0;

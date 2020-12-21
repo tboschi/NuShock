@@ -1,6 +1,7 @@
 #include "PhaseSpace.h"
 
 PhaseSpace::PhaseSpace() :
+	Amplitude()
 	Event(new TGenPhaseSpace),
 	GenMT(new TRandom3(0))
 	//P_labf(new TLorentzVector()),

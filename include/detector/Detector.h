@@ -29,22 +29,7 @@ class Detector
 {
 	public:
 
-		enum Material
-		{
-			undefined, 
-
-			LAr,
-			LiquidArgon = LAr,
-
-			GasAr,
-			GasseousArgon = GasAr,
-
-			Fe,
-			Iron = Fe,
-
-			Pb,
-			Lead = Pb,
-		};
+		using Module = std::map<std::string, double>;
 
 		Detector(std::string configName, std::string mod = "");
 
@@ -117,6 +102,8 @@ class Detector
 		TRandom3 *GenMT;
 
 	private:
+		std::map<std::string, Module> _modules;
+
 		std::string module;
 		CardDealer dc;
 

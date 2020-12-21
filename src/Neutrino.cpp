@@ -2,17 +2,77 @@
 
 //Majorana can be treated as a neutrino + antineutrino
 //
-Neutrino::Neutrino(double Mass, unsigned int Options) //:
-	//fMass(Mass)
+Neutrino::Neutrino(double mass, size_t opts)
 {
-	SetMass(Mass);		//should initialise correctly
-				//when SetEnergy is called, the neutrino is aligned on the z-axis (theta = 0, phi = 0)
-	SetParticle(Options);
-	SetFermion(Options);
-	SetHelicity(Options);
+	SetM(mass);
+	SetOptions(opts);
+}
 
-	fMixings = new double[3];
-	SetMixings(0.0, 0.0, 0.0);
+std::ostream & operator<<(std::ostream &os, const Neutrino &N) {
+	return os << "<Neutrino: mass " << N.M() << ", helicity = " << N.Helicity()
+		  << ", " << (IsDirac() ? "dirac" : "majorana")
+		  << ", vec (" << N.E() << ", " << N.Px() << ", " << N.Py() << ", " << N.Pz() << ")>";
+}
+
+
+// neutrinos are identical if masses and quantum numbers are
+Neutrino & Neutrino::operator==(const Neutrino & rhs) const 
+{
+	return ( (M() == rhs.M()) && (_opts == rhs._opts) );
+}
+
+Neutrino & Neutrino::operator!=(const Neutrino & rhs) const 
+{
+	return !(*this == rhs);
+}
+
+int Neutrino::Helicity() const {
+	return Neutrino::Helicity(_opts);
+}
+
+bool Neutrino::IsDirac() const {
+	return Neutrino::IsDirac(_opts);
+}
+
+bool Neutrino::IsMajorana() const {
+	return Neutrino::IsMajorana(_opts);
+}
+
+bool Neutrino::IsParticle() const {
+	return Neutrino::IsParticle(_opts);
+}
+
+bool Neutrino::IsAntiparticle() const {
+	return Neutrino::IsAntiParticle(_opts);
+}
+
+void Neutrino::SetOptions(const size_t &opts) {
+	_opts = opts & 15;
+}
+
+void Neutrino::AddOptions(const size_t &opts) {
+	_opts |= opts;
+}
+
+
+
+void Neutrino::SetParent(Amplitude *Object)
+{
+	Object->SetNeutrino(M(), _mixings, _opts);
+}
+
+/*
+//////////
+///DECAY///
+//////////
+
+Neutrino::Neutrino(double mass, unsigned int opts) :
+	Particle(),
+	_opts(opts),
+	_decay(Channel::_undefined),
+	_production(Channel::_undefined)
+{
+	SetM(mass);
 
 	theDecayRates = new DecayRates();	//to compute heavy neutrino decays, left helix
 	theProduction = new Production();	//to compute massive neutrino production widths
@@ -21,21 +81,17 @@ Neutrino::Neutrino(double Mass, unsigned int Options) //:
 
 	double MixOne[3] = {1.0, 1.0, 1.0};
 	theProdLightN->SetNeutrino(0, MixOne, 1, 1, -1);	//SM neutrino loaded
-
-	//theCross = new CrossSection();
-	chDecay	     = Amplitude::_undefined;
-	chProduction = Amplitude::_undefined;
 }
 
 Neutrino::Neutrino(const Neutrino &N)
+	_opts(N._opts),
+	_mixings(N._mixings)
+	_decay(N._decay),
+	_production(N._production)
 {
-	SetMass(N.Mass());
-			
-	bParticle = N.bParticle;
-	bFermion = N.bFermion;
-	iHel = N.iHel;
+	SetMass(N.M());
 
-	fMixings = new double[3];
+			
 	SetMixings(N.Ue(), N.Um(), N.Ut());
 
 	theDecayRates = new DecayRates();	//to compute heavy neutrino decays, left helix
@@ -47,155 +103,110 @@ Neutrino::Neutrino(const Neutrino &N)
 	theProdLightN->SetNeutrino(0, MixOne, 1, 1, -1);	//SM neutrino loaded
 
 	//theCross = new CrossSection();
-	chDecay	     = N.chDecay;
-	chProduction = N.chProduction;
+	_decay	     = N._decay;
+	_production = N._production;
+}
+double Neutrino::DecayThreshold() {
+	return DecayThreshold(_decay);
 }
 
-Neutrino::~Neutrino()
-{
-	delete fMixings;
-
-	delete theDecayRates;
-	delete theProduction;
-	delete theProdLightN;
-	delete thePhaseSpace;
-}
-
-Neutrino & Neutrino::operator=(const Neutrino & N)
-{
-	if (this != &N)
-	{
-		SetMass(N.Mass());
-
-		bParticle = N.bParticle;
-		bFermion  = N.bFermion;
-		iHel	  = N.iHel;
-
-		chDecay	     = N.chDecay;
-		chProduction = N.chProduction;
-
-		delete theDecayRates;
-		delete theProduction;
-		delete theProdLightN;
-		delete thePhaseSpace;
-		theDecayRates = new DecayRates();
-		theProduction = new Production();
-		theProdLightN = new Production();
-		thePhaseSpace = new PhaseSpace();
-
-		double MixOne[3] = {1.0, 1.0, 1.0};
-		theProdLightN->SetNeutrino(0, MixOne, 1, 1, -1);	//SM neutrino loaded
-
-		delete fMixings;
-		fMixings = new double[3];
-		SetMixings(N.Ue(), N.Um(), N.Ut());
-	}
-
-	return *this;
-}
-
-void Neutrino::SetParent(Amplitude *Object)
-{
-	Object->SetNeutrino(Mass(), Mixings(), GetFermion(), GetParticle(), Helicity());
-}
-
-//////////
-///DECAY///
-//////////
-
-double Neutrino::DecayThreshold(std::string name)
+double Neutrino::DecayThreshold(const std::string &name)
 {
 	if (name.empty())
-		return DecayThreshold(DecayChannel());
+		return DecayThreshold();
 	else
-		return DecayThreshold(theDecayRates->FindChannel(name));
+		return DecayThreshold(Channel::fromString(name));
 }
 
-double Neutrino::DecayThreshold(Amplitude::Channel name)
+double Neutrino::DecayThreshold(Channel::Name chan)
 {
-	if (name == Amplitude::_undefined)
-	{
-		std::vector<Amplitude::Channel> vChan = theDecayRates->ListChannels();
-		double Limit = Const::MZ;
-
-		for (int ch = 0; ch < vChan.size(); ++ch)
-		{
-			double tmp = DecayThreshold(vChan[ch]);
-			if (tmp < Limit)
-				Limit = tmp;
+	if (chan == Channel::_undefined) {
+		double limit = Const::MZ;
+		for (const auto chan : Channel::Decays ) {
+			double tmp = DecayThreshold(chan);
+			if (tmp < limit)
+				limit = tmp;
 		}
 
-		return Limit;
+		return limit;
 	}
-	else
-	{
+	else {
 		SetParent(theDecayRates);
-		return theDecayRates->MassThreshold(name);
+		return theDecayRates->MassThreshold(chan);
 	}
 }
 
-bool Neutrino::IsDecayAllowed(std::string name)
+bool Neutrino::IsDecayAllowed() {
+	return IsDecayAllowed(_decay);
+}
+
+bool Neutrino::IsDecayAllowed(const std::string &name)
 {
 	if (name.empty())
-		return IsDecayAllowed(DecayChannel());
+		return IsDecayAllowed();
 	else
-		return IsDecayAllowed(theDecayRates->FindChannel(name));
+		return IsDecayAllowed(Channel::fromString(name));
 }
 
-bool Neutrino::IsDecayAllowed(Amplitude::Channel name)
+bool Neutrino::IsDecayAllowed(Channel::Name chan)
 {
-	if (name == Amplitude::_undefined)
-	{
-		std::vector<Amplitude::Channel> vChan = theDecayRates->ListChannels();
-		bool Ret = false;
-		for (int ch = 0; ch < vChan.size(); ++ch)
-			Ret += IsDecayAllowed(vChan.at(ch));
-
-		return Ret;
+	if (chan == Channel::_undefined) {
+		return std::any_of(std::begin(Channel::Decays),
+				   std::end(Channel::Decays),
+				[](const Channel::Name &chan) { return IsDecayAllowed(chan); } );
 	}
-	else
-	{
+	else {
 		SetParent(theDecayRates);
-		return theDecayRates->IsAllowed(name);
+		return theDecayRates->IsAllowed(chan);
 	}
 }
 
-void Neutrino::DecayChannels(std::vector<std::string> &vChan)
+std::vector<std::string> Neutrino::DecayChannels()
 {
-	vChan.clear();
-	std::vector<Amplitude::Channel> vAmpChan = theDecayRates->ListChannels();
-	for (int ch = 0; ch < vAmpChan.size(); ++ch)
-		vChan.push_back(theDecayRates->FindChannel(vAmpChan.at(ch)));
+	std::vector<std::string> channels(std::size(Channel::Decays));
+	std::transform(std::begin(Channel::Decays), std::end(Channel::Decays), channels.begin(),
+			[](const Channel::Name &chan) { return Channel::toString(chan); });
+
+	return channels;
 }
 
 double Neutrino::DecayTotal()
 {
-	return DecayWidth(Amplitude::_ALL);
+	return DecayWidth(Channel::_ALL);
 }
 
-double Neutrino::DecayWidth(std::string name)
+double Neutrino::DecayWidth() {
+	DecayWidth(_decay);
+}
+
+double Neutrino::DecayWidth(const std::string &name)
 {
 	if (name.empty())
-		return DecayWidth(DecayChannel());
+		return DecayWidth();
 	else
-		return DecayWidth(theDecayRates->FindChannel(name));
+		return DecayWidth(Channel::fromString(name));
 }
 
-double Neutrino::DecayWidth(Amplitude::Channel name)
+double Neutrino::DecayWidth(Channel::Channel chan)
 {
 	SetParent(theDecayRates);
-	return theDecayRates->Gamma(name);
+	return theDecayRates->Gamma(chan);
 }
 
-double Neutrino::DecayBranch(std::string name)
+double Neutrino::DecayBranch()
+{
+	return DecayBranch(_decay);
+}
+
+double Neutrino::DecayBranch(const std::string &name)
 {
 	if (name.empty())
-		return DecayBranch(DecayChannel());
+		return DecayBranch();
 	else
-		return DecayBranch(theDecayRates->FindChannel(name));
+		return DecayBranch(Channel::fromString(name));
 }
 
-double Neutrino::DecayBranch(Amplitude::Channel name)
+double Neutrino::DecayBranch(Channel::Channel name)
 {
 	SetParent(theDecayRates);
 	return theDecayRates->Branch(name);
@@ -206,197 +217,218 @@ double Neutrino::DecayBranch(Amplitude::Channel name)
 ////////////////
 //
 
-double Neutrino::ProductionThreshold(std::string name)
-{
-	if (name.empty())
-		return ProductionThreshold(ProductionChannel());
-	else
-		return ProductionThreshold(theProduction->FindChannel(name));
+double Neutrino::ProductionThreshold() {
+	return ProductionThreshold(_production);
 }
 
-double Neutrino::ProductionThreshold(Amplitude::Channel name)
+double Neutrino::ProductionThreshold(const std::string &name)
 {
-	if (name == Amplitude::_undefined)
-	{
-		std::vector<Amplitude::Channel> vChan = theProduction->ListChannels();
-		double Limit = 0.0;
+	if (name.empty())
+		return ProductionThreshold();
+	else
+		return ProductionThreshold(Channel::fromString(name));
+}
 
-		for (int ch = 0; ch < vChan.size(); ++ch)
-		{
-			double tmp = ProductionThreshold(vChan[ch]);
-			if (tmp > Limit)
-				Limit = tmp;
+double Neutrino::ProductionThreshold(Channel::Name chan)
+{
+	if (chan == Channel::_undefined) {
+		double limit = 0.;
+		for (const auto chan = Channel::Productions)
+			double tmp = ProductionThreshold(chan);
+			if (tmp > limit)
+				limit = tmp;
 		}
 
-		return Limit;
+		return limit;
 	}
-	else
-	{
+	else {
 		SetParent(theProduction);
 		return theProduction->MassThreshold(name);
 	}
 }
 
-bool Neutrino::IsProductionAllowed(std::string name)
-{
-	if (name.empty())
-		return IsProductionAllowed(ProductionChannel());
-	else
-		return IsProductionAllowed(theProduction->FindChannel(name));
+bool Neutrino::IsProductionAllowed() {
+	IsProductionAllowed(_production);
 }
 
-bool Neutrino::IsProductionAllowed(Amplitude::Channel name)
+bool Neutrino::IsProductionAllowed(const std::string &name)
 {
-	if (name == Amplitude::_undefined)
-	{
-		std::vector<Amplitude::Channel> vChan = theProduction->ListChannels();
-		bool Ret = false;
-		for (int ch = 0; ch < vChan.size(); ++ch)
-			Ret += IsProductionAllowed(vChan[ch]);
-
-		return Ret;
-	}
+	if (name.empty())
+		return IsProductionAllowed();
 	else
-	{
+		return IsProductionAllowed(Channel::fromString(name));
+}
+
+bool Neutrino::IsProductionAllowed(Channel::Name name)
+{
+	if (name == Channel::_undefined) {
+		return std::any_of(std::begin(Channel::Productions),
+				   std::end(Channel::Productions),
+				   [](const Channel::Name &chan) {
+				   	return IsProductionAllowed(chan); });
+	}
+	else {
 		SetParent(theProduction);
 		return theProduction->IsAllowed(name);
 	}
 }
 
-void Neutrino::ProductionChannels(std::vector<std::string> &vChan)
+std::vector<std::string> Neutrino::ProductionChannels()
 {
-	vChan.clear();
-	std::vector<Amplitude::Channel> vAmpChan = theProduction->ListChannels();
-	for (int ch = 0; ch < vAmpChan.size(); ++ch)
-		vChan.push_back(theProduction->FindChannel(vAmpChan[ch]));
+	std::vector<std::string> channels(std::size(Channel::Productions));
+	std::transform(std::begin(Channel::Productions), std::end(Productions), channels.begin(),
+			[](const Channel::Name &chan) { return Channel::toString(chan); });
+
+	return channels;
 }
 
-double Neutrino::ProductionWidth(std::string name)
+double Neutrino::ProductionWidth()
+{
+	return ProductionWidth(_production);
+}
+
+double Neutrino::ProductionWidth(const std::string &name)
 {
 	if (name.empty())
-		return ProductionWidth(ProductionChannel());
+		return ProductionWidth();
 	else
-		return ProductionWidth(theProduction->FindChannel(name));
+		return ProductionWidth(Channel::fromString(name));
 }
 
-double Neutrino::ProductionWidth(Amplitude::Channel name)
+double Neutrino::ProductionWidth(Channel::Name name)
 {
 	SetParent(theProduction);
 	return theProduction->Gamma(name);
 }
 
-double Neutrino::ProductionScale(std::string name)
-{
-	if (name.empty())
-		return ProductionScale(ProductionChannel());
-	else
-		return ProductionScale(theProduction->FindChannel(name));
+double Neutrino::ProductionScale() {
+	return ProductionScale(_production);
 }
 
-double Neutrino::ProductionScale(Amplitude::Channel name)
+double Neutrino::ProductionScale(const std::string &name)
+{
+	if (name.empty())
+		return ProductionScale();
+	else
+		return ProductionScale(Channel::fromString(name));
+}
+
+double Neutrino::ProductionScale(Channel::Name chan)
 {
 	SetParent(theProduction);
 	//return theProduction->Gamma(name, true) / theProdLightN->Gamma(name) /
 	//	(Helicity() ? 2.0 : 1.0);
-	return theProduction->Gamma(name, true) / theProdLightN->Gamma(name);
+	return theProduction->Gamma(chan, true) / theProdLightN->Gamma(chan);
+}
+
+std::vector<Particle> Neutrino::DecayPS()	//neutrino is labframe
+{
+	return DecayPS(_decay);
 }
 
 std::vector<Particle> Neutrino::DecayPS(std::string name)	//neutrino is labframe
 {
 	if (name.empty())
-		return DecayPS(DecayChannel());
+		return DecayPS();
 	else
-		return DecayPS(theDecayRates->FindChannel(name));
+		return DecayPS(Channel::toString(name));
 }
 
-std::vector<Particle> Neutrino::DecayPS(Amplitude::Channel name)	//neutrino is labframe
+std::vector<Particle> Neutrino::DecayPS(Channel::Name name)	//neutrino is labframe
 {
 	SetParent(thePhaseSpace);
 	//TLorentzVector vec = FourVector();
 	thePhaseSpace->SetLabFrame(FourVector());
 
-	std::vector<Particle> daughters;
 	double val;
-	if (thePhaseSpace->Generate(name, val))
-		for (int i = 0; i < thePhaseSpace->Daughters(); ++i)
+	if (thePhaseSpace->Generate(name, val)) {
+		std::vector<Particle> daughters;
+		daughters.reserve(thePhaseSpace->Daughters();
+		for (size_t i = 0; i < thePhaseSpace->Daughters(); ++i)
 			daughters.push_back(thePhaseSpace->Daughter(i, PhaseSpace::labFrame));
+	}
 	else
 		std::cout << "generation failed " << val << std::endl;
 
-	return daughters;
+	return std::vector<Particle>();
 }
+
+std::vector<Particle> Neutrino::ProductionPS(const TLorentzVector &vec)	//other particle is labframe
+{
+	return ProductionPS(vec, _production);
+}
+
 
 std::vector<Particle> Neutrino::ProductionPS(const TLorentzVector &vec, std::string name)	//other particle is labframe
 {
 	if (name.empty())
-		return ProductionPS(vec, DecayChannel());
+		return ProductionPS(vec);
 	else
-		return ProductionPS(vec, theProduction->FindChannel(name));
+		return ProductionPS(vec, Channel::fromString(name));
 }
 
-std::vector<Particle> Neutrino::ProductionPS(const TLorentzVector &vec, Amplitude::Channel name)
+std::vector<Particle> Neutrino::ProductionPS(const TLorentzVector &vec, Channel::Name name)
 {
 	SetParent(thePhaseSpace);
 	thePhaseSpace->SetLabFrame(vec);
 
-	std::vector<Particle> daughters;
 	double val;
-	if (thePhaseSpace->Generate(name, val))
-		for (int i = 0; i < thePhaseSpace->Daughters(); ++i)
+	if (thePhaseSpace->Generate(name, val)) {
+		std::vector<Particle> daughters;
+		daughters.reserve(thePhaseSpace->Daughters();
+		for (size_t i = 0; i < thePhaseSpace->Daughters(); ++i)
 			daughters.push_back(thePhaseSpace->Daughter(i, PhaseSpace::labFrame));
+	}
 	else
 		std::cout << "generation failed " << val << std::endl;
 
-	return daughters;
+	return std::vector<Particle>();
 }
 
-void Neutrino::SetDecayChannel(std::string name)
+void Neutrino::SetDecayChannel(const std::string &name)
 {
-	chDecay = theDecayRates->FindChannel(name);
+	_decay = Channel::fromString(name);
 }
 
-void Neutrino::SetProductionChannel(std::string name)
+void Neutrino::SetProductionChannel(const std::string &name)
 {
-	chProduction = theProduction->FindChannel(name);
+	_production = Channel::fromString(name);
 }
 
-Amplitude::Channel Neutrino::DecayChannel() const
+Channel::Name Neutrino::DecayChannel() const
 {
-	return chDecay;
+	return _decay;
 }
 
-Amplitude::Channel Neutrino::ProductionChannel() const
+Channel::Name Neutrino::ProductionChannel() const
 {
-	return chProduction;
+	return _production;
 }
 
 std::string Neutrino::DecayChannelName() const
 {
-	return theDecayRates->ShowChannel(DecayChannel());
+	return Channel::toString(_decay);
 }
 
 std::string Neutrino::ProductionChannelName() const
 {
-	return theProduction->ShowChannel(ProductionChannel());
+	return Channel::toString(_production);
 }
 
 //setter
 //
-/*
 void Neutrino::SetMass(double Mass)
 {
 	fMass = Mass;
 }
-*/
 
 void Neutrino::SetMixings(double Ue, double Um, double Ut)
 {
-	fMixings[0] = Ue;
-	fMixings[1] = Um;
-	fMixings[2] = Ut;
+	_mixings[0] = Ue;
+	_mixings[1] = Um;
+	_mixings[2] = Ut;
 }
 
-/*
 void Neutrino::SetEnergy(double Energy)
 {
 	fEnergy = Energy;
@@ -406,141 +438,37 @@ void Neutrino::SetEnergyKin(double Energy)
 {
 	fEnergy = Mass() + Energy;
 }
-*/
-
-void Neutrino::SetHelicity(unsigned int Options)		//Left for particle is -1
-{								//Right for particle is 1
-	switch (Options & 3)
-	{
-		case 0:
-			//iHel = 1-2*GetParticle();
-			iHel = -1;
-			break;
-		case 1:
-			//iHel = 2*GetParticle()-1;
-			iHel =  1;
-			break;
-		case 2:
-		case 3:
-			iHel = 0;	//unpolarised
-			break;
-		default:
-			std::cerr << "SetHelicity " << Options << "\t:\t";
-			std::cerr << "Invalid options" << std::endl;
-			break;
-	}
-}
-
-void Neutrino::SetFermion(unsigned int Options)
-{
-	switch (Options & 4)
-	{
-		case 0:
-			bFermion = true;	//Dirac
-			break;
-		case 4:
-			bFermion = false;	//Majorana
-			break;
-		default:
-			std::cerr << "SetFermion " << Options << "\t:\t";
-			std::cerr << "Invalid options" << std::endl;
-			break;
-	}
-}
 
 //this is just a flip of helicity actually
 //if antiparticle -> flip helicity
-void Neutrino::SetParticle(unsigned int Options)
+void Neutrino::SetOptions(const size_t &opts)
 {
-	switch (Options & 8)
-	{
-		case 0:
-			bParticle = true;	//Particle
-			break;
-		case 8:
-			bParticle = false;	//Antiparticle
-
-			break;
-		default:
-			std::cerr << "SetParticle " << Options << "\t:\t";
-			std::cerr << "Invalid options" << std::endl;
-			break;
-	}
+	_opts = opts & 15;
 }
 
-
-//getter
-//
-/*
-double Neutrino::Mass()
+void Neutrino::AddOptions(const size_t &opts)
 {
-	return fMass;
+	_opts |= opts;
 }
-*/
+
 
 double* Neutrino::Mixings()
 {
-	return fMixings;
+	return _mixings.data();
 }
 
-double Neutrino::Ue(int E) const
+double Neutrino::Ue(int e) const
 {
-	return pow(fMixings[0], E);
+	return std::pow(_mixings[0], e);
 }
 
 double Neutrino::Um(int E) const
 {
-	return pow(fMixings[1], E);
+	return std::pow(_mixings[1], e);
 }
 
 double Neutrino::Ut(int E) const
 {
-	return pow(fMixings[2], E);
-}
-
-/*
-double Neutrino::Energy()
-{
-	return fEnergy;
-}
-
-double Neutrino::EnergyKin()
-{
-	return fEnergy-Mass();
+	return std::pow(_mixings[2], e);
 }
 */
-
-int Neutrino::Helicity()
-{
-	return iHel;
-}
-
-bool Neutrino::GetFermion()
-{
-	return bFermion;
-}
-
-bool Neutrino::IsDirac()
-{
-	return GetFermion();
-}
-
-bool Neutrino::IsMajorana()
-{
-	return !GetFermion();
-}
-
-bool Neutrino::GetParticle()
-{
-	return bParticle;
-}
-
-bool Neutrino::IsParticle()
-{
-	return GetParticle();
-}
-
-bool Neutrino::IsAntiparticle()
-{
-	return !GetParticle();
-}

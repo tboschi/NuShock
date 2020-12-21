@@ -1,10 +1,100 @@
 #include "Engine.h"
-#include <omp.h>
 
-Engine::Engine(std::string fc) :
-	fluxConfig(fc)
+Engine::Engine(const std::string &card) : _drive(card)
 {
 }
+
+// std::unordered_map<Nu::Flavour, std::shared_ptr<TH1D> > _distributions
+void Engine::MakeDistribution(const Neutrino &N, const Detector &box) {
+	_box = box;
+	_N = N;
+	_distributions = _drive.MakeFlux(_N);
+	for (auto &fc : _distributions)
+		fc.second->Scale(_box.Exposure());
+}
+
+// store channel for neutrino decay
+void Engine::SetChannels(const std::vector<Channel::Name> &chans) {
+	_channels = chans;
+}
+
+// store channel for neutrino decay
+void Engine::SetChannels(Channel::Name chans) {
+	_channels.push_back(chan);
+}
+
+
+// use in FullSensitivity like this
+/*
+ * auto Numbers = [&](double lu2) {
+ * 			double ue = kUe ? std::pow(10.0, 0.5 * lu2) : 0.;
+ *			double um = kUm ? std::pow(10.0, 0.5 * lu2) : 0.;
+ *			double ut = kUt ? std::pow(10.0, 0.5 * lu2) : 0.;
+ * 			return Engine.NumberEvents(ue, um, ut);
+ * 			}
+ * std::vector<double> BinarySearch::solve(Numbers, lu2bot, lu2top);
+ */
+
+double Engine::operator()(double x) {
+	//std::cout << "computing number of events at " << lu2 << " :\t";
+
+	double tot = 0;
+	for (int i = 0; i < channels.size(); ++i)
+	{
+		engine->SetDecay(channels[i]);
+		tot += engine->MakeSampler(box, ue, um, ut);
+	}
+	//std::cout << tot << " vs " << threshold << std::endl;
+	return tot - (t < 0 ? threshold : t);
+}
+
+//make all the fluxes
+double Engine::EventNumber(double ue, double um, double ut)
+{
+	// compute decay rates
+	DecayRates hnl(_N);
+
+	double T = hnl.Total(ue, um, ut);	// total decay rate
+
+	double tot = 0.;
+	for (Channel::Name chan : _channels) {
+		double num = 0.;
+		for (const auto &fc : _distributions) {
+			double dist = 0.;
+			for (int bin = 1; bin <= fc.second->GetNbinsX(); ++bin) {
+				_N.SetE(fc.second->GetBinCenter(bin));
+				if (_N.EKin() > 0. && _N.Beta() < 1.)
+					dist += fc.second->GetBinContent(bin)
+				      	* fc.second->GetBinWidth(bin)
+				      	* _box.Efficiency(chan, _N.M(), _N.E())
+				      	* _box.Probability(T / (_N.Beta() * _N.Gamma()));
+			}
+		
+			switch (fc.first) {
+				case Nu::E_:
+				case Nu::Eb:
+					num += dist * ue*ue;
+					break;
+				case Nu::M_:
+				case Nu::Mb:
+					num += dist * um*um;
+					break;
+				case Nu::T_:
+				case Nu::Tb:
+					num += dist * ut*ut;
+					break;
+				default:
+					break;
+			}
+		}
+		tot += num * hnl.Branch(chan, ue, um, ut);
+	}
+
+	return tot;
+}
+
+
+
 
 Engine::~Engine()
 {
@@ -14,6 +104,8 @@ Engine::~Engine()
 	for (iS = sampleNu.begin(); iS != sampleNu.end(); ++iS)
 		delete iS->second;
 }
+
+
 
 void Engine::Reset()
 {
@@ -220,7 +312,7 @@ double Engine::MakeSampler(Detector *box, std::string uuid, double ue, double um
 }
 
 //make all the fluxes
-double Engine::DecayNumber(Detector *box)
+double Engine::DecayNumber(Detector &box)
 {
 	double events = 0;
 	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
@@ -239,21 +331,9 @@ double Engine::DecayNumber(Detector *box, Current horn)
 	return events;
 }
 
-double Engine::DecayNumber(Detector *box, std::string uuid)
-{
-	//std::cout << uuid << " : " << box->Efficiency(mNeutrino[uuid]) << ", "
-	//	  << box->DecayProb(mNeutrino[uuid]) << ", "
-	//	  << b	  << Intensity(uuid) << std::endl;
-	return box->Efficiency(mNeutrino[uuid]) * box->DecayProb(mNeutrino[uuid]) * Intensity(uuid);
-}
 
-//make all the fluxes
-void Engine::MakeFlux()
-{
-	//std::cout << "Making flux" << std::endl;
-	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
-		MakeFlux(iD->first);
-}
+
+
 
 void Engine::MakeFlux(Current horn)
 {
@@ -284,79 +364,6 @@ double Engine::IntensitySample(std::string uuid, double Energy)
 	return mDriver[uuid]->InterpolateIntensity(sampleNu[name], Energy);
 }
 
-void Engine::SetDecay(std::string channel)
-{
-	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
-		SetDecay(iD->first, channel);
-}
-
-void Engine::SetDecay(std::string channel, Current horn)
-{
-	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
-		if (iD->first.find(HornName(horn)) != std::string::npos)
-			SetDecay(iD->first, channel);
-}
-
-void Engine::SetDecay(std::string uuid, std::string channel)
-{
-	if (!channel.empty())
-		mNeutrino[uuid].SetDecayChannel(channel);
-}
-
-void Engine::ScaleToDetector(Detector *box)
-{
-	ScaleBaseline(box);
-	ScalePOT(box);
-	ScaleArea(box);
-}
-
-void Engine::ScaleBaseline(Detector *box)
-{
-	ScaleBaseline(box->Get("Baseline"));
-}
-
-void Engine::ScalePOT(Detector *box)
-{
-	ScalePOT(1.0e7 * box->Get("Years") * box->Get("POT/s"));
-}
-
-void Engine::ScaleArea(Detector *box)
-{
-	ScaleArea(box->Area() * 1.0e4);
-}
-
-void Engine::ScaleBaseline(double Baseline)
-{
-	Scale(1.0/(Baseline*Baseline));
-}
-
-void Engine::ScalePOT(double POT)
-{
-	Scale(POT);
-}
-
-void Engine::ScaleArea(double Area)
-{
-	Scale(Area);
-}
-
-void Engine::Scale(double X)
-{
-	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
-		Scale(X, iD->first);
-}
-
-void Engine::Scale(double X, Current horn)
-{
-	for (iD = mDriver.begin(); iD != mDriver.end(); ++iD)
-		if (iD->first.find(HornName(horn)) != std::string::npos)
-			Scale(X, iD->first);
-}
-
-void Engine::Scale(double X, std::string uuid)
-{
-	mDriver[uuid]->Scale(X);
-}
 
 double Engine::BinNumber()
 {

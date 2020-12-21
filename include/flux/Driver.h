@@ -57,9 +57,11 @@ class Driver
 		double Modify(Flux::Hist Name, double &A, double &B, double Mass);
 
 	private:
-		TFile *SourceFile;
-		TFile *KineFile;
+		using Modifier = std::vector<std::array<double 4> >;
+
 		bool Kine, Mod;
+
+		std::map<Nu::Flavour, Flux::Component> _fxNu;
 
 		//Get fluxes from file
 		Flux *fxNuElectron, *fxNuMuon, *fxNuTau;
@@ -69,10 +71,7 @@ class Driver
 		int Helicity_prev;
 		bool Particle_prev;
 
-		std::vector<double> vM_Charm, vM_TauE, vM_TauM, vM_Pion, vM_PPion;
-		std::vector<double> vA_Charm, vA_TauE, vA_TauM, vA_Pion, vA_PPion;
-		std::vector<double> vB_Charm, vB_TauE, vB_TauM, vB_Pion, vB_PPion;
-		std::vector<double> vP_Charm, vP_TauE, vP_TauM, vP_Pion, vP_PPion;
+		std::map<Flux::Component, Modifier> modifiers;
 };
 
 #endif
