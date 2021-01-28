@@ -39,13 +39,15 @@ std::pair<std::vector<Particle>, double> PhaseSpace::Generate(Channel::Name chan
 	if (cc > 1e4)
 		return std::make_pair(parts, 0.);
 
-	// reverse pdg sign if particle is "anti"
-
+	// create parent frame
 	TLorentzVector vec = *(_genps->GetDecay(0));
 	vec.Boost(frame.BoostVector());
 
-	parts.reserve(_masspdg.size());
+	// allocate space for particles
+	auto psgs = Process::Pdg(chan);
+	parts.reserve(pdgs.size());
 
+	// reverse pdg sign if particle is "anti"
 	int sign = 1;
 	switch (Channel::whichType(chan))
 	{
@@ -57,7 +59,7 @@ std::pair<std::vector<Particle>, double> PhaseSpace::Generate(Channel::Name chan
 			}
 			else // is dirac
 				sign = _N.IsParticle() ? 1 : -1;
-			parts.push_back(Particle(sign * _masspdg.front().second, vec));
+			parts.push_back(Particle(sign * pdgs.front(), vec));
 			break;
 		// don't care about sign in production
 		case Channel::Type::production:
@@ -67,10 +69,10 @@ std::pair<std::vector<Particle>, double> PhaseSpace::Generate(Channel::Name chan
 			throw std::invalid_argument("Channel " + Channel::toString(chan) + " unknown");
 	}
 
-	for (size_t i = 1; i < _masspdg.size(); ++i) {
+	for (size_t i = 1; i < pdgs.size(); ++i) {
 		TLorentzVector vec = *(_genps->GetDecay(i));
 		vec.Boost(frame.BoostVector());
-		parts.push_back(Particle(sign * _masspdg[i].second, vec));
+		parts.push_back(Particle(sign * pdgs[i], vec));
 	}
 
 	return std::make_pair(parts, weight);
@@ -78,33 +80,29 @@ std::pair<std::vector<Particle>, double> PhaseSpace::Generate(Channel::Name chan
 
 bool PhaseSpace::SetDecay(Channel::Name chan)
 {
-	if (_channel != chan) {
-		LoadMass(chan);
-		_channel = chan;
-	}
-
-	double masses[10];
+	auto mass = Process::Mass(chan);
+	double ps_masses[10];
 	switch (Channel::whichType(chan))
 	{
 		case Channel::Type::decayrates:
-			masses[0] = _masspdg.front().first;
+			ps_masses[0] = mass.front();
 			_m_parent = _N.M();
 			break;
 		case Channel::Type::production:
-			masses[0] = _N.M();
-			_m_parent = _masspdg.front().first;
+			ps_masses[0] = _N.M();
+			_m_parent = mass.front();
 			break;
 		default:
 			throw std::invalid_argument("Channel " + Channel::toString(chan) + " unknown");
 	}
 
 	for (size_t i = 1; i < _masspdg.size(); ++i)
-		masses[i] = _masspdg[i].first;
+		ps_masses[i] = mass[i];
 
 	// compute decay in rest frame, boost later
 	TLorentzVector rest(0, 0, 0, _m_parent);
 
-	return _genps->SetDecay(rest, _masspdg.size(), masses);
+	return _genps->SetDecay(rest, mass.size(), ps_masses);
 }
 
 double PhaseSpace::Gamma(Channel::Name chan, const Mixing &mix)

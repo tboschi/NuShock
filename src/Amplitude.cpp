@@ -217,21 +217,16 @@ void Amplitude::LoadMass(Channel::Name chan)
 
 double Amplitude::MassThreshold(Channel::Name chan)
 {
-	if (_channel != chan) {
-		LoadMass(chan);
-		_channel = chan;
-	}
-
+	auto mass = Process::Mass(chan);
 	switch (Channel::whichType(chan)) {
 		case Channel::Type::decayrates:
-			return std::accumulate(_masspdg.begin(), _masspdg.end(), 0.,
-					[](double sum, const std::pair<double, int> mp) {
-						return sum + mp.first; });
+			return std::accumulate(mass.begin(), mass.end(), 0.,
+					[](double sum, double m) {
+						return sum + m; });
 		case Channel::Type::production:
-			return std::accumulate(_masspdg.begin()+1, _masspdg.end(),
-								_masspdg.front().first,
-					[](double sum, const std::pair<double, int> mp) {
-						return sum - mp.first; });
+			return std::accumulate(mass.begin()+1, mass.end(), mass.front().first,
+					[](double sum, double m) {
+						return sum - m; });
 		default:
 			return 0.;
 	}
