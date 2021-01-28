@@ -1,0 +1,69 @@
+#Detector configuration file
+#Name of detector: LArTPC for DUNE
+
+# default module
+default		"LArTPC"
+
+#baseline from beam source and beginning of detector
+# using fiducial volume characteristics
+LArTPC_baseline	574.5	# m
+LArTPC_length	3	# m
+LArTPC_height	2	# m
+LArTPC_width	6	# m
+LArTPC_weight	67.2	# tons
+LArTPC_B_field	0.0	# T
+
+LArTPC_material	"LAr"
+LArTPC_shape	"box"
+
+#FGT
+HPFGT_baseline	578.5	# m
+HPFGT_length	4.431	# m
+HPFGT_height	4.431	# m
+HPFGT_width	5.0	# m
+HPFGT_weight	1.0	# m
+HPFGT_B_field	0.5	# T
+
+HPFGT_material	"GasAr"
+HPFGT_shape	"tubx"
+
+out_material	"Air"
+
+#POT/s of the neutrino beam
+POT/y		1.1e21	#  1 year is defined as 10e7 seconds
+years		5	# = 10y / 2, as 50% of the time is spent off-axis
+ratio_FHC	1.
+ratio_RHC	1.
+beam		120	# GeV
+
+
+tracker_configuration	"config/resolution.card"
+
+#Threshold in GeV
+#Resolutions in fractons of 1 for :
+#	angle with the beamline
+#	energy whith scales as sigma = energy res / sqrt(energy)
+#	if there is, a bias is added too
+#	Range and Exiti are momentum resolution to be used 
+#	if the particle is staying or escaping the detecor
+#
+
+#Efficiency files
+#dirac
+#D	EPI		Results/Efficiency/EPI_dirac.root
+#D	MPI		Results/Efficiency/EPI_dirac.root
+#D	nEE		Results/Efficiency/nEE_dirac.root
+#D	nEM		Results/Efficiency/nEM_dirac.root
+##D	nME		Results/Efficiency/nME_dirac.root
+#D	nMM		Results/Efficiency/nMM_dirac.root
+#D	nGAMMA		Results/Efficiency/nGAMMA_dirac.root
+#D	nPI0		Results/Efficiency/nPI0_dirac.root
+##majorana
+#M	EPI		Results/Efficiency/EPI_major.root
+#M	MPI		Results/Efficiency/EPI_major.root
+#M	nEE		Results/Efficiency/nEE_major.root
+#M	nEM		Results/Efficiency/nEM_major.root
+##M	nME		Results/Efficiency/nME_major.root
+#M	nMM		Results/Efficiency/nMM_major.root
+#M	nGAMMA		Results/Efficiency/nGAMMA_major.root
+#M	nPI0		Results/Efficiency/nPI0_major.root

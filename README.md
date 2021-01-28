@@ -22,6 +22,7 @@ Set the variables:
 * `$ROOTSYS` to point to the installation path for ROOT (this already part of the installation process)
 
 If ROOT is properly set, `root-config` should be in the user's `$PATH` and so the Makefile can find the includes and libraries on its own.
+Remember to update your `$LD_LIBRARY_PATH`.
 
 ### Compilation
 
@@ -42,8 +43,8 @@ These are, at the moment
 
 Most of the classes, like flux or detector, use description files contained in the `config/` subfolder.
 
-The detector configuration, for example ND_Full describes the DUNE near detector, composed of two parts: a LArTPC and a FGT.
-Sizes and dimensions are desribed in the file, as well as resolutions for some particle detections.
+The detector configuration, for example `config/detectro.card` describes the DUNE near detector, composed of two parts: a LArTPC and a FGT.
+Sizes and dimensions are desribed in the file, whereas the tracking resolutions are in `config/resolution.card`.
 At the end there is a list of efficiency files, used to estimate sensitivty including background.
 
 More description inside the configuration file itself.

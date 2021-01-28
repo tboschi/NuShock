@@ -1,0 +1,50 @@
+# resolution for tracking device
+
+threshold_hadron	0.050	# GeV
+resolution_hadron_angle		5.0
+resolution_hadron_energy	0.30
+resolution_hadron_enbias	0.05
+#resolution_hadron_inrange	0.0
+#resolution_hadron_exiting	0.0
+
+threshold_muon		0.030	# GeV
+resolution_muon_angle		1.0
+#resolution_muon_energy		0.0
+#resolution_muon_enbias		0.0
+resolution_muon_inrange		0.05
+resolution_muon_exiting		0.30
+
+threshold_pion		0.100	# GeV
+resolution_pion_angle		5.0
+#resolution_pion_energy		0.0
+#resolution_pion_enbias		0.0
+resolution_pion_inrange		0.05
+resolution_pion_exiting		0.30
+
+threshold_gamma		0.030	# GeV
+resolution_gamma_angle		1.0
+resolution_gamma_energy		0.15
+resolution_gamma_enbias		0.02
+#resolution_gamma_inrange	0.0
+#resolution_gamma_exiting	0.0
+
+# <containment>% the track inside and then the track is contaneid
+resolution_containment	0.80 # %
+# vertex resolution
+resolution_vertex		0.001 # m
+resolution_sagitta		0.01  # m
+
+#to provide some misidentification for background
+
+#is shorter than 2cm, a ptohon is an electron from pair conversion
+identify_conversion_EM	0.020
+
+#if longer than 2 meters, a pion track is mistaken for a muon
+identify_length_MIP	2.0
+
+#3deg to define an ee pair
+identify_pair_angle	3.0
+
+#resolution for pion0 mass in reconstruction
+#identify_respi0mass	0.040
+

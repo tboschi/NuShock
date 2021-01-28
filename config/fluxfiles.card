@@ -1,0 +1,15 @@
+#Flux configuration file
+#Define a file for each type of neutrino
+
+flux_nuE0	"data/flux_nuE0.root"
+flux_nuEB	"data/flux_nuEB.root"
+flux_nuM0	"data/flux_nuM0.root"
+flux_nuMB	"data/flux_nuMB.root"
+flux_nuT0	"data/flux_nuT0.root"
+flux_nuTB	"data/flux_nuTB.root"
+
+#mod_charm	"data/mod_Charm.dat"
+#mod_tauE	"data/mod_TauE.dat"
+#mod_tauM	"data/mod_TauM.dat"
+#mod_pion	"data/mod_Pion.dat"
+#mod_ppion	"data/mod_PPion.dat"
