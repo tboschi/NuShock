@@ -33,6 +33,7 @@ make
 is enough.
 This will create binaries in the `bin` folder.
 
+# WARNING: this readme is deprecated and will be updated soon!
 ## Usage of the framework
 
 The main functions are to be placed in the `app/` folder and the exectuables are moved to the `bin/` folder after compilation.
