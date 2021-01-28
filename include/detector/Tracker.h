@@ -15,52 +15,47 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <random>
 
-//ROOT include
-#include "TRandom3.h"
-#include "TFile.h"
-#include "TH1.h"
-#include "TH2.h"
+#include "tools/RNG.h"
 
-#include "tools.h"
-#include "src/detector/Detector.h"
+#include "physics/Const.h"
+#include "physics/Particle.h"
 
-class Detector;
+#include "detector/Detector.h"
+#include "detector/Track.h"
 
 class Tracker : public Detector
 {
-	using Event = std::pair<Particle, Track>;
+	public:
+		using Event = std::pair<Particle, Track>;
 
 	public:
-		Tracker(std::string ConfigFile, std::string mod = "");
+		Tracker(std::string det, std::string track);
+		Tracker(std::string card);
 
-		bool Reconstruct(Particle &P);
-		void Vertex(Particle &P);
-		void Smearing(Particle &P);
+		Event GenerateEvent(Particle &&P) const;
+		Event GenerateEvent(std::string mod, Particle &&P) const;
+		bool Reconstruct(Event &evt) const;
+		void ComputeTrack(Event &evt) const;
+		double ComputeSagitta(Event &evt) const;
+		void Smearing(Event &evt) const;
+		bool IsDecayed(const Particle &P, double dx) const;
+		bool IsDetectable(const Event &evt) const;
+		bool IsDetectable(const Track &T) const;
+		bool IsDetectable(const Particle &P) const;
 
-		void Length(Particle &P);
-
-		double GammaDecay(const Particle &P);
-		double CriticalEnergy(const Particle &P);
-		double CriticalEnergy(Detector::Material Element);
-		double RadiationLength(const Particle &P, bool Nuclear = false);
-		double RadiationLength(Detector::Material Element, bool Nuclear = false);
-		double EnergyLoss(const Particle &P, int &inout);
-		double BetheLoss(const Particle &P, Material Target);
-		double Bethe(const Particle &P, double Density, double I, int Z, int A);
-
-		bool IsDecayed(const Particle &P, double dx);
-		bool IsDetectable(const Particle &P, bool print = false);
-		void Pi0Decay(Particle &Pi0, Particle &PA, Particle &PB);
-
-		void Focus(Particle &P);
+		std::vector<Event> Pi0Decay(Event &&pi0) const;
+		std::vector<Event> MisIdentify(std::vector<Tracker::Event> &&evts) const;
 
 	private:
-		//TRandom3 *GenMT;
-		TFile *FuncFile;
-		TH2D *hhFunc;
-		TH1D *hTemp, *hEfficiency;
-		bool Eff;
+		void Init(const CardDealer &cd);
+
+		std::map<std::string, double> _thresholds;
+		std::map<std::string, double> _resolutions;
+		std::map<std::string, double> _identifies;
+		double _step;
+		bool kVerbose;
 };
 
 #endif

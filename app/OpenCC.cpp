@@ -40,14 +40,16 @@ int main(int argc, char** argv)
 
 	std::ostream &out = (outfile.is_open()) ? outfile : std::cout;
 
-	OpenQQ *xsec = new OpenCC(argv[optind]);
+	std::unique_ptr<OpenQQ> xsec(new OpenQQ(argv[optind]));
 
-	// scan over center of mass energy in GeV
-	for (double cme = 40; cmE < 450; cmE += 40) {
+
+	// scan over center the proton beam energy
+	for (double Eb = 60; Eb < 200; Eb += 20) {
+		double cme = std::sqrt(2 * Const::MProton * (Const::MProton + Eb));
 		xsec->SetCMEnergy(cme);
 		double err, chi2;
-		out << "Center of mass energy " << cme << " GeV:\t"
-		    << xsec->Calculate(err, chi2) << " ± " << std::sqrt(chi2) << std::endl;
+		out << Eb << "\t" << cme << "\t" << xsec->Integrate(err, chi2)
+		    << "\t" << std::sqrt(err) << "\n";
 	}
 	
 	if (outfile.is_open())

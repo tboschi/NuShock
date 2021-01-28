@@ -8,217 +8,150 @@
 #ifndef PHASESPACE_H
 #define PHASESPACE_H
 
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <cstring>
+// base class
+#include "physics/Amplitude.h"
 
 //ROOT include
-#include "TLorentzVector.h"
 #include "TGenPhaseSpace.h"
 
-#include "Amplitude.h"
+#include <random>
+#include "physics/Channels.h"
+#include "physics/Particle.h"
+#include "physics/Neutrino.h"
+
+#include "tools/Optimization.h"
+#include "tools/RNG.h"
 
 class PhaseSpace : public Amplitude
 {
 	public:
-		enum Reference
-		{
-			restFrame = 0,
-			labFrame = 1,
-		};
 
-		PhaseSpace();
+		PhaseSpace(Neutrino N = Neutrino());
 		~PhaseSpace();
 
-		bool SetDecay(Channel Name);
-		bool Generate(Channel Name, double &val);
-		double Ratio(Channel Name);
+		std::pair<std::vector<Particle>, double> Generate(Channel::Name chan, const Particle &part,
+								const Mixing &mix = Mixing());
+		std::pair<std::vector<Particle>, double> Generate(Channel::Name chan, const TLorentzVector &frame,
+								const Mixing &mix = Mixing());
 
-		double nEE_ratio();
-		double nMM_ratio();
-		double NeutrinoLeptonAA_ratio(double &maxName_u, double &maxName_o, double (PhaseSpace::*Uu)(int));
+	private:
+		bool SetDecay(Channel::Name chan);
+		double Gamma(Channel::Name chan, const Mixing &mix = Mixing());
 
-		double nEM_ratio();
-		double nET_ratio();
-		double nMT_ratio();
-		double NeutrinoLeptonAB_ratio(double &maxName_a, double &maxName_b,
-					      double (PhaseSpace::*Ua)(int), double (PhaseSpace::*Ub)(int));
+		double nEE(const Mixing &mix = Mixing());
+		double nMM(const Mixing &mix = Mixing());
+		std::pair<double, double> NeutrinoLeptonAA(Channel::Name chan, Channel::Name chan_o, double m_neut, double m_lepton);
 
-		double nPI0_ratio();
-		double nETA_ratio();
-		double nETAi_ratio();
-		double NeutrinoPseudoMeson_ratio(double &maxName);
+		double nEM(const Mixing &mix = Mixing());
+		double nET(const Mixing &mix = Mixing());
+		double nMT(const Mixing &mix = Mixing());
+		std::pair<double, double> NeutrinoLeptonAB(Channel::Name chan, Channel::Name chan_o, double m_neut, double m_leptonA, double m_leptonB);
 
-		double EPI_ratio();
-		double MPI_ratio();
-		double TPI_ratio();
-		double EKA_ratio();
-		double MKA_ratio();
-		double ECHARM_ratio();
-		double LeptonPseudoMeson_ratio(double &maxName);
-
-		double nRHO0_ratio();
-		double nOMEGA_ratio();
-		double nPHI_ratio();
-		double NeutrinoVectorMeson_ratio(double &manName);
-
-		double ERHO_ratio();
-		double MRHO_ratio();
-		double EKAx_ratio();
-		double MKAx_ratio();
-		double LeptonVectorMeson_ratio(double &manName);
-
-		double MuonE_ratio();
-		double MuonM_ratio();
-		double TauEE_ratio();
-		double TauET_ratio();
-		double TauMM_ratio();
-		double TauMT_ratio();
-		double LeptonNeutrino_ratio(double &manName);
-		double AntiLeptonNeutrino_ratio(double &manName);
-
-		double TauPI_ratio();
-		double LeptonMeson_ratio(double &manName);
-
-		double PionE_ratio();
-		double PionM_ratio();
-		double KaonE_ratio();
-		double KaonM_ratio();
-		double CharmE_ratio();
-		double CharmM_ratio();
-		double CharmT_ratio();
-		double MesonTwo_ratio(double &manName);
-
-		double Kaon0E_ratio();
-		double Kaon0M_ratio();
-		double KaonCE_ratio();
-		double KaonCM_ratio();
-		double MesonThree_ratio(double &manName, double L_, double L0);
-
-		//DECAY RATES
-		double NeutrinoLeptonAA(double &d_Uu, double &d_Uo, double M_Neut, double M_Lepton);
-		double NeutrinoLeptonAB(double &d_Ua, double &d_Ub, double M_Neut, double M_LeptonA, double M_LeptonB);
-		double Max_NeutrinoLeptonAA(double &max_Uu, double &max_Uo, double M_Neut, double M_Lepton);
-		double Max_NeutrinoLeptonAB(double &max_Ua, double &max_Ub, double M_Neut, double M_LeptonA, double M_LeptonB);
+		double NeutrinoLeptonLepton_max(double x, double y, double z, double gL, double gR);
+		double F_NeutrinoLeptonLepton_max(double p[]);
 		double NeutrinoLeptonLepton(double s, double t, double cos0, double cos1, double x, double y, double z, double gL, double gR);
-		double max_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
-		double max_NeutrinoLeptonLepton_D(double *p);
 
-		double NeutrinoPseudoMeson(double M_Neut, double M_Meson);
-		double Max_LeptonPseudoMeson(double M_Neut, double M_Meson);
-		double LeptonPseudoMeson(double M_Neut, double M_Meson);
-		double Max_NeutrinoPseudoMeson(double M_Neut, double M_Meson);
-		double max_ToPseudoMeson(double x, double y);
-		double max_ToPseudoMeson_cos0(double cos0);
+
+
+		double nPI0(const Mixing &mix = Mixing());
+		double nETA(const Mixing &mix = Mixing());
+		double nETAi(const Mixing &mix = Mixing());
+		double NeutrinoPseudoMeson(Channel::Name chan, double m_neut, double m_meson);
+
+		double EPI(const Mixing &mix = Mixing());
+		double MPI(const Mixing &mix = Mixing());
+		double TPI(const Mixing &mix = Mixing());
+		double EKA(const Mixing &mix = Mixing());
+		double MKA(const Mixing &mix = Mixing());
+		double ECHARM(const Mixing &mix = Mixing());
+		double LeptonPseudoMeson(Channel::Name chan, double m_lepton, double m_meson);
+
+		double ToPseudoMeson_max(double x, double y);
+		double ToPseudoMeson_cos0_max(double cos0);
 		double ToPseudoMeson(double cos0, double x, double y);
 
-		double NeutrinoVectorMeson(double M_Neut, double M_Meson);
-		double Max_NeutrinoVectorMeson(double M_Neut, double M_Meson);
-		double LeptonVectorMeson(double M_Neut, double M_Meson);
-		double Max_LeptonVectorMeson(double M_Neut, double M_Meson);
-		double max_ToVectorMeson(double x, double y);
-		double max_ToVectorMeson_cos0(double cos0);
+
+
+		double nRHO0(const Mixing &mix = Mixing());
+		double nOMEGA(const Mixing &mix = Mixing());
+		double nPHI(const Mixing &mix = Mixing());
+		double NeutrinoVectorMeson(Channel::Name chan, double m_neut, double m_meson);
+
+		double ERHO(const Mixing &mix = Mixing());
+		double MRHO(const Mixing &mix = Mixing());
+		double EKAx(const Mixing &mix = Mixing());
+		double MKAx(const Mixing &mix = Mixing());
+		double LeptonVectorMeson(Channel::Name chan, double M_Neut, double M_Meson);
+
+		double ToVectorMeson_max(double x, double y);
+		double ToVectorMeson_cos0_max(double cos0);
 		double ToVectorMeson(double cos0, double x, double y);
 
-		//PRODUCTION
 
-		double LeptonNeutrino(double M_Lepton0, double M_Lepton, double M_Neut);
-		double Max_LeptonNeutrino(double M_Lepton0, double M_Lepton, double M_Neut);
-		double max_LeptonNeutrino(double x, double y, double z);
-		double max_LeptonNeutrino_u(double u);
-		double AntiLeptonNeutrino(double M_Lepton0, double M_Lepton, double M_Neut);
-		double Max_AntiLeptonNeutrino(double M_Lepton0, double M_Lepton, double M_Neut);
-		double max_AntiLeptonNeutrino(double x, double y, double z);
-		double max_AntiLeptonNeutrino_s(double s);
 
-		double LeptonMeson(double M_Lepton, double M_Meson);
-		double Max_LeptonMeson(double M_Lepton, double M_Meson);
+		double MuonE(const Mixing &mix = Mixing());
+		double MuonM(const Mixing &mix = Mixing());
+		double TauEE(const Mixing &mix = Mixing());
+		double TauET(const Mixing &mix = Mixing());
+		double TauMM(const Mixing &mix = Mixing());
+		double TauMT(const Mixing &mix = Mixing());
 
-		double MesonTwo(double M_Meson, double M_Lepton);
-		double Max_MesonTwo(double M_Meson, double M_Lepton);
+		double LeptonNeutrino(Channel::Name chan, double m_lepton0, double m_lepton, double m_neut = 0.);
+		double LeptonNeutrino_max(double x, double y, double z);
+		double LeptonNeutrino_u_max(double u);
 
-		double MesonThree(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0);
-		double Max_MesonThree(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0);
-		double max_MesonThree(double x, double y, double z, double L_, double L0);
-		double max_MesonThree_D(double *p);
+		double AntileptonNeutrino(Channel::Name chan, double m_lepton0, double m_lepton, double m_neut = 0.);
+		double AntileptonNeutrino_max(double x, double y, double z);
+		double AntileptonNeutrino_s_max(double s);
+
+
+
+		double TauPI(const Mixing &mix = Mixing());
+		//double Tau2PI(const Mixing &mix = Mixing());
+
+		// ratio could be 1
+		double LeptonMeson(Channel::Name chan, double m_lepton, double m_meson);
+		double LeptonMeson_max(double m_lepton, double m_meson);
+
+
+		double PionE(const Mixing &mix = Mixing());
+		double PionM(const Mixing &mix = Mixing());
+		double KaonE(const Mixing &mix = Mixing());
+		double KaonM(const Mixing &mix = Mixing());
+		double CharmE(const Mixing &mix = Mixing());
+		double CharmM(const Mixing &mix = Mixing());
+		double CharmT(const Mixing &mix = Mixing());
+
+		// ratio could be 1
+		double MesonTwo(Channel::Name chan, double m_meson, double m_lepton);
+		double MesonTwo_max(double m_meson, double m_lepton);
+
+
+
+		double Kaon0E(const Mixing &mix = Mixing());
+		double Kaon0M(const Mixing &mix = Mixing());
+		double KaonCE(const Mixing &mix = Mixing());
+		double KaonCM(const Mixing &mix = Mixing());
+
+		double MesonThree(Channel::Name chan, double m_meson0, double m_meson, double m_lepton,
+				  double L_, double L0);
+		double MesonThree_max(double x, double y, double z, double L_, double L0);
+		double F_MesonThree_max(double p[]);
+
+
 
 		//KINEMATICS
 
-		void Kinematic_2B(double &cos0);
-		void Kinematic_3B(double &s, double &t, double &u, double &coss, double &cost, double &cosu);
-
-		int Daughters();
-		TLorentzVector DaughterVector(int i, Reference Frame = restFrame);
-		Particle Daughter(int i, Reference Frame = restFrame);
-		TLorentzVector LabFrame();
-		TLorentzVector RestFrame();
-		TLorentzVector Parent(Reference Frame = restFrame);
-
-		void SetLabFrame(TLorentzVector vec);
-		void SetRestFrame(double Mass);
-
-		void Reset();
-		void SetFunction(double (PhaseSpace::*FF)(double));
-		void SetFunction_D(double (PhaseSpace::*FF)(double*));
+		double Kinematic_2B();
+		std::array<double, 6> Kinematic_3B();
 
 	private:
-		TGenPhaseSpace *Event;
-		TRandom3 *GenMT;
-		TLorentzVector pLabFrame, pRestFrame;
-		int nDaughter;
+		TGenPhaseSpace *_genps;
 
-		double (Amplitude::*M2_Function)(double, double, double);
+		double (Amplitude::*_M2_F)(double, double, double);
 
-		double maxnnn,
-		       maxnGAMMA,
-		       maxnEE_e,	
-		       maxnEE_o,	
-		       maxnEM_e,	
-		       maxnEM_m,	
-		       maxnMM_m,	
-		       maxnMM_o,	
-		       maxnET_e,	
-		       maxnET_t,	
-		       maxnMT_m,	
-		       maxnMT_t,	
-		       maxnPI0,	
-		       maxEPI,	
-		       maxMPI,	
-		       maxTPI,	
-		       maxEKA,	
-		       maxMKA,	
-		       maxnRHO0,	
-		       maxERHO,	
-		       maxMRHO,	
-		       maxEKAx,	
-		       maxMKAx,	
-		       maxnETA,	
-		       maxnETAi,	
-		       maxnOMEGA,
-		       maxnPHI,	
-		       maxECHARM,
-		       maxMuonE,
-		       maxMuonM,
-		       maxTauEE,
-		       maxTauET,
-		       maxTauMM,
-		       maxTauMT,
-		       maxTauPI,
-		       maxTau2PI,
-		       maxPionE,
-		       maxPionM,
-		       maxKaonE,
-		       maxKaonM,
-		       maxCharmE,
-		       maxCharmM,
-		       maxCharmT,
-		       maxKaon0E,
-		       maxKaon0M,
-		       maxKaonCE,
-		       maxKaonCM;
-
-	protected:
+		// reverse sign to find minimum
+		double (PhaseSpace::*_to_maximize)(double []);
 };
 
 #endif

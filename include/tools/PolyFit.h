@@ -16,8 +16,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "src/tools/Eigen/Dense"
-#include "src/tools/Sort.h"
+#include "Eigen/Dense"
 
 class PolyFit
 {
@@ -41,12 +40,15 @@ class PolyFit
 		void Reset();
 
 	private:
-		int order;
+		size_t _order;
+		size_t _size;
+
 		std::vector<double> axis;
 		std::vector<double> data;
-		int size;
+
 		Eigen::VectorXd beta;
-		bool weighted;
+
+		bool _weighted;
 };
 
 #endif

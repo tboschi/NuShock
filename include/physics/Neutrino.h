@@ -7,17 +7,9 @@
 #define NEUTRINO_H
 
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <cstring>
 
-//ROOT include
-#include "TLorentzVector.h"
-
-#include "tools.h"
-#include "DecayRates.h"
-#include "Production.h"
-#include "PhaseSpace.h"
+#include "physics/Const.h"
+#include "physics/Particle.h"
 
 class Particle;
 
@@ -29,114 +21,69 @@ class Neutrino : public Particle
 			left         = 0,
 			right        = 1,
 			polarised    = 0,
-			unpolarised  = 2,
+			unpolarized  = 2,
 			dirac	     = 0,
 			majorana     = 4,
 			particle     = 0,
 			antiparticle = 8
 		};
 
-		Neutrino(double mass = 0, unsigned int opts = 2);
-		Neutrino(const Neutrino &N);
+		// default pdg code is nu_e
+		Neutrino(double mass = 0., size_t opts = 0, int pdg = 12);
 
-		void SetParent(Amplitude *Object);
+		bool operator==(const Neutrino & rhs) const;
+		bool operator!=(const Neutrino & rhs) const;
 
-		double DecayThreshold();
-		double DecayThreshold(const std::string &name);
-		double DecayThreshold(Channel::Name chan = Channel::_undefined);
-		bool IsDecayAllowed();
-		bool IsDecayAllowed(const std::string &name);
-		bool IsDecayAllowed(Channel::Name chan = Channel::_undefined);
-		void DecayChannels(std::vector<std::string> &vChan);
-
-		double DecayTotal();
-		double DecayWidth();
-		double DecayWidth(const std::string &name);
-		double DecayWidth(Channel::Name chan = Channel::_undefined);
-		double DecayBranch();
-		double DecayBranch(const std::string &name);
-		double DecayBranch(Channel::Name chan = Channel::_undefined);
-
-		double ProductionThreshold();
-		double ProductionThreshold(const std::string &name);
-		double ProductionThreshold(Channel::Name chan = Channel::_undefined);
-		bool IsProductionAllowed();
-		bool IsProductionAllowed(const std::string &name);
-		bool IsProductionAllowed(Channel::Name chan = Channel::_undefined);
-		void ProductionChannels(std::vector<std::string> &vChan);
-		double ProductionWidth();
-		double ProductionWidth(const std::string &name);
-		double ProductionWidth(Channel::Name chan = Channel::_undefined);
-		double ProductionScale();
-		double ProductionScale(const std::string &name);
-		double ProductionScale(Channel::Name chan = Channel::_undefined);
-		
-		std::vector<Particle> DecayPS();
-		std::vector<Particle> DecayPS(const std::string &name);
-		std::vector<Particle> DecayPS(Channel::Name chan = Channel::_undefined);
-		std::vector<Particle> ProductionPS(const TLorentzVector &vec);
-		std::vector<Particle> ProductionPS(const TLorentzVector &vec,
-						   const std::string &name);
-		std::vector<Particle> ProductionPS(const TLorentzVector &vec,
-						   Channel::Name chan = Channel::_undefined);
-		
-		void SetDecayChannel(const std::string &name);
-		void SetProductionChannel(const std::string &name);
-		Channel::Name DecayChannel() const;
-		Channel::Name ProductionChannel() const;
-		std::string DecayChannelName() const;
-		std::string ProductionChannelName() const;
-
-		//void SetMass(double Mass = 0.0);
-		void SetMixings(double *Mixings);
-		void SetMixings(double Ue, double Um, double Ut);
-
+		size_t GetOptions() const;
 		void SetOptions(size_t opts);
 		void AddOptions(size_t opts);
 		
-		//double Mass();
-		double* Mixings();
-		double Ue(int E = 1.0) const;
-		double Um(int E = 1.0) const;
-		double Ut(int E = 1.0) const;
-		//double Energy();
-		//double EnergyKin();
-
-		static int Helicity(const size_t &opts) const {
-			if (opts & Neutrino::unpolarised)
+		int Helicity() const;
+		static int Helicity(size_t opts) {
+			if (opts & Neutrino::unpolarized)
 				return 0;
-			return 2 * int(opts | Neutrino::right) - 1;
+			return 2 * int(opts & Neutrino::right) - 1;
 		}
 
-		static bool IsDirac(const size_t &opts) const {
+		bool IsDirac() const;
+		static bool IsDirac(size_t opts) {
 			return !(opts & Neutrino::majorana);
 		}
 
-		static bool IsMajorana(const size_t &opts) const {
+		bool IsMajorana() const;
+		static bool IsMajorana(size_t opts) {
 			return !IsDirac(opts);
 		}
 
 		// always true if majorana
-		static bool IsParticle(const size_t &opts) const {
+		bool IsParticle() const;
+		static bool IsParticle(size_t opts) {
 			return IsMajorana(opts) || !(opts & Neutrino::antiparticle);
 		}
 
 		// always true if majorana
-		static bool IsAntiparticle(const size_t &opts) const {
+		bool IsAntiparticle() const;
+		static bool IsAntiparticle(size_t opts) {
 			return IsMajorana(opts) || !IsParticle(opts);
 		}
 
+		// tells if neutrino is particle or antiparticle
+		// in dirac sense. this can be set by last flag
+		bool IsDiracParticle() const;
+		static bool IsDiracParticle(size_t opts) {
+			return !(opts & Neutrino::antiparticle);
+		}
+
+		// always true if majorana
+		bool IsDiracAntiparticle() const;
+		static bool IsDiracAntiparticle(size_t opts) {
+			return !IsDiracParticle(opts);
+		}
+
 	private:
-		DecayRates *theDecayRates;
-		Production *theProduction, *theProdLightN;
-		PhaseSpace *thePhaseSpace;
+		size_t _opts;
 
-		Channel::Name _decay, _production;
-
-		//double fMass;
-		//double fEnergy;
-
-		std::array<double, 3> _mixings;
+	friend std::ostream & operator<<(std::ostream &os, const Neutrino &N);
 };
 
 #endif

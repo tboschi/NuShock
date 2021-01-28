@@ -1,19 +1,11 @@
-#include "Production.h"
+#include "physics/Production.h"
 
-Production::Production(const HNL &N) : Amplitude(N)
+Production Production::_sm = Production(Neutrino());
+
+Production::Production(Neutrino N) : Amplitude(std::move(N))
 {
-}
-
-double Production::MassThreshold(Channel::Name chan)
-{
-	if (_channel != chan) {
-		LoadMass(chan);
-		_channel = chan;
-	}
-
-	return std::accumulate(_masspdg.begin()+1, _masspdg.end(), _masspdg.front().first,
-			[](double sum, const std::pair<double, int> mp) {
-				return sum - mp.first; });
+	// check if default argument is being used
+	kSM = (_N == Neutrino());
 }
 
 bool Production::IsAllowed(Channel::Name chan)
@@ -21,287 +13,279 @@ bool Production::IsAllowed(Channel::Name chan)
 	return (MassThreshold(chan) >= _N.M());
 }
 
-double Production::Scale(Channel::Name chan)
+double Production::Scale(Channel::Name chan, const Mixing &mix)
 {
-	return Gamma(chan, 1., 1., 1.);
+	if (kSM)	// save computation time
+		return 1.;
+	return Gamma(chan, mix) / _sm.Gamma(chan, mix);
 }
 
-double Production::Gamma(Channel::Name chan, std::arrya<double, 3> &mix) {
-	return Gamma(chan, mix[0], mix[1], mix[2]);
-}
-
-double Production::Gamma(Channel::Name chan, double ue, double um, double ut)
+double Production::Gamma(Channel::Name chan, const Mixing &mix)
 {
 	if (!IsAllowed(chan))
 		return 0.;
 
-	using GammaF = double (Production::*)(double, double, double);
+	using GammaF = double (Production::*)(const Mixing &mix);
 	GammaF gf;
 
 	switch(chan)
 	{
-		case Channel::_ALL:
+		case Channel::ALL:
 			gf = &Production::Total;
 			break;
-		case Channel::_MuonE:
+		case Channel::MuonE:
 			gf = &Production::MuonE;
 			break;
-		case Channel::_MuonM:
+		case Channel::MuonM:
 			gf = &Production::MuonM;
 			break;
-		case Channel::_TauEE:
+		case Channel::TauEE:
 			gf = &Production::TauEE;
 			break;
-		case Channel::_TauET:
+		case Channel::TauET:
 			gf = &Production::TauET;
 			break;
-		case Channel::_TauMM:
+		case Channel::TauMM:
 			gf = &Production::TauMM;
 			break;
-		case Channel::_TauMT:
+		case Channel::TauMT:
 			gf = &Production::TauMT;
 			break;
-		case Channel::_TauPI:
+		case Channel::TauPI:
 			gf = &Production::TauPI;
 			break;
-		case Channel::_Tau2PI:
+		case Channel::Tau2PI:
 			gf = &Production::Tau2PI;
 			break;
-		case Channel::_PionE:
+		case Channel::PionE:
 			gf = &Production::PionE;
 			break;
-		case Channel::_PionM:
+		case Channel::PionM:
 			gf = &Production::PionM;
 			break;
-		case Channel::_KaonE:
+		case Channel::KaonE:
 			gf = &Production::KaonE;
 			break;
-		case Channel::_KaonM:
+		case Channel::KaonM:
 			gf = &Production::KaonM;
 			break;
-		case Channel::_CharmE:
-			gf = &Production::ChamE;
+		case Channel::CharmE:
+			gf = &Production::CharmE;
 			break;
-		case Channel::_CharmM:
-			gf = &Production::ChamM;
+		case Channel::CharmM:
+			gf = &Production::CharmM;
 			break;
-		case Channel::_CharmT:
+		case Channel::CharmT:
 			gf = &Production::CharmT;
 			break;
-		case Channel::_Kaon0E:
+		case Channel::Kaon0E:
 			gf = &Production::Kaon0E;
 			break;
-		case Channel::_Kaon0M:
+		case Channel::Kaon0M:
 			gf = &Production::Kaon0M;
 			break;
-		case Channel::_KaonCE:
+		case Channel::KaonCE:
 			gf = &Production::KaonCE;
 			break;
-		case Channel::_KaonCM:
+		case Channel::KaonCM:
 			gf = &Production::KaonCM;
 			break;
 		default:
-			throw std::invalid_argument("Channel " + toString(chan) + " unknown");
+			throw std::invalid_argument("Channel " + Channel::toString(chan) + " unknown");
 	}
 
 	//return (Helicity() ? 1.0 : 2.0) * Result;
-	return (this->*gf)(ue, um, ut);
+	return (this->*gf)(mix);
 }
 
-double Production::Total(double ue, double um, double ut)
+double Production::Total(const Mixing &mix)
 {
-	return std::accumulate(std::begin(Channel::Productions), std::end(Channel::Productions),
-			0., [=](double sum, const Channel::Name &chan) { return sum + Gamma(chan, ue, um, ut); });
+	auto prods = Channel::Productions();
+	return std::accumulate(prods.begin(), prods.end(), 0.,
+			[=](double sum, const Channel::Name &chan) {
+				return sum + Gamma(chan, mix); });
 	// check capture here
 }
 
 
-double Production::MuonE(double ue, double um, double ut)
+double Production::MuonE(const Mixing &mix)
 {
-	if (!fprod.count(Channel::_MuonE))
-		fprod[Channel::_MuonE] = AntiLeptonNeutrinoDecay(Const::MMuon, Const::MElectron,
-							Const::MNeutrino)
-
-	return fprod[Channel::_MuonE] * ue*ue;
-}
-
-double Production::MuonM(double ue, double um, double ut)
-{
-	if (!fprod.count(Channel::_MuonM))
-		fprod[Channel::_MuonM] = LeptonNeutrinoDecay(Const::MMuon, Const::MElectron,
-						    Const::MNeutrino);
-
-	return fprod[Channel::_MuonM] * um*um;
-}
-
-double Production::TauEE(double ue, double um, double ut)
-{
-
-	if (!fprod.count(Channel::_TauEE))
-		fprod[Channel::_TauEE] = AntiLeptonNeutrinoDecay(Const::MTau, Const::MElectron,
+	if (!_table.count(Channel::MuonE))
+		_table[Channel::MuonE] = AntileptonNeutrinoDecay(Const::MMuon, Const::MElectron,
 							Const::MNeutrino);
 
-	return fprod[Channel::_TauEE] * ue*ue;
+	return _table[Channel::MuonE] * mix.Ue(2);
 }
 
-double Production::TauET(double ue, double um, double ut)
+double Production::MuonM(const Mixing &mix)
 {
-
-	if (!fprod.count(Channel::_TauET))
-		fprod[Channel::_TauET] = LeptonNeutrinoDecay(Const::MTau, Const::MElectron,
+	if (!_table.count(Channel::MuonM))
+		_table[Channel::MuonM] = LeptonNeutrinoDecay(Const::MMuon, Const::MElectron,
 						    Const::MNeutrino);
 
-	return fprod[Channel::_TauET] * ut*ut;
+	return _table[Channel::MuonM] * mix.Um(2);
 }
 
-double Production::TauMM(double ue, double um, double ut)
+double Production::TauEE(const Mixing &mix)
 {
 
-	if (!fprod.count(Channel::_TauMM))
-		fprod[Channel::_TauMM] = AntiLeptonNeutrinoDecay(Const::MTau, Const::MMuon,
+	if (!_table.count(Channel::TauEE))
+		_table[Channel::TauEE] = AntileptonNeutrinoDecay(Const::MTau, Const::MElectron,
 							Const::MNeutrino);
 
-	return fprod[Channel::_TauMM] * um*um;
+	return _table[Channel::TauEE] * mix.Ue(2);
 }
 
-double Production::TauMT(double ue, double um, double ut)
+double Production::TauET(const Mixing &mix)
 {
 
-	if (!fprod.count(Channel::_TauMT))
-		fprod[Channel::_TauMT] = LeptonNeutrinoDecay(Const::MTau, Const::MMuon,
+	if (!_table.count(Channel::TauET))
+		_table[Channel::TauET] = LeptonNeutrinoDecay(Const::MTau, Const::MElectron,
 						    Const::MNeutrino);
 
-	return fprod[Channel::_TauMT] * ut*ut;
+	return _table[Channel::TauET] * mix.Ut(2);
 }
 
-double Production::TauPI(double ue, double um, double ut)
+double Production::TauMM(const Mixing &mix)
 {
 
-	if (!fprod.count(Channel::_TauPI))
-		fprod[Channel::_TauPI] = std::pow(Const::U_ud * Const::DPion, 2)
+	if (!_table.count(Channel::TauMM))
+		_table[Channel::TauMM] = AntileptonNeutrinoDecay(Const::MTau, Const::MMuon,
+							Const::MNeutrino);
+
+	return _table[Channel::TauMM] * mix.Um(2);
+}
+
+double Production::TauMT(const Mixing &mix)
+{
+
+	if (!_table.count(Channel::TauMT))
+		_table[Channel::TauMT] = LeptonNeutrinoDecay(Const::MTau, Const::MMuon,
+						    Const::MNeutrino);
+
+	return _table[Channel::TauMT] * mix.Ut(2);
+}
+
+double Production::TauPI(const Mixing &mix)
+{
+
+	if (!_table.count(Channel::TauPI))
+		_table[Channel::TauPI] = std::pow(Const::U_ud * Const::DPion, 2)
 				* LeptonTwoDecay(Const::MTau, Const::MPion);
 
-	return fprod[Channel::_TauPI] * ut*ut;
+	return _table[Channel::TauPI] * mix.Ut(2);
 }
 
-double Production::Tau2PI(double ue, double um, double ut)
+double Production::Tau2PI(const Mixing &mix)
 {
-	if (!fprod.count(Channel::_Tau2PI))
-		fprod[Channel::_Tau2PI] = std::pow(Const::U_ud * Const::DPion, 2)
+	if (!_table.count(Channel::Tau2PI))
+		_table[Channel::Tau2PI] = std::pow(Const::U_ud * Const::DPion, 2)
 				* LeptonThreeDecay(Const::MTau, Const::MPion, Const::MPion0);
 
-	return fprod[Channel::_Tau2PI] * ut*ut;
+	return _table[Channel::Tau2PI] * mix.Ut(2);
 }
 
-double Production::PionE(double ue, double um, double ut)
+double Production::PionE(const Mixing &mix)
 {
-	if (!fprod.count(Channel::_PionE))
-		fprod[Channel::_PionE] = std::pow(Const::U_ud * Const::DPion, 2)
+	if (!_table.count(Channel::PionE))
+		_table[Channel::PionE] = std::pow(Const::U_ud * Const::DPion, 2)
 				* MesonTwoDecay(Const::MPion, Const::MElectron);
 
-	return fprod[Channel::_PionE] * ue*ue;
+	return _table[Channel::PionE] * mix.Ue(2);
 }
 
-double Production::PionM(double ue, double um, double ut)
+double Production::PionM(const Mixing &mix)
 {
-
-	if (!fprod.count(Channel::_PionM))
-		fprod[Channel::_PionM] = std::pow(Const::U_ud * Const::DPion, 2)
+	if (!_table.count(Channel::PionM))
+		_table[Channel::PionM] = std::pow(Const::U_ud * Const::DPion, 2)
 				* MesonTwoDecay(Const::MPion, Const::MMuon);
 
-	return fprod[Channel::_PionM] * um*um;
+	return _table[Channel::PionM] * mix.Um(2);
 }
 
-double Production::KaonE(double ue, double um, double ut)
+double Production::KaonE(const Mixing &mix)
 {
-
-	if (!fprod.count(Channel::_KaonE))
-		fprod[Channel::_KaonE] = std::pow(Const::U_us * Const::DKaon, 2)
+	if (!_table.count(Channel::KaonE))
+		_table[Channel::KaonE] = std::pow(Const::U_us * Const::DKaon, 2)
 				* MesonTwoDecay(Const::MKaon, Const::MElectron);
 
-	return fprod[Channel::_KaonE] * ue*ue;
+	return _table[Channel::KaonE] * mix.Ue(2);
 }
 
-double Production::KaonM(double ue, double um, double ut)
+double Production::KaonM(const Mixing &mix)
 {
-
-	if (!fprod.count(Channel::_KaonM))
-		fprod[Channel::_KaonM] = std::pow(Const::U_us * Const::DKaon, 2)
+	if (!_table.count(Channel::KaonM))
+		_table[Channel::KaonM] = std::pow(Const::U_us * Const::DKaon, 2)
 				* MesonTwoDecay(Const::MKaon, Const::MMuon);
 
-	return fprod[Channel::_KaonM] * um*um;
+	return _table[Channel::KaonM] * mix.Um(2);
 }
 
-double Production::CharmE(double ue, double um, double ut)
+double Production::CharmE(const Mixing &mix)
 {
-
-	if (!fprod.count(Channel::_CharmE))
-		fprod[Channel::_CharmE] = std::pow(Const::U_cs * Const::DCharm, 2)
+	if (!_table.count(Channel::CharmE))
+		_table[Channel::CharmE] = std::pow(Const::U_cs * Const::DCharm, 2)
 				* MesonTwoDecay(Const::MDs, Const::MElectron);
 
-	return fprod[Channel::_CharmE] * ue*ue;
+	return _table[Channel::CharmE] * mix.Ue(2);
 }
 
-double Production::CharmM(double ue, double um, double ut)
+double Production::CharmM(const Mixing &mix)
 {
-
-	if (!fprod.count(Channel::_CharmM))
-		fprod[Channel::_CharmM] = std::pow(Const::U_cs * Const::DCharm, 2)
+	if (!_table.count(Channel::CharmM))
+		_table[Channel::CharmM] = std::pow(Const::U_cs * Const::DCharm, 2)
 				* MesonTwoDecay(Const::MDs, Const::MMuon);
 
-	return fprod[Channel::_CharmM] * um*um;
+	return _table[Channel::CharmM] * mix.Um(2);
 }
 
-double Production::CharmT(double ue, double um, double ut)
+double Production::CharmT(const Mixing &mix)
 {
-
-	if (!fprod.count(Channel::_CharmT))
-		fprod[Channel::_CharmT] = std::pow(Const::U_cs * Const::DCharm, 2)
+	if (!_table.count(Channel::CharmT))
+		_table[Channel::CharmT] = std::pow(Const::U_cs * Const::DCharm, 2)
 				* MesonTwoDecay(Const::MDs, Const::MTau);
 
-	return fprod[Channel::_CharmT] * ut*ut;
+	return _table[Channel::CharmT] * mix.Ut(2);
 }
 
-double Production::Kaon0E(double ue, double um, double ut)
+double Production::Kaon0E(const Mixing &mix)
 {
-
-	if (!fprod.count(Channel::_Kaon0E))// || IsChanged())
-		fprod[Channel::_Kaon0E] = std::pow(Const::U_us * Const::KaPi, 2)
+	if (!_table.count(Channel::Kaon0E))// || IsChanged())
+		_table[Channel::Kaon0E] = std::pow(Const::U_us * Const::KaPi, 2)
 			* MesonThreeDecay(Const::MKaon0, Const::MPion, Const::MElectron,
 					  Const::K0L_, Const::K0L0);
 
-	return fprod[Channel::_Kaon0E] * ue*ue;
+	return _table[Channel::Kaon0E] * mix.Ue(2);
 }
 
-double Production::Kaon0M(double ue, double um, double ut)
+double Production::Kaon0M(const Mixing &mix)
 {
-
-	if (!fprod.count(Channel::_Kaon0M))// || IsChanged())
-		fprod[Channel::_Kaon0M] = std::pow(Const::U_us * Const::KaPi, 2)
+	if (!_table.count(Channel::Kaon0M))// || IsChanged())
+		_table[Channel::Kaon0M] = std::pow(Const::U_us * Const::KaPi, 2)
 			* MesonThreeDecay(Const::MKaon0, Const::MPion, Const::MMuon,
 					  Const::K0L_, Const::K0L0);
 
-	return fprod[Channel::_Kaon0M] * um*um;
+	return _table[Channel::Kaon0M] * mix.Um(2);
 }
 
-double Production::KaonCE(double ue, double um, double ut)
+double Production::KaonCE(const Mixing &mix)
 {
-	if (!fprod.count(Channel::_KaonCE))
-		fprod[Channel::_KaonCE] = std::pow(Const::U_us * Const::KaPi, 2) / 2.
+	if (!_table.count(Channel::KaonCE))
+		_table[Channel::KaonCE] = std::pow(Const::U_us * Const::KaPi, 2) / 2.
 			* MesonThreeDecay(Const::MKaon, Const::MPion0, Const::MElectron,
 					  Const::KCL_, Const::KCL0);
 
-	return fprod[Channel::_KaonCE] * ue*ue;
+	return _table[Channel::KaonCE] * mix.Ue(2);
 }
 
-double Production::KaonCM(double ue, double um, double ut)
+double Production::KaonCM(const Mixing &mix)
 {
-	if (!fprod.count(Channel::_KaonCM))
-		fprod[Channel::_KaonCM] = std::pow(Const::U_us * Const::KaPi, 2) / 2.
+	if (!_table.count(Channel::KaonCM))
+		_table[Channel::KaonCM] = std::pow(Const::U_us * Const::KaPi, 2) / 2.
 			* MesonThreeDecay(Const::MKaon, Const::MPion0, Const::MMuon,
 					  Const::KCL_, Const::KCL0);
 
-	return fprod[Channel::_KaonCM] * um*um;
+	return _table[Channel::KaonCM] * mix.Um(2);
 }
 
 /////////////////
@@ -311,10 +295,10 @@ double Production::KaonCM(double ue, double um, double ut)
 //production from lepton -> neutrino is from same leptonic line
 double Production::LeptonNeutrinoDecay(double m_lepton0, double m_lepton, double m_neut)
 {
-	_m_parent = _m_lepton0;
+	_m_parent = m_lepton0;
 	return I_LeptonNeutrino(std::pow(m_neut / _m_parent, 2),
 				std::pow(m_lepton / _m_parent, 2),
-				std::pow(_m_Nu / _m_parent, 2));
+				std::pow(_N.M() / _m_parent, 2));
 }
 
 //						c	  b	    a
@@ -323,10 +307,11 @@ double Production::I_LeptonNeutrino(double x, double y, double z)//, double thet
 	_vars = {x, y, z};
 	//F_var.push_back(cos0);	//3	//theta
 
-	return BooleIntegration(&Production::I_LeptonNeutrino_u); 
+	auto func = std::bind(&Production::F_LeptonNeutrino_u, this, std::placeholders::_1);
+	return Integration::Boole<1, double>(func); 
 }
 
-double Production::I_LeptonNeutrino_u(double u)	//fixing one variable
+double Production::F_LeptonNeutrino_u(double u)	//fixing one variable
 {
 	//shouldnt use alias for clarity
 	double x = _vars[0];	//light neutrino	u
@@ -334,51 +319,47 @@ double Production::I_LeptonNeutrino_u(double u)	//fixing one variable
 	double z = _vars[2];	//heavy neutrino
 	//const double &cos0 = F_var.at(3);
 
-	double u_ = u;
-	double fc = Limit(u_, y, z, x);
+	double fc = Limit(u, y, z, x);
 
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
 
-	double M2 = fc * M2_LeptonNeutrino(u_, x, y, z);
-	return dGammad2_3B(M2);
+	return dGammad2_3B() * fc * M2_LeptonNeutrino(u, x, y, z);
 }
 
 
 //production from antilepton -> neutrino is from opposite leptonic line
-double Production::AntiLeptonNeutrinoDecay(double m_lepton0, double m_lepton, double m_neut)
+double Production::AntileptonNeutrinoDecay(double m_lepton0, double m_lepton, double m_neut)
 {
 	_m_parent = m_lepton0;
-	return I_AntiLeptonNeutrino(std::pow(m_neut / _m_parent, 2),
+	return I_AntileptonNeutrino(std::pow(m_neut / _m_parent, 2),
 				    std::pow(m_lepton / _m_parent, 2),
 				    std::pow(_N.M() / _m_parent, 2));
 }
 						//  c	      b		a
-double Production::I_AntiLeptonNeutrino(double x, double y, double z)//, double theta)	//integrate first in y and then in x
+double Production::I_AntileptonNeutrino(double x, double y, double z)//, double theta)	//integrate first in y and then in x
 {
 	_vars = {x, y, z};
 	//F_var.push_back(cos0);	//3	//theta
 
-	return BooleIntegration(&Production::I_AntiLeptonNeutrino_s);
+	auto func = std::bind(&Production::F_AntileptonNeutrino_s, this, std::placeholders::_1);
+	return Integration::Boole<1, double>(func); 
 }
 
-double Production::I_AntiLeptonNeutrino_s(double s)	//the term is written for a neutrino production
-{								//therefore with heliciies inverted
+double Production::F_AntileptonNeutrino_s(double s)//the term is written for a neutrino production
+{						   //therefore with helicities inverted
 	//aliases for clarity
 	double x = _vars[0];
 	double y = _vars[1];
 	double z = _vars[2];
 	//const double &cos0 = F_var.at(5);
 
-	//create S var
-	double s_ = s;
-	double fc = Limit(s_, x, y, z);
+	double fc = Limit(s, x, y, z);
 
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;		//so an overall factor of 2
 
-	double M2 = fc * M2_AntiLeptonNeutrino(s_, x, y, z);
-	return dGammad2_3B(M2);
+	return dGammad2_3B() * fc * M2_AntileptonNeutrino(s, x, y, z);
 }
 
 double Production::LeptonTwoDecay(double m_lepton, double m_meson)
@@ -390,8 +371,7 @@ double Production::LeptonTwoDecay(double m_lepton, double m_meson)
 
 double Production::I_LeptonTwo(double x, double y)
 {
-	double M2 = M2_LeptonTwo(x, y);
-	return dGammad0_2B(M2, x, y);
+	return dGammad0_2B(x, y) * M2_LeptonTwo(x, y);
 }
 
 double Production::LeptonThreeDecay(double m_lepton, double m_meson0, double m_meson)
@@ -406,19 +386,18 @@ double Production::I_LeptonThree(double x, double y, double z)
 {
 	_vars = {x, y, z};
 
-	return BooleIntegration(&Production::I_LeptonThree_s); 		//switch to Vega
+	auto func = std::bind(&Production::F_LeptonThree_s, this, std::placeholders::_1);
+	return Integration::Boole<1, double>(func); 
 }
 
-double Production::I_LeptonThree_s(double s)
+double Production::F_LeptonThree_s(double s)
 {
 	double x = _vars[0];
 	double y = _vars[1];
 	double z = _vars[2];
-	double s_ = s;
-	double fc = Limit(s_, x, y, z);
+	double fc = Limit(s, x, y, z);
 
-	double M2 = fc * M2_LeptonThree(x, y, z);
-	return dGammad2_3B(M2);
+	return dGammad2_3B() * fc * M2_LeptonThree(x, y, z);
 }
 
 double Production::MesonTwoDecay(double m_meson, double m_lepton)
@@ -430,8 +409,7 @@ double Production::MesonTwoDecay(double m_meson, double m_lepton)
 
 double Production::I_MesonTwo(double x, double y)	//symetric in x and y
 {
-	double M2 = M2_MesonTwo(x, y);
-	return dGammad0_2B(M2, x, y);
+	return dGammad0_2B(x, y) * M2_MesonTwo(x, y);
 }
 
 double Production::MesonThreeDecay(double m_meson0, double m_meson, double m_lepton, double L_, double L0)	//decay constant not important
@@ -443,40 +421,29 @@ double Production::MesonThreeDecay(double m_meson0, double m_meson, double m_lep
 			    L_, L0);
 }
 
-double Production::I_MesonThree(double x, double y, double z, double L_, double L0)	//no angle dependence
+//no angle dependence
+double Production::I_MesonThree(double x, double y, double z, double L_, double L0)
 {
-	_vars = {x, y, z, L_, L0, 0};
+	_vars = {x, y, z, L_, L0};
 
-	return BooleIntegration(&Production::I_MesonThree_s); 		//switch to Vega
+	auto func = std::bind(&Production::F_MesonThree_s_t, this,
+			      std::placeholders::_1, std::placeholders::_2);
+	return Integration::Boole<2, double>(func); // reduced precision, 16x faster
 }
 
-// nested integration
-double Production::I_MesonThree_s(double s)	//fixing one variable
-{
-	_vars[5] = s;
-	return BooleIntegration(&Production::I_MesonThree_t);
-}
-
-double Production::I_MesonThree_t(double t)
+double Production::F_MesonThree_s_t(double s, double t)
 {
 	//aliases for clarity
 	double x  = _vars[0];
 	double y  = _vars[1];
 	double z  = _vars[2];
-	double L0 = _vars[3];
-	double L_ = _vars[4];
+	double L_ = _vars[3];
+	double L0 = _vars[4];
 
-	double s_ = _vars[5];
-	double t_ = t;
-	double fc = Limit(s_, t_, x, y, z);
+	double fc = Limit(s, t, x, y, z);
 
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);	//theta < 0 means integration over theta
 	//double fc = theta < 0 ? 2.0 : 1.0;              //so an overall factor of 2
 
-	double M2 = fc * M2_MesonThree(s_, t_, x, y, z, L_, L0);
-	return dGammad2_3B(M2);
-}
-
-double Reset() {
-	fprod.clear();
+	return dGammad2_3B() * fc * M2_MesonThree(s, t, x, y, z, L_, L0);
 }

@@ -2,12 +2,22 @@
 #include <fstream>
 #include <cstring>
 #include <vector>
+#include <random>
+#include <memory>
+#include <iomanip>
 #include <getopt.h>
 
-#include "tools.h"
-#include "detector.h"
-#include "physics.h"
-#include "flux.h"
+#include "tools/CardDealer.h"
+
+#include "physics/Const.h"
+#include "detector/Detector.h"
+
+#include "physics/PhaseSpace.h"
+#include "physics/Particle.h"
+#include "physics/Neutrino.h"
+#include "physics/OpenQQ.h"
+
+#include "flux/Driver.h"
 
 #include "TKey.h"
 #include "TFile.h"
@@ -17,22 +27,19 @@
 #include "TRandom3.h"
 #include "TGenPhaseSpace.h"
 
-void Usage(char* argv0);
-double Ds(double xf, double pt)
+//from 1708.08700, 250GeV proton beam E796
+const double b = 1.08;
+const double n = 6.1;
+
+double Dsdx(double xf, double pt)
 {
-	//from 1708.08700, 250GeV proton beam E796
-	double b = 1.08;
-	double n = 6.1;
-	//return n*(1-std::abs(xf)) - b * pt*pt;
-	return std::exp(n * std::log(1 - std::abs(xf)) - b * pow(pt, 2));
+	return std::exp(n * std::log(1 - std::abs(xf)) - b * std::pow(pt, 2));
 }
 
 int main(int argc, char** argv)
 {
 	const struct option longopts[] = 
 	{
-		{"nue", 	required_argument, 	0, 'e'},
-		{"numu", 	required_argument, 	0, 'u'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
 	};
@@ -42,335 +49,326 @@ int main(int argc, char** argv)
 	opterr = 1;
 
 	//std::string sProb, sTarg("H"), OutName;
-	std::string outName, detConfig, nuEFile, nuMFile;
-	std::ofstream outFile;
-	double beamE = 800;	//(GeV)	//800 GeV for DONUT for comparison
-	int Nevent = 1e5;
-	double mass = 0.0;	//neutrino mass in MeV
+	std::string det_card, nuEfile, nuMfile;
+	std::ofstream outfile;
+	double mass = -1.;
 
-	while((iarg = getopt_long(argc,argv, "r:s:m:E:t:o:I:d:e:u:h", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc, argv, "m:", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
-			case 'r':
-				outName.assign(optarg);
-				break;
 			case 'm':
-				mass = strtod(optarg, NULL);
-				mass /= 1000.0;
+				mass = std::strtod(optarg, NULL);
 				break;
-			case 'E':
-				beamE = strtod(optarg, NULL);
-				break;
-			case 'o':
-				outFile.open(optarg);
-				break;
-			case 'I':
-				Nevent = strtol(optarg, NULL, 10);
-				break;
-			case 'd':
-				detConfig.assign(optarg);
-				break;
-			case 'e':
-				nuEFile.assign(optarg);
-				break;
-			case 'u':
-				nuMFile.assign(optarg);
-				break;
-			case 'h':
-				Usage(argv[0]);
-				return 1;
 			default:
 				break;
 		}
 	}
 
-	std::ostream &out = (outFile.is_open()) ? outFile : std::cout;
+	CardDealer cd(argv[optind]);
 
-	std::string out0 = outName + "_0.root";
-	std::string outB = outName + "_B.root";
+	// geometrical configuration
+	std::string config;
+	if (!cd.Get("detector_configuration", config))
+		throw std::logic_error("There is no detector configuration\n");
+	Detector box(config);
 
-	TFile *FileOut0 = new TFile(out0.c_str(), "RECREATE");
-	TFile *FileOutB = new TFile(outB.c_str(), "RECREATE");
 
-	TH1D * hTotal0 = new TH1D("htotal1", "total",  100, 0, 20);
-	TH1D * hTotalB = new TH1D("htotal2", "total",  100, 0, 20);
+	// physics configuration
+	size_t nEvents;
+	if (!cd.Get("number_events", nEvents))
+		nEvents = 1e5;
+
+	double Eb = box.BeamEnergy();
+	//if (!cd.Get("beam_energy", Eb))
+		//Eb = 80;
+	if (Eb <= Const::MProton)
+		throw std::invalid_argument("Beam energy is too low!\n");
+
+	double cme = std::sqrt(2 * Const::MProton * (Const::MProton + Eb));
+	TLorentzVector S_vec(0, 0, std::sqrt(std::pow(Eb,2) - std::pow(Const::MProton,2)),
+				   Eb + Const::MProton);
+
+	double ccxsec;
+	if (!cd.Get("cc_xsec", ccxsec)) {
+		if (!cd.Get("opencc_configuration", config)) {
+			ccxsec = 12;
+			std::cerr << "No open charm configuration file, using CC xsec = " << ccxsec
+				  << " at beam energy of " << Eb << " GeV\n";
+		}
+		else {	// compute on the fly
+			std::unique_ptr<OpenQQ> xsec(new OpenQQ(config));
+			xsec->SetCMEnergy(cme);
+			double err, chi2;
+			ccxsec = xsec->Integrate(err, chi2);
+		}
+	}
+	std::cout << "FluxDs: center of mass energy " << cme << "\n";
+	std::cout << "FluxDs: using open cc xsec " << ccxsec << "\n";
+
+	// neutrino mass for tau flux
+	if (mass < 0 && !cd.Get("neutrino_mass", mass))
+		mass = 0.;
+
+	//std::unique_ptr<TFile> fileOut0(new TFile(out0.c_str(), "RECREATE"));
+	//std::unique_ptr<TFile> fileOutB(new TFile(outB.c_str(), "RECREATE"));
+
+	std::vector<double> bins;
+	if (!cd.Get("binning", bins)) {
+		bins.reserve(126);
+		std::generate_n(std::back_inserter(bins), 126,
+				[n=0]() mutable { return 0.2 * n++; } );
+	}
 
 	//neutrino
-	TH1D * hCharmE = new TH1D("hcharme", "charm",  100, 0, 20);
-	TH1D * hCharmM = new TH1D("hcharmm", "charm",  100, 0, 20);
-	TH1D * hCharmT = new TH1D("hcharm", "charm",  100, 0, 20);
-	TH1D * pCharmT = new TH1D("pcharm", "charm",  100, 0, 20);
+	std::shared_ptr<TH1D> hCharmE(new TH1D("hcharme", "hcharm", bins.size()-1, &bins[0]));
+
+	std::shared_ptr<TH1D> hCharmM(new TH1D("hcharmm", "hcharm", bins.size()-1, &bins[0]));
+	std::shared_ptr<TH1D> hCharmT(new TH1D("hcharm",  "hcharm", bins.size()-1, &bins[0]));
 
 	//antineutrino
-	TH1D * hTauE  = new TH1D("htaue",  "taue",   100, 0, 20);
-	TH1D * hTauM  = new TH1D("htaum",  "taum",   100, 0, 20);
-	TH1D * hPion  = new TH1D("hpion",  "pion",   100, 0, 20);
-	TH1D * h2Pion = new TH1D("h2pion", "2 pion", 100, 0, 20);
+	std::shared_ptr<TH1D> hTauE  (new TH1D("htaue",  "htaue",   bins.size()-1, &bins[0]));
+	std::shared_ptr<TH1D> hTauM  (new TH1D("htaum",  "htaum",   bins.size()-1, &bins[0]));
+	std::shared_ptr<TH1D> hPion  (new TH1D("hpion",  "hpion",   bins.size()-1, &bins[0]));
+	std::shared_ptr<TH1D> h2Pion (new TH1D("h2pion", "h2pion",  bins.size()-1, &bins[0]));
 
+	std::shared_ptr<TH1D> hTauEE (new TH1D("htauee", "htaue",   bins.size()-1, &bins[0]));
+	std::shared_ptr<TH1D> hTauMM (new TH1D("htaumm", "htaum",   bins.size()-1, &bins[0]));
 
-	hTotal0->SetDirectory(0);
-	hCharmT->SetDirectory(FileOut0);
-	pCharmT->SetDirectory(FileOut0);
-
-	hCharmE->SetDirectory(0);
-	hCharmM->SetDirectory(0);
-
-	hTotalB->SetDirectory(0);
-	hTauE->SetDirectory(FileOutB);
-	hTauM->SetDirectory(FileOutB);
-	hPion->SetDirectory(FileOutB);
-	h2Pion->SetDirectory(FileOutB);
-
-	//generous angular acceptance of detector
-	Detector *theBox = new Detector(detConfig);
-	double th0 = theBox->AngularAcceptance();
-
-	TRandom3 *mt = new TRandom3(0);
-
-	TLorentzVector beam(0, 0, sqrt(pow(beamE, 2) - pow(Const::MProton, 2)), beamE);
-	TLorentzVector targ(0, 0, 0, Const::MProton);
-	TLorentzVector S = beam+targ;
-	double ptmax = S.M();		//CM energy
+	// Normalisation from open charm calculation and proper
+	// histogram units -> nu / cm2 / GeV @ 1 m from source
+	//	    cc xsec /  pA xsec * fragmentation / nEvents
+	double SF = ccxsec * 1e-3 / 331.4 * 0.077 / nEvents
+	//	    baseline / surface in cm2 / GeV
+		    / box.Scaling();
+	double ptmax = cme / 2.;	// half of sqrt(s)
+	
+	// simulation config
+	std::uniform_real_distribution<> rndm;
 
 	//neutrinos
 	//Nu0 and NuB are to directly produce HNL flux from tau mixing
 	//if mass == 0 then it is light neutrino flux
 	//no difference between Majorana or Dirac
-	//
-	Neutrino Nu0(mass, Neutrino::Dirac | Neutrino::Left );
-	Neutrino NuB(mass, Neutrino::Dirac | Neutrino::Right | Neutrino::Antiparticle);
-	
-	//Normalisation from open charm calculation
-	//	    cc xsec /  pA xsec * fragmentation / Nevent
-	double SF = 12.1e-3 / 331.4 * 0.077 / Nevent;
-	//normalisation of baseline and area
+
+	std::cout << "FluxDs: creating neutrinos\n";
+
+	std::cout << "FluxDs: creating phasespace terms\n";
+	PhaseSpace ps0(Neutrino(mass, Neutrino::dirac | Neutrino::left));
+	PhaseSpace psB(Neutrino(mass, Neutrino::dirac | Neutrino::right | Neutrino::antiparticle));
+	PhaseSpace light(Neutrino(0., Neutrino::dirac | Neutrino::left));
 
 	std::vector<Particle> vProductDs, vProductTau;
 	std::vector<Particle>::iterator iP;
 
-	int DecayCount = 0, InNDCount = 0, ID;
-	for (ID = 0; ID < Nevent; ++ID)
+	std::cout << "FluxDs: running simualation for " << nEvents << " events\n";
+	for (size_t ID = 0; ID < nEvents; ++ID)
 	{
-		double pt, xf;
-		do
-		{
-			pt = mt->Uniform(0, ptmax);
-			xf = mt->Uniform(-1.0, 1.0);
+		double pt = rndm(RNG::_mt) * ptmax;
+		double xf = rndm(RNG::_mt) * 2. - 1.;
+		while (rndm(RNG::_mt) > Dsdx(xf, pt)) {
+			pt = rndm(RNG::_mt) * ptmax;
+			xf = rndm(RNG::_mt) * 2. - 1.;
 		}
-		while (mt->Rndm() > Ds(xf, pt));
 
-		double px, py;
-		double pz = ptmax * xf / 2.0;
-		mt->Circle(px, py, pt);
+		double theta = rndm(RNG::_mt) * 2. * Const::pi;
+		double px = std::cos(theta) * pt;
+		double py = std::sin(theta) * pt;
+		double pz = cme * xf / 2.0;
 
-		TLorentzVector Ds_vec(px, py, pz, sqrt(pt*pt + pz*pz + pow(Const::MDs, 2)));
-		Ds_vec.Boost(S.BoostVector());	//parent lab frame
+		Particle Ds(431, std::sqrt(pt*pt + pz*pz + std::pow(Const::MDs, 2)), px, py, pz);
+		Ds.Boost(S_vec.BoostVector());	//parent lab frame
 
 		//Ds decay into electrons
-		if (!nuEFile.empty())
+		if (cd.Get("nuE0_file"))
 		{
-			std::vector<Particle> vProductDs = Nu0.ProductionPS(Ds_vec, "CharmE");
-			if (vProductDs.size() && vProductDs[0].Theta() <= th0)
-				hCharmE->Fill(vProductDs[0].Energy(), SF * 8.3e-5);
+			// pair of particle vector and event weight
+			const auto prodDs = ps0.Generate(Channel::CharmE, Ds);
+			if (prodDs.first.size() && box.AngularAccept(prodDs.first[0]))
+				hCharmE->Fill(prodDs.first[0].E(), prodDs.second * SF * 8.3e-5);
 		}							//BR(Ds -> e nu)
 
 		//Ds decay into muons
-		if (!nuMFile.empty())
+		if (cd.Get("nuM0_file"))
 		{
-			std::vector<Particle> vProductDs = Nu0.ProductionPS(Ds_vec, "CharmM");
-			if (vProductDs.size() && vProductDs[0].Theta() <= th0)
-				hCharmM->Fill(vProductDs[0].Energy(), SF * 5.5e-3);	//corrected BR
+			const auto prodDs = ps0.Generate(Channel::CharmM, Ds);
+			if (prodDs.first.size() && box.AngularAccept(prodDs.first[0]))
+				hCharmM->Fill(prodDs.first[0].E(), prodDs.second * SF * 5.5e-3);
 		}							//BR(Ds -> mu nu)
 
 		//Ds decay into taus
-		std::vector<Particle> vProductDs = Nu0.ProductionPS(Ds_vec, "CharmT");
+		auto prodDs = ps0.Generate(Channel::CharmT, Ds);
+		//std::cout << "ps0 generated: ";
+		//for (const auto &p : prodDs.first)
+		//	std::cout << p << "\t";
+		//std::cout << "\nwith weight " << prodDs.second << "\n";
 
-		if (vProductDs.size())
-		{
-			++DecayCount;
+		// Ds decay to tau successful
+		if (prodDs.first.size() && box.AngularAccept(prodDs.first[0]))
+			hCharmT->Fill(prodDs.first[0].E(), prodDs.second * SF * 0.0548);
 
-			if (vProductDs[0].Theta() <= th0)	//neutrino
-				hCharmT->Fill(vProductDs[0].Energy(), SF * 0.0548);
-			else
-				++InNDCount;
-		}
+		if (mass > 0)	//use light neutrino to make tau flux 
+			prodDs = light.Generate(Channel::CharmT, Ds);
 
-		if (mass > 0)	//use light neutrino to have tau flux 
-		{
-			Neutrino lightNu(0.0,  Neutrino::Dirac | Neutrino::Left );
-			vProductDs = lightNu.ProductionPS(Ds_vec, "CharmT");
-		}
-
-
-		if (vProductDs.size() < 2)
-			continue;	//generation failed
+		if (prodDs.first.size() < 2)
+			continue;
 
 		//tau decay from Ds
-		TLorentzVector Tau_vec(vProductDs[1].FourVector());
-		for (int i = 0; i < 4; ++i)
+		Particle tau(prodDs.first[1]);
+
+		//tau decay into electrons via electron mixing
+		if (cd.Get("nuEB_file"))
+		{	//tau->e vie e mix (17.85 %)
+			const auto prodTau = light.Generate(Channel::TauEE, tau);
+			if (prodTau.first.size() && box.AngularAccept(prodTau.first[0]))
+				hTauEE->Fill(prodTau.first[0].E(), prodTau.second * SF
+								  * 0.0548 * 0.1785);
+		}
+
+		//Ds decay into muons
+		if (cd.Get("nuMB_file"))
+		{	//tau->mu vie mu mix (17.36 %)
+			const auto prodTau = psB.Generate(Channel::TauMM, tau);
+			if (prodTau.first.size() && box.AngularAccept(prodTau.first[0]))
+				hTauMM->Fill(prodTau.first[0].E(), prodTau.second * SF
+								  * 0.0548 * 0.1736);
+		}
+
+		for (size_t t = 0; t < 4; ++t)
 		{
-			std::string channel;
-			TH1D* hFill;
-			double Br;
-			switch (i)
+			Channel::Name chan;
+			std::shared_ptr<TH1D> hist;
+			double br;
+			switch (t)
 			{
 				case 0:
-					channel = "TauET";
-					hFill = hTauE;
-					Br = SF * 0.0548 * 0.1785;	//tau->e (17.85 %)
+					chan = Channel::TauET;
+					hist = hTauE;
+					br = 0.1785;	//tau->e (17.85 %)
 					break;
 				case 1:
-					channel = "TauMT";
-					hFill = hTauM;
-					Br = SF * 0.0548 * 0.1736;	//tau->mu (17.36 %)
+					chan = Channel::TauMT;
+					hist = hTauM;
+					br = 0.1736;	//tau->mu (17.36 %)
 					break;
 				case 2:
-					channel = "TauPI";
-					hFill = hPion;
-					Br = SF * 0.0548 * 0.1082;	//tau->pi (10.82 %)
+					chan = Channel::TauPI;
+					hist = hPion;
+					br = 0.1082;	//tau->pi (10.82 %)
 					break;
 				case 3:
-					channel = "Tau2PI";
-					hFill = h2Pion;
-					Br = SF * 0.0548 * 0.2551;	//tau->2pi (25.62 %)
-					break;			//Phase space only!!
+					chan = Channel::Tau2PI;
+					hist = h2Pion;
+					br = 0.2551;	//tau->2pi (25.62 %)
+					break;		//Phase space only!!
 				default:
 					break;
 			}
 
-			std::vector<Particle> vProductTau = NuB.ProductionPS(Tau_vec, channel);
-			if (vProductTau.size())
-				if (vProductTau.at(0).Theta() <= th0)	//neutrino
-					hFill->Fill(vProductTau.at(0).Energy(), Br);
-		}
+			br *= prodDs.second * SF * 0.0548;
 
-		if (ID % 10000 == 0)	//saving
-		{
-			FileOut0->Write("", TObject::kOverwrite);
-			FileOutB->Write("", TObject::kOverwrite);
+			const auto prodTau = psB.Generate(chan, tau);
+			if (prodTau.first.size() && box.AngularAccept(prodTau.first[0]))
+				hist->Fill(prodTau.first[0].E(), br);
 		}
-
 	}
 
-	hTotal0->Add(hCharmT);
 
-	hTotalB->Add(hTauE);
-	hTotalB->Add(hTauM);
-	hTotalB->Add(hPion);
-	hTotalB->Add(h2Pion);
+	// output files
+	std::string outname;
+	if (!cd.Get("output", outname))
+		outname = "nu";
 
-	FileOut0->cd();
-	FileOut0->Write();
-
-	hTotal0->Write("htotal");
-	//hCharm->Write();
-
-	FileOutB->cd();
-	FileOutB->Write();
-
-	hTotalB->Write("htotal");
-
-	std::cout << "Ds meson decays are " << 100.0 * DecayCount / double(Nevent) << " %\n";
-	//std::cout << "Products in ND are " << 100.0 * (1.0 - InNDCount / double(Nevent)) << " %\n";
-	std::cout << "Neutrinos in ND are " << 100.0 * (hCharmT->GetEntries() / double(Nevent)) << " %\n";
-	std::cout << "Antineuts in ND are " << 100.0 * (hPion->GetEntries() / double(DecayCount)) << " %\n";
-	std::cout  << "Neutrinos simulated " << hTotal0->GetEntries();
-	std::cout << " (" << hTotal0->GetEntries()*100.0/double(Nevent) << " %)";
-	std::cout << ", saved in " << FileOut0->GetName() << std::endl;
-	std::cout  << "Antineutrinos simulated " << hTotalB->GetEntries();
-	std::cout << " (" << hTotalB->GetEntries()*100.0/double(Nevent) << " %)";
-	std::cout << ", saved in " << FileOutB->GetName() << std::endl;
-
-	FileOut0->Close();
-	FileOutB->Close();
-
-	if (!nuEFile.empty())	//creating new files so that it doesn't screw up existing files
-	{
-		TFile fileInE(nuEFile.c_str(), "READ");
-
-		if (nuEFile.find(".root") != std::string::npos)
-			nuEFile.insert(nuEFile.find(".root"), "_new");
-		else
-			nuEFile += "_new.root";
-		TFile fileOutE(nuEFile.c_str(), "RECREATE");
-
-		fileInE.cd();
-		TIter next(fileInE.GetListOfKeys());
-		TKey *kkk;
-		hTotal0 = 0;
-		while (kkk = static_cast<TKey*> (next()))
-		{
-			if (kkk->GetName() == "htotal" || kkk->GetName() == "hcharm")
-				continue;
-			TH1D *hflux = static_cast<TH1D*> (kkk->ReadObj());
-			if (!hTotal0)
-				hTotal0 = hflux;
-			else
-				hTotal0->Add(hflux);
-		}
-
-		fileOutE.cd();
-		if (hTotal0)
-		{
-			hTotal0->Add(hCharmE);
-			hTotal0->Write("", TObject::kOverwrite);
-		}
-		hCharmE->Write("hcharm", TObject::kOverwrite);
-
-		fileInE.Close();
-		fileOutE.Close();
+	std::string out0 = outname + "0.root";
+	std::string outB = outname + "B.root";
+	if (mass > 0) {
+		std::stringstream ssm;
+		ssm << "_" << std::setw(4) << std::fixed << std::setfill('0')
+		    << std::setprecision(0) << mass * 1000;
+		out0.insert(out0.find(".root"), ssm.str());
+		outB.insert(outB.find(".root"), ssm.str());
 	}
 
-	if (!nuMFile.empty())	//creating new files so that it doesn't screw up existing files
-	{
-		TFile fileInM(nuMFile.c_str(), "READ");
+	TFile fileOut0(out0.c_str(), "RECREATE");
+	hCharmT->Scale(1, "WIDTH");
+	hCharmT->Write("", TObject::kOverwrite);
+	fileOut0.Close();
 
-		if (nuMFile.find(".root") != std::string::npos)
-			nuMFile.insert(nuMFile.find(".root"), "_new");
+	TFile fileOutB(outB.c_str(), "RECREATE");
+	hTauE->Scale(1, "WIDTH");
+	hTauE->Write("", TObject::kOverwrite);
+	hTauM->Scale(1, "WIDTH");
+	hTauM->Write("", TObject::kOverwrite);
+	hPion->Scale(1, "WIDTH");
+	hPion->Write("", TObject::kOverwrite);
+	h2Pion->Scale(1, "WIDTH");
+	h2Pion->Write("", TObject::kOverwrite);
+	fileOutB.Close();
+
+
+	std::cout << "Neutrinos in ND are\t" << 100.0 * (hCharmT->GetEntries() / double(nEvents)) << " %\n";
+	std::cout << "Antineuts in ND are\t" << 100.0 * (hPion->GetEntries() / double(nEvents)) << " %\n";
+
+
+	// extra files
+	for (size_t i = 0; i < 4; ++i) {
+		std::string extra;
+		std::shared_ptr<TH1D> hist;
+		switch (i) {
+			case 0:
+				extra = "nuE0_file";
+				hist = hCharmE;
+				break;
+			case 1:
+				extra = "nuM0_file";
+				hist = hCharmM;
+				break;
+			case 2:
+				extra = "nuEB_file";
+				hist = hTauEE;
+				break;
+			case 3:
+				extra = "nuMB_file";
+				hist = hTauMM;
+				break;
+		}
+		std::string extra_file;
+		if (!cd.Get(extra, extra_file))
+			continue;
+
+		TFile fileIn(extra_file.c_str(), "READ");
+
+		if (extra_file.find(".root") != std::string::npos)
+			extra_file.insert(extra_file.find(".root"), "_new");
 		else
-			nuMFile += "_new.root";
-		TFile fileOutM(nuMFile.c_str(), "RECREATE");
+			extra_file += "_new.root";
 
-		fileInM.cd();
-		TIter next(fileInM.GetListOfKeys());
+		TFile fileOut(extra_file.c_str(), "RECREATE");
+
+		TIter next(fileIn.GetListOfKeys());
 		TKey *kkk;
-		hTotal0 = 0;
-		while (kkk = static_cast<TKey*> (next()))
+		fileOut.cd();
+		while ((kkk = static_cast<TKey*> (next())))
 		{
-			if (kkk->GetName() == "htotal" || kkk->GetName() == "hcharm")
+			// skip htaus or hcharm as we are overwriting them
+			if ((std::strcmp(kkk->GetName(), "hcharm") == 0)
+			 || (std::strcmp(kkk->GetName(), "htaue") == 0)
+			 || (std::strcmp(kkk->GetName(), "htaum") == 0))
 				continue;
-			TH1D *hflux = static_cast<TH1D*> (kkk->ReadObj());
-			if (!hTotal0)
-				hTotal0 = hflux;
-			else
-				hTotal0->Add(hflux);
+
+			// copy old histogram
+			std::shared_ptr<TH1D> hflux(static_cast<TH1D*>(kkk->ReadObj()));
+			//hflux->Scale(1, "WIDTH");  DO NOT SCALE!!!
+			hflux->Write(kkk->GetName(), TObject::kOverwrite);
 		}
 
-		fileOutM.cd();
-		if (hTotal0)
-		{
-			hTotal0->Add(hCharmM);
-			hTotal0->Write("", TObject::kOverwrite);
-		}
-		hCharmM->Write("hcharm", TObject::kOverwrite);
+		// write last ones
+		hist->Scale(1, "WIDTH");
+		hist->Write(hist->GetTitle(), TObject::kOverwrite);
 
-		fileInM.Close();
-		fileOutM.Close();
+		fileIn.Close();
+		fileOut.Close();
 	}
 
 	return 0;
-}
-
-void Usage(char* argv0)
-{
-	std::cout << "Description" << std::endl;
-	std::cout << "Usage : " << std::endl;
-	std::cout << argv0 << " [OPTIONS]" << std::endl;
-	std::cout <<"\n  -t,  --target" << std::endl;
-	std::cout << "\t\tThe element of the target (available 'H', 'C')" << std::endl;
-	std::cout <<"\n  -o,  --output" << std::endl;
-	std::cout << "\t\tOutput file" << std::endl;
-	std::cout <<"\n  -h,  --help" << std::endl;
-	std::cout << "\t\tPrint this message and exit" << std::endl;
 }

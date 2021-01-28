@@ -1,26 +1,32 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <cstring>
 #include <getopt.h>
 
 #include "TTree.h"
+#include "TList.h"
 #include "TFile.h"
+#include "TGraph.h"
 
-#include "tools.h"
-#include "detector.h"
-#include "background.h"
+#include "tools/CardDealer.h"
 
-void Usage(char *Name);
+#include "physics/Flavours.h"
+#include "physics/Neutrino.h"
+
+#include "flux/Driver.h"
+#include "detector/Tracker.h"
+#include "montecarlo/GENIEback.h"
+
 int main(int argc, char** argv)
 {
 
 	const struct option longopts[] = 
 	{
-		{"detconfig", 	required_argument,	0, 'd'},
-		{"geniefile", 	required_argument,	0, 'i'},
-		{"output", 	required_argument,	0, 'r'},
 		{"channel", 	required_argument,	0, 'c'},
+		{"chargeID", 	required_argument,	0, 'I'},
+		{"verbose", 	required_argument,	0, 'v'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
 	};
@@ -30,110 +36,126 @@ int main(int argc, char** argv)
 	opterr = 1;
 	bool chargeID = false, verbose = false;
 	
-	std::string inFile, detConfig, module, channel, outName;
-	
-	while((iarg = getopt_long(argc,argv, "d:i:o:l:c:Cvh", longopts, &index)) != -1)
+	std::string channel;
+	while((iarg = getopt_long(argc,argv, "c:Iv", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
-			case 'd':
-				detConfig.assign(optarg);
-				break;
-			case 'l':
-				module.assign(optarg);
-				break;
-			case 'i':
-				inFile.assign(optarg);
-				break;
-			case 'o':
-				outName.assign(optarg);
-				//RootFile.assign(optarg);
-				break;
 			case 'c':
 				channel.assign(optarg);
 				break;
-			case 'C':
+			case 'I':
 				chargeID = true;
 				break;
 			case 'v':
 				verbose = true;
 				break;
-			case 'h':
-				Usage(argv[0]);
-				return 1;
 			default:
 				break;
 		}
-	
 	}
 
-	std::string catChannel = "_" + channel;
-	std::string catModule  = "_" + module;
-	outName.insert(outName.find(".root"), catChannel);
-	outName.insert(outName.find(".root"), catModule);
+	// detection channel
+	std::vector<Channel::Name> chans;
+	std::stringstream sschan(channel);
+	std::string llchan;
+	while (std::getline(sschan, llchan, ','))
+		chans.push_back(Channel::fromString(llchan));
 
-	if (inFile.find("numu") != std::string::npos)
-		outName.insert(outName.find(".root"), "_M");
-	else if (inFile.find("nue") != std::string::npos)
-		outName.insert(outName.find(".root"), "_E");
-	else if (inFile.find("nubar") != std::string::npos)
-		outName.insert(outName.find(".root"), "_B");
+	// for flux building
+	std::string flux(argv[optind]);
+	Driver drive(flux);
 
-	GenieBack *bkg = new GenieBack(inFile, outName, verbose);
-	Tracker *detector = new Tracker(detConfig, module);
+	// for detector configuration
+	std::string det(argv[optind+1]);
+	Tracker trk(det);
 
-	// here you need to implement your definition of process, i.e. what final state you are looking for
-	// I define it as a map of 2 integers: a pdg code and the number of particles I want
-	// e.g. final state 2 muons, 1 elec
+	// for background info
+	CardDealer cd(argv[optind+2]);
 
-	//sum of charges of the two particles is 0
-	std::map<int, int> process;
-	if (channel == "nEE")
-		process[11] = 2;
-	else if (channel == "nME" || channel == "nEM")
-	{
-		process[11] = 1;
-		process[13] = 1;
+	// contains xsec and gst per neutrino flavour
+	std::map<std::string, std::vector<std::string> > file_backs;
+	if (!cd.Get("back_", file_backs))
+		throw std::invalid_argument("Couldn't find xsec names and backgrounds for fluxes\n");
+
+	std::string file_xsec;
+	if (!cd.Get("xsec_file", file_xsec))
+		throw std::invalid_argument("Couldn't find xsec files\n");
+	TFile inxsec(file_xsec.c_str());
+
+	Production phnl;    // for flux making of a light neutrino
+
+	std::string outname;
+	if (!cd.Get("output", outname))
+		throw std::logic_error("GenBack: no output \".root\" file specified in card");
+
+	if (outname.find(".root") == std::string::npos)
+		outname += ".root";
+	if (chargeID)
+		outname.insert(outname.find(".root"), "_I");
+
+	std::map<Channel::Name, std::string> files;
+
+	for (const auto &fb : file_backs) {
+		std::cout << "Doing flavour " << fb.first << "\n";
+		Nu::Flavour flv = Nu::fromString(fb.first);
+		// make flux
+		//drive.MakeFlux(n, mix);
+		// get full flux
+		std::shared_ptr<TH1D> hist = drive.MakeComponent(phnl, flv, 0.);
+		hist->Scale(std::pow(1./trk.Baseline(),2) * 1e20); //trk.POTs() * trk.Weight());
+
+		std::string cc = fb.second[0] + "/tot_cc";
+		std::string nc = fb.second[0] + "/tot_nc";
+		std::shared_ptr<TGraph> xsecCC(static_cast<TGraph*>(inxsec.Get(cc.c_str())));
+		std::shared_ptr<TGraph> xsecNC(static_cast<TGraph*>(inxsec.Get(nc.c_str())));
+
+		double events = 0;
+		for (int bin = 1; bin < hist->GetNbinsX(); ++bin) {
+			double en = hist->GetBinCenter(bin);
+			events += hist->GetBinContent(bin) * hist->GetBinWidth(bin)
+			    * 1.e-38 * (xsecCC->Eval(en) + xsecNC->Eval(en));
+		}
+		// multiply per number of targets per ton
+		// to get number of events per ton per 1e20 POTs
+		events *= Const::Na * 1e6 / Material::A(Material::LAr);
+
+		std::cout << "Event rate for " << fb.first << " are " << events << "\n";
+		auto d0 = GENIEback::GenerateBackground(trk, chans, fb.second[1], events,
+							chargeID, verbose);
+		std::cout << "Background events:\n";
+		size_t sum = 0;
+		for (const auto & dc : d0) {
+			sum += dc.second->GetEntries();
+
+			std::string name = outname;
+			name.insert(name.find(".root"), "_" + Channel::toString(dc.first));
+			name.insert(name.find(".root"), "_" + fb.first);
+			files[dc.first] += " " + name;
+
+			std::cout << "\t" << Channel::toString(dc.first) << "   "
+				  << dc.second->GetEntries() << " ("
+				  << dc.second->GetEntries() / 1.e4 << " %)"
+				  << "\t-> " << name << "\n";
+
+			TFile out(name.c_str(), "RECREATE");
+			out.cd();
+			dc.second->Write();
+		}
+		std::cout << "     Total\t" << sum << "\n\n";
 	}
-	else if (channel == "nMM")
-		process[13] = 2;
-	else if (channel == "nPI0")
-		process[22] = 2;
-	else if (channel == "EPI")
-	{
-		process[11] = 1;
-		process[211] = 1;
-	}
-	else if (channel == "MPI")
-	{
-		process[13] = 1;
-		process[211] = 1;
+
+	for (const auto & ff : files) { 
+		std::cout << "solving for " << Channel::toString(ff.first) << "\n";
+		std::string name = outname;
+		name.insert(name.find(".root"), "_" + Channel::toString(ff.first));
+		std::string cmd = "hadd -f " + name + ff.second;
+		std::cout << cmd << "\n";
+		system(cmd.c_str());
+		cmd = "rm " + ff.second;
+		std::cout << cmd << "\n";
+		system(cmd.c_str());
 	}
 
-	TTree *genie;
-
-	int save = 10;
-	genie = bkg->FindBackground(detector, process, save);	//loop over the events..
-
-	delete bkg;
 	return 0;
-}
-	
-void Usage(char *Name)
-{
-	std::cout << "Description" << std::endl;
-	std::cout << "Usage : " << std::endl;
-	std::cout << Name << " [OPTIONS]" << std::endl;
-	std::cout <<"\n  -d,  --detconfig" << std::endl;
-	std::cout << "\t\tDetector config file" << std::endl;
-	std::cout <<"\n  -i,  --geniefile" << std::endl;
-	std::cout << "\t\tGENIE input file, converted with gntpc" << std::endl;
-	std::cout <<"\n  -o,  --output" << std::endl;
-	std::cout << "\t\tLog output file" << std::endl;
-	std::cout <<"\n  -r,  --root" << std::endl;
-	std::cout << "\t\tROOT output file with background tree" << std::endl;
-	std::cout <<"\n  -c,  --channel" << std::endl;
-	std::cout << "\t\tChannel selection" << std::endl;
-	std::cout <<"\n  -h,  --help" << std::endl;
-	std::cout << "\t\tPrint this message and exit" << std::endl;
 }

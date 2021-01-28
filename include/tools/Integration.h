@@ -1,183 +1,121 @@
 /*
- * Tools/Kine
- * namespace Kine for kinematic functions
- * 
  * Author: Tommaso Boschi
  */
 
 #ifndef INTEGRATION_H
 #define INTEGRATION_H
 
-#include <limits>
+#include <cmath>
+#include <functional>
 
-#include "cuba.h"
-#include "src/tools/asa047.hpp"
 
-namespace Inte
+namespace Integration
 {
+	template<size_t N, typename T, typename Func>
+	struct _integrand {
+		T v;
+		const Func &fn;
 
-	const unsigned int Step = 100;	//high number needed to almost correct integration
-
-	enum MinMax
-	{
-		True = 1,
-		Min = 1,
-		Max = -1,
+		template<typename... Args>
+		T operator()(Args... rest) const {
+			return fn(v, rest...);
+		}
 	};
 
-	//integration
-	template<class TempClass>
-	int Integrand(const int *nDim, const double x[], const int *nComp, double f[], void *UserData)
-	{
-		TempClass *TempObject = static_cast<TempClass*>(UserData);
-		f[0] = TempObject->Function_D(x);
-		return 1;
+	template <size_t N, typename T, typename Func,
+		 typename std::enable_if<(N > 1), bool>::type = true>
+	T Boole(Func fn, size_t steps = 1000) {
+		auto subfn = [&](T v) -> T {
+			// if c++11
+			auto subint = _integrand<N, T, Func> {v, fn};
+			// if c++14
+			//auto subint = [v, &fn](auto... rest) {
+				//return fn(v, rest...);
+			//};
+
+			return Boole<N-1, T>(subint, steps);
+		};
+
+		return Boole<1, T>(subfn, steps);
 	}
 
-	template<class TempClass>
-	double VegasIntegration(TempClass *TempObject, int nDim, int &Trial, int &Fail, double &Error, double &Chi2Prob)
-	{
-		//input
-		double EpsRel = 1.0e-5;		//relative error for each component
-		double EpsAbs = 1.0e-6;		//absolute error
-		int MinEval = 100;		//minimum number of evaluation
-		int MaxEval = 1e5;		//maximum number of evaluation
-		int nStart = 20;
-		int nIncrease = 10;
-		int nBatch = 100;
-		void *UserData = TempObject;
-		char *state = NULL;
-		void *spin = NULL;
+	template <size_t N, typename T, typename Func,
+		 typename std::enable_if<(N == 1), bool>::type = true>
+	T Boole(Func fn, size_t steps = 1000) {
+		T h = 1./steps;
+		T res = 0.;
 
-		integrand_t IntCast = reinterpret_cast<integrand_t>(&Integrand<TempClass>); 
-	
-		//output
-		double Integral;
+		T left = 7. * fn(0.);
+		for (size_t s = 0; s < steps; ++s) {
+			res += left;
 
-		Vegas(nDim, 1, IntCast, UserData, 1, 	//ndim, ncomp, integrand_t, userdata, nvec
-		      EpsRel, EpsAbs, 0, 0, 		//epsrel, epsabs, verbosity, seed
-		      MinEval, MaxEval, nStart, nIncrease, nBatch,
-		      0, state, spin,			//gridno, statefile, spin
-		      &Trial, &Fail, &Integral, &Error, &Chi2Prob);
-	
-		return Integral;
-	}
+			res += 32. * fn((s + .25) * h);
+			res += 12. * fn((s + 0.5) * h);
+			res += 32. * fn((s + .75) * h);
 
-	template<class T>
-	double BooleIntegration(TempClass *TempObject)
-	{
-		double a = 0, b = 0;
-		double h = 1.0/Step;
-		double Integral = h/90 * 7 * TempObject->Function(0);
-		double First = 0;
-		for (a = 0; b + 1e-12 < 1.0; a = b)
-		{
-			b = a + h;
+			left = 7. * fn((s + 1.) * h);
 
-			Integral += First;
-
-			Integral += h/90.0 * 32 * TempObject->Function((3*a +   b) / 4.0);
-			Integral += h/90.0 * 12 * TempObject->Function((  a +   b) / 2.0 );
-			Integral += h/90.0 * 32 * TempObject->Function((  a + 3*b) / 4.0 );
-
-			First = h/90.0 * 7 * TempObject->Function(b);
-			Integral += First;
+			res += left;
 		}	
-	
-		//return Integral * h/90.0;
-		return Integral;
-	}	
 
-	template<class TempClass>
-	//double MinLinear(TempClass *TempObject)
-	double LinearSolver(TempClass *TempObject, MinMax Sign)
-	{
-		double MM = TempObject->Function(0);
-		double x = 0;
-
-		double h = 1.0/Step;
-		for (double a = 0; a < 1.0; a += h)
-		{
-			double tmp = Sign*TempObject->Function(a);
-
-			if (MM > tmp)
-			{
-				MM = tmp; 
-				x = a;
-			}
-		}
-
-		return x;
-	}	
-
-	template<class TempClass>
-	double GoldRatioSolver(TempClass *TempObject, MinMax Sign)
-	{
-		double GR = (1 + sqrt(5)) / 2.0;
-
-		double S = 0.0;		//start point
-		double E = 1.0;		//end point
-
-		while (E - S > 1e-6)
-		{
-			double A = E - (E - S)/GR;
-			double B = S + (E - S)/GR;
-			double fA = Sign*TempObject->Function(A);
-			double fB = Sign*TempObject->Function(B);
-
-			if (fA < fB)
-				E = B;
-			else
-				S = A;
-		}
-
-		return TempObject->Function(Sign*(E - S) <= 0? S : E);
+		return res * h / 90.;
 	}
 
-	template<class TempClass>
-	double Function(double x[], void *UserData, int Sign)
+
+	/*
+	// fn is a 1D function
+	template <typename Functor>
+	double Boole1D(Functor fn, size_t steps = 1000)
 	{
-		TempClass *TempObject = static_cast<TempClass*>(UserData);
-		return Sign*TempObject->Function_D(x);
+		double h = 1./steps;
+		double res = 0.;
+
+		double left = 7. * fn(0.);
+		for (size_t s = 0; s < steps; ++s) {
+			res += left;
+
+			res += 32. * fn((s + .25) * h);
+			res += 12. * fn((s + 0.5) * h);
+			res += 32. * fn((s + .75) * h);
+
+			left = 7. * fn((s + 1.) * h);
+
+			res += left;
+		}	
+
+		return res * h / 90.;
 	}
 
-	template<class TempClass>						//num of vars
-	double NelMedSolver(TempClass *TempObject, unsigned int n, MinMax Sign)
-	//double NelMedSolver(TempClass *TempObject, std::vector<double> &minX, unsigned int n, MinMax Sign)
+	template <typename Functor>
+	double Boole2D(Functor fn, size_t steps = 1000)
 	{
-		//minX.clear();
-		void *UserData = TempObject;
-		function_t FunCast = reinterpret_cast<function_t>(&Function<TempClass>);
+		auto subfn = [&](double v) ->double {
+				auto subint = std::bind(fn, v, std::placeholders::_1);
+				return Boole1D(subint, steps);
+			 };
 
-		int icount, ifault, numres;
-		int kcount = Step, konvge = 10;
-		double reqmin = 1e-5;;
-		double *xmin = new double[n];
-		double *start = new double[n];	//starting simplex
-		double *step = new double[n];	//
-		for (unsigned int i = 0; i < n; ++i)
-			step[i]  = 0.5;
-		start[0] = 0.5;
-		start[1] = 0.5;
-		start[2] = 0.5;
-		start[3] = 0.5;
-
-		double yValue;
-
-		nelmin ( FunCast, n, UserData, Sign, start, xmin, &yValue, 
-			 reqmin, step, konvge, kcount, 
-			 &icount, &numres, &ifault );
-
-		/*
-		if (ifault == 0)
-		{
-			return Function<TempClass>(xmin, UserData, True);
-		}
-		else
-			return -1.0;
-		*/
-		return Function<TempClass>(xmin, UserData, True);
+		return Boole1D(subfn, steps);
 	}
+
+		double h = 1./steps;
+		double res = 0.;
+
+		double left = 7. * subfn(0.);
+		for (size_t s = 0; s < steps; ++s) {
+			res += left;
+
+			res += 32. * subfn((s + .25) * h);
+			res += 12. * subfn((s + 0.5) * h);
+			res += 32. * subfn((s + .75) * h);
+
+			left = 7. * subfn((s + 1.) * h);
+
+			res += left;
+		}	
+
+		return res * h / 90.;
+	}
+	*/
 }
 
 #endif

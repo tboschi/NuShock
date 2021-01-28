@@ -4,8 +4,7 @@
 #include <cstring>
 #include <getopt.h>
 
-#include "tools.h"
-#include "physics.h"
+#include "physics/DecayRates.h"
 
 void Usage(char* argv0);
 int main(int argc, char** argv)
@@ -13,6 +12,8 @@ int main(int argc, char** argv)
 
 	const struct option longopts[] = 
 	{
+		{"dirac", 	no_argument,		0, 'r'},
+		{"majorana", 	no_argument,		0, 'j'},
 		{"output", 	required_argument, 	0, 'o'},
 		{"channel", 	required_argument, 	0, 'c'},
 		{"help", 	no_argument,	 	0, 'h'},
@@ -23,28 +24,19 @@ int main(int argc, char** argv)
 	int iarg = 0;
 	opterr = 1;
 	
-	std::string channel;
-	std::ofstream outf;
-	double ue = 0.0, um = 0.0, ut = 0.0;
-
-	while((iarg = getopt_long(argc,argv, "c:o:E:M:T:h", longopts, &index)) != -1)	
+	size_t ferm;
+	std::string ferm_append;
+	while((iarg = getopt_long(argc,argv, "c:o:rjh", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
-			case 'c':
-				channel.assign(optarg);
+			case 'r':
+				ferm = Neutrino::dirac;
+				ferm_append = "_d";
 				break;
-			case 'o':
-				outf.open(optarg);
-				break;
-			case 'E':
-				ue = std::strtod(optarg, NULL);
-				break;
-			case 'M':
-				um = std::strtod(optarg, NULL);
-				break;
-			case 'T':
-				ut = std::strtod(optarg, NULL);
+			case 'j':
+				ferm = Neutrino::majorana;
+				ferm_append = "_m";
 				break;
 			case 'h':
 			default:
@@ -53,32 +45,16 @@ int main(int argc, char** argv)
 		}
 	}
 
-	//To have an output, depending on usage usage
-	std::ostream &out = (outf.is_open()) ? outf : std::cout;
 
-	/* Neutrino options available
-	 * Dirac, Majorana, Antiparticle	for fermionic nature
-	 * Left, Right, Unpolarised		for helicity
-	 *
-	 * Concate with bitwise OR operator '|'
-	 *
-	 */
-	
-	Neutrino nu(0, Neutrino::Dirac | Neutrino::Unpolarised );
-	//Neutrino nu(0, Neutrino::Majorana | Neutrino::Unpolarised );
+	// unpolairsed?
+	Neutrino nu(0.5, ferm | Neutrino::left);
+	std::cout << "for neutrino " << nu << "\n";
 
-	nu.SetDecayChannel(channel);
-	nu.SetMixings(sqrt(ue), sqrt(um), sqrt(ut));
+	DecayRates hnl(nu);
 
-	out << "#Mass\tBR\n";
-	for (double m = 0.0; m < 2.0; m += 0.001)
-	{
-		nu.SetMass(m);
-
-		double db = nu.DecayBranch();
-
-		//printing 1e-30 instead of 0 makes it nicer for log scale plot
-		out << m << "\t" << (db == 0 ? 1e-30 : db) << std::endl;
+	for (const auto &chan : Channel::Decays()) {
+		std::cout << "BR for " << Channel::toString(chan)
+			  << " is " << hnl.Branch(chan) << "\n";
 	}
 
 	return 0;

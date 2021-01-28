@@ -10,11 +10,14 @@
 
 #include <iostream>
 #include <fstream>
-#include <map>
+#include <unordered_map>
+#include <set>
 #include <vector>
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <numeric>
+#include <algorithm>
 
 //ROOT include
 #include "TRandom3.h"
@@ -22,8 +25,13 @@
 #include "TH1.h"
 #include "TH2.h"
 
-#include "tools.h"
-#include "physics.h"
+#include "tools/CardDealer.h"
+
+#include "detector/Materials.h"
+#include "detector/Track.h"
+#include "physics/Const.h"
+#include "physics/Channels.h"
+#include "physics/Particle.h"
 
 class Detector
 {
@@ -31,89 +39,71 @@ class Detector
 
 		using Module = std::map<std::string, double>;
 
-		Detector(std::string configName, std::string mod = "");
+		Detector(const std::string &card);
+		double Efficiency(Channel::Name chan, double mass, double energy) const;
+		void LoadEfficiency(Channel::Name, std::string file);
 
-		std::vector<std::string> ListKey();
-		std::vector<std::string> ListChannel();
-		double Get(std::string Key);
-		Detector::Material GetMaterial(std::string Key);
-		Detector::Material FindMaterial(std::string Key);
+		Material::Name MadeOf(std::string mod) const;
 
-		double Efficiency(const Neutrino &Nu);
-		double Efficiency(double Energy, double Mass, std::string channel);
-		void SetEfficiency(std::string key, std::string channel);
+		double Exposure() const;
+		double Exposure(std::string mod) const;
+		double Scaling() const;
+		double Scaling(std::string mod) const;
+		double Weight() const;
+		double Weight(std::string mod) const;
+		double Baseline() const;
+		double Baseline(std::string mod) const;
+		double Length() const;
+		double Length(std::string mod) const;
+		double Height() const;
+		double Height(std::string mod) const;
+		double Width() const;
+		double Width(std::string mod) const;
+		double Section() const;
+		double Section(std::string mod) const;
+		double Radius() const;
+		double Radius(std::string mod) const;
+		double Volume() const;
+		double Volume(std::string mod) const;
+		double AngularAcceptance() const;
+		double AngularAcceptance(std::string mod) const;
+		bool AngularAccept(double theta, double phi) const;
+		bool AngularAccept(std::string mod, double theta, double phi) const;
+		bool AngularAccept(const Particle &P) const;
+		bool AngularAccept(std::string mod, const Particle &P) const;
 
-		double XsizeLAr();
-		double XstartLAr();
-		double XendLAr();
-		double YsizeLAr();
-		double YstartLAr();
-		double YendLAr();
-		double ZsizeLAr();
-		double ZstartLAr();
-		double ZendLAr();
+		double Probability(double tby) const;
+		double Probability(std::string mod, double tby) const;
 
-		double XsizeFGT();
-		double XstartFGT();
-		double XendFGT();
-		double YsizeFGT();
-		double YstartFGT();
-		double YendFGT();
-		double YcentreFGT();
-		double ZsizeFGT();
-		double ZstartFGT();
-		double ZendFGT();
-		double ZcentreFGT();
+		std::vector<std::string> Modules() const;
+		std::string WhichModule(const Track &t) const;
+		bool IsInside(const Track &t) const;
+		bool IsInside(std::string mod, const Track &t) const;
+		bool IsContained(const Track &t) const;
 
-		double Xstart();
-		double Xend();
-		double Xsize();
-		double Ystart();
-		double Yend();
-		double Ysize();
-		double Zsize();
-		double Zstart();
-		double Zend();
+		double MagneticField(std::string mod) const;
 
-		double AreaLAr();
-		double AreaFGT();
-		double Area();
-		double VolumeLAr();
-		double VolumeFGT();
-		double Volume();
-		double RatioLAr();
-		double RatioFGT();
-		double Ratio();
-		double WeightLAr();
-		double WeightFGT();
-		double Weight();
+		double BeamEnergy() const;
+		double POTs() const;
+		double POTs(std::string hc) const;
 
-		double Radius();
-		double AngularAcceptance();
-
-		bool IsInsideLAr(const Particle &P);
-		bool IsInsideFGT(const Particle &P);
-		bool IsInside(const Particle &P);
-
-		double DecayProb(Neutrino &N);
-		double DecayProb(const Particle &P, double Total, double Branch);
+		friend std::ostream& operator<<(std::ostream &os, const Detector &box);
 
 	protected:
-		TRandom3 *GenMT;
+		std::unordered_map<std::string, Module> _modules;
+		std::unordered_map<std::string, Material::Name> _materials;
+		std::unordered_map<std::string, std::string> _shapes;
+		std::unordered_map<std::string, double> _modes;
+		//std::set<std::string> _efficiencies;
+		std::string _default;
 
-	private:
-		std::map<std::string, Module> _modules;
+		// memoization
+		mutable double _baseline, _length, _width, _height, _volume, _exposure, _weight;
 
-		std::string module;
-		CardDealer dc;
+		double _POTs, _Eb;
 
-		TFile *funcFile;
-		std::map<std::string, TH2D*> mhFunc;
-		bool effSet;
-
-		std::map<std::string, double> mDetector;
-		std::map<std::string, std::string> mEfficiencyD, mEfficiencyM;
-		std::map<std::string, Material> mMaterial;
+		
+		//std::map<Channel::Name, std::shared_ptr<TH2D> > _mass_ener_func;
 };
 
 #endif

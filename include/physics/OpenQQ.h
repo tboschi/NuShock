@@ -18,7 +18,9 @@
 #include <iomanip>
 #include <fstream>
 
-#include "tools.h"
+#include "tools/CardDealer.h"
+#include "physics/Const.h"
+
 #include "TLorentzVector.h"
 #include "TGenPhaseSpace.h"
 
@@ -30,8 +32,8 @@
 // integrand wrapper for member functions
 // to be used, userdata should be passed to vegas as a void*
 // this type makes cuba happy (it is typedef CUBA integrand_t)
-template<class T>
-int member_integral(const int *nDim, const double x[], const int *nComp, double f[], void *userData)
+template <class T>
+int member_integral(const int *ndim, const double x[], const int *ncomp, double f[], void *userdata)
 {
 	T &obj = *(static_cast<T*>(userdata));
 	f[0] = obj(x);	// use function call operator
@@ -43,35 +45,38 @@ class OpenQQ
 {
 	public:
 		OpenQQ(char *cardname);
-		OpenQQ(std::string cardname);
+		OpenQQ(const std::string &cardname);
 		OpenQQ(CardDealer *cd);
+		~OpenQQ();
+
+		void Init(const CardDealer &cd);
 
 		inline void SetCMEnergy(double cme) {
-			_cme = cme;
+			_cme = std::pow(cme, 2);
 		}
 
-		double dXSdQ2_qq();
-		double dXSdQ2_gg();
+		//double dXSdQ2_qq();
+		//double dXSdQ2_gg();
 		double dXSdOmega_qq();
 		double dXSdOmega_gg();
 
 		double operator()(const double *x);
-		void Integrand(double x1, double x2, double welome);
-		double Calculate(double &error, double &chi2prob);
+		double Integrand(double x1, double x2, double omega);
+		double Integrate(double &error, double &chi2prob);
 
 	private:
 		LHAPDF::PDF *_probe_PDF, *_target_PDF;
 		size_t _probe_A, _probe_Z, _target_A, _target_Z;
 
 		int _valquark;
-		double _m2, _cme, _s, _t, _u;
+		double _aS, _mf2, _m2, _cme, _s, _t, _u;
 
 		// physics parameters that can be set at execution time
-		double _re_scale, _fac_scale;
+		double _re_scale, _fac_scale, _ps_cut;
 
 		// VEGAS parameters
 		double _err_rel, _err_abs;
-		int _min_eval, _max_eval, _start_eval, _inc_eval, _batch_eval;
+		int _min_evals, _max_evals, _start_evals, _inc_evals, _batch_evals;
 
 };
 

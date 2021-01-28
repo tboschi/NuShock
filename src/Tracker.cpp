@@ -1,495 +1,545 @@
-#include "Tracker.h"
+#include "detector/Tracker.h"
 
-Tracker::Tracker(std::string configName, std::string mod) :
-	Detector(configName, mod)
+Tracker::Tracker(std::string det, std::string track) : Detector(det)
 {
+	CardDealer cd(track);
+	Init(track);
 }
 
-bool Tracker::Reconstruct(Particle &P)
+Tracker::Tracker(std::string card) : Detector(card)
 {
-	if (P.Pdg() && IsDetectable(P))	//valid particle
-	{
-		//if (P.Dist() == 0.0)
-		//	Vertex(P);
+	CardDealer cd(card);
+	if (cd.Get("tracker_configuration", card))
+		cd = CardDealer(card);
 
-		if (P.TrackOut() < 0)
-			Length(P);
-
-		//with approximation
-		double track2 = pow(P.TrackFGT() * cos(P.Theta()), 2) +
-				pow(P.TrackFGT() * P.Theta() * P.Phi(), 2);
-		double sag = 0.1 * std::abs(P.RealCharge()) * Get("MagneticField") *
-			     track2 / P.Momentum();
-
-		//without approximation
-		//double rad = 0.1 * std::abs(P.RealCharge()) *
-		//	     Get("MagneticField") / P.Momentum();
-		//double track = P.TrackFGT() * sqrt(pow(cos(P.Theta()), 2) +
-		//				   pow(P.Theta() * P.Phi(), 2));
-		//double sag = rad * ( 1 - cos(track/rad) );
-
-		P.SetSagitta(sag);
-		//if SagittaRes <= 0 then this is false
-		if (sag > Get("SagittaRes"))
-			P.ChargeID();
-		else
-			P.ChargeID(0);
-
-		Smearing(P);
-
-		if (IsDetectable(P))
-			return true;
-		else
-			return false;
-	}
-	else
-		return false;
+	Init(cd);
 }
 
-void Tracker::Vertex(Particle &P)
-{
-	double Z = GenMT->Uniform(Zstart(), Zend());
-	double X, Y;
-	if (Z > ZstartLAr() && Z < ZendLAr())
-	{
-		X = GenMT->Uniform(XstartLAr(), XendLAr());
-		Y = GenMT->Uniform(YstartLAr(), YendLAr());
-	}
-	else if (Z > ZstartFGT() && Z < ZendFGT())
-	{
-		X = GenMT->Uniform(XstartFGT(), XendFGT());
-		Y = GenMT->Uniform(YstartFGT(), YendFGT());
-	}
+// init will set default values to make class constant
+void Tracker::Init(const CardDealer &cd) {
 
-	P.SetPosition(X, Y, Z);
+	if (!cd.Get("threshold_", _thresholds))
+		throw std::logic_error("No detection threshold specified");
+
+	std::vector<std::string> fills = {"hadron", "muon", "pion", "gamma"};
+	for (std::string f : fills)
+		if (!_thresholds.count(f))
+			_thresholds[f] = 0.;
+
+	if (!cd.Get("resolution_", _resolutions))
+		throw std::logic_error("No detection resolution specified");
+
+	fills = {"hadron_angle", "hadron_energy", "hadron_enbias", "hadron_inrange", "hadron_exiting",
+		 "muon_angle", "muon_energy", "muon_enbias", "muon_inrange", "muon_exiting",
+		 "pion_angle", "pion_energy", "pion_enbias", "pion_inrange", "pion_exiting",
+		 "gamma_angle", "gamma_energy", "gamma_enbias", "gamma_inrange", "gamma_exiting",
+		 "containment", "vertex", "sagitta"};
+	for (std::string f : fills)
+		if (!_resolutions.count(f))
+			_resolutions[f] = 0.;
+
+	if (!cd.Get("identify_", _identifies))
+		std::cerr << "No identification parameters set; cannot do background generation\n";
+
+	fills = {"conversion_EM", "length_MIP", "pair_angle"};
+	for (std::string f : fills)
+		if (!_identifies.count(f))
+			_identifies[f] = 0.;
+
+	if (!cd.Get("track_step", _step))
+		_step = 0.01; // 1 cm
+
+	if (!cd.Get("verbosity", kVerbose))
+		kVerbose = false;
 }
 
-void Tracker::Smearing(Particle &P)
+// transform a particle into an event inside the detector
+Tracker::Event Tracker::GenerateEvent(Particle &&P) const
 {
-	double iM = P.Mass();
-	double iEkin = P.EnergyKin();
-	double iP = P.Momentum();
-	double iTheta = P.Theta();
-	double iPhi = P.Phi();
-	double SigmaE, SigmaP, SigmaA; 
-	double StatE, SystE;
-	double Ratio;
-	bool hiRes;
+	// pick random module
+	std::uniform_real_distribution<> rndm(0, Weight());
+	double w = rndm(RNG::_mt);
+	auto imod = std::find_if(_modules.begin(), _modules.end(),
+			[&](const std::pair<std::string, Module> &m) {
+				bool ret = w < Weight(m.first);
+				w -= Weight(m.first);
+				return ret;
+				} );
+			       	
+	return GenerateEvent(imod->first, std::move(P));
+	// particle is in module in_mod
+}
 
-	switch (std::abs(P.Pdg()))
+Tracker::Event Tracker::GenerateEvent(std::string mod, Particle &&P) const
+{
+	std::uniform_real_distribution<> rndm(-1., 1.);
+	std::normal_distribution<> gaus(0., 1. / 3.);
+
+	double x = std::min(1., std::max(-1., gaus(RNG::_mt)));
+	double y = std::min(1., std::max(-1., gaus(RNG::_mt)));
+	double z = rndm(RNG::_mt);
+	if (_shapes.at(mod) == "tubx") {
+		z *= std::sqrt(1 - y*y);
+	}
+	else if (_shapes.at(mod) == "tuby") {
+		z *= std::sqrt(1 - x*x);
+	}
+	else if (_shapes.at(mod) == "sphere") {
+		z *= std::sqrt(1 - x*x - y*y);
+	}
+	//else if (_shapes.at(mod) == "box" || _shapes.at(mod) == "tubz")
+		// nothing to be done
+		
+	//std::cout << "random " << x << ", " << y << ", " << z << "\n";
+	x *= Width(mod) / 2.;
+	y *= Height(mod) / 2.;
+	z = (z + 1.) * Length(mod) / 2. + Baseline(mod);
+
+	Track T(x, y, z);
+	if (!IsDetectable(T))
+		std::cout << "T is out! " << T << "\n";
+
+	// 99.99% of particles are inside the detector
+	P.SetTheta(std::atan2(std::sqrt(x*x + y*y), z));
+	P.SetPhi(std::atan2(y, x));
+
+	return std::make_pair(P, T);
+}
+
+// check if event is valid: position of the particle, threshold
+bool Tracker::Reconstruct(Event &evt) const
+{
+	//std::cout << "reconst \t" << evt.first << "\n        \t" << evt.second << "\n";
+	//std::cout << "event detect (" << std::boolalpha
+	//	  << IsDetectable(evt.first) << ", " << IsDetectable(evt.second)
+	//	  << ")\n";
+	if (IsDetectable(evt))	//valid event
 	{
-		case 11:
-		case 22:
-			SigmaA = Get("Angle_Gamma") / Const::Deg;
-			StatE = Get("Energ_Gamma") / sqrt(iEkin);
-			SystE = Get("Ebias_Gamma");
-			SigmaE = sqrt(pow(StatE, 2)+pow(SystE, 2)) * iEkin;
+		Particle &P = evt.first;
+		Track &T = evt.second;
 
-			P.SetEnergyKin(GenMT->Gaus(iEkin, SigmaE));
-			P.SetTheta(GenMT->Gaus(iTheta, SigmaA));
-			P.SetPhi(GenMT->Gaus(iPhi, SigmaA));
+		// if track is not set..
+		if (T.Length() <= 0.)
+			ComputeTrack(evt);
 
-			break;
-		case 13:
-			SigmaA = Get("Angle_Muon") / Const::Deg;
-			Ratio = P.TrackTot() ? P.TrackIn()/P.TrackTot() : 0.0;
-
-			//if (Ratio > Get("Containment"))	//80% of track inside
-			hiRes = false;
-			if ( IsInsideLAr(P) && P.TrackLAr() < ZsizeLAr()
-					    && Ratio > Get("Containment") )
-				hiRes = true;	//the particle is contained in LAr
-			else if (P.TrackIn() > ZsizeFGT())
-				hiRes = true;
-
-			if (hiRes)
-			{
-				//std::cout << "muon in range, ";
-				SigmaP = Get("Range_Muon") * iP;
-				//double StatP = Get("Range_Muon") / iP;
-				//SigmaP = StatP * iP;
-			}
+		//std::cout << "Particle " << P.RealPdg() << "\n";
+		double sag = ComputeSagitta(evt);
+		//std::cout << "sag = " << sag << "\n";
+		//if (ComputeSagitta(evt) > _resolutions.at("sagitta"))
+		if (sag > _resolutions.at("sagitta"))
+			P.ChargeID(); // I can charge ID correctly
+		else {	// particle is chargeless to detector, random assignment
+			/*
+			std::bernoulli_distribution b(0.5);
+			if (b(RNG::_mt))
+				P.ChargeID();
 			else
-			{
-				//std::cout << "muon escaping, ";
-				SigmaP = Get("Exiti_Muon") * iP;
-				//double StatP = Get("Exiti_Muon");
-				//SigmaP = StatP * iP;
-			}
-			//std::cout << P.TrackIn() << " - " << P.TrackOut() << " - " << P.TrackTot() << "; " << Ratio << std::endl;
+				P.ChargeMisID();
+			*/
+			// instead set it to 0
+			P.ChargeID(0.);
+		}
 
-			P.SetMomentum(GenMT->Gaus(iP, SigmaP));
-			P.SetTheta(GenMT->Gaus(iTheta, SigmaA));
-			P.SetPhi(GenMT->Gaus(iPhi, SigmaA));
+		// do some smearing
+		Smearing(evt);
 
-			break;
-		case 211:
-			SigmaA = Get("Angle_Pion") / Const::Deg;
-			Ratio = P.TrackIn()/P.TrackTot();
-
-			hiRes = false;
-			if ( IsInsideLAr(P) && P.TrackIn() < ZsizeLAr() && Ratio > Get("Containment") )
-				hiRes = true;	//the particle is contained in LAr
-			else if (P.TrackIn() > ZsizeFGT())
-				hiRes = true;
-
-			//std::cout << "HiRes " << std::boolalpha << hiRes << std::endl;
-			if (!P.IsShower() && hiRes)	//pion track, not shower
-			{
-				//std::cout << "pion in range, ";
-				SigmaP = Get("Range_Pion") * iP;
-				//double StatP = Get("Range_Pion") / iP;
-				//SigmaP = StatP * iP;
-			}
-			else
-			{
-				//std::cout << "pion escaping, ";
-				SigmaP = Get("Exiti_Pion") * iP;
-				//double StatP = Get("Exiti_Pion");
-				//SigmaP = StatP * iP;
-			}
-			//std::cout << P.TrackIn() << " - " << P.TrackOut() << " - " << P.TrackTot() << "; " << Ratio << std::endl;
-
-			P.SetMomentum(GenMT->Gaus(iP, SigmaP));
-			P.SetTheta(GenMT->Gaus(iTheta, SigmaA));
-			P.SetPhi(GenMT->Gaus(iPhi, SigmaA));
-
-			break;
-		default:	//I don't care about other particles
-			//if (std::abs(P.Pdg()) == 2112 || P.Charge() != 0)	//other and protons?
-			//{
-			//	SigmaA = Get("Angle_Hadron") / Const::Deg;
-			//	StatE = Get("Energ_Hadron") / sqrt(iEkin);
-			//	SystE = Get("Ebias_Hadron");
-			//	SigmaE = sqrt(pow(StatE, 2)+pow(SystE, 2)) * iEkin;
-			//
-			//	P.SetEnergyKin(GenMT->Gaus(iEkin, SigmaE));
-			//	P.SetTheta(GenMT->Gaus(iTheta, SigmaA));
-			//	P.SetPhi(GenMT->Gaus(iPhi, SigmaA));
-			//}
-			break;
+		// check just threshold
+		return (IsDetectable(P));
 	}
 
-	//P.SetTrackIn(GenMT->Gaus(P.TrackIn(), Get("Vertex")));
-
-	//if (P.TrackIn() < 0)
-	//	P.SetTrackIn(0);
-
-	//P.SetTrackOut(GenMT->Gaus(P.TrackOut(), Get("Vertex")));
-
-	//if (P.TrackOut() < 0)
-	//	P.SetTrackOut(0);
+	return false;
 }
 
-void Tracker::Length(Particle &P)	//This should not change P
+void Tracker::ComputeTrack(Event &evt) const	//This should not change P
 {
-	double tmax, Depth;
-	double iE, iM, dE;
-	//double step = 0.05 + , dx;	//step of 5cm
-	double step = GenMT->Gaus(0.01, Get("Vertex"));	//step of 1cm
-	double LengthLAr = 0.0, LengthFGT = 0.0, LengthOut = 0.0;
-	double length = -1, cover = -2;
+	double tmax, depth;
+
+	// copy particle
+	Particle P = evt.first;
+	// but reference to track, as this is updated
+	Track &T = evt.second;
+	// copy original position
+	TVector3 pos = static_cast<TVector3>(evt.second);
+	std::string mod = WhichModule(T);
+	Material::Name mat = MadeOf(mod);
+	std::normal_distribution<> gaus;
+	std::exponential_distribution<> expd;
+	std::uniform_real_distribution<> rndm;
+
+	double cover = 0;
+	double radlen = 0;
 	int layer = 0;
 
-	//TVector3 Step(P.Direction().Unit());
-	//TVector3 Pos(P.Position());
-	//TVector3 Start(P.Position());
-
-	Particle clone = P;
-	//TVector3 pos   = P.Position();
-	//TVector3 start = P.Position();
-	TVector3 dir  = P.Direction().Unit();
-
 	switch (std::abs(P.Pdg()))
 	{
 		case 11:
-			tmax = log(P.Energy()/CriticalEnergy(P)) - 1.0;
-			Depth = RadiationLength(P) * GenMT->Gaus(tmax, 0.3*tmax);
-
-			if (IsInsideLAr(P))
-			{
-				P.SetTrackIn(Depth, 1);
-				P.SetTrackIn(0, 0);
-			}
-			else
-			{
-				P.SetTrackIn(Depth, 0);
-				P.SetTrackIn(0, 1);
-			}
-
-			P.SetTrackOut(0);
+			tmax = std::log( P.E() / Material::CriticalEnergy(mat) ) - 1.0;
+			gaus = std::normal_distribution<>(tmax, tmax / 3.);
+			depth = Material::RadiationLength(mat) * gaus(RNG::_mt);
+			T.SetLength(mod, depth);
+			T.SetEnergyDeposited(mod, P.E());
 			break;
 		case 22:
-			if (IsInsideLAr(P))
-			{
-				P.SetTrackIn(GammaDecay(P), 1);
-				P.SetTrackIn(0, 0);
-			}
-			else
-			{
-				P.SetTrackIn(GammaDecay(P), 0);
-				P.SetTrackIn(0, 1);
-			}
-
-			P.SetTrackOut(0);
+			depth = 9./7. * Material::RadiationLength(mat);
+			expd = std::exponential_distribution<>(depth);
+			T.SetLength(mod, expd(RNG::_mt));
+			T.SetEnergyDeposited(mod, P.E());
 			break;
-		case 13:
-			//std::cout << "position " << clone.X() << " - " << clone.Y() << " - " << clone.Z() << std::endl;
-			while (IsDetectable(clone) && !IsDecayed(clone, LengthLAr+LengthFGT+LengthOut))
-				//quit when particle decays too!
-			{
-				int InOut;
-				//double dx = GenMT->Gaus(step, Get("Vertex"));
-				double dx = step;
-				double loss = EnergyLoss(clone, InOut);
-				double dE = dx * loss;
+		case 13: //quit when particle decays too!
+			gaus = std::normal_distribution<>(_step, _resolutions.at("vertex"));
+			while (IsDetectable(evt) && !IsDecayed(P, T.Length())) {
 
-				//std::cout << "Energy " << dE << "(" << InOut << ")" << std::endl;
-				if (InOut == 1)	//inside detector
-					LengthLAr += dx;
-				else if (InOut == 2)	//inside detector
-					LengthFGT += dx;
-				else		//outside detector
-					LengthOut += dx;
+				double dx = gaus(RNG::_mt);	// random step
+				double loss = dx * Material::Bethe(MadeOf(mod), P.M(), P.Beta(), P.Gamma());
+				P.SetE(P.E() - loss); // reduce energy
 
+				T.SetLength(mod, T.Length(mod) + dx);
+				T.SetEnergyDeposited(mod, T.EnergyDeposited(mod) + loss);
+				T += dx * P.Vect().Unit();
 
-				TVector3 pos = clone.Position() + dx * dir;	//move by dx
-				clone.SetEnergy(clone.Energy() - dE);
-				clone.SetPosition(pos);
+				// update position of particle
+				if (!IsInside(mod, T))
+					mod = WhichModule(T);
 			}
-			//std::cout << "position " << clone.X() << " - " << clone.Y() << " - " << clone.Z() << std::endl;
-
-			P.SetTrackIn(LengthLAr, 1);
-			P.SetTrackIn(LengthFGT, 0);
-			P.SetTrackOut(LengthOut);
-			//std::cout << "Setto " << LengthLAr << ", " << LengthFGT << ", " << LengthOut << std::endl;
 			break;
 		case 211:
-			while (IsDetectable(clone) && !IsDecayed(clone, LengthLAr+LengthFGT+LengthOut))
-			{
-				if (cover >= length)	//distance covered more than interaction length
-				{
-					int mult = ceil(pow(clone.EnergyKin() * 1e6, 0.18) * 0.15);
-					if (mult > 1)	//multiplicity of hadronic interaction
-					{
-						++layer;	//number of interactions
-						//clone.SetEnergyKin(clone.EnergyKin()/mult);
-						//divide energy by number (mult) of duaghter particles
-					}
-					length = -1;	//repeat
-				}
+			gaus = std::normal_distribution<>(_step, _resolutions.at("vertex"));
+			expd = std::exponential_distribution<>(Material::NuclearRadiationLength(mat));
+			while (IsDetectable(evt) && !IsDecayed(P, T.Length())) {
+				if (cover > radlen)	//distance more than interaction length
+				{	//multiplicity of hadronic interaction
+					int mult = std::ceil(std::pow(P.EKin() * 1e6, 0.18) * 0.15);
+					if (mult > 1)
+						++layer;
 
-				if (length < 0)
-				{
-					length = GenMT->Exp(RadiationLength(clone, 1));
+					radlen = expd(RNG::_mt);
 					cover = 0;
 				}
 
-				int InOut;
-				//double dx = GenMT->Gaus(step, Get("Vertex"));
-				double dx = step;
-				double dE = dx * EnergyLoss(clone, InOut);	//inside material
 
-				cover += dx;	//total distance covered in one layer
+				double dx = gaus(RNG::_mt);	// random step
+				double loss = dx * Material::Bethe(MadeOf(mod), P.M(), P.Beta(), P.Gamma());
+				P.SetE(P.E() - loss); // reduce energy
 
-				if (InOut == 1)	//inside detector
-					LengthLAr += dx;
-				else if (InOut == 2)	//inside detector
-					LengthFGT += dx;
-				else		//outside detector
-					LengthOut += dx;
+				// distance covered so far in this layer
+				cover += dx;
 
-				TVector3 pos = clone.Position() + dx * dir;	//move by dx
-				clone.SetEnergy(clone.Energy() - dE);
-				clone.SetPosition(pos);
+				T.SetLength(mod, T.Length(mod) + dx);
+				T.SetEnergyDeposited(mod, T.EnergyDeposited(mod) + loss);
+				T += dx * P.Vect().Unit();
+
+				// update position of particle
+				if (!IsInside(mod, T))
+					mod = WhichModule(T);
 			}
 
-			if (GenMT->Rndm() > 1.0/layer)		//need something better
-				P.SetShower(true);
-			else
-				P.SetShower(false);
-
-			P.SetTrackIn(LengthLAr, 1);
-			P.SetTrackIn(LengthFGT, 0);
-			P.SetTrackOut(LengthOut);
+			T.SetShower((rndm(RNG::_mt) > 1./layer));
 			break;
 		default:
 			break;
 	}
+	T.SetPosition(pos);
 }
 
-double Tracker::GammaDecay(const Particle &P)
+double Tracker::ComputeSagitta(Event &evt) const
 {
-	double Path = 9.0/7.0 * RadiationLength(P, 0);
-	return GenMT->Exp(Path);
-}
+	const Particle &P = evt.first;
+	Track &T = evt.second;
 
-double Tracker::CriticalEnergy(const Particle &P)
-{
-	Detector::Material Element;
+	if (P.RealQ() == 0)
+		return 0;
 
-	if (IsInsideLAr(P))
-		Element = GetMaterial("TargetLAr");
-	else if (IsInsideFGT(P))
-		Element = GetMaterial("TargetFGT");
-	else
-		Element = GetMaterial("TargetOut");
+	double sag = 0;
+	double max_B = 0.;
+	// get track of modules with magnetic field
+	for (const auto &m : _modules) {
+		//std::cout << "in " << m.first << " has " << T.Length(m.first) << "\n";
+		if (MagneticField(m.first) <= 0.)
+			continue;
 
-	return CriticalEnergy(Element);
-}
+		//double track2 = std::pow(T.Length(m.first) * std::cos(P.Theta()), 2) +
+				//std::pow(T.Length(m.first) * P.Theta() * P.Phi(), 2);
+		sag += T.Length(m.first);
 
-
-double Tracker::RadiationLength(const Particle &P, bool Nuclear)
-{
-	Detector::Material Element;
-
-	if (IsInsideLAr(P))
-		Element = GetMaterial("TargetLAr"), Nuclear;
-	else if (IsInsideFGT(P))
-		Element = GetMaterial("TargetFGT"), Nuclear;
-	else
-		Element = GetMaterial("TargetOut"), Nuclear;
-
-	return RadiationLength(Element, Nuclear);
-}
-
-double Tracker::EnergyLoss(const Particle &P, int &inout)
-{
-	if (IsInsideLAr(P))
-	{
-		inout = 1;
-		return BetheLoss(P, GetMaterial("TargetLAr"));
+		if (max_B < MagneticField(m.first))
+			max_B = MagneticField(m.first);
 	}
-	else if (IsInsideFGT(P))
-	{
-		inout = 2;
-		return BetheLoss(P, GetMaterial("TargetFGT"));
-	}
-	else
-	{
-		inout = 0;
-		return BetheLoss(P, GetMaterial("TargetOut"));
-	}
+
+	return std::abs(0.3 * P.RealQ() * max_B * sag / P.P())
+	    * (std::pow(std::cos(P.Theta()), 2)
+	     + std::pow(std::sin(P.Theta()) * std::sin(P.Phi()), 2));
+
+	//without saggitta approximation
+	//double rad = 0.1 * std::abs(P.RealCharge()) *
+	//	     Get("MagneticField") / P.Momentum();
+	//double track = P.TrackFGT() * sqrt(pow(cos(P.Theta()), 2) +
+	//				   pow(P.Theta() * P.Phi(), 2));
+	//double sag = rad * ( 1 - cos(track/rad) );
 }
 
-double Tracker::BetheLoss(const Particle &P, Material Target)
+
+// smear the track
+void Tracker::Smearing(Event &evt) const
 {
-	switch (Target)
-	{
-		case LAr:
-			return Bethe(P, 1.3945, 188.0, 18, 40);
-		case GasAr:
-			//return Bethe(P, 0.1020, 188.0, 18, 40);
-			return Bethe(P, 0.024, 188.0, 18, 40);	//10 atm, 293 K
-		case Fe:
-			return Bethe(P, 7.875, 286.0, 26, 56);
-		case Pb:
-			return Bethe(P, 11.34, 823.0, 82, 207);
-		default:
-			0;
-	}
-}
+	Particle &P = evt.first;
+	Track &T = evt.second;
 
-// Bethe formula is missing charge of particle
-							//I is in eV
-double Tracker::Bethe(const Particle &P, double Density, double I, int Z, int A)	//GeV/m
-{
-	double K = 0.307075;		//From PDG MeV mol-1 cm2
-	double e2M = Const::MElectron / P.Mass();
-	double Beta2  = pow(P.Beta(), 2);
-	double Gamma2 = pow(P.Gamma(), 2);
-			//electron mass in MeV -> *1000
-	double Wmax = (2000 * Const::MElectron * Beta2 * Gamma2) / 
-		(1 + 2 * P.Gamma() * e2M + e2M * e2M);
+	double sigma = 0.;
+	std::string angle;
 
-	double LogArg = 2000 * Const::MElectron * Beta2 * Gamma2 * Wmax /
-		(1e-12 * I * I); 	//Everything in MeV
+	//double perc = 0.;
+	//bool hires = false;
 
-	return 0.1 * Density * K * Z / (A * Beta2) * (0.5 * log (LogArg) - Beta2);	//stopping power in GeV/m (0.1*)
-}
-
-bool Tracker::IsDecayed(const Particle &P, double dx)	//Threshold check
-{
-	return GenMT->Rndm() > exp(-dx/(Const::C * P.LabSpace()));	//this should quit when particle decays too!
-}
-
-bool Tracker::IsDetectable(const Particle &P, bool print)	//Threshold check
-{
-	double Threshold = 0.0;
-
+	std::normal_distribution<> gaus;
 	switch (std::abs(P.Pdg()))
 	{
 		case 11:
 		case 22:
-			Threshold = Get("Thres_Gamma");
+			angle = "gamma_angle";
+
+			sigma = std::sqrt(std::pow(_resolutions.at("gamma_energy"), 2) / P.EKin()
+					+ std::pow(_resolutions.at("gamma_enbias"), 2));
+			gaus = std::normal_distribution<>(P.EKin(), sigma * P.EKin());
+			P.SetEKin(gaus(RNG::_mt));
+	
 			break;
 		case 13:
-			Threshold = Get("Thres_Muon");
+			angle = "muon_angle";
+
+			// high resolution if most of track is in LAr
+			// or module w/ magnetic field was crossed
+			/*
+			for (const auto &m : _modules)
+				perc += T.Length(m.first) * T.DepositedEnergy(m.first);
+				if (T.Length(m.first)
+				if (MagneticField(m.first) > 0. && T.Length(m.first) > 0.) {
+					hires = true;
+					break;
+				}
+				if (MadeOf(m.first) == Material::LAr)
+					perc += T.Length(m.first);
+			}
+			hires = hires || (1 - perc / T.Length()) > _resolutions.at("containment");
+			*/
+
+			if (1 - T.Importance("out") / T.Importance()
+					> _resolutions.at("containment")) {
+				sigma = _resolutions.at("muon_inrange") * P.P();
+			}
+			else
+				sigma = _resolutions.at("muon_exiting") * P.P();
+
+			gaus = std::normal_distribution<>(P.P(), sigma * P.P());
+			P.SetP(gaus(RNG::_mt));
 			break;
 		case 211:
-			Threshold = Get("Thres_Pion");
+			angle = "pion_angle";
+
+			// high resolution if most of track is in LAr
+			// or module w/ magnetic field was crossed
+			/*
+			for (const auto &m : _modules) {
+				if (MagneticField(m.first) > 0. && T.Length(m.first) > 0.) {
+					hires = true;
+					break;
+				}
+				if (MadeOf(m.first) == Material::LAr)
+					perc += T.Length(m.first);
+			}
+			hires = hires || (1 - perc / T.Length()) > _resolutions.at("containment");
+			*/
+
+			//if (1 - T.Length("out") / T.Length() > _resolutions.at("containment")) {
+			if (1 - T.Importance("out") / T.Importance()
+					> _resolutions.at("containment")) {
+				sigma = _resolutions.at("pion_inrange") * P.P();
+			}
+			else
+				sigma = _resolutions.at("pion_exiting") * P.P();
+
+			gaus = std::normal_distribution<>(P.P(), sigma * P.P());
+			P.SetP(gaus(RNG::_mt));
+			break;
+		default:	//I don't care about other particles
+			return;
+	}
+
+	// do angles
+	gaus = std::normal_distribution<>(P.Theta(), _resolutions.at(angle)
+						   / Const::Deg);
+	P.SetTheta(gaus(RNG::_mt));
+	gaus = std::normal_distribution<>(P.Phi(), _resolutions.at(angle)
+						   / Const::Deg);
+	P.SetPhi(gaus(RNG::_mt));
+}
+
+
+
+bool Tracker::IsDecayed(const Particle &P, double dx) const	//Threshold check
+{
+	std::uniform_real_distribution<> rndm;
+	return rndm(RNG::_mt) > std::exp(-dx / (Const::C * P.LabSpace()));
+}
+
+// check if inside detector or above threshold
+bool Tracker::IsDetectable(const Event &evt) const {
+	// check threshold		// check position
+	return IsDetectable(evt.first) && IsDetectable(evt.second);
+}
+
+bool Tracker::IsDetectable(const Track &T) const {
+	return IsContained(T);
+}
+
+bool Tracker::IsDetectable(const Particle &P) const
+{
+	double threshold = 0.0;
+	std::string part;
+	std::uniform_real_distribution<> rndm;
+	switch (std::abs(P.Pdg()))
+	{
+		case 11:
+		case 22:
+			threshold = _thresholds.at("gamma");
+			break;
+		case 13:
+			threshold = _thresholds.at("muon");
+			break;
+		case 211:
+			threshold = _thresholds.at("pion");
 			break;
 		case 311:	//neutral kaons
 		case 2112:	//neutrons
-			if (GenMT->Rndm() < 0.1)	//10% chance escape
-				Threshold = 1 + P.EnergyKin();
-			else
-				Threshold = Get("Thres_Hadron");
-			break;
+			if (rndm(RNG::_mt) < 0.1)	//90% efficiency
+				return false;
+			// else is hadron det threshold
 		case 2212:	//protons
-			Threshold = Get("Thres_Hadron");
+			threshold = _thresholds.at("hadron");
 			break;
 		default:
-			if (P.RealCharge() != 0)
-				Threshold = Get("Thres_Hadron");
+			if (P.RealQ() != 0)
+				threshold = _thresholds.at("hadron");
 			else
-				Threshold = 1 + P.EnergyKin();		//not detectable
+				return false;
 			break;
 	}
-
-	if (print)
-		std::cout << "detectable " << P.Pdg() << ": "
-			  << P.EnergyKin() << " > " << Threshold << std::endl;
-	return (P.EnergyKin() > Threshold);
+	return (P.EKin() > threshold);
 }
 
-void Tracker::Pi0Decay(Particle &pi0, Particle &pA, Particle &pB)
+// special treatment for pi0
+std::vector<Tracker::Event> Tracker::Pi0Decay(Tracker::Event &&pi0) const
 {
-	//Vertex(Pi0);
-	TVector3 bst(pi0.FourVector().BoostVector());
-	TVector3 start(pi0.Position());		//starting point is vertex
+	Particle &P0 = pi0.first;
+	Track &T0 = pi0.second;
 
-	TLorentzVector gammaA(0, 0,  Const::MPion0/2.0, Const::MPion0/2.0); 
-	TLorentzVector gammaB(0, 0, -Const::MPion0/2.0, Const::MPion0/2.0); 
-	double the = GenMT->Uniform(-Const::pi, Const::pi);
-	double phi = GenMT->Uniform(-Const::pi, Const::pi);
-	gammaA.SetTheta(the);
-	gammaB.SetTheta(the + Const::pi);
+	Particle gammaA(22, P0.M()/2.0, 0, 0,  P0.M()/2.0); 
+	Particle gammaB(22, P0.M()/2.0, 0, 0, -P0.M()/2.0); 
+
+	std::uniform_real_distribution<> angle(-Const::pi, Const::pi);
+	double theta = angle(RNG::_mt);
+	double phi = angle(RNG::_mt);
+
+	gammaA.SetTheta(theta);
+	gammaB.SetTheta(theta + Const::pi);
+
 	gammaA.SetPhi(phi);
 	gammaB.SetPhi(phi + Const::pi);
-	gammaA.Boost(bst);
-	gammaB.Boost(bst);
 
-	pA = Particle(22, gammaA, start);	//here are the photons
-	pB = Particle(22, gammaB, start);	//position should be different
+	gammaA.Boost(P0.BoostVector());
+	gammaB.Boost(P0.BoostVector());
 
-	TVector3 moveA(gammaA.Vect().Unit());
-	TVector3 moveB(gammaB.Vect().Unit());
-	moveA *= GammaDecay(pA);
-	moveB *= GammaDecay(pB);
-	moveA += start;
-	moveB += start;
+	// gamma decay here
+	double depth = 9./7. * Material::RadiationLength(MadeOf(WhichModule(T0)));
+	std::exponential_distribution<> expd(depth);
+	//
 
-	pA.SetPosition(moveA);
-	pB.SetPosition(moveB);
+	Track moveA = T0 + T0.Unit() * expd(RNG::_mt);
+	Track moveB = T0 + T0.Unit() * expd(RNG::_mt);
+
+	Tracker::Event pA(gammaA, moveA);
+	Tracker::Event pB(gammaB, moveB);
+	return {pA, pB};
 }
 
-//special use for neutrino beam
-void Tracker::Focus(Particle &P)
+// loop through events and add some chaos
+std::vector<Tracker::Event> Tracker::MisIdentify(std::vector<Tracker::Event> &&evts) const
 {
-	double radius = sqrt(pow(P.X(), 2) + pow(P.Y(), 2));
-	double zlength = Zstart() + P.Z();
+	if (!_identifies.size())
+		throw std::logic_error("No identification parameter set\n");
 
-	P.SetTheta( atan2(radius, zlength) );
-	P.SetPhi( atan2(P.Y(), P.X()) );
+	std::vector<Tracker::Event> electrons;
+
+	for (auto ie = evts.begin(); ie != evts.end(); )
+	{
+		if (!IsDetectable(*ie)) {
+			ie = evts.erase(ie);
+			continue;
+		}
+
+		bool elec = true;
+		Particle &P = ie->first;
+		Track &T = ie->second;
+		switch (std::abs(P.Pdg()))
+		{
+			case 13:	// nothing to do for muon
+				break;
+			case 211:
+				if (T.Length() - T.Length("out") > _identifies.at("length_MIP")
+				 && !T.IsShower())
+				{	//it looks like a muon
+					P.SetPdg(P.Q() / 3 * 13);
+					P.SetM(Const::MMuon);
+					--ie;		//must recheck (for thr for instance)
+				}
+				break;
+			case 11:
+				elec = true;
+				for (auto ee = electrons.begin(); ee != electrons.end(); ) {
+					Particle &eP = ee->first;
+					Track &eT = ee->second;
+
+					double angle = P.Vect().Angle(eP.Vect());
+					if (angle >= _identifies.at("pair_angle") / Const::Deg) {
+						++ee;
+						continue;
+					}
+
+					//two track are too close, it can be a pair production);
+					Track dir = Track(T.X(), T.Y(), T.Z());
+					double T_lin = T.Length() - T.Length("out");
+					double eT_lin = eT.Length() - eT.Length("out");
+					double dist = std::sqrt(std::pow(T_lin, 2) + std::pow(eT_lin, 2)
+						    + 2. * T_lin * eT_lin * std::cos(angle));
+					dir.SetLength("in", dist);
+
+					Particle gamma(22, P + eP);
+					gamma.SetM(0);
+
+					*ie = std::make_pair(gamma, dir);
+					--ie;		//must recheck (for thr for instance)
+
+					ee = electrons.erase(ee);
+					elec = false;
+					break;
+				}
+
+				if (elec)
+					electrons.push_back(*ie);
+				break;
+			case 22:
+				//short displacement > 2cm
+				if((T.Length() - T.Length("out")) < _identifies.at("conversion_EM"))
+				{	//conversion before 3cm 
+					P.SetPdg(std::distance(ie, evts.begin()) % 2 == 0 ? 11 : -11);
+					P.SetM(Const::MElectron);
+
+					--ie;		//must recheck (for thr for instance)
+				}
+				break;
+		}
+
+		++ie;
+	}
+
+	return evts;
 }

@@ -11,8 +11,8 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <cstring>
-#include <sstream>
+#include <string>
+#include <unordered_map>
 
 //ROOT include
 #include "TH1.h"
@@ -20,58 +20,45 @@
 #include "TTree.h"
 #include "TMath.h"
 
-#include "tools.h"
-#include "physics.h"
-#include "Flux.h"
+#include "tools/CardDealer.h"
+
+#include "flux/Flux.h"
+
+#include "physics/Const.h"
+#include "physics/Flavours.h"
+#include "physics/Mixings.h"
+#include "physics/Channels.h"
+#include "physics/Production.h"
 
 class Driver
 {
 	public:
-		Driver(std::string ConfigFlux, bool FHC = 1);
-		~Driver();
-
-		void CloneCopy(TH1D*& T, TObject* X);
-		bool MakeFlux(Neutrino &N);
-		//void MakeElecComponent(Flux *fxFlux, Neutrino &N);
-		//void MakeMuonComponent(Flux *fxFlux, Neutrino &N);
-		//void MakeTauComponent(Flux *fxFlux, Neutrino &N);
-		Flux* MakeElecComponent(Flux *light, Neutrino &N);
-		Flux* MakeMuonComponent(Flux *light, Neutrino &N);
-		Flux* MakeTauComponent(Flux *light, Neutrino &N);
-
-		double Intensity(Neutrino &N);
-		double InterpolateIntensity(TH1D* Hist, double Energy);
-
-		double Range();
-		double RangeWidth();
-		double Range(double &Start, double &End);
-		double RangeWidth(double &Start, double &End);
-		double RangeStart();
-		double RangeEnd();
-		int BinNumber();
-
-		void Scale(double X);
-
-		bool IsChanged(Neutrino &N);
-
-		double Modify(Flux::Hist Name, double &A, double &B, double Mass);
+		using Modifier = std::vector<std::array<double, 4> >;
 
 	private:
-		using Modifier = std::vector<std::array<double 4> >;
+		std::unordered_map<Nu::Flavour, Flux::Component> _fxNu;
+		std::unordered_map<Flux::Parent, Driver::Modifier> _modifiers;
 
-		bool Kine, Mod;
+		std::unordered_map<Nu::Flavour, std::shared_ptr<TH1D> > _distr;
 
-		std::map<Nu::Flavour, Flux::Component> _fxNu;
+	public:
+		Driver(const std::string &card);
+		void Init(const CardDealer &cd);
+		double Intensity(const Neutrino &N, const Mixing &mix);
+		double Intensity(double energy, const Mixing &mix);
+		std::shared_ptr<TH1D> Spectrum(const Neutrino &N, const Mixing &mix);
+		std::shared_ptr<TH1D> Spectrum(Nu::Flavour flv, const Mixing &mix);
 
-		//Get fluxes from file
-		Flux *fxNuElectron, *fxNuMuon, *fxNuTau;
-		Flux *fxHeavyElectron, *fxHeavyMuon, *fxHeavyTau;
+		bool MakeFlux(std::initializer_list<Neutrino> nus,
+				const Mixing &mix = Mixing());
+		bool MakeFlux(const Neutrino &N, const Mixing &mix = Mixing());
 
-		double Mass_prev;
-		int Helicity_prev;
-		bool Particle_prev;
-
-		std::map<Flux::Component, Modifier> modifiers;
+		std::shared_ptr<TH1D> MakeComponent(Production &hnl, Nu::Flavour nu, double mass = 0.);
+		std::shared_ptr<TH1D> MakeElectron(Production &heavy, const Flux::Component &fxNu);
+		std::shared_ptr<TH1D> MakeMuon(Production &heavy, const Flux::Component &fxNu);
+		std::shared_ptr<TH1D> MakeTau(Production &heavy, const Flux::Component &fxNu,
+					double mass = 0.);
+		double Stretch(std::shared_ptr<TH1D> hist, const Modifier &mod, double mass = 0.);
 };
 
 #endif

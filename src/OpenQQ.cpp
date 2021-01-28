@@ -1,6 +1,6 @@
 #include "physics/OpenQQ.h"
 
-OpenQQ::OpenQQ(char * cardname)
+OpenQQ::OpenQQ(char *cardname)
 {
 	CardDealer cd(cardname);
 	Init(cd);
@@ -12,16 +12,22 @@ OpenQQ::OpenQQ(const std::string &cardname)
 	Init(cd);
 }
 
-OpenQQ::OpenQQ(CardDelaer *cd)
+OpenQQ::OpenQQ(CardDealer *cd)
 {
 	Init(*cd);
+}
+
+OpenQQ::~OpenQQ()
+{
+	delete _probe_PDF;
+	delete _target_PDF;
 }
 
 void OpenQQ::Init(const CardDealer &cd)
 {
 	std::string probe_pdf_name;
 	if (!cd.Get("probe_pdf", probe_pdf_name))
-		throw std::invalid_argument("No PDF for probe particle set\n");
+		throw std::invalid_argument("OpenQQ: No PDF for probe particle set\n");
 	if (!cd.Get("probe_mass", _probe_A))
 		_probe_A = 1;
 	if (!cd.Get("probe_atomic", _probe_Z))
@@ -29,7 +35,7 @@ void OpenQQ::Init(const CardDealer &cd)
 
 	std::string target_pdf_name;
 	if (!cd.Get("target_pdf", target_pdf_name))
-		throw std::invalid_argument("No PDF for target particle set\n");
+		throw std::invalid_argument("OpenQQ: No PDF for target particle set\n");
 	if (!cd.Get("target_mass", _target_A))
 		_target_A = 1;
 	if (!cd.Get("target_atomic", _target_Z))
@@ -73,7 +79,7 @@ void OpenQQ::Init(const CardDealer &cd)
 			valmass = Const::MQuarkT;
 			break;
 		default:
-			throw std::invalid_argument("Unknown quark type\n");
+			throw std::invalid_argument("OpenQQ: Unknown quark type\n");
 	}
 
 	// useful variable to have
@@ -81,25 +87,32 @@ void OpenQQ::Init(const CardDealer &cd)
 	_cme = -1;
 
 	// QCD scale
-	if (!cd.("renormalization_scale", _re_scale))
+	if (!cd.Get("renormalization_scale", _re_scale))
 		_re_scale = 1.6;
-	if (!cd.("factorization_scale", _fac_scale))
+	if (!cd.Get("factorization_scale", _fac_scale))
 		_fac_scale = 2.1;
+	if (!cd.Get("phasespace_cut", _ps_cut))
+		_ps_cut = 0.8;
+
+	// alpha strong
+	_aS = _probe_PDF->alphasQ2(_m2 * std::pow(_re_scale, 2));
+	// facorization scale
+	_mf2 = _m2 * std::pow(_fac_scale, 2);
 
 	// VEGAS parameters
-	if (!cd.("relative_error"), _err_rel)
+	if (!cd.Get("relative_error", _err_rel))
 		_err_rel = 1.0e-6;	//relative error for each component
-	if (!cd.("absolute_error"), _abs_rel)
+	if (!cd.Get("absolute_error", _err_abs))
 		_err_abs = 1.0e-9;	//absolute error
-	if (!cd.("min_evaluations"), _min_evals)
+	if (!cd.Get("min_evaluations", _min_evals))
 		_min_evals = 1e3;	//minimum number of evaluation
-	if (!cd.("max_evaluations"), _max_evals)
-		_max_eval = 1e6;		//maximum number of evaluation
-	if (!cd.("start_evaluations"), _start_evals)
+	if (!cd.Get("max_evaluations", _max_evals))
+		_max_evals = 1e6;		//maximum number of evaluation
+	if (!cd.Get("start_evaluations", _start_evals))
 		_start_evals = 10;
-	if (!cd.("increment_evaluations"), _inc_evals)
+	if (!cd.Get("increment_evaluations", _inc_evals))
 		_inc_evals = 10;
-	if (!cd.("batch_evaluations"), _batch_evals)
+	if (!cd.Get("batch_evaluations", _batch_evals))
 		_batch_evals = 1000;
 }
 
@@ -143,37 +156,38 @@ void OpenQQ::SetFromPS()
 
 //XSections
 
+/*
 double OpenQQ::dXSdQ2_qq()	//differential cross section (dXS/dQ2) for qq_ into qq_
 {
-	double aS = _probe_PFD->alphaQ2(_m2 * std::pow(_re_scale, 2));
+	double aS = _probe_PDF->alphasQ2(_m2 * std::pow(_re_scale, 2));
 	return  4. * aS * Const::pi / (9. * std::pow(_s, 4)) *
 		(_t * _t + _u * _u + 2. * _m2 * _s) ;
 }
 
 double OpenQQ::dXSdQ2_gg()	//differential cross section (dXS/dQ2) for gg into qq_
 {
-	double aS = _probe_PFD->alphaQ2(_m2 * std::pow(_re_scale, 2));
-	return  aS * Const::pi / (_s * _s) * (4./3. - 3. _t * _u / (_s * _s)) / 8. *
-		(_t / _u + _u / _t + 4. * _m2 _s / (_t * _u) * (1. - _m2 * _s / (_t * _u) ) );
+	double aS = _probe_PDF->alphasQ2(_m2 * std::pow(_re_scale, 2));
+	return  aS * Const::pi / (_s * _s) * (4./3. - 3. * _t * _u / (_s * _s)) / 8. *
+		(_t / _u + _u / _t + 4. * _m2 * _s / (_t * _u) * (1. - _m2 * _s / (_t * _u)));
 }
+*/
 
 double OpenQQ::dXSdOmega_qq()	//differential cross section (dXS/dOmega) for qq_ into qq_
-{
-	double aS = _probe_PFD->alphaQ2(_m2 * std::pow(_re_scale, 2));
-	return aS / (9. * std::pow(_s, 3)) * std::sqrt(1. - 4 * _m2 / _s) *
+{ // t and u are actually m2 - t and m2 - u
+	//double aS = _probe_PDF->alphasQ2(_m2 * std::pow(_re_scale, 2));
+	return _aS / (9. * std::pow(_s, 3)) * std::sqrt(1. - 4 * _m2 / _s) *
 		(_t * _t + _u * _u + 2 * _m2 * _s);
-	}
 }
 
 double OpenQQ::dXSdOmega_gg()	//differential cross section (dXS/dOmega) for gg into qq_
-{
-	double aS = _probe_PFD->alphaQ2(_m2 * std::pow(_re_scale, 2));
-	return aS / (32. * _s) * std::sqrt(1. - 4. * _m2 / _s) *
-		(6. * _t * _u / _s - _m2 *  (_s - 4 * _m2)  / (3. * _t * _u) + 
-		 4. * (_t * _u - 2 * _m2 * (2. * _m2 + _t)) / (3. * _t * _t) +
-		 4. * (_t * _u - 2 * _m2 * (2. * _m2 + _u)) / (3. * _u * _u) -
-		 3. * (_t * _u - _m2 * (_u - _t)) / (_s * _t) -
-		 3. * (_t * _u - _m2 * (_t - _u)) / (_s * _u) );
+{ // t and u are actually m2 - t and m2 - u
+	//double aS = _probe_PDF->alphasQ2(_m2 * std::pow(_re_scale, 2));
+	return _aS / (32. * _s) * std::sqrt(1. - 4. * _m2 / _s) *
+		(6. * _t * _u / (_s * _s) - _m2 *  (_s - 4 * _m2)  / (3. * _t * _u)
+	       + 4. * (_t * _u - 2 * _m2 * (2. * _m2 - _t)) / (3. * _t * _t)
+	       + 4. * (_t * _u - 2 * _m2 * (2. * _m2 - _u)) / (3. * _u * _u)
+	       - 3. * (_t * _u - _m2 * (_u - _t)) / (_s * _t)
+	       - 3. * (_t * _u - _m2 * (_t - _u)) / (_s * _u) );
 }
 
 //for vegas integeration
@@ -183,16 +197,16 @@ double OpenQQ::operator()(const double *input)
 	// total integration
 	double tau0 = 4 * _m2 / _cme;	//\hat{s} / s
 
-	// normalized variables in thei integration range
+	// normalized variables in their integration range
 	// because VEGAS inputs are [0:1]
 	double x1 = (1 - tau0) * input[0] + tau0;
 	double x2 = (1 - tau0 / x1) * input[1] + tau0 / x1;
 	double omega = 2 * input[2] - 1;
 
-	// set mandelstam variables use in xsec formulae
+	// set mandelstam variables used in xsec formulae
 	_s = _cme * x1 * x2;
-	_t = _s / 2. * (1. - omega * std::sqrt(1. - 4. * _m2 / _s)); // it is actually t - m2
-	_u = _s - _t;	// it is actually u - m2
+	_t = _s / 2. * (1. + omega * std::sqrt(1. - 4. * _m2 / _s)); // it is actually m2 - t
+	_u = _s - _t;	// it is actually m2 - u
 
 	//jacobian	pdf integration		* phasespace
 	double jac = (1 - tau0) * (1 - tau0/x1) * 4.0*Const::pi;
@@ -205,24 +219,25 @@ double OpenQQ::Integrand(double x1, double x2, double omega)
 		return 0.0;
 
 	// check what 2.1 is! and get from card file
-	double mf2 = _m2 * std::pow(_fac_scale, 2);
-	if (_probe_PDF->inRangeQ2(mf2) && _target_PDF->inRangeQ2(mf2) && 
+	if (_probe_PDF->inRangeQ2(_mf2) && _target_PDF->inRangeQ2(_mf2) && 
 	    _probe_PDF->inRangeX(x1) && _target_PDF->inRangeX(x1) && 
 	    _probe_PDF->inRangeX(x2) && _target_PDF->inRangeX(x2) ) {
 		//gluon component
-		double pdf_gg = _probe_PDF->xfxQ2(0, x1, mf2) * _target_PDF->xfxQ2(0, x2, mf2)
-			      + _probe_PDF->xfxQ2(0, x2, mf2) * _target_PDF->xfxQ2(0, x1, mf2);
+		double pdf_gg = _probe_PDF->xfxQ2(0, x1, _mf2) * _target_PDF->xfxQ2(0, x2, _mf2)
+			      + _probe_PDF->xfxQ2(0, x2, _mf2) * _target_PDF->xfxQ2(0, x1, _mf2);
 
+		// massless quarks contribution
 		double pdf_qq = 0.0;
 		for (int i = 1; i < _valquark; ++i) {
 			//q/p and q_/A
-			pdf_qq += _probe_PDF->xfxQ2( i, x1, mf2) * _target_PDF->xfxQ2(-i, x2, mf2)
-				+ _probe_PDF->xfxQ2( i, x2, mf2) * _target_PDF->xfxQ2(-i, x1, mf2);
+			pdf_qq += _probe_PDF->xfxQ2( i, x1, _mf2) * _target_PDF->xfxQ2(-i, x2, _mf2)
+				+ _probe_PDF->xfxQ2( i, x2, _mf2) * _target_PDF->xfxQ2(-i, x1, _mf2);
 
 			//q_/p and q/A
-			pdf_qq += _probe_PDF->xfxQ2(-i, x1, mf2) * _target_PDF->xfxQ2( i, x2, mf2);
-				+ _probe_PDF->xfxQ2(-i, x2, mf2) * _target_PDF->xfxQ2( i, x1, mf2);
+			pdf_qq += _probe_PDF->xfxQ2(-i, x1, _mf2) * _target_PDF->xfxQ2( i, x2, _mf2)
+				+ _probe_PDF->xfxQ2(-i, x2, _mf2) * _target_PDF->xfxQ2( i, x1, _mf2);
 		}
+
 
 		return (pdf_gg * dXSdOmega_gg() + pdf_qq * dXSdOmega_qq()) / (x1 * x2);
 	}
@@ -233,7 +248,6 @@ double OpenQQ::Integrand(double x1, double x2, double omega)
 // total integration of opencc xsec using VEGAS
 double OpenQQ::Integrate(double &error, double &chi2prob)
 {
-
 	char *state = NULL;
 	void *spin = NULL;
 
@@ -247,10 +261,14 @@ double OpenQQ::Integrate(double &error, double &chi2prob)
 	double result;
 
 	Vegas(3, 1, intcast, ud, 1, 	//ndim, ncomp, integrand_t, userdata, nvec
-	      _err_rel, _err_abs, 0, 0, 			//epsrel, epsabs, verbosity, seed
-	      _min_eval, _max_eval, _start_eval, _inc_eval, _batch_eval,
-	      0, 0, 0,				//gridno, statefile, spin
+	      _err_rel, _err_abs, 0, 0, 		//epsrel, epsabs, verbosity, seed
+	      _min_evals, _max_evals, _start_evals, _inc_evals, _batch_evals,
+	      0, state, spin,				//gridno, statefile, spin
 	      &trial, &fail, &result, &error, &chi2prob);
 
+	//std::cout << "Result " << trial << ", " << fail << ", " << result << "\n";
+
+	error *= Const::GeV2ub * _target_A;
 	return Const::GeV2ub * _target_A * result;
+	//return Const::GeV2ub * result;
 }

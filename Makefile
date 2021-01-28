@@ -8,34 +8,30 @@ CUBA ?= cuba
 LHAPDF ?= lhapdf
 
 
-ROOTLIB		= $(shell root-config --glibs)	#libs for ROOT
-ROOTCXX		= $(shell root-config --cflags)	#libs for ROOT
-CUBALIB		= -L$(CUBA)/lib		#libs for CUBA
-CUBACXX		= -I$(CUBA)/include 	#libs for CUBA
+ROOTLIB		= $(shell root-config --libdir)	#libs for ROOT
+ROOTINC		= $(shell root-config --cflags)	#libs for ROOT
+ROOTLD		= $(shell root-config --glibs) #libs for ROOT
+CUBALIB		= -L$(CUBA)/lib	#libs for CUBA
+CUBAINC		= -I$(CUBA)/include 	#libs for CUBA
 LHAPDFLIB	= -L$(LHAPDF)/lib	#includes for LHAPDF
-LHAPDFCXX	= -I$(LHAPDF)/include	#includes for LHAPDF
-
-# no need to link genie anymore
-#GENIELIB	= $(shell genie-config --libs)	#libs for GENIE
-#GENIEINC	= $(shell genie-config --flags)	#libs for GENIE
+LHAPDFINC	= -I$(LHAPDF)/include	#includes for LHAPDF
 
 
 #optimization
 ARCH ?= -march=native
 
-LDFLAGS  := -Wl,--no-as-needed $(LDFLAGS) $(ROOTLIB) $(GENIELIB) $(CUBALIB) $(LHAPDFLIB)
-#LDLIBS   := -lcuba -lLHAPDF
-CXXFLAGS := $(CXXFLAGS) -fPIC -fopenmp -std=c++11 -O3 -mavx
-CXXFLAGS := $(DEBUG) $(WARNING) -fPIC -std=c++11 -O3 $(ARCH)  $(ROOTCXX) $(CUBACXX) $(LHAPDFCXX) -I$(INCDIR)
+LDFLAGS  := $(LDFLAGS) $(CUBALIB) $(LHAPDFLIB)
+LDLIBS   := -Wl,--as-needed -lcuba -lLHAPDF $(ROOTLD) -lTMVA -lTMVAGui
+CXXFLAGS := -Wall -fPIC -std=c++11 -O2 $(ARCH) $(ROOTINC) $(CUBAINC) $(LHAPDFINC) -I$(INCDIR)
 
 
 #apps and exctuables
 TARGETS := $(wildcard $(APPDIR)/*.cpp)
 TESTS   := $(wildcard $(TESTDIR)/*.cpp)
-#SOURCES := $(wildcard $(SRCDIR)/*.cpp)
-#HEADERS := $(wildcard $(INCDIR)/*/*.h*)
-SOURCES := $(SRCDIR)/Particle.cpp $(SRCDIR)/Track.cpp $(SRCDIR)/OpenQQ.cpp
-HEADERS := $(INCDIR)/physics/Particle.h $(INCDIR)/physics/Track.h $(INCDIR)/physics/OpenQQ.h
+SOURCES := $(wildcard $(SRCDIR)/*.cpp)
+HEADERS := $(wildcard $(INCDIR)/*/*.h*)
+#SOURCES := $(SRCDIR)/Particle.cpp $(SRCDIR)/Track.cpp $(SRCDIR)/OpenQQ.cpp
+#HEADERS := $(INCDIR)/physics/Particle.h $(INCDIR)/physics/Track.h $(INCDIR)/physics/OpenQQ.h
 
 DEPENDS := $(SOURCES:.cpp=.d)
 OBJECTS := $(SOURCES:.cpp=.o)

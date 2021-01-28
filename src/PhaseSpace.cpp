@@ -1,1157 +1,940 @@
-#include "PhaseSpace.h"
+#include "physics/PhaseSpace.h"
 
-PhaseSpace::PhaseSpace() :
-	Amplitude()
-	Event(new TGenPhaseSpace),
-	GenMT(new TRandom3(0))
-	//P_labf(new TLorentzVector()),
-	//P_rest(new TLorentzVector())
+// using external MT generator
+PhaseSpace::PhaseSpace(Neutrino N) : Amplitude(std::move(N)),
+	_genps(new TGenPhaseSpace())
 {
-	Reset();
 }
 
 PhaseSpace::~PhaseSpace()
 {
-	delete Event;
-	delete GenMT;
-	//delete P_labf;
-	//delete P_rest;
+	delete _genps;
 }
 
-bool PhaseSpace::SetDecay(Channel Name)
-{
-	double MassArray[10];
-	switch (LoadMass(Name))
-	{
-		case DecayRates:
-			MassArray[0] = vMass.at(0);
-			break;
-		case Production:
-			MassArray[0] = MassN();
-			break;
-		case Undefined:
-			return false;
+std::pair<std::vector<Particle>, double> PhaseSpace::Generate(Channel::Name chan,
+					const Particle &part, const Mixing &mix) {
+	TLorentzVector frame = static_cast<TLorentzVector>(part);
+	return Generate(chan, frame, mix);
+
+}
+
+std::pair<std::vector<Particle>, double> PhaseSpace::Generate(Channel::Name chan,
+				const TLorentzVector &frame, const Mixing &mix) {
+	std::vector<Particle> parts;
+	if (!SetDecay(chan)) // decay not allowed
+		return std::make_pair(parts, 0.); 	// return empty vector
+
+	size_t cc = 0;
+	std::uniform_real_distribution<> rndm;
+	double weight = _genps->Generate();	// generate phase space
+	double val = Gamma(chan, mix); 
+	if (val <= 1e-12 || val - 1e-12 > 1.)	// phase space impossible
+		return std::make_pair(parts, 0.);
+
+	while (rndm(RNG::_mt) > val && cc++ < 1e4) {
+		weight = _genps->Generate();	// generate phase space
+		val = Gamma(chan, mix);
 	}
 
-	for (int i = 1; i < Daughters(); ++i)
-		MassArray[i] = vMass.at(i);
+	if (cc > 1e4)
+		return std::make_pair(parts, 0.);
 
-	TLorentzVector vec = Parent(restFrame);
-	return Event->SetDecay(vec, Daughters(), MassArray);
-}
+	// reverse pdg sign if particle is "anti"
 
-bool PhaseSpace::Generate(Channel Name, double &val)
-{
-	int cc = 0;
-	if (SetDecay(Name))
+	TLorentzVector vec = *(_genps->GetDecay(0));
+	vec.Boost(frame.BoostVector());
+
+	parts.reserve(_masspdg.size());
+
+	int sign = 1;
+	switch (Channel::whichType(chan))
 	{
-		do
-		{
-			++cc;
-			Event->Generate();
-			val = Ratio(Name);
-		}
-		while (val >= 0 && GenMT->Rndm() > val && cc < 1e4);
-
-		if (cc > 1e3)
-			return false;
-		else
-			return true;
-	}
-	else
-		return false;
-}
-
-double PhaseSpace::Ratio(Channel Name)
-{
-	double Ret = 1.0;
-	switch (Name)
-	{
-		case _ALL:
-		case _nnn:
-		case _nGAMMA:
+		case Channel::Type::decayrates:
+			// assign sign during decay
+			if (_N.IsMajorana()) {
+				std::bernoulli_distribution b(0.5);
+				sign = b(RNG::_mt) ? 1 : -1;
+			}
+			else // is dirac
+				sign = _N.IsParticle() ? 1 : -1;
+			parts.push_back(Particle(sign * _masspdg.front().second, vec));
 			break;
-		case _nEE:
-			Ret = nEE_ratio();
-			break;
-		case _nEM:
-			Ret = nEM_ratio();
-			break;
-		case _nMM:
-			Ret = nMM_ratio();
-			break;
-		case _nET:
-			Ret = nET_ratio();
-			break;
-		case _nMT:
-			Ret = nMT_ratio();
-			break;
-		case _nPI0:
-			Ret = nPI0_ratio();
-			break;
-		case _EPI:
-			Ret = EPI_ratio();
-			break;
-		case _MPI:
-			Ret = MPI_ratio();
-			break;
-		case _TPI:
-			Ret = TPI_ratio();
-			break;
-		case _EKA:
-			Ret = EKA_ratio();
-			break;
-		case _MKA:
-			Ret = MKA_ratio();
-			break;
-		case _nRHO0:
-			Ret = nRHO0_ratio();
-			break;
-		case _ERHO:
-			Ret = ERHO_ratio();
-			break;
-		case _MRHO:
-			Ret = MRHO_ratio();
-			break;
-		case _EKAx:
-			Ret = EKAx_ratio();
-			break;
-		case _MKAx:
-			Ret = MKAx_ratio();
-			break;
-		case _nOMEGA:
-			Ret = nOMEGA_ratio();
-			break;
-		case _nETA:
-			Ret = nETA_ratio();
-			break;
-		case _nETAi:
-			Ret = nETAi_ratio();
-			break;
-		case _nPHI:
-			Ret = nPHI_ratio();
-			break;
-		case _ECHARM:
-			Ret = ECHARM_ratio();
-			break;
-		case _MuonE:	//these are needed as well
-			Ret = MuonE_ratio();
-			break;
-		case _MuonM:
-			Ret = MuonM_ratio();
-			break;
-		case _TauEE:
-			Ret = TauEE_ratio();
-			break;
-		case _TauET:
-			Ret = TauET_ratio();
-			break;
-		case _TauMM:
-			Ret = TauMM_ratio();
-			break;
-		case _TauMT:
-			Ret = TauMT_ratio();
-			break;
-		case _TauPI:				//1
-			Ret = TauPI_ratio();
-			break;
-		case _Tau2PI:				//1
-			//Ret = Tau2PI_ratio();
-			break;
-		case _PionE:				//1
-			Ret = PionE_ratio();
-			break;
-		case _PionM:				//1
-			Ret = PionM_ratio();
-			break;
-		case _KaonE:				//1
-			Ret = KaonE_ratio();
-			break;
-		case _KaonM:				//1
-			Ret = KaonM_ratio();
-			break;
-		case _CharmE:				//1
-			Ret = CharmE_ratio();
-			break;
-		case _CharmM:				//1
-			Ret = CharmM_ratio();
-			break;
-		case _CharmT:				//1
-			Ret = CharmT_ratio();
-			break;
-		case _Kaon0E:
-			Ret = Kaon0E_ratio();
-			break;
-		case _Kaon0M:
-			Ret = Kaon0M_ratio();
-			break;
-		case _KaonCE:
-			Ret = KaonCE_ratio();
-			break;
-		case _KaonCM:
-			Ret = KaonCM_ratio();
+		// don't care about sign in production
+		case Channel::Type::production:
+			parts.push_back(Particle(sign * _N.Pdg(), vec));
 			break;
 		default:
-			break;
+			throw std::invalid_argument("Channel " + Channel::toString(chan) + " unknown");
 	}
 
-	return Ret;
+	for (size_t i = 1; i < _masspdg.size(); ++i) {
+		TLorentzVector vec = *(_genps->GetDecay(i));
+		vec.Boost(frame.BoostVector());
+		parts.push_back(Particle(sign * _masspdg[i].second, vec));
+	}
+
+	return std::make_pair(parts, weight);
+}
+
+bool PhaseSpace::SetDecay(Channel::Name chan)
+{
+	if (_channel != chan) {
+		LoadMass(chan);
+		_channel = chan;
+	}
+
+	double masses[10];
+	switch (Channel::whichType(chan))
+	{
+		case Channel::Type::decayrates:
+			masses[0] = _masspdg.front().first;
+			_m_parent = _N.M();
+			break;
+		case Channel::Type::production:
+			masses[0] = _N.M();
+			_m_parent = _masspdg.front().first;
+			break;
+		default:
+			throw std::invalid_argument("Channel " + Channel::toString(chan) + " unknown");
+	}
+
+	for (size_t i = 1; i < _masspdg.size(); ++i)
+		masses[i] = _masspdg[i].first;
+
+	// compute decay in rest frame, boost later
+	TLorentzVector rest(0, 0, 0, _m_parent);
+
+	return _genps->SetDecay(rest, _masspdg.size(), masses);
+}
+
+double PhaseSpace::Gamma(Channel::Name chan, const Mixing &mix)
+{
+	using GammaR = double (PhaseSpace::*)(const Mixing &mix);
+	GammaR gr;
+
+	switch (chan)
+	{
+		case Channel::ALL:
+		case Channel::nnn:
+		case Channel::nGAMMA:
+			return 1.;
+		case Channel::nEE:
+			gr = &PhaseSpace::nEE;
+			break;
+		case Channel::nEM:
+			gr = &PhaseSpace::nEM;
+			break;
+		case Channel::nMM:
+			gr = &PhaseSpace::nMM;
+			break;
+		case Channel::nET:
+			gr = &PhaseSpace::nET;
+			break;
+		case Channel::nMT:
+			gr = &PhaseSpace::nMT;
+			break;
+		case Channel::nPI0:
+			gr = &PhaseSpace::nPI0;
+			break;
+		case Channel::EPI:
+			gr = &PhaseSpace::EPI;
+			break;
+		case Channel::MPI:
+			gr = &PhaseSpace::MPI;
+			break;
+		case Channel::TPI:
+			gr = &PhaseSpace::TPI;
+			break;
+		case Channel::EKA:
+			gr = &PhaseSpace::EKA;
+			break;
+		case Channel::MKA:
+			gr = &PhaseSpace::MKA;
+			break;
+		case Channel::nRHO0:
+			gr = &PhaseSpace::nRHO0;
+			break;
+		case Channel::ERHO:
+			gr = &PhaseSpace::ERHO;
+			break;
+		case Channel::MRHO:
+			gr = &PhaseSpace::MRHO;
+			break;
+		case Channel::EKAx:
+			gr = &PhaseSpace::EKAx;
+			break;
+		case Channel::MKAx:
+			gr = &PhaseSpace::MKAx;
+			break;
+		case Channel::nOMEGA:
+			gr = &PhaseSpace::nOMEGA;
+			break;
+		case Channel::nETA:
+			gr = &PhaseSpace::nETA;
+			break;
+		case Channel::nETAi:
+			gr = &PhaseSpace::nETAi;
+			break;
+		case Channel::nPHI:
+			gr = &PhaseSpace::nPHI;
+			break;
+		case Channel::ECHARM:
+			gr = &PhaseSpace::ECHARM;
+			break;
+		case Channel::MuonE:	//these are needed as well
+			gr = &PhaseSpace::MuonE;
+			break;
+			return 1.;
+		case Channel::MuonM:
+			gr = &PhaseSpace::MuonM;
+			break;
+		case Channel::TauEE:
+			gr = &PhaseSpace::TauEE;
+			break;
+		case Channel::TauET:
+			gr = &PhaseSpace::TauET;
+			break;
+		case Channel::TauMM:
+			gr = &PhaseSpace::TauMM;
+			break;
+		case Channel::TauMT:
+			gr = &PhaseSpace::TauMT;
+			break;
+		case Channel::TauPI:				//1
+			//gr = &PhaseSpace::TauPI;
+			//break;
+			return 1.;
+		case Channel::Tau2PI:				//1
+			//gr = &PhaseSpace::Tau2PI;
+			//break;
+			return 1.;
+		case Channel::PionE:				//1
+			//gr = &PhaseSpace::PionE;
+			//break;
+			return 1.;
+		case Channel::PionM:				//1
+			//gr = &PhaseSpace::PionM;
+			//break;
+			return 1.;
+		case Channel::KaonE:				//1
+			//gr = &PhaseSpace::KaonE;
+			//break;
+			return 1.;
+		case Channel::KaonM:				//1
+			//gr = &PhaseSpace::KaonM;
+			//break;
+			return 1.;
+		case Channel::CharmE:				//1
+			//gr = &PhaseSpace::CharmE;
+			//break;
+			return 1.;
+		case Channel::CharmM:				//1
+			//gr = &PhaseSpace::CharmM;
+			//break;
+			return 1.;
+		case Channel::CharmT:				//1
+			//gr = &PhaseSpace::CharmT;
+			//break;
+			return 1.;
+		case Channel::Kaon0E:
+			gr = &PhaseSpace::Kaon0E;
+			break;
+		case Channel::Kaon0M:
+			gr = &PhaseSpace::Kaon0M;
+			break;
+		case Channel::KaonCE:
+			gr = &PhaseSpace::KaonCE;
+			break;
+		case Channel::KaonCM:
+			gr = &PhaseSpace::KaonCM;
+			break;
+		default:
+			throw std::invalid_argument("Channel " + Channel::toString(chan) + " unknown");
+			break;
+	}
+	
+	return (this->*gr)(mix);
 }
 
 //Neutrino LeptonLepton AA
-double PhaseSpace::nEE_ratio()
+
+double PhaseSpace::nEE(const Mixing &mix)
 {
-	return NeutrinoLeptonAA_ratio(maxnEE_e, maxnEE_o, &PhaseSpace::Ue);
+	auto gamma = NeutrinoLeptonAA(Channel::nEE, Channel::nEE_o, _masspdg[0].first, _masspdg[1].first);
+
+	if (gamma.first < 0.)
+		gamma.first = 0.;
+	if (gamma.second < 0.)
+		gamma.second = 0.;
+
+	//return (maxName_u > 1e-25 || maxName_o > 1e-25) ? 
+	return ( gamma.first * mix.Ue(2) + gamma.second * (mix.Um(2) + mix.Ut(2)))
+	     / (_table[Channel::nEE] * mix.Ue(2) + _table[Channel::nEE_o] * (mix.Um(2) + mix.Ut(2)));
 }
 
-double PhaseSpace::nMM_ratio()
+double PhaseSpace::nMM(const Mixing &mix)
 {
-	return NeutrinoLeptonAA_ratio(maxnMM_m, maxnMM_o, &PhaseSpace::Um);
+	auto gamma = NeutrinoLeptonAA(Channel::nMM, Channel::nMM_o, _masspdg[0].first, _masspdg[1].first);
+
+	if (gamma.first < 0.)
+		gamma.first = 0.;
+
+	if (gamma.second < 0.)
+		gamma.second = 0.;
+
+	//return (maxName_u > 1e-25 || maxName_o > 1e-25) ? 
+	return ( gamma.first * mix.Um(2) + gamma.second * (mix.Ue(2) + mix.Ut(2)))
+	     / (_table[Channel::nMM] * mix.Um(2) + _table[Channel::nMM_o] * (mix.Ue(2) + mix.Ut(2)));
 }
 
-double PhaseSpace::NeutrinoLeptonAA_ratio(double &maxName_u, double &maxName_o, double (PhaseSpace::*Uu)(int))
+
+std::pair<double, double> PhaseSpace::NeutrinoLeptonAA(Channel::Name chan, Channel::Name chan_o, double m_neut, double m_lepton)
 {
-	if (maxName_u < 0 || maxName_o < 0 || IsChanged())
-		Max_NeutrinoLeptonAA(maxName_u, maxName_o, vMass.at(0), vMass.at(1));
+	_m_parent = _N.M();
+	double dMn2 = std::pow(m_neut / _m_parent, 2);
+	double dML2 = std::pow(m_lepton / _m_parent, 2);
 
-	double fName_u, fName_o;
-	NeutrinoLeptonAA(fName_u, fName_o, vMass.at(0), vMass.at(1));
+	//neutrino flavour is the same as leptons -> both Z and W interaction
+	//double gL_CC = -0.5 + Const::sin2W + (2*GetParticle() - 1);	//times U(lepton flavour)
+	double gL_CC = -0.5 + Const::sin2W + 1;	//times U(lepton flavour)
+	double gR_CC = Const::sin2W;
 
-	if (fName_u < 0)
-		fName_u = 0;
-	if (fName_o < 0)
-		fName_o = 0;
+	//neutrino flavour is different from leptons -> Z interaction
+	double gL_NC = -0.5 + Const::sin2W;	//times U(neutrino flavour)
+	double gR_NC = Const::sin2W;
 
-	return (maxName_u > 1e-25 || maxName_o > 1e-25) ? 
-		( fName_u   * (this->*Uu)(2) + fName_o   * (Ue(2) + Um(2) + Ut(2) - (this->*Uu)(2)) ) / 
-		( maxName_u * (this->*Uu)(2) + maxName_o * (Ue(2) + Um(2) + Ut(2) - (this->*Uu)(2)) ) : -1.0;
+	// compute max first, if needed
+	if (!_table.count(chan)) {
+		_table[chan]   = NeutrinoLeptonLepton_max(dMn2, dML2, dML2, gL_CC, gR_CC);
+		_table[chan_o] = NeutrinoLeptonLepton_max(dMn2, dML2, dML2, gL_NC, gR_NC);
+	}
+
+	std::array<double, 6> kine = Kinematic_3B();
+						   // s      u       cos0s     cos0u
+	return std::make_pair(NeutrinoLeptonLepton(kine[0], kine[2], kine[3], kine[5], dMn2, dML2, dML2, gL_CC, gR_CC),
+			      NeutrinoLeptonLepton(kine[0], kine[2], kine[3], kine[5], dMn2, dML2, dML2, gL_NC, gR_NC));
 }
+
+
 
 //Neutrino LeptonLepton AB
-double PhaseSpace::nEM_ratio()
+
+double PhaseSpace::nEM(const Mixing &mix)
 {
-	return NeutrinoLeptonAB_ratio(maxnEM_e, maxnEM_m, &PhaseSpace::Ue, &PhaseSpace::Um);
+	auto gamma = NeutrinoLeptonAB(Channel::nEM, Channel::nEM_o, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first);
+
+	if (gamma.first < 0.)
+		gamma.first = 0.;
+	if (gamma.second < 0.)
+		gamma.second = 0.;
+
+	//return (maxName_u > 1e-25 || maxName_o > 1e-25) ? 
+	return ( gamma.first * mix.Ue(2) + gamma.second * mix.Um(2))
+	     / (_table[Channel::nEM] * mix.Ue(2) + _table[Channel::nEM_o] * mix.Um(2));
 }
 
-double PhaseSpace::nET_ratio()
+double PhaseSpace::nET(const Mixing &mix)
 {
-	return NeutrinoLeptonAB_ratio(maxnET_e, maxnET_t, &PhaseSpace::Ue, &PhaseSpace::Ut);
+	auto gamma = NeutrinoLeptonAB(Channel::nET, Channel::nET_o, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first);
+
+	if (gamma.first < 0.)
+		gamma.first = 0.;
+	if (gamma.second < 0.)
+		gamma.second = 0.;
+
+	//return (maxName_u > 1e-25 || maxName_o > 1e-25) ? 
+	return ( gamma.first * mix.Ue(2) + gamma.second * mix.Ut(2))
+	     / (_table[Channel::nET] * mix.Ue(2) + _table[Channel::nET_o] * mix.Ut(2));
 }
 
-double PhaseSpace::nMT_ratio()
+double PhaseSpace::nMT(const Mixing &mix)
 {
-	return NeutrinoLeptonAB_ratio(maxnMT_m, maxnMT_t, &PhaseSpace::Um, &PhaseSpace::Ut);
+	// computes max too
+	auto gamma = NeutrinoLeptonAB(Channel::nMT, Channel::nMT_o, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first);
+
+	if (gamma.first < 0.)
+		gamma.first = 0.;
+	if (gamma.second < 0.)
+		gamma.second = 0.;
+
+	//return (maxName_u > 1e-25 || maxName_o > 1e-25) ? 
+	return (gamma.first * mix.Um(2) + gamma.second * mix.Ut(2))
+	     / (_table[Channel::nMT] * mix.Um(2) + _table[Channel::nMT_o] * mix.Ut(2));
 }
 
-double PhaseSpace::NeutrinoLeptonAB_ratio(double &maxName_a, double &maxName_b, 
-					  double (PhaseSpace::*Ua)(int), double (PhaseSpace::*Ub)(int))
+
+std::pair<double, double> PhaseSpace::NeutrinoLeptonAB(Channel::Name chan, Channel::Name chan_o, double m_neut, double m_leptonA, double m_leptonB)
 {
-	if (maxName_a < 0 || maxName_b < 0 || IsChanged())
-		Max_NeutrinoLeptonAB(maxName_a, maxName_b, vMass.at(0), vMass.at(1), vMass.at(2));
+	_m_parent = _N.M();
+	double dMn2 = std::pow(m_neut / _m_parent, 2);
+	double dMA2 = std::pow(m_leptonA / _m_parent, 2);
+	double dMB2 = std::pow(m_leptonB / _m_parent, 2);
 
-	double fName_a, fName_b;
-	NeutrinoLeptonAB(fName_a, fName_b, vMass.at(0), vMass.at(1), vMass.at(2));
+	//double gL = 1.0;
+	//double gR = 0.0;
 
-	if (fName_a < 0)
-		fName_a = 0;
-	if (fName_b < 0)
-		fName_b = 0;
+	if (!_table.count(chan)) {
+		_table[chan]   = NeutrinoLeptonLepton_max(dMn2, dMA2, dMB2, 1., 0.);
+		_table[chan_o] = NeutrinoLeptonLepton_max(dMn2, dMB2, dMA2, 1., 0.);
+	}
 
-	return (maxName_a > 1e-25 || maxName_b > 1e-25) ? 
-		( fName_a   * (this->*Ua)(2) + fName_b   * (this->*Ub)(2) ) / 
-		( maxName_a * (this->*Ua)(2) + maxName_b * (this->*Ub)(2) ) : -1.0;
+	std::array<double, 6> kine = Kinematic_3B();
+						   // s      u       cos0s     cos0u
+	return std::make_pair(NeutrinoLeptonLepton(kine[0], kine[2], kine[3], kine[5], dMn2, dMA2, dMB2, 1., 0.),
+			      NeutrinoLeptonLepton(kine[2], kine[0], kine[5], kine[3], dMn2, dMB2, dMA2, 1., 0.));
 }
+
+
+// common max functions
+
+double PhaseSpace::NeutrinoLeptonLepton_max(double x, double y, double z, double gL, double gR)
+{
+	_vars = {x, y, z, gL, gR};
+
+	auto func = [&](double p[]) { return F_NeutrinoLeptonLepton_max(p); };
+	//std::bind(&PhaseSpace::F_NeutrinoLeptonLepton_max, this, std::placeholders::_1);
+	auto res = Optimization::NelderMead<double>(func, 4); //-1 to invert function
+	return -func(&res[0]);
+}
+
+// returns a reversed sign for minimization algorithm
+double PhaseSpace::F_NeutrinoLeptonLepton_max(double p[])
+{
+	double x  = _vars[0];
+	double y  = _vars[1];
+	double z  = _vars[2];
+	double gL = _vars[3];
+	double gR = _vars[4];
+
+	double s_   = p[0];
+	double u_   = p[1];
+	double cos0 = p[2];
+	double cos1 = p[3];
+
+	if (std::abs(cos0) <= 1 && std::abs(cos1) <= 1)
+		return -NeutrinoLeptonLepton(s_, u_, cos0, cos1, x, y, z, gL, gR);
+	return 0.;
+}
+
+double PhaseSpace::NeutrinoLeptonLepton(double s, double u, double cos0, double cos1,
+					double x, double y, double z,
+					double gL, double gR)
+{
+	return dGammad5_3B() * (gL * gL + gR * gR) * M2_WW(s, cos0, x, y, z) +
+		                     (2 * gL * gR) * M2_WZ(u, cos1, x, y, z);
+}
+
+
+
 
 //neutrino psuedomeson
 
-double PhaseSpace::nPI0_ratio()
+double PhaseSpace::nPI0(const Mixing &mix)
 {
-	return NeutrinoPseudoMeson_ratio(maxnPI0);
+	return NeutrinoPseudoMeson(Channel::nPI0, _masspdg[0].first, _masspdg[1].first) / _table[Channel::nPI0];
 }
 
-double PhaseSpace::nETA_ratio()
+double PhaseSpace::nETA(const Mixing &mix)
 {
-	return NeutrinoPseudoMeson_ratio(maxnETA);
+	return NeutrinoPseudoMeson(Channel::nETA, _masspdg[0].first, _masspdg[1].first) / _table[Channel::nETA];
 }
 
-double PhaseSpace::nETAi_ratio()
+double PhaseSpace::nETAi(const Mixing &mix)
 {
-	return NeutrinoPseudoMeson_ratio(maxnETAi);
+	return NeutrinoPseudoMeson(Channel::nETAi, _masspdg[0].first, _masspdg[1].first) / _table[Channel::nETAi];
 }
 
-double PhaseSpace::NeutrinoPseudoMeson_ratio(double &maxName)
+//
+double PhaseSpace::NeutrinoPseudoMeson(Channel::Name chan, double m_neut, double m_meson)
 {
-	if (maxName < 0 || IsChanged())
-		maxName = Max_NeutrinoPseudoMeson(vMass.at(0), vMass.at(1));
+	_m_parent = _N.M();
+	double dMn2 = std::pow(m_neut / _m_parent, 2);
+	double dMM2 = std::pow(m_meson / _m_parent, 2);
 
-	return (maxName > 1e-25) ? 
-		NeutrinoPseudoMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
-}
+	_M2_F = &Amplitude::M2_NeutrinoPseudoMeson;
+
+	if (!_table.count(chan)) {
+		_table[chan] = ToPseudoMeson_max(dMn2, dMM2);
+	}
+
+	double cos0_ = Kinematic_2B();
+
+	return ToPseudoMeson(cos0_, dMn2, dMM2);
+}	//     2 is factor from decay constant which is sqrt(2) wrt to charged meson
+
+
 
 //lepton psuedomeson
 
-double PhaseSpace::EPI_ratio()
+double PhaseSpace::EPI(const Mixing &mix)
 {
-	return LeptonPseudoMeson_ratio(maxEPI);
+	return LeptonPseudoMeson(Channel::EPI, _masspdg[0].first, _masspdg[1].first) / _table[Channel::EPI];
 }
 
-double PhaseSpace::MPI_ratio()
+double PhaseSpace::MPI(const Mixing &mix)
 {
-	return LeptonPseudoMeson_ratio(maxMPI);
+	return LeptonPseudoMeson(Channel::MPI, _masspdg[0].first, _masspdg[1].first) / _table[Channel::MPI];
 }
 
-double PhaseSpace::TPI_ratio()
+double PhaseSpace::TPI(const Mixing &mix)
 {
-	return LeptonPseudoMeson_ratio(maxTPI);
+	return LeptonPseudoMeson(Channel::TPI, _masspdg[0].first, _masspdg[1].first) / _table[Channel::TPI];
 }
 
-double PhaseSpace::EKA_ratio()
+double PhaseSpace::EKA(const Mixing &mix)
 {
-	return LeptonPseudoMeson_ratio(maxEKA);
+	return LeptonPseudoMeson(Channel::EKA, _masspdg[0].first, _masspdg[1].first) / _table[Channel::EKA];
 }
 
-double PhaseSpace::MKA_ratio()
+double PhaseSpace::MKA(const Mixing &mix)
 {
-	return LeptonPseudoMeson_ratio(maxMKA);
+	return LeptonPseudoMeson(Channel::MKA, _masspdg[0].first, _masspdg[1].first) / _table[Channel::MKA];
 }
 
-double PhaseSpace::ECHARM_ratio()
+double PhaseSpace::ECHARM(const Mixing &mix)
 {
-	return LeptonPseudoMeson_ratio(maxECHARM);
+	return LeptonPseudoMeson(Channel::ECHARM, _masspdg[0].first, _masspdg[1].first) / _table[Channel::ECHARM];
 }
 
-double PhaseSpace::LeptonPseudoMeson_ratio(double &maxName)
+double PhaseSpace::LeptonPseudoMeson(Channel::Name chan, double m_lepton, double m_meson)
 {
-	if (maxName < 0 || IsChanged())
-		maxName = Max_LeptonPseudoMeson(vMass.at(0), vMass.at(1));
+	_m_parent = _N.M();
+	double dML2 = std::pow(m_lepton / _m_parent, 2);
+	double dMM2 = std::pow(m_meson / _m_parent, 2);
 
-	return (maxName > 1e-25) ? 
-		LeptonPseudoMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
+	_M2_F = &Amplitude::M2_LeptonPseudoMeson;
+
+	if (!_table.count(chan))
+		_table[chan] = ToPseudoMeson_max(dML2, dMM2);
+
+	double cos0_ = Kinematic_2B();
+
+	return ToPseudoMeson(cos0_, dML2, dMM2);
 }
+
+
+// common for decays into pseudomeson + lepton
+
+double PhaseSpace::ToPseudoMeson_max(double x, double y)
+{
+	_vars = {x, y};
+
+	auto func = std::bind(&PhaseSpace::ToPseudoMeson_cos0_max, this, std::placeholders::_1);
+	double res = Optimization::GoldenRatio<double>(func); //-1 to invert function
+	return -func(res);
+}
+
+double PhaseSpace::ToPseudoMeson_cos0_max(double cos0)
+{
+	double x = _vars[0];
+	double y = _vars[1];
+	double cos0_ = -1 + 2 * cos0;
+
+	return -ToPseudoMeson(cos0_, x, y);
+}
+
+
+double PhaseSpace::ToPseudoMeson(double cos0, double x, double y)
+{	//either M2_NeutrinoPseudoMeson or M2_LeptonPseudoMeson
+	return dGammad2_2B(x, y) * (this->*_M2_F)(cos0, x, y);
+}
+
+
 
 //neutrino vector meson
 
-double PhaseSpace::nRHO0_ratio()
+double PhaseSpace::nRHO0(const Mixing &mix)
 {
-	return NeutrinoVectorMeson_ratio(maxnRHO0);
+	return NeutrinoVectorMeson(Channel::nRHO0, _masspdg[0].first, _masspdg[1].first) / _table[Channel::nRHO0];
 }
 
-double PhaseSpace::nOMEGA_ratio()
+double PhaseSpace::nOMEGA(const Mixing &mix)
 {
-	return NeutrinoVectorMeson_ratio(maxnOMEGA);
+	return NeutrinoVectorMeson(Channel::nOMEGA, _masspdg[0].first, _masspdg[1].first) / _table[Channel::nOMEGA];
 }
 
-double PhaseSpace::nPHI_ratio()
+double PhaseSpace::nPHI(const Mixing &mix)
 {
-	return NeutrinoVectorMeson_ratio(maxnPHI);
+	return NeutrinoVectorMeson(Channel::nOMEGA, _masspdg[0].first, _masspdg[1].first) / _table[Channel::nPHI];
 }
 
-double PhaseSpace::NeutrinoVectorMeson_ratio(double &maxName)
+double PhaseSpace::NeutrinoVectorMeson(Channel::Name chan, double m_neut, double m_meson)
 {
-	if (maxName < 0 || IsChanged())
-		maxName = Max_NeutrinoVectorMeson(vMass.at(0), vMass.at(1));
+	_m_parent = _N.M();
+	double dMn2 = std::pow(m_neut / _m_parent, 2);
+	double dMM2 = std::pow(m_meson / _m_parent, 2);
 
-	return (maxName > 1e-25) ? 
-		NeutrinoVectorMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
+	_M2_F = &Amplitude::M2_NeutrinoVectorMeson;
+
+	if (!_table.count(chan))
+		_table[chan] = ToVectorMeson_max(dMn2, dMM2);
+
+	double cos0 = Kinematic_2B();
+
+	_M2_F = &Amplitude::M2_NeutrinoVectorMeson;
+	return ToVectorMeson(cos0, dMn2, dMM2);
 }
 
-//lepton vector meson
-
-double PhaseSpace::ERHO_ratio()
+double PhaseSpace::ERHO(const Mixing &mix)
 {
-	return LeptonVectorMeson_ratio(maxERHO);
+	return LeptonVectorMeson(Channel::ERHO, _masspdg[0].first, _masspdg[1].first) / _table[Channel::ERHO];
 }
 
-double PhaseSpace::MRHO_ratio()
+double PhaseSpace::MRHO(const Mixing &mix)
 {
-	return LeptonVectorMeson_ratio(maxMRHO);
+	return LeptonVectorMeson(Channel::MRHO, _masspdg[0].first, _masspdg[1].first) / _table[Channel::MRHO];
 }
 
-double PhaseSpace::EKAx_ratio()
+double PhaseSpace::EKAx(const Mixing &mix)
 {
-	return LeptonVectorMeson_ratio(maxEKAx);
+	return LeptonVectorMeson(Channel::EKAx, _masspdg[0].first, _masspdg[1].first) / _table[Channel::EKAx];
 }
 
-double PhaseSpace::MKAx_ratio()
+double PhaseSpace::MKAx(const Mixing &mix)
 {
-	return LeptonVectorMeson_ratio(maxMKAx);
+	return LeptonVectorMeson(Channel::MKAx, _masspdg[0].first, _masspdg[1].first) / _table[Channel::MKAx];
 }
 
-double PhaseSpace::LeptonVectorMeson_ratio(double &maxName)
+double PhaseSpace::LeptonVectorMeson(Channel::Name chan, double m_lepton, double m_meson)
 {
-	if (maxName < 0 || IsChanged())
-		maxName = Max_LeptonVectorMeson(vMass.at(0), vMass.at(1));
+	_m_parent = _N.M();
+	double dML2 = std::pow(m_lepton / _m_parent, 2);
+	double dMM2 = std::pow(m_meson / _m_parent, 2);
 
-	return (maxName > 1e-25) ?
-		LeptonVectorMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
+	_M2_F = &Amplitude::M2_LeptonVectorMeson;
+
+	if (!_table.count(chan))
+		_table[chan] = ToVectorMeson_max(dML2, dMM2);
+
+	double cos0 = Kinematic_2B();
+
+	return ToVectorMeson(cos0, dML2, dMM2);
 }
 
-////PRODUCTION
-//
+// common for decays into vector meson + lepton
+
+double PhaseSpace::ToVectorMeson_max(double x, double y)
+{
+	_vars = {x, y};
+
+	auto func = std::bind(&PhaseSpace::ToVectorMeson_cos0_max, this, std::placeholders::_1);
+	double res = Optimization::GoldenRatio<double>(func); //-1 to invert function
+	return -func(res);
+}
+
+double PhaseSpace::ToVectorMeson_cos0_max(double cos0)
+{
+	double x = _vars[0];
+	double y = _vars[1];
+	double cos0_ = -1 + 2 * cos0;
+
+	return -ToVectorMeson(cos0_, x, y);
+}
+
+double PhaseSpace::ToVectorMeson(double cos0, double x, double y)
+{
+	return dGammad2_2B(x, y) * (this->*_M2_F)(cos0, x, y);
+}
+
+
+//// PRODUCTION modes
+
 //pure leptonic decays
 //
-double PhaseSpace::MuonE_ratio()
+double PhaseSpace::MuonE(const Mixing &mix)
 {
-	return AntiLeptonNeutrino_ratio(maxMuonE);
+	return AntileptonNeutrino(Channel::MuonE, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first) / _table[Channel::MuonE];
 }
 
-double PhaseSpace::MuonM_ratio()
+double PhaseSpace::MuonM(const Mixing &mix)
 {
-	return LeptonNeutrino_ratio(maxMuonM);
+	return LeptonNeutrino(Channel::MuonM, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first) / _table[Channel::MuonM];
 }
 
-double PhaseSpace::TauEE_ratio()
+double PhaseSpace::TauEE(const Mixing &mix)
 {
-	return AntiLeptonNeutrino_ratio(maxTauEE);
+	return AntileptonNeutrino(Channel::TauEE, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first) / _table[Channel::TauEE];
 }
 
-double PhaseSpace::TauET_ratio()
+double PhaseSpace::TauET(const Mixing &mix)
 {
-	return LeptonNeutrino_ratio(maxTauET);
+	return LeptonNeutrino(Channel::TauET, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first) / _table[Channel::TauET];
 }
 
-double PhaseSpace::TauMM_ratio()
+double PhaseSpace::TauMM(const Mixing &mix)
 {
-	return AntiLeptonNeutrino_ratio(maxTauMM);
+	return AntileptonNeutrino(Channel::TauMM, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first) / _table[Channel::TauMM];
 }
 
-double PhaseSpace::TauMT_ratio()
+double PhaseSpace::TauMT(const Mixing &mix)
 {
-	return LeptonNeutrino_ratio(maxTauMT);
+	return LeptonNeutrino(Channel::TauMT, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first) / _table[Channel::TauMT];
 }
 
-double PhaseSpace::AntiLeptonNeutrino_ratio(double &maxName)
+//	p1,u = N, p2,t = L, p3,s = n
+double PhaseSpace::LeptonNeutrino(Channel::Name chan, double m_lepton0, double m_lepton, double m_neut)
 {
-	if (maxName < 0 || IsChanged())
-		maxName = Max_AntiLeptonNeutrino(vMass.at(0), vMass.at(1), vMass.at(2));
+	_m_parent = m_lepton0;
+	double dML2 = std::pow(m_lepton / _m_parent, 2);
+	double dMn2 = std::pow(m_neut / _m_parent, 2);
+	double dMN2 = std::pow(_N.M() / _m_parent, 2);
 
-	return (maxName > 1e-25) ?
-		 AntiLeptonNeutrino(vMass.at(0), vMass.at(1), vMass.at(2)) / maxName : -1.0;
+	if (!_table.count(chan))
+		_table[chan] = dGammad5_3B() * LeptonNeutrino_max(dMn2, dML2, dMN2);
+
+	std::array<double, 6> kine = Kinematic_3B();// = s
+	return dGammad5_3B() * M2_LeptonNeutrino(kine[2], dMn2, dML2, dMN2);
 }
 
-double PhaseSpace::LeptonNeutrino_ratio(double &maxName)
+double PhaseSpace::LeptonNeutrino_max(double x, double y, double z)
 {
-	if (maxName < 0 || IsChanged())
-		maxName = Max_LeptonNeutrino(vMass.at(0), vMass.at(1), vMass.at(2));
-
-	return (maxName > 1e-25) ?
-		 LeptonNeutrino(vMass.at(0), vMass.at(1), vMass.at(2)) / maxName : -1.0;
+	_vars = {x, y, z};
+	
+	auto func = std::bind(&PhaseSpace::LeptonNeutrino_u_max, this, std::placeholders::_1);
+	double res = Optimization::GoldenRatio<double>(func); //-1 to invert function
+	return -func(res);
 }
+
+double PhaseSpace::LeptonNeutrino_u_max(double u)	//vars is s 
+{
+	double x = _vars[0];
+	double y = _vars[1];
+	double z = _vars[2];
+
+	// Limit changes u
+	Limit(u, y, z, x);
+
+	return -M2_LeptonNeutrino(u, x, y, z);
+}
+
+double PhaseSpace::AntileptonNeutrino(Channel::Name chan, double m_lepton0, double m_lepton, double m_neut)
+{
+	_m_parent = m_lepton0;
+	double dML2 = std::pow(m_lepton / _m_parent, 2);
+	double dMn2 = std::pow(m_neut / _m_parent, 2);
+	double dMN2 = std::pow(_N.M() / _m_parent, 2);
+
+	if (!_table.count(chan))
+		_table[chan] = dGammad5_3B() * AntileptonNeutrino_max(dMn2, dML2, dMN2);
+
+	std::array<double, 6> kine = Kinematic_3B();// = s
+	return dGammad5_3B() * M2_AntileptonNeutrino(kine[0], dMn2, dML2, dMN2);
+}
+
+double PhaseSpace::AntileptonNeutrino_max(double x, double y, double z)	//vars is s 
+{
+	_vars = {x, y, z};
+
+	auto func = std::bind(&PhaseSpace::AntileptonNeutrino_s_max, this, std::placeholders::_1);
+	double res = Optimization::GoldenRatio<double>(func); //-1 to invert function
+	return -func(res);
+}
+
+double PhaseSpace::AntileptonNeutrino_s_max(double s)	//vars is s 
+{
+	double x = _vars[0];
+	double y = _vars[1];
+	double z = _vars[2];
+
+	// limit changes s
+	Limit(s, x, y, z);
+
+	return -M2_AntileptonNeutrino(s, x, y, z);
+}
+
+
 
 //lepton decay into meson stuff
 //
-double PhaseSpace::TauPI_ratio()
+double PhaseSpace::TauPI(const Mixing &mix)
 {
-	return LeptonMeson_ratio(maxTauPI);
+	return LeptonMeson(Channel::TauPI, _masspdg[0].first, _masspdg[1].first) / _table[Channel::TauPI];
 }
 
 /*
 double PhaseSpace::Tau2PI_ratio()
 {
-	return LeptonMeson_ratio(maxTauPI);
+	return LeptonMeson(Channel::Tau2PI, _masspdg[0].first, _masspgs[1].first) / _table[Channel::Tau2PI];
 }
 */
 
-double PhaseSpace::LeptonMeson_ratio(double &maxName)
-{
-	if (maxName < 0 || IsChanged())
-		maxName = Max_LeptonMeson(vMass.at(0), vMass.at(1));
 
-	return (maxName > 1e-25) ?
-		 LeptonMeson(vMass.at(0), vMass.at(1)) / maxName : -1.0;
+double PhaseSpace::LeptonMeson(Channel::Name chan, double m_lepton, double m_meson)
+{
+	_m_parent = m_lepton;
+	double dMN2 = std::pow(_N.M() / _m_parent, 2);
+	double dMM2 = std::pow(m_meson / _m_parent, 2);
+
+	if (!_table.count(chan))
+		_table[chan] = dGammad2_2B(dMN2, dMM2) * M2_LeptonTwo(dMN2, dMM2);
+
+	return dGammad2_2B(dMN2, dMM2) * M2_LeptonTwo(dMN2, dMM2);
 }
 
 //meson two body decay
 //
-double PhaseSpace::PionE_ratio()
+double PhaseSpace::PionE(const Mixing &mix)
 {
-	return MesonTwo_ratio(maxPionE);
+	return MesonTwo(Channel::PionE, _masspdg[0].first, _masspdg[1].first) / _table[Channel::PionE];
 }
 
-double PhaseSpace::PionM_ratio()
+double PhaseSpace::PionM(const Mixing &mix)
 {
-	return MesonTwo_ratio(maxPionM);
+	return MesonTwo(Channel::PionM, _masspdg[0].first, _masspdg[1].first) / _table[Channel::PionM];
 }
 
-double PhaseSpace::KaonE_ratio()
+double PhaseSpace::KaonE(const Mixing &mix)
 {
-	return MesonTwo_ratio(maxKaonE);
+	return MesonTwo(Channel::KaonE, _masspdg[0].first, _masspdg[1].first) / _table[Channel::KaonE];
 }
 
-double PhaseSpace::KaonM_ratio()
+double PhaseSpace::KaonM(const Mixing &mix)
 {
-	return MesonTwo_ratio(maxKaonM);
+	return MesonTwo(Channel::KaonM, _masspdg[0].first, _masspdg[1].first) / _table[Channel::KaonM];
 }
 
-double PhaseSpace::CharmE_ratio()
+double PhaseSpace::CharmE(const Mixing &mix)
 {
-	return MesonTwo_ratio(maxCharmE);
+	return MesonTwo(Channel::CharmE, _masspdg[0].first, _masspdg[1].first) / _table[Channel::CharmE];
 }
 
-double PhaseSpace::CharmM_ratio()
+double PhaseSpace::CharmM(const Mixing &mix)
 {
-	return MesonTwo_ratio(maxCharmM);
+	return MesonTwo(Channel::CharmM, _masspdg[0].first, _masspdg[1].first) / _table[Channel::CharmM];
 }
 
-double PhaseSpace::CharmT_ratio()
+double PhaseSpace::CharmT(const Mixing &mix)
 {
-	return MesonTwo_ratio(maxCharmT);
+	return MesonTwo(Channel::CharmT, _masspdg[0].first, _masspdg[1].first) / _table[Channel::CharmT];
 }
 
-double PhaseSpace::MesonTwo_ratio(double &maxName)
-{
-	if (maxName < 0 || IsChanged())
-		maxName = Max_MesonTwo(vMass.at(0), vMass.at(1));
 
-	return (maxName > 1e-25) ?
-		MesonTwo(vMass.at(0), vMass.at(1)) / maxName : -1.0;
+// is the ratio just 1?
+double PhaseSpace::MesonTwo(Channel::Name chan, double m_meson, double m_lepton)
+{
+	_m_parent = m_meson;
+	double dMN2 = std::pow(_N.M() / _m_parent, 2);
+	double dML2 = std::pow(m_lepton / _m_parent, 2);
+
+	if (!_table.count(chan))
+		_table[chan] = dGammad2_2B(dMN2, dML2) * M2_MesonTwo(dMN2, dML2);
+
+	return dGammad2_2B(dMN2, dML2) * M2_MesonTwo(dMN2, dML2);
 }
+
+
+
 
 //three body decays of meson
 //
-double PhaseSpace::Kaon0E_ratio()
+double PhaseSpace::Kaon0E(const Mixing &mix)
 {
-	return MesonThree_ratio(maxKaon0E, Const::KCL_, Const::KCL0);
+	return MesonThree(Channel::Kaon0E, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first,
+				Const::KCL_, Const::KCL0) / _table[Channel::Kaon0E];
 }
 
-double PhaseSpace::Kaon0M_ratio()
+double PhaseSpace::Kaon0M(const Mixing &mix)
 {
-	return MesonThree_ratio(maxKaon0M, Const::KCL_, Const::KCL0);
+	return MesonThree(Channel::Kaon0M, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first,
+				Const::KCL_, Const::KCL0) / _table[Channel::Kaon0M];
 }
 
-double PhaseSpace::KaonCE_ratio()
+double PhaseSpace::KaonCE(const Mixing &mix)
 {
-	return MesonThree_ratio(maxKaonCE, Const::KCL_, Const::KCL0);
+	return MesonThree(Channel::KaonCE, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first,
+				Const::KCL_, Const::KCL0) / _table[Channel::KaonCE];
 }
 
-double PhaseSpace::KaonCM_ratio()
+double PhaseSpace::KaonCM(const Mixing &mix)
 {
-	return MesonThree_ratio(maxKaonCM, Const::KCL_, Const::KCL0);
+	return MesonThree(Channel::KaonCM, _masspdg[0].first, _masspdg[1].first, _masspdg[2].first,
+				Const::KCL_, Const::KCL0) / _table[Channel::KaonCM];
 }
 
-double PhaseSpace::MesonThree_ratio(double &maxName, double L_, double L0)
-{
-	if (maxName < 0 || IsChanged())
-		maxName = Max_MesonThree(vMass.at(0), vMass.at(1), vMass.at(2), L_, L0);
 
-	return (maxName > 1e-25) ?
-		MesonThree(vMass.at(0), vMass.at(1), vMass.at(2), L_, L0) / maxName : -1.0;
+double PhaseSpace::MesonThree(Channel::Name chan, double m_meson0, double m_meson, double m_lepton,
+				double L_, double L0)	//decay constant not important
+{
+	_m_parent = m_meson0;
+	double dMM2 = std::pow(m_meson / _m_parent, 2);
+	double dML2 = std::pow(m_lepton / _m_parent, 2);
+	double dMN2 = std::pow(_N.M() / _m_parent, 2);	
+
+	if (!_table.count(chan))
+		_table[chan] = dGammad5_3B() * MesonThree_max(dMM2, dML2, dMN2, L_, L0);
+
+	std::array<double, 6> kine = Kinematic_3B();	 // = s    = t
+	return dGammad5_3B() * M2_MesonThree(kine[0], kine[1], dMM2, dML2, dMN2, L_, L0) ;
 }
 
-///////////////
-//DECAY MODES//
-///////////////
-//
-double PhaseSpace::NeutrinoLeptonAA(double &d_Uu, double &d_Uo, double M_Neut, double M_Lepton)
+double PhaseSpace::MesonThree_max(double x, double y, double z, double L_, double L0)	//no angle dependence
 {
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
+	_vars = {x, y, z, L_, L0};
 
-	double s_, t_, u_, coss_, cost_, cosu_;
-	Kinematic_3B(s_, t_, u_, coss_, cost_, cosu_);
-
-	double gL_CC = 2 - 4*GetParticle();	//times U(lepton flavour)
-	double gR_CC = 0;
-	double gL_NC = -1 + 2*Const::sin2W;	//times U(neutrino flavour)
-	double gR_NC = 2*Const::sin2W;
-
-	d_Uu = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dML2, dML2, gL_CC, gR_CC);
-	d_Uo = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dML2, dML2, gL_NC, gR_NC);
-
-	return 0.0;
+	auto func = std::bind(&PhaseSpace::F_MesonThree_max, this, std::placeholders::_1);
+	auto res = Optimization::NelderMead<double>(func, 2); //-1 to invert function
+	return -func(&res[0]);
 }
 
-double PhaseSpace::Max_NeutrinoLeptonAA(double &max_Uu, double &max_Uo, double M_Neut, double M_Lepton)
+// returns a reversed sign for minimization algorithm
+double PhaseSpace::F_MesonThree_max(double p[])
 {
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-
-	double gL_CC = -0.5 + Const::sin2W + (2*GetParticle() - 1);	//times U(lepton flavour)
-	double gR_CC = Const::sin2W;
-
-	double gL_NC = -0.5 + Const::sin2W;	//times U(neutrino flavour)
-	double gR_NC = Const::sin2W;
-
-	max_Uu = max_NeutrinoLeptonLepton(dMN2, dML2, dML2, gL_CC, gR_CC);
-	max_Uo = max_NeutrinoLeptonLepton(dMN2, dML2, dML2, gL_NC, gR_NC);
-
-	return 0.0;
-}
-
-double PhaseSpace::NeutrinoLeptonAB(double &d_Ua, double &d_Ub, double M_Neut, double M_LeptonA, double M_LeptonB)
-{
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dMA2 = M_LeptonA*M_LeptonB/Mass(2);
-	double dMB2 = M_LeptonB*M_LeptonB/Mass(2);
-
-	double s_, t_, u_, coss_, cost_, cosu_;
-	Kinematic_3B(s_, t_, u_, coss_, cost_, cosu_);
-
-	double gL = 1.0;	//times U(lepton flavour)
-	double gR = 0.0;
-
-	d_Ua = NeutrinoLeptonLepton(s_, u_, coss_, cosu_, dMN2, dMA2, dMB2, gL, gR);
-	d_Ub = NeutrinoLeptonLepton(u_, s_, cosu_, coss_, dMN2, dMB2, dMA2, gL, gR);
-
-	return 0.0;
-}
-
-double PhaseSpace::Max_NeutrinoLeptonAB(double &max_Ua, double &max_Ub, double M_Neut, double M_LeptonA, double M_LeptonB)
-{
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dMA2 = M_LeptonA*M_LeptonB/Mass(2);
-	double dMB2 = M_LeptonB*M_LeptonB/Mass(2);
-
-	double gL = 1.0;	//times U(lepton flavour)
-	double gR = 0.0;
-
-	max_Ua = max_NeutrinoLeptonLepton(dMN2, dMA2, dMB2, gL, gR);
-	max_Ub = max_NeutrinoLeptonLepton(dMN2, dMB2, dMA2, gL, gR);
-}
-
-double PhaseSpace::max_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR)
-{
-	F_var.clear();
-
-	F_var.push_back(x);	//0
-	F_var.push_back(y);	//1
-	F_var.push_back(z);	//2
-	F_var.push_back(gL);	//3
-	F_var.push_back(gR);	//4
-
-	SetFunction_D(&PhaseSpace::max_NeutrinoLeptonLepton_D);
-	return NelMedSolver(this, 4, -1);	//invert for max
-}
-
-double PhaseSpace::max_NeutrinoLeptonLepton_D(double *p)
-{
-	double x  = F_var.at(0);
-	double y  = F_var.at(1);
-	double z  = F_var.at(2);
-	double gL = F_var.at(3);
-	double gR = F_var.at(4);
-
-	double s_    = p[0];
-	double u_    = p[1];
-	double cos0_ = p[2];
-	double cos1_ = p[3];
-
-	if (fabs(cos0_) <= 1 && fabs(cos1_) <= 1)
-		return NeutrinoLeptonLepton(s_, u_, cos0_, cos1_, x, y, z, gL, gR);
-	else
-		return 0.0;
-}
-
-double PhaseSpace::NeutrinoLeptonLepton(double s, double u, double cos0, double cos1, double x, double y, double z, double gL, double gR)
-{
-	double M2 = (gL * gL + gR * gR) * M2_WW(s, cos0, x, y, z) +
-		    (2 * gL * gR) * M2_WZ(u, cos1, x, y, z);
-
-	return dGammad5_3B(M2);
-}
-
-/////lepton and pseudomeson
-////phase space is in return of ToPsuedonMeson/ToVectorMeson
-//
-double PhaseSpace::NeutrinoPseudoMeson(double M_Neut, double M_Meson)
-{
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	double cos0_;
-	Kinematic_2B(cos0_);
-
-	M2_Function = &Amplitude::M2_NeutrinoPseudoMeson;
-	return ToPseudoMeson(cos0_, dMN2, dMM2);
-}	//     2 is factor from decay constant which is sqrt(2) wrt to charged meson
-
-double PhaseSpace::Max_NeutrinoPseudoMeson(double M_Neut, double M_Meson)
-{
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	M2_Function = &Amplitude::M2_NeutrinoPseudoMeson;
-	return max_ToPseudoMeson(dMN2, dMM2);
-}
-
-double PhaseSpace::LeptonPseudoMeson(double M_Lepton, double M_Meson)
-{
-	SetMass(MassN());
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	double cos0_;
-	Kinematic_2B(cos0_);
-
-	M2_Function = &Amplitude::M2_LeptonPseudoMeson;
-	return ToPseudoMeson(cos0_, dML2, dMM2);
-}
-
-double PhaseSpace::Max_LeptonPseudoMeson(double M_Lepton, double M_Meson)
-{
-	SetMass(MassN());
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	M2_Function = &Amplitude::M2_LeptonPseudoMeson;
-	return max_ToPseudoMeson(dML2, dMM2);
-}
-
-double PhaseSpace::max_ToPseudoMeson(double x, double y)
-{
-	F_var.clear();
-
-	F_var.push_back(x);
-	F_var.push_back(y);
-
-	SetFunction(&PhaseSpace::max_ToPseudoMeson_cos0);
-	return GoldRatioSolver(this, -1);	//-1 to invert function
-}
-
-double PhaseSpace::max_ToPseudoMeson_cos0(double cos0)
-{
-	double x = F_var.at(0);
-	double y = F_var.at(1);
-	double cos0_ = -1 + 2 * cos0;
-
-	return ToPseudoMeson(cos0_, x, y);
-}
-
-double PhaseSpace::ToPseudoMeson(double cos0, double x, double y)
-{
-	double M2 = (this->*M2_Function)(cos0, x, y);	//either M2_NeutrinoPseudoMeson 
-	return dGammad2_2B(M2, x, y);			//or	 M2_LeptonPseudoMeson
-}
-
-/////vector meson
-//
-double PhaseSpace::NeutrinoVectorMeson(double M_Neut, double M_Meson)
-{
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	double cos0;
-	Kinematic_2B(cos0);
-
-	M2_Function = &Amplitude::M2_NeutrinoVectorMeson;
-	return ToVectorMeson(cos0, dMN2, dMM2);
-}
-
-double PhaseSpace::Max_NeutrinoVectorMeson(double M_Neut, double M_Meson)
-{
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	M2_Function = &Amplitude::M2_NeutrinoVectorMeson;
-	return max_ToVectorMeson(dMN2, dMM2);
-}
-
-double PhaseSpace::LeptonVectorMeson(double M_Neut, double M_Meson)
-{
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	double cos0;
-	Kinematic_2B(cos0);
-
-	M2_Function = &Amplitude::M2_LeptonVectorMeson;
-	return ToVectorMeson(cos0, dMN2, dMM2);
-}
-
-double PhaseSpace::Max_LeptonVectorMeson(double M_Neut, double M_Meson)
-{
-	SetMass(MassN());
-	double dMN2 = M_Neut*M_Neut/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	M2_Function = &Amplitude::M2_LeptonVectorMeson;
-	return max_ToVectorMeson(dMN2, dMM2);
-}
-
-double PhaseSpace::max_ToVectorMeson(double x, double y)
-{
-	F_var.clear();
-
-	F_var.push_back(x);
-	F_var.push_back(y);
-
-	SetFunction(&PhaseSpace::max_ToVectorMeson_cos0);
-	return GoldRatioSolver(this, -1);	//-1 to invert function
-}
-
-double PhaseSpace::max_ToVectorMeson_cos0(double cos0)
-{
-	double x = F_var.at(0);
-	double y = F_var.at(1);
-	double cos0_ = -1 + 2 * cos0;
-
-	return ToVectorMeson(cos0_, x, y);
-}
-
-double PhaseSpace::ToVectorMeson(double cos0, double x, double y)
-{
-	double M2 = (this->*M2_Function)(cos0, x, y);
-	return dGammad2_2B(M2, x, y); 
-}
-
-//////////////
-//PRODUCTION//
-//////////////
-//
-//	p1,u = N, p2,t = L, p3,s = n
-double PhaseSpace::LeptonNeutrino(double M_Lepton0, double M_Lepton, double M_Neut)
-{
-	SetMass(M_Lepton0);
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-	double dMn2 = M_Neut*M_Neut/Mass(2);
-	double dMN2 = MassN(2)/Mass(2);
-
-	double s_, u_, t_, coss_, cost_, cosu_;
-	Kinematic_3B(s_, t_, u_, coss_, cost_, cosu_);
-
-	double M2 = M2_LeptonNeutrino(s_, dMn2, dML2, dMN2);
-	return dGammad5_3B(M2);
-}
-
-double PhaseSpace::Max_LeptonNeutrino(double M_Lepton0, double M_Lepton, double M_Neut)
-{
-	SetMass(M_Lepton0);
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-	double dMn2 = M_Neut*M_Neut/Mass(2);
-	double dMN2 = MassN(2)/Mass(2);
-
-	double M2 = max_LeptonNeutrino(dMn2, dML2, dMN2);
-	return dGammad5_3B(M2);
-}
-
-double PhaseSpace::max_LeptonNeutrino(double x, double y, double z)
-{
-	F_var.clear();
-
-	F_var.push_back(x);	//0	//x
-	F_var.push_back(y);	//1	//y
-	F_var.push_back(z);	//2	//z
-
-	SetFunction(&PhaseSpace::max_LeptonNeutrino_u);
-	return GoldRatioSolver(this, -1);	//-1 to invert function
-}
-
-double PhaseSpace::max_LeptonNeutrino_u(double u)	//vars is s 
-{
-	double x = F_var.at(0);
-	double y = F_var.at(1);
-	double z = F_var.at(2);
-
-	double u_ = u;
-	double fc = Limit(u_, y, z, x);
-
-	return M2_LeptonNeutrino(u_, x, y, z);
-}
-
-double PhaseSpace::AntiLeptonNeutrino(double M_Lepton0, double M_Lepton, double M_Neut)
-{
-	SetMass(M_Lepton0);
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-	double dMn2 = M_Neut*M_Neut/Mass(2);
-	double dMN2 = MassN(2)/Mass(2);
-
-	double s_, u_, t_, coss_, cost_, cosu_;
-	Kinematic_3B(s_, u_, t_, coss_, cost_, cosu_);
-
-	double M2 = M2_AntiLeptonNeutrino(s_, dMn2, dML2, dMN2);
-	return dGammad5_3B(M2);
-}
-
-double PhaseSpace::Max_AntiLeptonNeutrino(double M_Lepton0, double M_Lepton, double M_Neut)
-{
-	SetMass(M_Lepton0);
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-	double dMn2 = M_Neut*M_Neut/Mass(2);
-	double dMN2 = MassN(2)/Mass(2);
-
-	double M2 = max_AntiLeptonNeutrino(dMn2, dML2, dMN2);
-	return dGammad5_3B(M2);
-}
-
-double PhaseSpace::max_AntiLeptonNeutrino(double x, double y, double z)	//vars is s 
-{
-	F_var.clear();
-
-	F_var.push_back(x);	//0	//x
-	F_var.push_back(y);	//1	//y
-	F_var.push_back(z);	//2	//z
-
-	SetFunction(&PhaseSpace::max_AntiLeptonNeutrino_s);
-	return GoldRatioSolver(this, -1);	//-1 to invert function
-}
-
-double PhaseSpace::max_AntiLeptonNeutrino_s(double s)	//vars is s 
-{
-	double x = F_var.at(0);
-	double y = F_var.at(1);
-	double z = F_var.at(2);
-
-	double s_ = s;
-	double fc = Limit(s_, x, y, z);
-
-	return M2_AntiLeptonNeutrino(s_, x, y, z);
-}
-
-double PhaseSpace::LeptonMeson(double M_Lepton, double M_Meson)
-{
-	SetMass(M_Lepton);
-	double dMN2 = MassN(2)/Mass(2);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-
-	double M2 = M2_LeptonTwo(dMN2, dMM2);
-	return dGammad2_2B(M2, dMN2, dMM2);
-}
-
-double PhaseSpace::Max_LeptonMeson(double M_Lepton, double M_Meson)
-{
-	return LeptonMeson(M_Lepton, M_Meson);
-}
-
-double PhaseSpace::MesonTwo(double M_Meson, double M_Lepton)
-{
-	SetMass(M_Meson);
-	double dMN2 = MassN(2)/Mass(2);
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-
-	double M2 = M2_MesonTwo(dMN2, dML2);
-	return dGammad2_2B(M2, dMN2, dML2);
-}
-
-double PhaseSpace::Max_MesonTwo(double M_Meson, double M_Lepton)
-{
-	return MesonTwo(M_Meson, M_Lepton);
-}
-
-double PhaseSpace::MesonThree(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0)	//decay constant not important
-{
-	SetMass(M_Meson0);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-	double dMN2 = MassN(2)/Mass(2);	
-
-	double s_, u_, t_, coss_, cost_, cosu_;
-	Kinematic_3B(s_, u_, t_, coss_, cost_, cosu_);
-
-	double M2 = M2_MesonThree(s_, t_, dMM2, dML2, dMN2, L_, L0);
-	return dGammad5_3B(M2);
-}
-
-double PhaseSpace::Max_MesonThree(double M_Meson0, double M_Meson, double M_Lepton, double L_, double L0)	//no angle dependence
-{
-	SetMass(M_Meson0);
-	double dMM2 = M_Meson*M_Meson/Mass(2);
-	double dML2 = M_Lepton*M_Lepton/Mass(2);
-	double dMN2 = MassN(2)/Mass(2);	
-
-	double M2 = max_MesonThree(dMM2, dML2, dMN2, L_, L0);
-	return dGammad5_3B(M2);
-}
-
-double PhaseSpace::max_MesonThree(double x, double y, double z, double L_, double L0)	//no angle dependence
-{
-	F_var.clear();
-
-	F_var.push_back(x);	//0	//c2
-	F_var.push_back(y);	//1	//b2
-	F_var.push_back(z);	//2	//a2
-	F_var.push_back(L_);	//4	//linear dep for decay constant
-	F_var.push_back(L0);	//5	//linear dep for decay constant
-
-	SetFunction_D(&PhaseSpace::max_MesonThree_D);
-	return NelMedSolver(this, 2, -1);
-}
-
-double PhaseSpace::max_MesonThree_D(double *p)
-{
-	double x  = F_var.at(0);
-	double y  = F_var.at(1);
-	double z  = F_var.at(2);
-	double gL = F_var.at(3);
-	double gR = F_var.at(4);
+	double x  = _vars[0];
+	double y  = _vars[1];
+	double z  = _vars[2];
+	double gL = _vars[3];
+	double gR = _vars[4];
 
 	double s_ = p[0];
 	double t_ = p[1];
 
-	return M2_MesonThree(s_, t_, x, y, z, gL, gR);
+	return -M2_MesonThree(s_, t_, x, y, z, gL, gR);
 }
+
+
+
+
 
 ///KINEMATICS/////
 /////obtaining kinematics from decay products
 //
-void PhaseSpace::Kinematic_2B(double &cos0)
+double PhaseSpace::Kinematic_2B()
 {
-	if (Daughters() <= 2)
-	{
-		TLorentzVector vec1 = DaughterVector(1, restFrame);
+	if (_masspdg.size() > 2)
+		throw std::logic_error("Kinematic_2B error");
 
-		cos0 = cos(vec1.Theta());
-	}
-	else
-		std::cout << "Kinematic_2B error" << std::endl;
+	TLorentzVector vec1 = *(_genps->GetDecay(1));
 
-	//delete vec1;
+	return std::cos(vec1.Theta());
 }
 
 //the mandelstam variables refer to a specific vector
 //s -> p3
 //t -> p2
 //u -> p1
-void PhaseSpace::Kinematic_3B(double &s, double &t, double &u, double &cos0s, double &cos0t, double &cos0u)
+std::array<double, 6> PhaseSpace::Kinematic_3B()
 {
-	if (Daughters() <= 3)
-	{
-		TLorentzVector vec1 = DaughterVector(0, restFrame);
-		TLorentzVector vec2 = DaughterVector(1, restFrame);
-		TLorentzVector vec3 = DaughterVector(2, restFrame);
+	if (_masspdg.size() > 3)
+		throw std::logic_error("Kinematic_3B error");
 
-		TLorentzVector vec_u = Parent(restFrame) - vec1;
-		TLorentzVector vec_t = Parent(restFrame) - vec2;
-		TLorentzVector vec_s = Parent(restFrame) - vec3;
+	TLorentzVector vec1 = *(_genps->GetDecay(0));
+	TLorentzVector vec2 = *(_genps->GetDecay(1));
+	TLorentzVector vec3 = *(_genps->GetDecay(2));
 
-		u = vec_u.M2()/Mass(2);
-		t = vec_t.M2()/Mass(2);
-		s = vec_s.M2()/Mass(2);
+	TLorentzVector rest(0, 0, 0, _m_parent);
+	TLorentzVector vec_u = rest - vec1;
+	TLorentzVector vec_t = rest - vec2;
+	TLorentzVector vec_s = rest - vec3;
 
-		cos0u = cos(vec1.Theta());
-		cos0t = cos(vec2.Theta());
-		cos0s = cos(vec3.Theta());
-	}
-	else
-		std::cout << "Kinematic_3B Error" << std::endl;
-}
+	std::array<double, 6> ret;
 
-//////////
-//	//
-//	//
-//////////
+	ret[0] = vec_u.M2() / std::pow(_m_parent, 2); // s
+	ret[1] = vec_t.M2() / std::pow(_m_parent, 2); // t
+	ret[2] = vec_s.M2() / std::pow(_m_parent, 2); // u
 
-TLorentzVector PhaseSpace::DaughterVector(int i, Reference frame)
-{
-	TLorentzVector D_vec = *Event->GetDecay(i);
-	D_vec.Boost(Parent(frame).BoostVector());
+	ret[3] = std::cos(vec1.Theta());	// cos0u 
+	ret[4] = std::cos(vec2.Theta());	// cos0t
+	ret[5] = std::cos(vec3.Theta());	// cos0s
 
-	return D_vec;
-}
-
-Particle PhaseSpace::Daughter(int i, Reference frame)
-{
-	TLorentzVector vec;
-	return Particle(vPdg.at(i), DaughterVector(i, frame));
-}
-
-int PhaseSpace::Daughters()
-{
-	return vMass.size();
-}
-
-TLorentzVector PhaseSpace::Parent(Reference frame)
-{
-	switch (frame)
-	{
-		case restFrame:
-			return RestFrame();
-		case labFrame:
-			return LabFrame();
-	}
-}
-
-TLorentzVector PhaseSpace::RestFrame()
-{
-	return pRestFrame;
-}
-
-TLorentzVector PhaseSpace::LabFrame()
-{
-	return pLabFrame;
-}
-
-void PhaseSpace::SetLabFrame(TLorentzVector vec)	//parent labframe
-{
-	pLabFrame = vec;
-	SetRestFrame(vec.M());
-}
-
-void PhaseSpace::SetRestFrame(double Mass)		//parent rest frame
-{
-	pRestFrame.SetPxPyPzE(0, 0, 0, Mass);
-}
-
-void PhaseSpace::Reset()
-{
-	maxnnn    = -1.0;
-	maxnGAMMA = -1.0;
-	maxnEE_e  = -1.0;
-	maxnEE_o  = -1.0;
-	maxnEM_e  = -1.0;
-	maxnEM_m  = -1.0;
-	maxnMM_m  = -1.0;
-	maxnMM_o  = -1.0;
-	maxnET_e  = -1.0;
-	maxnET_t  = -1.0;
-	maxnMT_m  = -1.0;
-	maxnMT_t  = -1.0;
-	maxnPI0   = -1.0;
-	maxEPI    = -1.0;
-	maxMPI    = -1.0;
-	maxTPI    = -1.0;
-	maxEKA    = -1.0;
-	maxMKA    = -1.0;
-	maxnRHO0  = -1.0;
-	maxERHO   = -1.0;
-	maxMRHO   = -1.0;
-	maxEKAx   = -1.0;
-	maxMKAx   = -1.0;
-	maxnETA   = -1.0;
-	maxnETAi  = -1.0;
-	maxnOMEGA = -1.0;
-	maxnPHI   = -1.0;
-	maxECHARM = -1.0;
-
-	maxMuonE  = -1.0;
-        maxMuonM  = -1.0;
-        maxTauEE  = -1.0;
-        maxTauET  = -1.0;
-        maxTauMM  = -1.0;
-        maxTauMT  = -1.0;
-        maxTauPI  = -1.0;
-        maxTau2PI = -1.0;
-        maxPionE  = -1.0;
-        maxPionM  = -1.0;
-        maxKaonE  = -1.0;
-        maxKaonM  = -1.0;
-        maxCharmE = -1.0;
-        maxCharmM = -1.0;
-        maxCharmT = -1.0;
-        maxKaon0E = -1.0;
-        maxKaon0M = -1.0;
-        maxKaonCE = -1.0;
-        maxKaonCM = -1.0;
-}
-
-void PhaseSpace::SetFunction(double (PhaseSpace::*FF)(double))
-{
-	double (Amplitude::*Function)(double) = 
-		static_cast<double (Amplitude::*)(double)>(FF); // ok!
-	Amplitude::SetFunction(Function);
-}
-
-void PhaseSpace::SetFunction_D(double (PhaseSpace::*FF)(double*))
-{
-	double (Amplitude::*Function)(double*) = 
-		static_cast<double (Amplitude::*)(double*)>(FF); // ok!
-	Amplitude::SetFunction_D(Function);
+	return ret;
 }

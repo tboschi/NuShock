@@ -1,23 +1,26 @@
 #include "physics/Particle.h"
 
 Particle::Particle(int pdgCode, double E, double px, double py, double pz) :
-	_pdg(pdgCode),
-	_charge(0),
-	TLorentzVector(px, py, pz, E)
+	TLorentzVector(px, py, pz, E),
+	_pdg(pdgCode)
+	//_charge(0)
 {
+	ChargeID();
 }
 
 Particle::Particle(int pdgCode, const TLorentzVector &fv) :
-	_pdg(pdgCode),
-	_charge(0),
-	TLorentzVector(fv)
+	TLorentzVector(fv),
+	_pdg(pdgCode)
+	//_charge(0)
 {
+	ChargeID();
 }
 
 std::ostream & operator<<(std::ostream &os, const Particle &p) {
-	return os << "<pdg: " << p._pdg << ", mass " << p.M()
-		  << ", charge " << p._charge << ", vec (" << p.E() << ", "
-		  << p.Px() << ", " << p.Py() << ", " << p.Pz() << ")>";
+	return os << "<pdg=" << p.Pdg() << ", M=" << p.M()
+		  << ", Q=" << p.Q() << ", p=(" << p.E()
+		  << ", " << p.Px() << ", " << p.Py()
+		  << ", " << p.Pz() << ")>";
 }
 
 
@@ -30,62 +33,31 @@ Particle::Particle(const Particle &p) :
 }
 */
 
-
+// return apparent pdg (multplied by recorded charge)
 int Particle::Pdg() const
+{
+	// opposite particle
+	if (RealQ() * _charge < 0)
+		return - _pdg;
+	return _pdg;
+}
+
+// pdg assigned at creation of object
+int Particle::RealPdg() const
 {
 	return _pdg;
 }
 
-int Particle::Charge() const
+// recorded charge
+int Particle::Q() const
 {
 	return _charge;
 }
 
-int Particle::RealCharge() const
+// true charge associated to pdg code
+int Particle::RealQ() const
 {
-	int sign = (_pdg > 0) - (_pdg < 0);
-	switch (std::abs(_pdg))
-	{
-		case 1:
-		case 3:
-		case 5:
-		case 7:		//down quarks
-			return -1 * sign;
-		case 2:
-		case 4:
-		case 6:
-		case 8:		//up quarks
-			return  2 * sign;
-		case 12:
-		case 14:
-		case 16:
-		case 18:
-		case 21:
-		case 22:
-		case 23:
-		case 111:
-		case 221:
-		case 331:
-		case 223:
-		case 333:
-		case 130:
-		case 310:
-		case 311:
-		case 421:
-		case 2112:
-		case 2114:
-		case 3122:
-		case 3212:	//chargeless
-			return 0;
-		case 11:
-		case 13:
-		case 15:
-		case 17:	//negative particles
-			return -3 * sign;
-		default:	//positive particles
-			return  3 * sign;
-			break;
-	}
+	return Particle::Q(_pdg);
 }
 
 // return constant values for some particles
@@ -120,6 +92,12 @@ double Particle::EKin() const
 	return E() - M();
 }
 
+// overloading mass return function
+double Particle::M() const
+{
+	return std::abs(TLorentzVector::M());
+}
+
 //////// non const functions
 //
 void Particle::SetPdg(int pdg)
@@ -134,12 +112,12 @@ void Particle::ChargeID(int charge)
 
 void Particle::ChargeID()
 {
-	_charge = RealCharge();
+	_charge = RealQ();
 }
 
 void Particle::ChargeMisID()
 {
-	_charge = -RealCharge();
+	_charge = -RealQ();
 }
 
 void Particle::SetFourVector(const TLorentzVector &vv)
@@ -161,25 +139,32 @@ void Particle::SetFourVector(double E, double px, double py, double pz)
 // set mass keeping same energy
 void Particle::SetM(double mm)
 {
-	if (E() < mm) {
-		TLorentzVector::SetE(mm);
-		TLorentzVector::SetRho(0.);
+	if (mm <= 0.) {	// set particle massless
+		if (P() > 0.)	// if there is a momentum, keep it
+			SetE(P());
+		else	// redefine momentum
+			TLorentzVector::SetPxPyPzE(0, 0, 1., 1.);
 	}
-	else {
+	else if (E() <= mm)	// particle at rest
+		TLorentzVector::SetE(std::sqrt(std::pow(P(), 2) + std::pow(mm, 2)));
+	else	// maintain energy
 		TLorentzVector::SetRho(std::sqrt(std::pow(E(), 2) - std::pow(mm, 2)));
-	}
 }
 
 // set energy keeping same mass
 void Particle::SetE(double ee)
 {
-	if (ee < M()) {
+	if (ee <= M()) {
 		TLorentzVector::SetE(M());
-		TLorentzVector::SetRho(0.);
+		if (P() > 0.)
+			TLorentzVector::SetRho(0.);
 	}
 	else {
+		if (P() > 0.)
+			TLorentzVector::SetRho(std::sqrt(std::pow(ee, 2) - std::pow(M(), 2)));
+		else
+			TLorentzVector::SetPz(std::sqrt(std::pow(ee, 2) - std::pow(M(), 2)));
 		TLorentzVector::SetE(ee);
-		TLorentzVector::SetRho(std::sqrt(std::pow(E(), 2) - std::pow(M(), 2)));
 	}
 }
 

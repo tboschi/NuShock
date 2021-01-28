@@ -4,81 +4,27 @@
 #include <cstring>
 #include <getopt.h>
 
-#include "tools.h"
-#include "flux.h"
-#include "detector.h"
-#include "physics.h"
-#include "analysis.h"
-
 #include "tools/CardDealer.h"
+#include "tools/RootFinding.h"
 
-class NumberEvents
-{
-	public:
-		NumberEvents(Engine* tE, Detector *tD, std::vector<std::string> &chs,
-				bool ue = false,
-				bool um = false,
-				bool ut = false,
-				double thr = 0) :
-			engine(tE),
-			box(tD),
-			channels(chs),
-			Ue(ue),
-			Um(um),
-			Ut(ut),
-			threshold(thr)
-		{
-		}
+#include "detector/Detector.h"
 
-		double Number(double lu2)
-		{
-		}
+#include "flux/Driver.h"
+#include "flux/Sampler.h"
 
-		double operator()(double lu2, double t = -1) const
-		{
-			//std::cout << "computing number of events at " << lu2 << " :\t";
-			double ue = Ue ? pow(10.0, 0.5 * lu2) : 0.;
-			double um = Um ? pow(10.0, 0.5 * lu2) : 0.;
-			double ut = Ut ? pow(10.0, 0.5 * lu2) : 0.;
+#include "physics/Const.h"
+#include "physics/Neutrino.h"
 
-			double tot = 0;
-			for (int i = 0; i < channels.size(); ++i)
-			{
-				engine->SetDecay(channels[i]);
-				tot += engine->MakeSampler(box, ue, um, ut);
-			}
-			//std::cout << tot << " vs " << threshold << std::endl;
-			return tot - (t < 0 ? threshold : t);
-		}
-
-		void SetThreshold(double t)
-		{
-			if (t >= 0)
-				threshold = t;
-		}
-
-	private:
-		Engine *engine;
-		Detector *box;
-		std::vector<std::string> channels;
-		double Ue, Um, Ut;
-		double threshold;
-};
 
 void usage(char* argv0);
 int main(int argc, char** argv)
 {
 	const struct option longopts[] = 
 	{
-		{"detconfig", 	required_argument,	0, 'd'},
-		{"fluxconfig", 	required_argument,	0, 'f'},
 		{"channel", 	required_argument,	0, 'c'},
-		{"output", 	required_argument,	0, 'o'},
 		{"threshold", 	required_argument,	0, 't'},
 		{"massdepend", 	required_argument,	0, 'q'},
 		{"efficiency", 	no_argument,		0, 'W'},
-		{"particle", 	no_argument,		0, 'P'},
-		{"antipart", 	no_argument,		0, 'A'},
 		{"dirac", 	no_argument,		0, 'r'},
 		{"majorana", 	no_argument,		0, 'j'},
 		{"help", 	no_argument,	 	0, 'h'},
@@ -90,40 +36,25 @@ int main(int argc, char** argv)
 	opterr = 1;
 	
 	//Initialize variables
-	std::string detConfig, module, fluxConfig, outName;
 	std::string channel = "ALL";
 	std::string background;
 	
-	bool left = false, right = false;	//default unpolarised
-	bool particle = false, antipart = false;	//default both for dirac, used in lnv studies
-	bool dirac = false;				//default majorana neutrino
+	size_t ferm = 0;
+	std::string ferm_append;
 	bool UeFlag = false, UmFlag = false, UtFlag = false;
-	double CL = 0.90;			//confidence level
+	bool effSet = false;
 
-	while((iarg = getopt_long(argc,argv, "d:l:f:c:w:o:C:EMTLRrjAPh", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "c:w:EMTrjh", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
-			case 'd':
-				detConfig.assign(optarg);
-				break;
-			case 'l':
-				module.assign(optarg);
-				break;
-			case 'f':
-				fluxConfig.assign(optarg);
-				break;
 			case 'c':
 				channel.assign(optarg);
 				break;
 			case 'w':
-				background.assign(optarg);
-				break;
-			case 'o':
-				outName.assign(optarg);		//outName is the output path
-				break;
-			case 'C':
-				CL = std::strtod(optarg, NULL);
+				effSet = true;
+				if (optarg)
+					background.assign(optarg);
 				break;
 			case 'E':
 				UeFlag = true;
@@ -134,27 +65,13 @@ int main(int argc, char** argv)
 			case 'T':
 				UtFlag = true;
 				break;
-			case 'L':
-				left = true;
-				right = false;
-				break;
-			case 'R':
-				left = false;
-				right = true;
-				break;
 			case 'r':
-				dirac = true;
+				ferm = Neutrino::dirac;
+				ferm_append = "_d";
 				break;
 			case 'j':
-				dirac = false;
-				break;
-			case 'P':
-				particle = true;
-				antipart = false;
-				break;
-			case 'A':
-				particle = false;
-				antipart = true;
+				ferm = Neutrino::majorana;
+				ferm_append = "_m";
 				break;
 			case 'h':
 				usage(argv[0]);
@@ -169,77 +86,46 @@ int main(int argc, char** argv)
 	//output file name
 	//
 	if (channel.empty())
-	{
-		std::cerr << "You have to select one channel using the -c flag" << std::endl;
-		return 1;
-	}
+		throw std::logic_error("FullSens: a channel must be selected with -c <channel>");
 
 	if (!UeFlag && !UmFlag && !UtFlag)
-	{
-		std::cerr << "You have to select at least one mixing, -E -M or -T" << std::endl;
-		return 1;
-	}
+		throw std::invalid_argument("FullSens: at least one mixing must be selected with -E -M or -T");
 
-	if (outName.find(".dat") == std::string::npos)
-		outName += ".dat";
+	if (ferm_append.empty())
+		throw std::logic_error("FullSens: fermion type must be selected with --dirac or --majorana");
 
-	outName.insert(outName.find(".dat"), channel);
+	CardDealer cd(argv[optind]);
+
+	std::string config;
+	if (!cd.Get("detector_configuration", config))
+		throw std::logic_error("There is no detector configuration\n");
+	Detector box(config);
+
+	if (!cd.Get("flux_configuration", config))
+		throw std::logic_error("There is no flux configuration\n");
+	Driver drive(config);
+
+	std::string outname;
+	if (!cd.Get("output", outname))
+		throw std::logic_error("FullSens: no output \".dat\" file specified in card");
+	if (outname.find(".dat") == std::string::npos)
+		outname += ".dat";
+
+	outname.insert(outname.find(".dat"), channel);
 
 	if (!background.empty())
-		outName.insert(outName.find(".dat"), "_W");
+		outname.insert(outname.find(".dat"), "_W");
 
 	if (UeFlag)
-		outName.insert(outName.find(".dat"), "_E");
+		outname.insert(outname.find(".dat"), "_E");
 	if (UmFlag)
-		outName.insert(outName.find(".dat"), "_M");
+		outname.insert(outname.find(".dat"), "_M");
 	if (UtFlag)
-		outName.insert(outName.find(".dat"), "_T");
+		outname.insert(outname.find(".dat"), "_T");
 	
-	unsigned int opt0, optB, optHel;
-	if (dirac)
-	{
-		opt0 = Neutrino::Dirac;
-		optB = Neutrino::Dirac | Neutrino::Antiparticle;
-		outName.insert(outName.find(".dat"), "_d");
-	}
-	else
-	{
-		opt0 = optB = Neutrino::Majorana;
-		outName.insert(outName.find(".dat"), "_m");
-	}
+	outname.insert(outname.find(".dat"), ferm_append);
 
-	if (left)
-	{
-		optHel = Neutrino::Left;	//-1 helicity
-		outName.insert(outName.find(".dat"), "_L");
-	}
-	else if (right)
-	{
-		optHel = Neutrino::Right;	//+1 helicity
-		outName.insert(outName.find(".dat"), "_R");
-	}
-	else
-	{
-		optHel = Neutrino::Unpolarised;
-		outName.insert(outName.find(".dat"), "_U");
-	}
-
-
-	//neutrino classes and decay channels
-	//
-	Neutrino nu0(0, opt0 | optHel);
-	Neutrino nuB(0, optB | optHel);
-	nu0.SetDecayChannel(channel);
-	nuB.SetDecayChannel(channel);
-	double mass0 = nu0.DecayThreshold(channel);
-	double massE = nu0.ProductionThreshold();
-	if (mass0 > massE)	//limit masses, swap just because you never know I messed up somewhere else..
-	{
-		double tmp = massE;
-		massE = mass0;
-		mass0 = tmp;
-	}
-
+	/*
 	std::vector<std::string> channels;
 	if (channel == "ExpALL" && !background.empty())
 	{
@@ -254,29 +140,10 @@ int main(int argc, char** argv)
 	}
 	else
 		channels.push_back(channel);
+	*/
 
-	//Engine
-	//
-	//Engine::Current horn;
-	//if (particle)			//for LNV
-	//	horn = Engine::FHC;
-	//else if (antipart)		//for LNV
-	//	horn = Engine::RHC;
-	//else
-	//	horn = Engine::both;
-	Engine *theEngine = new Engine(fluxConfig);
-	theEngine->BindNeutrino("nu0", nu0, Engine::FHC);
-	theEngine->BindNeutrino("nuB", nuB, Engine::RHC);
 
-	//Detector class
-	//
-	if (!module.empty())
-	{
-		outName.insert(outName.find(".dat"), "_");
-		outName.insert(outName.find(".dat"), module);
-	}
-	Detector *ndBox = new Detector(detConfig, module);
-
+	/*
 	//a collection of parabolas for each channel
 	std::map<std::string, std::vector<double> > mCurve;
 	std::map<std::string, std::vector<double> >::iterator ic;
@@ -312,28 +179,80 @@ int main(int argc, char** argv)
 			mCurve[channels[i]] = alpha;
 		}
 	}
+	*/
 	//mcurve size is the same as channels size, if ever set
 
-	std::ofstream out(outName.c_str());
+	// from card
+	size_t grid;	// from card
+	if (!cd.Get("discretization", grid))
+		grid = 500;
+	std::vector<double> mass_range;
+	if (!cd.Get("mass_range", mass_range))
+		mass_range = {0.01, 2.00};
 
-	std::vector<double> masses, mixingBot, mixingTop, numberBot, numberTop;
-	NumberEvents numEvts(theEngine, ndBox, channels, UeFlag, UmFlag, UtFlag);
-	int grid = 500;
-	double m0 = 0.01, mE = 2.0;
-	double tb = -1, thr = 0;
-	for (int i = 0; i < grid; ++i)
-	{
-		double mass = m0 * pow(mE/m0, i / double(grid));
-		std::cout << "mass " << mass << std::endl;
+	std::vector<double> mix_range;
+	if (!cd.Get("lmix_range", mix_range))
+		mass_range = {-16., 0.};
 
-		if (mass < mass0 || mass > massE)
+	double tb = -1, thr = 2.44;
+
+	Mixing mix(UeFlag, UmFlag, UtFlag);
+	Channel::Name chan = Channel::fromString(channel);
+
+	// specific for channel and fermion type
+	//if (!effSet)
+		//box.LoadEfficiency(chan, ferm);
+
+	std::vector<std::pair<double, double> > up_limit;
+	up_limit.reserve(grid);
+
+	Sampler sample(box, drive); //, Neutrino(mass, ferm), mix);
+	std::ofstream out(outname.c_str());
+	for (size_t g = 0; g < grid; ++g) {
+		double mass = std::pow(mass_range[1] / mass_range[0], g / double(grid))
+			    * mass_range[0];
+		//if (mass < mass_thr)
+		//	continue;
+		
+		Neutrino nu0(mass, ferm | Neutrino::particle);	// for nu component of flux
+		Neutrino nuB(mass, ferm | Neutrino::antiparticle);	// for nu_bar component of flux
+
+		if (!sample.Bind(chan, mix, Neutrino(mass, ferm)))	// this makes distribution too
 			continue;
+		std::cout << "mass " << mass << "\n";
 
-		theEngine->GetNeutrino("nu0").SetMass(mass);
-		theEngine->GetNeutrino("nuB").SetMass(mass);
+		// compute number of events
+		auto func = [&](double lx) -> double {
+			double x = std::pow(10., lx / 2.);
+			Mixing xmix = x * mix;
+			auto hist = sample.MakeSampler(xmix);
+			if (hist)
+				return hist->Integral() - thr;
+			return -thr;
+		};
 
-		nu0.SetMass(mass);
-		nu0.SetMixings(UeFlag ? 1 : 0, UmFlag ? 1 : 0, UtFlag ? 1 : 0);
+		/*
+		for (size_t u = 0; u < grid; ++u) {
+			double lmix = mix_range[0] + u * (mix_range[1] - mix_range[0]) / grid;
+			std::cout << "mass " << mass << " vs " << std::pow(10., lmix) << "\n";
+			out << mass << "\t" << std::pow(10., lmix) << "\t" << func(lmix) << "\n";
+} */
+
+		double half = RootFinding::CheckInterval(func, mix_range[0], mix_range[1], 1.e-3);
+		double lim = RootFinding::BinarySearch(func, mix_range[0], half, 1.e-3);
+		if (half > mix_range[0]) {
+			out << mass << "\t" << std::pow(10., lim) << "\n";
+			if (half < mix_range[1]) {
+				lim = RootFinding::BinarySearch(func, half, mix_range[1], 1.e-3);
+				up_limit.push_back(std::make_pair(mass, pow(10., lim)));
+			}
+		}
+	}
+
+	for (auto i = up_limit.rbegin(); i != up_limit.rend(); ++i)
+		out << i->first << "\t" << i->second << "\n";
+
+	/*
 		double totalBranch = 0;
 		if (mCurve.size())
 			for (int c = 0; c < channels.size(); ++c)
@@ -347,46 +266,13 @@ int main(int argc, char** argv)
 			totalBack += nBack < 0 ? 0 : nBack;
 		}
 
+
 		if (tb != totalBack)
 		{
 			thr = Belt(int(totalBack), CL);
 			tb = totalBack;
 		}
-
-		theEngine->MakeFlux();
-		theEngine->ScaleToDetector(ndBox);
-		numEvts.SetThreshold(thr);
-
-		////////////////////////////////////////
-
-		double lU2bot = -16.0;
-		double lU2top =   0.0;
-		double lU2mid = findInterval(numEvts, lU2bot, lU2top);
-		//std::cout << "range\t" << lU2bot << "\t" << lU2mid << "\t" << lU2top << std::endl;
-		if (lU2bot < lU2mid && lU2mid < lU2top)
-		{
-			lU2bot = bisect(numEvts, lU2bot, lU2mid);
-			lU2top = bisect(numEvts, lU2mid, lU2top);
-
-			masses.push_back(mass);
-			mixingBot.push_back(pow(10, lU2bot));
-			mixingTop.push_back(pow(10, lU2top));
-			numberBot.push_back(numEvts(lU2bot, 0));
-			numberTop.push_back(numEvts(lU2top, 0));
-		}
-	}
-
-	for (int i = 0; i < masses.size(); ++i)
-		out << masses[i] << "\t" << mixingBot[i]
-		    << "\t" << numberBot[i] << "\n";
-
-	for (int i = masses.size(); i > 0; --i)
-		out << masses[i-1] << "\t" << mixingTop[i-1]
-		    << "\t" << numberTop[i-1] << "\n";
-
-	if (masses.size())
-		out << masses[0] << "\t" << mixingBot[0]
-		    << "\t" << numberBot[0] << std::endl;
+		*/
 
 	out.close();
 

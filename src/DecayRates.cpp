@@ -1,19 +1,7 @@
-#include "DecayRates.h"
+#include "physics/DecayRates.h"
 
-DecayRates::DecayRates(const Neutrino &N) : Amplitude(N)
+DecayRates::DecayRates(Neutrino N) : Amplitude(std::move(N))
 {
-}
-
-double DecayRates::MassThreshold(Channel::Name chan)
-{
-	if (_channel != chan) {
-		LoadMass(chan);
-		_channel = chan;
-	}
-
-	return std::accumulate(_masspdg.begin(), _masspdg.end(), 0.,
-			[](double sum, const std::pair<double, int> mp) {
-				return sum + mp.first; });
 }
 
 bool DecayRates::IsAllowed(Channel::Name chan)
@@ -23,386 +11,373 @@ bool DecayRates::IsAllowed(Channel::Name chan)
 
 //return the decay width (Gamma)
 //
-double DecayRates::Gamma(Channel::Name chan, std::array<double, 3> mix) {
-	return Gamma(chan, mix[0], mix[1], mix[2])
-}
-
-double DecayRates::Gamma(Channel::Name chan, double ue, double um, double ut)
+double DecayRates::Gamma(Channel::Name chan, const Mixing &mix)
 {
 	if (!IsAllowed(chan))
 		return 0.;
 
-	using GammaF = double (DecayRates::*)(double, double, double);
+	using GammaF = double (DecayRates::*)(const Mixing &mix);
 	GammaF gf;
 
 	switch(chan)
 	{
-		case Channel::_ALL:
+		case Channel::ALL:
 			gf = &DecayRates::Total;
 			break;
-		case Channel::_nnn:
+		case Channel::nnn:
 			gf = &DecayRates::nnn;
 			break;
-		case Channel::_nGAMMA:
+		case Channel::nGAMMA:
 			gf = &DecayRates::nGAMMA;
 			break;
-		case Channel::_nEE:
+		case Channel::nEE:
 			gf = &DecayRates::nEE;
 			break;
-		case Channel::_nEM:
+		case Channel::nEM:
 			gf = &DecayRates::nEM;
 			break;
-		case Channel::_nMM:
+		case Channel::nMM:
 			gf = &DecayRates::nMM;
 			break;
-		case Channel::_nET:
+		case Channel::nET:
 			gf = &DecayRates::nET;
 			break;
-		case Channel::_nMT:
+		case Channel::nMT:
 			gf = &DecayRates::nMT;
 			break;
-		case Channel::_nPI0:
+		case Channel::nPI0:
 			gf = &DecayRates::nPI0;
 			break;
-		case Channel::_EPI:
+		case Channel::EPI:
 			gf = &DecayRates::EPI;
 			break;
-		case Channel::_MPI:
+		case Channel::MPI:
 			gf = &DecayRates::MPI;
 			break;
-		case Channel::_TPI:
+		case Channel::TPI:
 			gf = &DecayRates::TPI;
 			break;
-		case Channel::_EKA:
+		case Channel::EKA:
 			gf = &DecayRates::EKA;
 			break;
-		case Channel::_MKA:
+		case Channel::MKA:
 			gf = &DecayRates::MKA;
 			break;
-		case Channel::_EKAx:
+		case Channel::EKAx:
 			gf = &DecayRates::EKAx;
 			break;
-		case Channel::_MKAx:
+		case Channel::MKAx:
 			gf = &DecayRates::MKAx;
 			break;
-		case Channel::_nRHO0:
+		case Channel::nRHO0:
 			gf = &DecayRates::nRHO0;
 			break;
-		case Channel::_ERHO:
+		case Channel::ERHO:
 			gf = &DecayRates::ERHO;
 			break;
-		case Channel::_MRHO:
+		case Channel::MRHO:
 			gf = &DecayRates::MRHO;
 			break;
-		case Channel::_nETA:
+		case Channel::nETA:
 			gf = &DecayRates::nETA;
 			break;
-		case Channel::_nETAi:
+		case Channel::nETAi:
 			gf = &DecayRates::nETAi;
 			break;
-		case Channel::_nOMEGA:
+		case Channel::nOMEGA:
 			gf = &DecayRates::nOMEGA;
 			break;
-		case Channel::_nPHI:
+		case Channel::nPHI:
 			gf = &DecayRates::nPHI;
 			break;
-		case Channel::_ECHARM:
+		case Channel::ECHARM:
 			gf = &DecayRates::ECHARM;
 			break;
-		case Channel::_ExpALL:
+		case Channel::ExpALL:
 			gf = &DecayRates::ExpALL;
 			break;
 		default:
-			throw std::invalid_argument("Channel " + toString(chan) + " unknown");
+			throw std::invalid_argument("Channel " + Channel::toString(chan) + " unknown");
 	}
 
-	return (this->*gf)(ue, um, ut);
+	return (this->*gf)(mix);
 }
 
 //Return Gamma_tot - Gamma of interest
 //
-double DecayRates::Other(Channel::Name chan, const std::array<double, 3> &mix) {
-	return Other(chan, mix[0], mix[1], mix[2]);
-}
-
-double DecayRates::Other(Channel::Name chan, ue, um, ut)
+double DecayRates::Other(Channel::Name chan, const Mixing &mix)
 {
-	return Gamma(Channel::_ALL, ue, um, ut) - Gamma(chan, ue, um, ut);
+	return Gamma(Channel::ALL, mix) - Gamma(chan, mix);
 }
 
-//Return the branching ration
+//Return the branching ratio
 //
-double DecayRates::Branch(Channel::Name chan, const std::array<double, 3> &mix) {
-	if (chan == Channels::_ALL)
-		return 1.;	// should save some time..
-	return Branch(chan, ue, um, ut);
-}
-
-double DecayRates::Branch(Channel::Name chan, double ue, double um, double ut)
+double DecayRates::Branch(Channel::Name chan, const Mixing &mix)
 {
-	if (Gamma(chan, ue, um, ut) <= 0.)
+	if (chan == Channel::ALL)
+		return 1.;
+
+	if (Gamma(chan, mix) <= 0.)
 		return 0.;
-	else
-		return Gamma(chan, ue, um, ut)/Gamma(Channel::_ALL, ue, um, ut);
+
+	return Gamma(chan, mix)/Gamma(Channel::ALL, mix);
 }
 
 //total decay width
-double DecayRates::Total(double ue, double um, double ut)
+double DecayRates::Total(const Mixing &mix)
 {
-	return std::accumulate(std::begin(Channel::Decays), std::end(Channel::Decays), 0.,
-			[=](double sum, Channel::Name chan) { return sum + Gamma(chan, ue, um, ut); });
+	auto decs = Channel::Decays();
+	return std::accumulate(decs.begin(), decs.end(), 0.,
+			[=](double sum, Channel::Name chan) { return sum + Gamma(chan, mix); });
 	// check capture here
 }
 
 //special here
-double DecayRates::ExpALL(double ue, double um, double ut)
+double DecayRates::ExpALL(const Mixing &mix)
 {
-	return (nEE(ue, um, ut) + nEM(ue, um, ut) + nMM(ue, um, ut) +
-		EPI(ue, um, ut) + MPI(ue, um, ut) + nPI0(ue, um, ut) );
+	return (nEE(mix) + nEM(mix) + nMM(mix) +
+		EPI(mix) + MPI(mix) + nPI0(mix) );
 }
 
 //individual decay channels
 //all mixing factors are factorised out
-double DecayRates::nGAMMA(double ue, double um, double ut)
+double DecayRates::nGAMMA(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nGAMMA))
-		fdecay[Channel::_nGAMMA] = Const::GF2 * std::pow(_N.M(), 5)
+	if (!_table.count(Channel::nGAMMA))
+		_table[Channel::nGAMMA] = Const::GF2 * std::pow(_N.M(), 5)
 					* (27.0 * Const::Aem) / (192.0 * 64.0 * Const::pi4);
 
-	return (1.0 + !GetFermion()) * fdecay[Channel::_nGAMMA] * (ue*ue + um*um + ut*ut);
+	return (1.0 + _N.IsMajorana()) * _table[Channel::nGAMMA]
+		* (mix.Ue(2) + mix.Um(2) + mix.Ut(2));
 }
 
-double DecayRates::nnn(double ue, double um, double ut)
+double DecayRates::nnn(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nnn))
-		fdecay[Channel::_nnn] = Const::GF2 * std::pow(_N.M(), 5) / (192.0 * Const::pi3);
+	if (!_table.count(Channel::nnn))
+		_table[Channel::nnn] = Const::GF2 * std::pow(_N.M(), 5) / (192.0 * Const::pi3);
 
-	return (1.0 + !GetFermion()) * fdecay[Channel::_nnn] * (ue*ue + um*um + ut*ut);
+	return (1.0 + _N.IsMajorana()) * _table[Channel::nnn]
+		* (mix.Ue(2) + mix.Um(2) + mix.Ut(2));
 }
 
 //M_Sterile > 2 M_Electron (always)
-double DecayRates::nEE(double ue, double um, double ut)
+double DecayRates::nEE(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nEE)) {
+	if (!_table.count(Channel::nEE)) {
 		auto gamma = NeutrinoLeptonAA(Const::MNeutrino, Const::MElectron);
-		fdecay[Channel::_nEE] = gamma.first;
-		fdecay[Channel::_nEE_o] = gamma.second,
+		_table[Channel::nEE] = gamma.first;
+		_table[Channel::nEE_o] = gamma.second;
 	}
 
-	return fdecay[Channel::_nEE] * ue*ue + fdecay[Channel::_nEE_o] * (um*um + ut*ut);
+	return _table[Channel::nEE] * mix.Ue(2) + _table[Channel::nEE_o] * (mix.Um(2) + mix.Ut(2));
 }
 
 //M_Sterile > Const::MMuon + M_Electron
-double DecayRates::nEM(double ue, double um, double ut)	//Antiparticle is Elec
+double DecayRates::nEM(const Mixing &mix)	//Antiparticle is Elec
 {
-	if (!fdecay.count(Channel::_nEM)) {
-		auto gamma NeutrinoLeptonAB(Const::MNeutrino, Const::MElectron, Const::MMuon);
-		fdecay[Channel::_nEM] = gamma.first;
-		fdecay[Channel::_nEM_o] = gamma.second;
+	if (!_table.count(Channel::nEM)) {
+		auto gamma = NeutrinoLeptonAB(Const::MNeutrino, Const::MElectron, Const::MMuon);
+		_table[Channel::nEM] = gamma.first;
+		_table[Channel::nEM_o] = gamma.second;
 	}
 
-	return fdecay[Channel::_nEM] * ue*ue + fdecay[Channel::_nEM_o] * um*um;
+	return _table[Channel::nEM] * mix.Ue(2) + _table[Channel::nEM_o] * mix.Um(2);
 }
 
 //M_Sterile > 2 Const::MMuon
-double DecayRates::nMM(double ue, double um, double ut)
+double DecayRates::nMM(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nMM)) {
+	if (!_table.count(Channel::nMM)) {
 		auto gamma = NeutrinoLeptonAA(Const::MNeutrino, Const::MMuon);
-		fdecay[Channel::_nMM] = gamma.first;
-		fdecay[Channel::_nMM_o] = gamma.second;
+		_table[Channel::nMM] = gamma.first;
+		_table[Channel::nMM_o] = gamma.second;
 	}
 
-	return fdecay[Channel::_nMM] * um*um + fdecay[Channel::_nMM_o] * (ue*ue + ut*ut);
+	return _table[Channel::nMM] * mix.Um(2) + _table[Channel::nMM_o] * (mix.Ue(2) + mix.Ut(2));
 }
 
 //M_Sterile > Const::MTau + M_Electron
-double DecayRates::nET(double ue, double um, double ut)	//Antiparticle is Elec
+double DecayRates::nET(const Mixing &mix)	//Antiparticle is Elec
 {
-	if (!fdecay.count(Channel::_nET)) {
+	if (!_table.count(Channel::nET)) {
 		auto gamma = NeutrinoLeptonAB(Const::MNeutrino, Const::MElectron, Const::MTau);
-		fdecay[Channel::_nET] = gamma.first;
-		fdecay[Channel::_nET_o] = gamma.second;
+		_table[Channel::nET] = gamma.first;
+		_table[Channel::nET_o] = gamma.second;
 	}
 
-	return fdecay[Channel::_nET] * ue*ue + fdecay[Channel::_nET_o] * ut*ut;
+	return _table[Channel::nET] * mix.Ue(2) + _table[Channel::nET_o] * mix.Ut(2);
 }
 
 //M_Sterile > Const::MTau + Const::MMuon
-double DecayRates::nMT(double ue, double um, double ut)	//Antiparticle is Muon
+double DecayRates::nMT(const Mixing &mix)	//Antiparticle is Muon
 {
-	if (!fdecay.count(Channel::_nMT)) {
+	if (!_table.count(Channel::nMT)) {
 		auto gamma = NeutrinoLeptonAB(Const::MNeutrino, Const::MMuon, Const::MTau);
-		fdecay[Channel::_nMT] = gamma.first;
-		fdecay[Channel::_nMT_o] = gamma.second;
+		_table[Channel::nMT] = gamma.first;
+		_table[Channel::nMT_o] = gamma.second;
 	}
 
-	return fdecay[Channel::_nMT] * um*um + fdecay[Channel::_nMT_o] * ut*ut;
+	return _table[Channel::nMT] * mix.Um(2) + _table[Channel::nMT_o] * mix.Ut(2);
 }
 
 //M_Sterile > Const::MPion0
-double DecayRates::nPI0(double ue, double um, double ut)
+double DecayRates::nPI0(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nPI0))
-		fdecay[Channel::_nPI0] = std::pow(Const::DPion, 2)
+	if (!_table.count(Channel::nPI0))
+		_table[Channel::nPI0] = std::pow(Const::DPion, 2)
 				* NeutrinoPseudoMeson(Const::MNeutrino, Const::MPion0);
 
-	return fdecay[Channel::_nPI0] * (ue*ue + um*um + ut*ut);
+	return _table[Channel::nPI0] * (mix.Ue(2) + mix.Um(2) + mix.Ut(2));
 }
 
 //M_Sterile > Const::MPion
-double DecayRates::EPI(double ue, double um, double ut)
+double DecayRates::EPI(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_EPI))
-		fdecay[Channel::_EPI] = std::pow(Const::U_ud * Const::DPion, 2)
+	if (!_table.count(Channel::EPI))
+		_table[Channel::EPI] = std::pow(Const::U_ud * Const::DPion, 2)
 				* LeptonPseudoMeson(Const::MElectron, Const::MPion);
-	}
 	
-	return fdecay[Channel::_EPI] * ue*ue;
+	return _table[Channel::EPI] * mix.Ue(2);
 }
 
 //M_Sterile > Const::MPion + Const::MMuon
-double DecayRates::MPI(double ue, double um, double ut)
+double DecayRates::MPI(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_MPI))
-		fdecay[Channel::_MPI] = std::pow(Const::U_ud * Const::DPion, 2)
+	if (!_table.count(Channel::MPI))
+		_table[Channel::MPI] = std::pow(Const::U_ud * Const::DPion, 2)
 				* LeptonPseudoMeson(Const::MMuon, Const::MPion);
-	}
 	
-	return fdecay[Channel::_MPI] * um*um;
+	return _table[Channel::MPI] * mix.Um(2);
 }
 
 //M_Sterile > Const::MTau + Const::MPion
-double DecayRates::TPI(double ue, double um, double ut)
+double DecayRates::TPI(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_TPI))
-		fdecay[Channel::_TPI] = std::pow(Const::U_ud * Const::DPion, 2)
+	if (!_table.count(Channel::TPI))
+		_table[Channel::TPI] = std::pow(Const::U_ud * Const::DPion, 2)
 				* LeptonPseudoMeson(Const::MTau, Const::MPion);
-	}
 	
-	return fdecay[Channel::_TPI] * ut*ut;
+	return _table[Channel::TPI] * mix.Ut(2);
 }
 
 //M_Sterile > Const::MKaon + M_Electron
-double DecayRates::EKA(double ue, double um, double ut)
+double DecayRates::EKA(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_EKA))
-		fdecay[Channel::_EKA] = std::pow(Const::U_us * Const::DKaon, 2)
+	if (!_table.count(Channel::EKA))
+		_table[Channel::EKA] = std::pow(Const::U_us * Const::DKaon, 2)
 				* LeptonPseudoMeson(Const::MElectron, Const::MKaon);
 
-	return fdecay[Channel::_EKA] * ue*ue;
+	return _table[Channel::EKA] * mix.Ue(2);
 }
 
 //M_Sterile > Const::MKaon + Const::MMuon
-double DecayRates::MKA(double ue, double um, double ut)
+double DecayRates::MKA(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_MKA))
-		fdecay[Channel::_MKA] = std::pow(Const::U_us * Const::DKaon, 2)
+	if (!_table.count(Channel::MKA))
+		_table[Channel::MKA] = std::pow(Const::U_us * Const::DKaon, 2)
 				* LeptonPseudoMeson(Const::MMuon, Const::MKaon);
 
-	return fdecay[Channel::_MKA] * um*um;
+	return _table[Channel::MKA] * mix.Um(2);
 }
 
 //M_Sterile > Const::MRho
-double DecayRates::nRHO0(double ue, double um, double ut)
+double DecayRates::nRHO0(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nRHO))
-		fdecay[Channel::_nRHO] = std::pow(Const::DRho * Const::VRho, 2)
+	if (!_table.count(Channel::nRHO0))
+		_table[Channel::nRHO0] = std::pow(Const::DRho * Const::VRho, 2)
 				* NeutrinoVectorMeson(Const::MNeutrino, Const::MRho0);
 
-			
-
-	return fdecay[Channel::_nRHO] * (ue*ue + um*um + ut*ut);
+	return _table[Channel::nRHO0] * (mix.Ue(2) + mix.Um(2) + mix.Ut(2));
 }
 
 //M_Sterile > Const::MRho + M_Electron 
-double DecayRates::ERHO(double ue, double um, double ut)
+double DecayRates::ERHO(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_ERHO))
-		fdecay[Channel::_ERHO] = std::pow(Const::U_ud * Const::DRho, 2)
+	if (!_table.count(Channel::ERHO))
+		_table[Channel::ERHO] = std::pow(Const::U_ud * Const::DRho, 2)
 				* LeptonVectorMeson(Const::MElectron, Const::MRho);
 
-	return fdecay[Channel::_ERHO] * ue*ue;
+	return _table[Channel::ERHO] * mix.Ue(2);
 }
 
 //M_Sterile > Const::MRho + Const::MMuon 
-double DecayRates::MRHO(double ue, double um, double ut)
+double DecayRates::MRHO(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_MRHO))
-		fdecay[Channel::_MRHO] = std::pow(Const::U_ud * Const::DRho, 2)
+	if (!_table.count(Channel::MRHO))
+		_table[Channel::MRHO] = std::pow(Const::U_ud * Const::DRho, 2)
 				* LeptonVectorMeson(Const::MMuon, Const::MRho);
 
-	return fdecay[Channel::_MRHO] * um*um;
+	return _table[Channel::MRHO] * mix.Um(2);
 }
 
 //M_Sterile > Const::MKaon* + M_Electron 
-double DecayRates::EKAx(double ue, double um, double ut)
+double DecayRates::EKAx(const Mixing &mix)
 {
-	if (fdecay.count(Channel::_EKAx))
-		fdecay[Channel::_EKAx] = std::pow(Const::U_us * Const::DKaonx, 2)
+	if (!_table.count(Channel::EKAx))
+		_table[Channel::EKAx] = std::pow(Const::U_us * Const::DKaonx, 2)
 				* LeptonVectorMeson(Const::MElectron, Const::MKaonx);
 
-	return fdecay[Channel::_EKAx] * ue*ue;
+	return _table[Channel::EKAx] * mix.Ue(2);
 }
 
 //M_Sterile > Const::MKaon* + Const::MMuon 
-double DecayRates::MKAx(double ue, double um, double ut)
+double DecayRates::MKAx(const Mixing &mix)
 {
-	if (fdecay.count(Channel::_MKAx))
-		fdecay[Channel::_MKAx] = std::pow(Const::U_us * Const::DKaonx, 2)
+	if (!_table.count(Channel::MKAx))
+		_table[Channel::MKAx] = std::pow(Const::U_us * Const::DKaonx, 2)
 				* LeptonVectorMeson(Const::MMuon, Const::MKaonx);
 
-	return fdecay[Channel::_MKAx] * um*um;
+	return _table[Channel::MKAx] * mix.Um(2);
 }
 
 //M_Sterile > Const::MEta
-double DecayRates::nETA(double ue, double um, double ut)
+double DecayRates::nETA(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nETA))
-		fdecay[Channel::_nETA] = std::pow(Const::DEta, 2)
+	if (!_table.count(Channel::nETA))
+		_table[Channel::nETA] = std::pow(Const::DEta, 2)
 				* NeutrinoPseudoMeson(Const::MNeutrino, Const::MEta);
 
-	return fdecay[Channel::_nETA] * (ue*ue + um*um + ut*ut);
+	return _table[Channel::nETA] * (mix.Ue(2) + mix.Um(2) + mix.Ut(2));
 }
 
 //M_Sterile > Const::MEta'
-double DecayRates::nETAi(double ue, double um, double ut)
+double DecayRates::nETAi(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nETAi))
-		fdecay[Channel::_nETAi] = std::pow(Const::DEta, 2)
+	if (!_table.count(Channel::nETAi))
+		_table[Channel::nETAi] = std::pow(Const::DEta, 2)
 				* NeutrinoPseudoMeson(Const::MNeutrino, Const::MEtai);
 
-	return fdecay[Channel::_nETAi] * (ue*ue + um*um + ut*ut);
+	return _table[Channel::nETAi] * (mix.Ue(2) + mix.Um(2) + mix.Ut(2));
 }
 
 //M_Sterile > Const::MOmega 
-double DecayRates::nOMEGA(double ue, double um, double ut)
+double DecayRates::nOMEGA(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nOMEGA))
-		fdecay[Channel::_nOMEGA] = std::pow(Const::DOmega * Const::VOmega, 2)
+	if (!_table.count(Channel::nOMEGA))
+		_table[Channel::nOMEGA] = std::pow(Const::DOmega * Const::VOmega, 2)
 				* NeutrinoVectorMeson(Const::MNeutrino, Const::MOmega);
 
-	return fdecay[Channel::_nOMEGA] * (ue*ue + um*um + ut*ut);
+	return _table[Channel::nOMEGA] * (mix.Ue(2) + mix.Um(2) + mix.Ut(2));
 }
 
 //M_Sterile > Const::MPhi 
-double DecayRates::nPHI(double ue, double um, double ut)
+double DecayRates::nPHI(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_nPHI))
-		fdecay[Channel::_nPHI] = std::pow(Const::DOmega * Const::VPhi, 2)
+	if (!_table.count(Channel::nPHI))
+		_table[Channel::nPHI] = std::pow(Const::DOmega * Const::VPhi, 2)
 				* NeutrinoVectorMeson(Const::MNeutrino, Const::MPhi);
 
-	return fdecay[Channel::_nPHI] * (ue*ue + um*um + ut*ut);
+	return _table[Channel::nPHI] * (mix.Ue(2) + mix.Um(2) + mix.Ut(2));
 }
 
 //M_Sterile > Const::MD + M_Electron
-double DecayRates::ECHARM(double ue, double um, double ut)
+double DecayRates::ECHARM(const Mixing &mix)
 {
-	if (!fdecay.count(Channel::_ECHARM))
-		fdecay[Channel::_ECHARM] = std::pow(Const::U_cd * Const::DCharm, 2)
+	if (!_table.count(Channel::ECHARM))
+		_table[Channel::ECHARM] = std::pow(Const::U_cd * Const::DCharm, 2)
 				* LeptonPseudoMeson(Const::MElectron, Const::MD);
 
-	return fdecay[Channel::_ECHARM] * ue*ue;
+	return _table[Channel::ECHARM] * mix.Ue(2);
 }
 
 /////////////////
@@ -423,8 +398,7 @@ double DecayRates::I_LeptonPseudoMeson(double x, double y)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);
 	//double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double M2 = M2_LeptonPseudoMeson(0, x, y);
-	return dGammad0_2B(M2, x, y);
+	return dGammad0_2B(x, y) * M2_LeptonPseudoMeson(0., x, y);
 }
 
 double DecayRates::NeutrinoPseudoMeson(double m_neut, double m_meson)
@@ -440,8 +414,7 @@ double DecayRates::I_NeutrinoPseudoMeson(double x, double y)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);
 	//double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double M2 = M2_NeutrinoPseudoMeson(0, x, y);
-	return dGammad0_2B(M2, x, y);
+	return dGammad0_2B(x, y) * M2_NeutrinoPseudoMeson(0., x, y);
 }
 
 //CC version possible
@@ -458,13 +431,12 @@ double DecayRates::I_LeptonVectorMeson(double x, double y)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);
 	//double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double M2 = M2_LeptonVectorMeson(0, x, y);
-	return dGammad0_2B(M2, x, y);
+	return dGammad0_2B(x, y) * M2_LeptonVectorMeson(0., x, y);
 }
 
 double DecayRates::NeutrinoVectorMeson(double m_neut, double m_meson)
 {
-	_m_parent = _N.M()
+	_m_parent = _N.M();
 	return  I_NeutrinoVectorMeson(std::pow(m_neut / _m_parent, 2),
 				      std::pow(m_meson / _m_parent, 2));
 }
@@ -475,8 +447,7 @@ double DecayRates::I_NeutrinoVectorMeson(double x, double y)
 	//double cos0 = theta < 0 ? 0.0 : cos(theta);
 	//double fc = theta < 0.0 ? 2.0 : 1.0;
 
-	double M2 = M2_NeutrinoVectorMeson(0, x, y);
-	return dGammad0_2B(M2, x, y);
+	return dGammad0_2B(x, y) * M2_NeutrinoVectorMeson(0., x, y);
 }
 
 std::pair<double, double> DecayRates::NeutrinoLeptonAA(double m_neut, double m_lepton)
@@ -487,19 +458,19 @@ std::pair<double, double> DecayRates::NeutrinoLeptonAA(double m_neut, double m_l
 
 	//neutrino flavour is the same as leptons -> both Z and W interaction
 	//double gL_CC = -0.5 + Const::sin2W + (2*GetParticle() - 1);	//times U(lepton flavour)
-	double gL_CC = -0.5 + Const::sin2W + 1;	//times U(lepton flavour)
-	double gR_CC = Const::sin2W;
+	//double gL_CC = -0.5 + Const::sin2W + 1;	//times U(lepton flavour)
+	//double gR_CC = Const::sin2W;
 
 	//neutrino flavour is different from leptons -> Z interaction
-	double gL_NC = -0.5 + Const::sin2W;	//times U(neutrino flavour)
-	double gR_NC = Const::sin2W;
+	double gL = -0.5 + Const::sin2W;	//times U(neutrino flavour)
+	double gR = Const::sin2W;
 
-	return std::make_pair(NeutrinoLeptonLepton(dMn2, dML2, dML2, gL_CC, gR_CC),
-                              NeutrinoLeptonLepton(dMn2, dML2, dML2, gL_NC, gR_NC));
+	return std::make_pair(NeutrinoLeptonLepton(dMn2, dML2, dML2, gL + 1., gR),
+                              NeutrinoLeptonLepton(dMn2, dML2, dML2, gL,      gR));
 }
 
 //CC version also available
-std::pair<double, double. DecayRates::NeutrinoLeptonAB(double m_neut,
+std::pair<double, double> DecayRates::NeutrinoLeptonAB(double m_neut,
 					double m_leptonA, double m_leptonB)
 {
 	_m_parent = _N.M();
@@ -517,8 +488,7 @@ std::pair<double, double. DecayRates::NeutrinoLeptonAB(double m_neut,
 
 double DecayRates::NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR)
 {
-	double M2 = I_NeutrinoLeptonLepton(x, y, z, gL, gR);
-	return dGammad2_3B(M2);
+	return dGammad2_3B() * I_NeutrinoLeptonLepton(x, y, z, gL, gR);
 }
 
 double DecayRates::I_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR)//, double theta)
@@ -526,10 +496,11 @@ double DecayRates::I_NeutrinoLeptonLepton(double x, double y, double z, double g
 	_vars = {x, y, z, gL, gR};
 	//F_var.push_back(theta);	//3
 
-	return BooleIntegration(&DecayRates::I_NeutrinoLeptonLepton_s); 
+	auto func = std::bind(&DecayRates::F_NeutrinoLeptonLepton_s, this, std::placeholders::_1);
+	return Integration::Boole<1, double>(func); 
 }
 
-double DecayRates::I_NeutrinoLeptonLepton_s(double s)
+double DecayRates::F_NeutrinoLeptonLepton_s(double s)
 {
 	double x  = _vars[0];
 	double y  = _vars[1];
@@ -537,16 +508,15 @@ double DecayRates::I_NeutrinoLeptonLepton_s(double s)
 	double gL = _vars[3];
 	double gR = _vars[4];
 
-	double s_ = s, t_ = s, u_ = s;
-	double fcu = Limit(u_, y, z, x);
-	double fct = Limit(t_, z, x, y);
-	double fcs = Limit(s_, x, y, z);
 
-	return     gL * gL * fcs * M2_WW(s_, 0, x, y, z) +
-	           gR * gR * fct * M2_WW(t_, 0, x, y, z) +
-	       2 * gL * gR * fcu * M2_WZ(u_, 0, x, y, z);
-}
+	double t = s, u = s;
+	double fcs = Limit(s, x, y, z);
+	double fct = Limit(t, z, x, y);
+	double fcu = Limit(u, y, z, x);
 
-double Reset() {
-	fdecay.clear();
+	if (gR > 0.)
+		return gL * gL * fcs * M2_WW(s, 0, x, y, z) +
+		       gR * gR * fct * M2_WW(t, 0, x, y, z) +
+	   	   2 * gL * gR * fcu * M2_WZ(u, 0, x, y, z);
+	return gL * gL * fcs * M2_WW(s, 0, x, y, z);
 }
