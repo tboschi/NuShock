@@ -18,8 +18,6 @@
 #include <algorithm>
 #include <type_traits>
 
-//#include "tools/ic.h"
-
 //// trim from start (in place)
 //static inline void ltrim(std::string &s)
 //{
