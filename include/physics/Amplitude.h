@@ -9,11 +9,11 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <map>
 
 #include "physics/Const.h"
 #include "physics/Mixings.h"
-#include "physics/Channels.h"
+#include "physics/Decays.h"
+#include "physics/Productions.h"
 #include "physics/Neutrino.h"
 
 #include <numeric>
@@ -22,13 +22,38 @@ class Amplitude
 {
 	public:
 		Amplitude(Neutrino N = Neutrino());
-
-		double MassThreshold(Channel::Name chan);
 		void SetNeutrino(const Neutrino &N);
+		Neutrino GetNeutrino() const;
+
+		bool IsAllowed(Decay::Channel chan);
+		static bool IsAllowed(const Neutrino &N, Decay::Channel chan) {
+			return IsAllowed(N.M(), chan);
+		}
+		static bool IsAllowed(double mass, Decay::Channel chan) {
+			return (mass >= MassThreshold(chan));
+		}
+
+		static double MassThreshold(Decay::Channel chan) {
+			auto mass = Decay::Masses(chan);
+			return std::accumulate(mass.begin(), mass.end(), 0.,
+					[](double sum, double m) { return sum + m; });
+		}
+
+		bool IsAllowed(Production::Channel chan);
+		static bool IsAllowed(const Neutrino &N, Production::Channel chan) {
+			return IsAllowed(N.M(), chan);
+		}
+		static bool IsAllowed(double mass, Production::Channel chan) {
+			return (mass <= MassThreshold(chan));
+		}
+
+		static double MassThreshold(Production::Channel chan) {
+			auto mass = Production::Masses(chan);
+			return std::accumulate(mass.begin()+1, mass.end(), mass.front(),
+					[](double sum, double m) { return sum - m; });
+		}
 
 	protected:
-		void LoadMass(Channel::Name chan);
-
 		double Kallen(double X, double Y, double Z);
 
 		double dGammad5_3B();
@@ -69,16 +94,12 @@ class Amplitude
 		double M2_MesonThree(int hel, double s, double t, double x, double y, double z, double L_, double L0);
 
 	protected:
-		virtual void Reset() { _table.clear(); }
+		virtual void Reset() = 0;
 
 		double _m_parent;
-		Channel::Name _channel;
 		Neutrino _N;
 
-		std::vector<std::pair<double, int> > _masspdg;
 		std::vector<double> _vars;
-
-		std::map<Channel::Name, double> _table;
 };
 
 #endif

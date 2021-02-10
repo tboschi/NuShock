@@ -1,20 +1,43 @@
 #include <iostream>
-#include <fstream>
-#include <vector>
 #include <cstring>
 #include <getopt.h>
 
-#include "physics/Production.h"
+#include "physics/Neutrino.h"
+#include "physics/Mixings.h"
+#include "physics/ProductionRate.h"
 
-void Usage(char* argv0);
+void usage(char* argv0)
+{
+	std::cout << "usage: " << argv0 << " <mass> <channel> [<options>]\n\n";
+	std::cout << "Compute production scale for given channel of HNL with given mass\n";
+
+	std::cout << "\nOptional parameters:\n"
+		  << "  -r, --dirac\tuse a Dirac HNL [default]\n"
+		  << "  -j, --majorana\tuse a Majorana HNL\n"
+		  << "  -L, --left\tset Left helicity\n"
+		  << "  -R, --right\tset Right helicity\n"
+		  << "  -E, --ue\tset electron mixing value [default = 1]\n"
+		  << "  -M, --um\tset muon mixing value [default = 1]\n"
+		  << "  -T, --ut\tset tau mixing value [default = 1]\n"
+		  << "  -q, --quiet\tonly print production scale value\n"
+		  << "  -h, --help\tprint this message and exit\n\n";
+}
+
 int main(int argc, char** argv)
 {
 
 	const struct option longopts[] = 
 	{
+		{"dirac", 	no_argument,		0, 'r'},
+		{"majorana", 	no_argument,		0, 'j'},
 		{"left", 	no_argument,		0, 'L'},
 		{"right", 	no_argument,		0, 'R'},
-		{"help", 	no_argument,	 	0, 'h'},
+		{"channel", 	required_argument, 	0, 'c'},
+		{"mass", 	required_argument, 	0, 'm'},
+		{"ue", 		required_argument, 	0, 'E'},
+		{"um", 		required_argument, 	0, 'M'},
+		{"ut", 		required_argument, 	0, 'T'},
+		{"help",	required_argument, 	0, 'h'},
 		{0,	0, 	0,	0},
 	};
 
@@ -22,65 +45,77 @@ int main(int argc, char** argv)
 	int iarg = 0;
 	opterr = 1;
 	
-	size_t ferm = Neutrino::majorana | Neutrino::antiparticle;
-	while((iarg = getopt_long(argc,argv, "RLh", longopts, &index)) != -1)	
+	size_t ferm = Neutrino::dirac, helix = Neutrino::left;
+	Production::Channel chan;
+	double mass = -1;
+	bool verbose = true;
+	double ue = 1., um = 1., ut = 1.;
+	while((iarg = getopt_long(argc,argv, "m:c:E:M:T:LRUrjqh", longopts, &index)) != -1)	
 	{
 		switch(iarg)
 		{
-			case 'R':
-				ferm = ferm | Neutrino::right;
+			case 'c':
+				break;
+			case 'm':
+				mass = std::strtod(optarg, NULL);
+				break;
+			case 'E':
+				ue = std::strtod(optarg, NULL);
+				break;
+			case 'M':
+				um = std::strtod(optarg, NULL);
+				break;
+			case 'T':
+				ut = std::strtod(optarg, NULL);
+				break;
+			case 'r':
+				ferm = Neutrino::dirac;
+				break;
+			case 'j':
+				ferm = Neutrino::majorana;
 				break;
 			case 'L':
-				ferm = ferm | Neutrino::left;
+				helix = Neutrino::left;
+				break;
+			case 'R':
+				helix = Neutrino::right;
+				break;
+			case 'U':
+				helix = Neutrino::unpolarized;
+				break;
+			case 'q':
+				verbose = false;
 				break;
 			case 'h':
 			default:
-				Usage(argv[1]);
+				usage(argv[0]);
 				return 1;
 		}
 	}
 
+	mass = std::strtod(argv[optind], NULL);
+	chan = Production::fromString(std::string(argv[optind+1]));
 
-	Neutrino nu(0.1, Neutrino::dirac | Neutrino::unpolarized);
+	// unpolairsed?
+	Mixing mix(ue, um, ut);
+	Neutrino nu(mass, ferm | helix);
 
-	Mixing mix(1., 1., 1.);
-
-	Production hnl(nu);
-	std::cout << "PionM " << hnl.Scale(Channel::PionM, mix) << "\n";
-	std::cout << "gamma " << hnl.Gamma(Channel::PionM, mix) << "\n";
-	std::cout << "KaonM " << hnl.Scale(Channel::KaonM, mix) << "\n";
-	std::cout << "gamma " << hnl.Gamma(Channel::KaonM, mix) << "\n";
-	std::cout << "KaonCM " << hnl.Scale(Channel::KaonCM, mix) << "\n";
-	std::cout << "gamma " << hnl.Gamma(Channel::KaonCM, mix) << "\n";
-	std::cout << "Kaon0M " << hnl.Scale(Channel::Kaon0M, mix) << "\n";
-	std::cout << "gamma " << hnl.Gamma(Channel::Kaon0M, mix) << "\n";
-	std::cout << "MuonM " << hnl.Scale(Channel::MuonM, mix) << "\n";
-	std::cout << "gamma " << hnl.Gamma(Channel::MuonM, mix) << "\n";
-	std::cout << "CharM " << hnl.Scale(Channel::CharmM, mix) << "\n";
-	std::cout << "gamma " << hnl.Gamma(Channel::CharmM, mix) << "\n";
-
-	//std::cout << " M2   " << hnl.M2_MesonThree(0.5, 0.5, 0.1, 0.2, 0.3, Const::KCL_, Const::KCL0) << "\n";
-	return 1;
-
-	for (const auto &chan : Channel::Productions()) {
-		std::cout << "Scale for " << Channel::toString(chan)
-			  << " is " << hnl.Scale(chan) << "\n";
+	if (verbose) {
+		std::cout << "Neutrino " << nu << "\n";
+		std::cout << "Mixing " << mix << "\n";
+		std::cout << "Production scale for channel " << Production::toString(chan) << ": ";
 	}
 
-	return 0;
-}
+	if (!ProductionRate::IsAllowed(nu, chan)) {
+		if (verbose)
+			std::cout << "not allowed\n";
+		std::cout << 0.0;
+		return 1;
+	}
 
-void Usage(char* argv0)
-{
-	std::cout << "Compute decay widths/branching ratios" << std::endl;
-	std::cout << "Usage : " << std::endl;
-	std::cout << "decayplot [OPTIONS]" << std::endl;
-	std::cout <<"\n  -o,  --output" << std::endl;
-	std::cout << "\t\tOutput file to save plot" << std::endl;
-	std::cout <<"\n  -c,  --channel" << std::endl;
-	std::cout << "\t\tDecay channel" << std::endl;
-	std::cout <<"\n  -E, -M, -T" << std::endl;
-	std::cout << "\t\tChoose which mixing U2, giving also a magnitude" << std::endl;
-	std::cout <<"\n  -h,  --help" << std::endl;
-	std::cout << "\t\tPrint this message and exit" << std::endl;
+
+	ProductionRate hnl(nu);
+	std::cout << hnl.Scale(chan, mix) << "\n";
+
+	return 0;
 }

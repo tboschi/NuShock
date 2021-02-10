@@ -320,18 +320,6 @@ bool Detector::AngularAccept(std::string mod, double theta, double phi) const
 	//return (std::abs(x / Width(mod)) < 1.) && (std::abs(y / Height(mod)) < 1.);
 }
 
-double Detector::Probability(double tby) const {
-	return std::accumulate(_modules.begin(), _modules.end(), 0.,
-			[&](double sum, const std::pair<std::string, Module> &m) {
-				return sum + Probability(m.first, tby);
-			});
-}
-
-double Detector::Probability(std::string mod, double tby) const {
-	return std::exp(- tby * Const::M2GeV * Baseline(mod))
-		* (1 - std::exp(- tby * Const::M2GeV * Length(mod)));
-}
-
 std::vector<std::string> Detector::Modules() const {
 	std::vector<std::string> mods;
 	mods.reserve(_modules.size());
@@ -424,4 +412,15 @@ double Detector::POTs(std::string hc) const {
 	if (!_modes.count(hc))
 		return _POTs;
 	return _POTs * _modes.at(hc);
+}
+
+double Detector::Probability(double tby) const {
+	return std::accumulate(_modules.begin(), _modules.end(), 0.,
+			[=](double sum, const std::pair<std::string, Module> &m) {
+				return sum + Probability(m.first, tby); });
+}
+
+double Detector::Probability(std::string mod, double tby) const {
+	return std::exp(- tby * Const::M2GeV * Baseline(mod))
+		* (1 - std::exp(- tby * Const::M2GeV * Length(mod)));
 }

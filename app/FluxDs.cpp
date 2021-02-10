@@ -10,22 +10,18 @@
 #include "tools/CardDealer.h"
 
 #include "physics/Const.h"
-#include "detector/Detector.h"
-
-#include "physics/PhaseSpace.h"
+#include "physics/ProductionSpace.h"
 #include "physics/Particle.h"
 #include "physics/Neutrino.h"
 #include "physics/OpenQQ.h"
 
-#include "flux/Driver.h"
+#include "detector/Driver.h"
+#include "detector/Detector.h"
 
 #include "TKey.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1D.h"
-#include "TH2D.h"
-#include "TRandom3.h"
-#include "TGenPhaseSpace.h"
 
 //from 1708.08700, 250GeV proton beam E796
 const double b = 1.08;
@@ -154,9 +150,9 @@ int main(int argc, char** argv)
 	std::cout << "FluxDs: creating neutrinos\n";
 
 	std::cout << "FluxDs: creating phasespace terms\n";
-	PhaseSpace ps0(Neutrino(mass, Neutrino::dirac | Neutrino::left));
-	PhaseSpace psB(Neutrino(mass, Neutrino::dirac | Neutrino::right | Neutrino::antiparticle));
-	PhaseSpace light(Neutrino(0., Neutrino::dirac | Neutrino::left));
+	ProductionSpace ps0(Neutrino(mass, Neutrino::dirac | Neutrino::left | Neutrino::particle));
+	ProductionSpace psB(Neutrino(mass, Neutrino::dirac | Neutrino::right | Neutrino::antiparticle));
+	ProductionSpace light(Neutrino(0., Neutrino::dirac | Neutrino::left));
 
 	std::vector<Particle> vProductDs, vProductTau;
 	std::vector<Particle>::iterator iP;
@@ -183,7 +179,7 @@ int main(int argc, char** argv)
 		if (cd.Get("nuE0_file"))
 		{
 			// pair of particle vector and event weight
-			const auto prodDs = ps0.Generate(Channel::CharmE, Ds);
+			const auto prodDs = ps0.Generate(Production::Channel::CharmE, Ds);
 			if (prodDs.first.size() && box.AngularAccept(prodDs.first[0]))
 				hCharmE->Fill(prodDs.first[0].E(), prodDs.second * SF * 8.3e-5);
 		}							//BR(Ds -> e nu)
@@ -191,13 +187,13 @@ int main(int argc, char** argv)
 		//Ds decay into muons
 		if (cd.Get("nuM0_file"))
 		{
-			const auto prodDs = ps0.Generate(Channel::CharmM, Ds);
+			const auto prodDs = ps0.Generate(Production::Channel::CharmM, Ds);
 			if (prodDs.first.size() && box.AngularAccept(prodDs.first[0]))
 				hCharmM->Fill(prodDs.first[0].E(), prodDs.second * SF * 5.5e-3);
 		}							//BR(Ds -> mu nu)
 
 		//Ds decay into taus
-		auto prodDs = ps0.Generate(Channel::CharmT, Ds);
+		auto prodDs = ps0.Generate(Production::Channel::CharmT, Ds);
 		//std::cout << "ps0 generated: ";
 		//for (const auto &p : prodDs.first)
 		//	std::cout << p << "\t";
@@ -208,7 +204,7 @@ int main(int argc, char** argv)
 			hCharmT->Fill(prodDs.first[0].E(), prodDs.second * SF * 0.0548);
 
 		if (mass > 0)	//use light neutrino to make tau flux 
-			prodDs = light.Generate(Channel::CharmT, Ds);
+			prodDs = light.Generate(Production::Channel::CharmT, Ds);
 
 		if (prodDs.first.size() < 2)
 			continue;
@@ -219,7 +215,7 @@ int main(int argc, char** argv)
 		//tau decay into electrons via electron mixing
 		if (cd.Get("nuEB_file"))
 		{	//tau->e vie e mix (17.85 %)
-			const auto prodTau = light.Generate(Channel::TauEE, tau);
+			const auto prodTau = light.Generate(Production::Channel::TauEE, tau);
 			if (prodTau.first.size() && box.AngularAccept(prodTau.first[0]))
 				hTauEE->Fill(prodTau.first[0].E(), prodTau.second * SF
 								  * 0.0548 * 0.1785);
@@ -228,7 +224,7 @@ int main(int argc, char** argv)
 		//Ds decay into muons
 		if (cd.Get("nuMB_file"))
 		{	//tau->mu vie mu mix (17.36 %)
-			const auto prodTau = psB.Generate(Channel::TauMM, tau);
+			const auto prodTau = psB.Generate(Production::Channel::TauMM, tau);
 			if (prodTau.first.size() && box.AngularAccept(prodTau.first[0]))
 				hTauMM->Fill(prodTau.first[0].E(), prodTau.second * SF
 								  * 0.0548 * 0.1736);
@@ -236,28 +232,28 @@ int main(int argc, char** argv)
 
 		for (size_t t = 0; t < 4; ++t)
 		{
-			Channel::Name chan;
+			Production::Channel chan;
 			std::shared_ptr<TH1D> hist;
 			double br;
 			switch (t)
 			{
 				case 0:
-					chan = Channel::TauET;
+					chan = Production::Channel::TauET;
 					hist = hTauE;
 					br = 0.1785;	//tau->e (17.85 %)
 					break;
 				case 1:
-					chan = Channel::TauMT;
+					chan = Production::Channel::TauMT;
 					hist = hTauM;
 					br = 0.1736;	//tau->mu (17.36 %)
 					break;
 				case 2:
-					chan = Channel::TauPI;
+					chan = Production::Channel::TauPI;
 					hist = hPion;
 					br = 0.1082;	//tau->pi (10.82 %)
 					break;
 				case 3:
-					chan = Channel::Tau2PI;
+					chan = Production::Channel::Tau2PI;
 					hist = h2Pion;
 					br = 0.2551;	//tau->2pi (25.62 %)
 					break;		//Phase space only!!

@@ -1,6 +1,7 @@
 #ifndef MIXINGS_H
 #define MIXINGS_H
 
+#include <iostream>
 #include <array>
 #include <cmath>
 

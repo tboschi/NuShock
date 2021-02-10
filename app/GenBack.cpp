@@ -14,8 +14,10 @@
 
 #include "physics/Flavours.h"
 #include "physics/Neutrino.h"
+#include "physics/Decays.h"
+#include "physics/ProductionRate.h"
 
-#include "flux/Driver.h"
+#include "detector/Driver.h"
 #include "detector/Tracker.h"
 #include "montecarlo/GENIEback.h"
 
@@ -56,11 +58,11 @@ int main(int argc, char** argv)
 	}
 
 	// detection channel
-	std::vector<Channel::Name> chans;
+	std::vector<Decay::Channel> chans;
 	std::stringstream sschan(channel);
 	std::string llchan;
 	while (std::getline(sschan, llchan, ','))
-		chans.push_back(Channel::fromString(llchan));
+		chans.push_back(Decay::fromString(llchan));
 
 	// for flux building
 	std::string flux(argv[optind]);
@@ -83,7 +85,7 @@ int main(int argc, char** argv)
 		throw std::invalid_argument("Couldn't find xsec files\n");
 	TFile inxsec(file_xsec.c_str());
 
-	Production phnl;    // for flux making of a light neutrino
+	ProductionRate phnl;    // for flux making of a light neutrino
 
 	std::string outname;
 	if (!cd.Get("output", outname))
@@ -94,7 +96,7 @@ int main(int argc, char** argv)
 	if (chargeID)
 		outname.insert(outname.find(".root"), "_I");
 
-	std::map<Channel::Name, std::string> files;
+	std::map<Decay::Channel, std::string> files;
 
 	for (const auto &fb : file_backs) {
 		std::cout << "Doing flavour " << fb.first << "\n";
@@ -129,11 +131,11 @@ int main(int argc, char** argv)
 			sum += dc.second->GetEntries();
 
 			std::string name = outname;
-			name.insert(name.find(".root"), "_" + Channel::toString(dc.first));
+			name.insert(name.find(".root"), "_" + Decay::toString(dc.first));
 			name.insert(name.find(".root"), "_" + fb.first);
 			files[dc.first] += " " + name;
 
-			std::cout << "\t" << Channel::toString(dc.first) << "   "
+			std::cout << "\t" << Decay::toString(dc.first) << "   "
 				  << dc.second->GetEntries() << " ("
 				  << dc.second->GetEntries() / 1.e4 << " %)"
 				  << "\t-> " << name << "\n";
@@ -146,9 +148,9 @@ int main(int argc, char** argv)
 	}
 
 	for (const auto & ff : files) { 
-		std::cout << "solving for " << Channel::toString(ff.first) << "\n";
+		std::cout << "solving for " << Decay::toString(ff.first) << "\n";
 		std::string name = outname;
-		name.insert(name.find(".root"), "_" + Channel::toString(ff.first));
+		name.insert(name.find(".root"), "_" + Decay::toString(ff.first));
 		std::string cmd = "hadd -f " + name + ff.second;
 		std::cout << cmd << "\n";
 		system(cmd.c_str());

@@ -1,7 +1,10 @@
 #ifndef FLAVOURS_H
 #define FLAVOURS_H
 
+#include <iostream>
 #include <string>
+#include <vector>
+#include <stdexcept>
 
 struct Nu
 {

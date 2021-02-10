@@ -8,16 +8,15 @@
 #include "tools/RootFinding.h"
 
 #include "detector/Tracker.h"
-
-#include "flux/Driver.h"
-#include "flux/Sampler.h"
+#include "detector/Driver.h"
 
 #include "physics/Const.h"
 #include "physics/Neutrino.h"
-#include "physics/PhaseSpace.h"
+#include "physics/Decays.h"
+#include "physics/DecaySpace.h"
 
 #include "montecarlo/hnl.h"
-
+#include "montecarlo/Sampler.h"
 
 int main(int argc, char** argv)
 {
@@ -42,8 +41,7 @@ int main(int argc, char** argv)
 	std::string background;
 	
 	double mass = 0.;
-	size_t ferm = 0;
-	std::string ferm_append;
+	std::string ferm;
 	bool UeFlag = false, UmFlag = false, UtFlag = false;
 
 	while((iarg = getopt_long(argc,argv, "m:c:EMTrj", longopts, &index)) != -1)
@@ -66,12 +64,10 @@ int main(int argc, char** argv)
 				UtFlag = true;
 				break;
 			case 'r':
-				ferm = Neutrino::dirac;
-				ferm_append = "_d";
+				ferm = "d";
 				break;
 			case 'j':
-				ferm = Neutrino::majorana;
-				ferm_append = "_m";
+				ferm = "m";
 				break;
 			default:
 				break;
@@ -88,67 +84,56 @@ int main(int argc, char** argv)
 	if (!UeFlag && !UmFlag && !UtFlag)
 		throw std::invalid_argument("HNLSimulation: at least one mixing must be selected with -E -M or -T");
 
-	if (ferm_append.empty())
+	if (ferm.empty())
 		throw std::logic_error("HNLSimulation: fermion type must be selected with --dirac or --majorana");
 
 	CardDealer cd(argv[optind]);
 
 	std::string config;
 	if (!cd.Get("detector_configuration", config))
-		throw std::logic_error("There is no detector configuration\n");
+		throw std::logic_error("HNLSimulation: There is no detector configuration\n");
 	Tracker box(config);
 
 	if (!cd.Get("flux_configuration", config))
-		throw std::logic_error("There is no flux configuration\n");
+		throw std::logic_error("HNLSimulation: There is no flux configuration\n");
 	Driver drive(config);
 
 	Mixing mix(UeFlag, UmFlag, UtFlag);
 	mix *= 1e-4;
-	Channel::Name chan = Channel::fromString(channel);
+	Decay::Channel chan = Decay::fromString(channel);
 
-	std::vector<Neutrino> nus;
-	if (ferm == Neutrino::majorana)
-		nus = { Neutrino(mass, ferm | Neutrino::left),
-			Neutrino(mass, ferm | Neutrino::right) };
-	else // is dirac
-		nus = { Neutrino(mass, ferm | Neutrino::particle | Neutrino::left),
-			Neutrino(mass, ferm | Neutrino::particle | Neutrino::right),
-			Neutrino(mass, ferm | Neutrino::antiparticle | Neutrino::left),
-			Neutrino(mass, ferm | Neutrino::antiparticle | Neutrino::right) } ;
+	if (!DecayRate::IsAllowed(mass, chan))
+		throw std::invalid_argument("HNLSimulation: mass " + std::to_string(mass)
+						+ "does not allow for decay");
+	// MC config
 
-	Sampler smp(box, drive);
+	size_t nEvents;
+	if (!cd.Get("number_events", nEvents))
+		nEvents = 1e5;
+
+
+	std::vector<size_t> nus;
+	if (ferm == "m")
+		nus = { Neutrino::majorana | Neutrino::left,
+		        Neutrino::majorana | Neutrino::right };
+	else if (ferm == "d") 
+		nus = { Neutrino::dirac | Neutrino::particle | Neutrino::left,
+			Neutrino::dirac | Neutrino::particle | Neutrino::right,
+			Neutrino::dirac | Neutrino::antiparticle | Neutrino::left,
+			Neutrino::dirac | Neutrino::antiparticle | Neutrino::right } ;
+
 	// store samples for left and right neutrinos
-	std::map<size_t, std::shared_ptr<TH1D> > samples;
-	std::map<size_t, double> weights;
-	std::map<size_t, PhaseSpace> ps;
-	for (const Neutrino &N : nus)
-		if (smp.Bind(chan, mix, N)) {
-			samples[N.GetOptions()] = smp.MakeSampler(mix);
-			weights[N.GetOptions()] = samples[N.GetOptions()]->Integral("WIDTH");
-			ps.emplace(N.GetOptions(), std::move(N));
-		}
-
-	// reweighting
-	if (ferm == Neutrino::majorana) {
-		double sum = std::accumulate(weights.begin(), weights.end(), 0.,
-				[](double sum, const std::pair<size_t, double> &w) {
-					return sum + w.second;
-					} );
-		for (auto & w : weights)
-			w.second /= sum;
-	}
-	else {
-		for (bool o : {true, false}) {
-			double sum = std::accumulate(weights.begin(), weights.end(), 0.,
-					[&](double sum, const std::pair<size_t, double> &w) {
-						if (Neutrino::IsParticle(w.first) == o)
-							return sum + w.second;
-						return sum;
-						} );
-			for (auto & w : weights)
-				if (Neutrino::IsParticle(w.first) == o)
-					w.second /= sum;
-		}
+	std::unordered_map<size_t, std::shared_ptr<TH1D> > samples;
+	std::unordered_map<size_t, double> weights;
+	std::unordered_map<size_t, DecaySpace> decayps;
+	for (size_t opt : nus) {
+		Neutrino N(mass, opt);
+		auto smp = Sampler::Compute(box, drive, chan, mix, N);
+		if (!smp)
+			continue;
+		samples[opt] = smp;
+		weights[opt] = smp->Integral();
+		decayps.emplace(opt, std::move(N));
 	}
 
 	// clear neutrino vector
@@ -177,47 +162,51 @@ int main(int argc, char** argv)
 	if (UtFlag)
 		outname.insert(outname.find(".root"), "_T");
 	
-	outname.insert(outname.find(".root"), ferm_append);
+	outname.insert(outname.find(".root"), "_" + ferm);
 
 	std::stringstream ssm;
 	ssm << "_" << std::setw(4) << std::fixed << std::setfill('0')
 		<< std::setprecision(0) << mass * 1000;
 	outname.insert(outname.find(".root"), ssm.str());
 
-	// MC config
-
-	size_t nEvents;
-	if (!cd.Get("number_events", nEvents))
-		nEvents = 1e5;
-
 	TFile out(outname.c_str(), "RECREATE");
 	std::shared_ptr<hnl> data(new hnl);	// 
 
-	std::cout << "Starting HNL simulation of " << nEvents << " events of\n";
-	for (const auto &n : nus)
-		std::cout << "\t" << n << " (" << weights[n.GetOptions()] << ")\n";
-	std::cout << "decay in channel " << channel
+	std::cout << "Starting HNL simulation of " << nEvents << " events of "
+		  << mass << " GeV neutrinos\nweights:";
+	for (auto &w : weights) {
+		std::cout << "\t" << w.second << "\t";
+		w.second /= nEvents;	// update weight
+		// divide by 2 because of helicity average!
+	}
+	std::cout << "\ndecay in channel " << channel
 		  << " with mixing " << mix << "\n"
 		  << "Creating file " << outname << "\n";
 
+	// use volume ratios to determine probability
+	std::unordered_map<std::string, double> mod_ratios;
+	for (std::string mod : box.Modules())
+		mod_ratios.emplace(mod, box.Volume(mod) / box.Volume());
+
 	for (size_t id = 0; id < nEvents; ++id) {
 		for (const auto & s : samples) {
+			// random energy for this neutrino
 			double energy = s.second->GetRandom();
-			for (const auto &mod : box.Modules()) {
+			// generate same event in all detector modules
+			for (const auto & mrat : mod_ratios) {
 
-				// use volume ratios to determine probability
-				double rati = box.Volume(mod) / box.Volume();
 				//neutrino probe
 				Particle nu(12, energy, 0, 0, std::sqrt(energy*energy - mass*mass));
-				Tracker::Event nu_evt = box.GenerateEvent(mod, std::move(nu));
+				Tracker::Event nu_evt = box.GenerateEvent(mrat.first,
+								          std::move(nu));
 
-				auto prods = ps[s.first].Generate(chan, nu_evt.first);
+				auto prods = decayps[s.first].Generate(chan, nu_evt.first);
 				std::vector<Tracker::Event> events;
 				events.reserve(prods.first.size());
 				for (Particle &part : prods.first) {
 					Tracker::Event part_evt(std::move(part), nu_evt.second); //create particle
-					if (std::abs(part_evt.first.Pdg() == 111))	//special treatments for pi0
-					{						//almost 100% into 2photons
+					if (std::abs(part_evt.first.Pdg() == 111)) //special treatments 
+					{					//almost 100% into 2photons
 						auto decay_res = box.Pi0Decay(std::move(part_evt));
 						Tracker::Event gA_evt = std::move(decay_res[0]);
 						Tracker::Event gB_evt = std::move(decay_res[1]);
@@ -231,13 +220,13 @@ int main(int argc, char** argv)
 						events.push_back(std::move(part_evt));
 				}
 
-				if (events.size() >= 2) {
+				if (events.size() >= 2)
 					//make some simple misidentification of events
 					events = box.MisIdentify(std::move(events));
-					if (events.size() >= 2)
-						data->Fill(weights[s.first] * prods.second * rati,
-								nu_evt, events[0], events[1]);
-				}
+				// if still ok then fill
+				if (events.size() >= 2)
+					data->Fill(weights[s.first] * prods.second, // * mrat.second,
+							nu_evt, events[0], events[1]);
 			}
 		}
 	}

@@ -8,13 +8,14 @@
 #include "tools/RootFinding.h"
 
 #include "detector/Detector.h"
+#include "detector/Driver.h"
 
-#include "flux/Driver.h"
-#include "flux/Sampler.h"
+#include "montecarlo/Sampler.h"
 
 #include "physics/Const.h"
 #include "physics/Neutrino.h"
-
+#include "physics/DecayRate.h"
+#include "physics/ProductionRate.h"
 
 void usage(char* argv0);
 int main(int argc, char** argv)
@@ -39,8 +40,7 @@ int main(int argc, char** argv)
 	std::string channel = "ALL";
 	std::string background;
 	
-	size_t ferm = 0;
-	std::string ferm_append;
+	std::string ferm;
 	bool UeFlag = false, UmFlag = false, UtFlag = false;
 	bool effSet = false;
 
@@ -66,12 +66,10 @@ int main(int argc, char** argv)
 				UtFlag = true;
 				break;
 			case 'r':
-				ferm = Neutrino::dirac;
-				ferm_append = "_d";
+				ferm = "d";
 				break;
 			case 'j':
-				ferm = Neutrino::majorana;
-				ferm_append = "_m";
+				ferm = "m";
 				break;
 			case 'h':
 				usage(argv[0]);
@@ -91,7 +89,7 @@ int main(int argc, char** argv)
 	if (!UeFlag && !UmFlag && !UtFlag)
 		throw std::invalid_argument("FullSens: at least one mixing must be selected with -E -M or -T");
 
-	if (ferm_append.empty())
+	if (ferm.empty())
 		throw std::logic_error("FullSens: fermion type must be selected with --dirac or --majorana");
 
 	CardDealer cd(argv[optind]);
@@ -123,7 +121,7 @@ int main(int argc, char** argv)
 	if (UtFlag)
 		outname.insert(outname.find(".dat"), "_T");
 	
-	outname.insert(outname.find(".dat"), ferm_append);
+	outname.insert(outname.find(".dat"), "_" + ferm);
 
 	/*
 	std::vector<std::string> channels;
@@ -197,38 +195,65 @@ int main(int argc, char** argv)
 	double tb = -1, thr = 2.44;
 
 	Mixing mix(UeFlag, UmFlag, UtFlag);
-	Channel::Name chan = Channel::fromString(channel);
+	Decay::Channel chan = Decay::fromString(channel);
 
 	// specific for channel and fermion type
 	//if (!effSet)
 		//box.LoadEfficiency(chan, ferm);
 
+	// store first result
+	bool first = true;
+	double m0, u0;
+
 	std::vector<std::pair<double, double> > up_limit;
 	up_limit.reserve(grid);
 
-	Sampler sample(box, drive); //, Neutrino(mass, ferm), mix);
+	//Sampler sample(box, drive); //, Neutrino(mass, ferm), mix);
 	std::ofstream out(outname.c_str());
 	for (size_t g = 0; g < grid; ++g) {
-		double mass = std::pow(mass_range[1] / mass_range[0], g / double(grid))
-			    * mass_range[0];
+		double mass = std::pow(mass_range[1] / mass_range[0],
+				       g / double(grid)) * mass_range[0];
 		//if (mass < mass_thr)
 		//	continue;
 		
-		Neutrino nu0(mass, ferm | Neutrino::particle);	// for nu component of flux
-		Neutrino nuB(mass, ferm | Neutrino::antiparticle);	// for nu_bar component of flux
-
-		if (!sample.Bind(chan, mix, Neutrino(mass, ferm)))	// this makes distribution too
+		// decay to channel not allowed for this mass
+		if (!DecayRate::IsAllowed(mass, chan))
 			continue;
+
 		std::cout << "mass " << mass << "\n";
 
-		// compute number of events
+		/*
+		std::vector<Spectrum> spectra;
+		spectra.reserve(fermtypes.size());
+		for (const auto & t : fermtypes) {
+			std::cout << "making\n";
+			auto spec = drive.MakeSpectrum(Neutrino(mass, t), mix);
+			if (!spec(mix))	// empty
+				continue;
+			spectra.push_back(std::move(spec));
+		}
+	
+		// no spectrum available for this mass
+		if (!spectra.size())
+			continue;
+		*/
+
+		// store here all neutrinos needed for the analysis
+		std::vector<Neutrino> nus;
+		if (ferm == "m")
+			nus = {Neutrino(mass, Neutrino::majorana)};
+		else if (ferm == "d")
+			nus = {Neutrino(mass, Neutrino::dirac | Neutrino::particle),
+			       Neutrino(mass, Neutrino::dirac | Neutrino::antiparticle)};
+
+		// create a function that generate a sample for given mixing
+		auto sample = Sampler::Build(box, drive, chan, mix, std::move(nus));
+
+		// create function that computes number of events using sampler
+		// lx is mixing in log scale
 		auto func = [&](double lx) -> double {
-			double x = std::pow(10., lx / 2.);
-			Mixing xmix = x * mix;
-			auto hist = sample.MakeSampler(xmix);
-			if (hist)
-				return hist->Integral() - thr;
-			return -thr;
+			auto hist = sample(mix * std::pow(10., lx / 2.));
+			return (hist ? hist->Integral() : 0.) - thr;
 		};
 
 		/*
@@ -238,19 +263,26 @@ int main(int argc, char** argv)
 			out << mass << "\t" << std::pow(10., lmix) << "\t" << func(lmix) << "\n";
 } */
 
-		double half = RootFinding::CheckInterval(func, mix_range[0], mix_range[1], 1.e-3);
-		double lim = RootFinding::BinarySearch(func, mix_range[0], half, 1.e-3);
+		double half = RootFinding::CheckInterval(func, mix_range[0], mix_range[1], 1.e-4);
+		double lim = RootFinding::BinarySearch(func, mix_range[0], half, 1.e-4);
 		if (half > mix_range[0]) {
 			out << mass << "\t" << std::pow(10., lim) << "\n";
+			if (first) {
+				m0 = mass;
+				u0 = std::pow(10., lim);
+				first = false;
+			}
 			if (half < mix_range[1]) {
-				lim = RootFinding::BinarySearch(func, half, mix_range[1], 1.e-3);
-				up_limit.push_back(std::make_pair(mass, pow(10., lim)));
+				lim = RootFinding::BinarySearch(func, half, mix_range[1], 1.e-4);
+				up_limit.emplace_back(mass, pow(10., lim));
 			}
 		}
 	}
 
 	for (auto i = up_limit.rbegin(); i != up_limit.rend(); ++i)
 		out << i->first << "\t" << i->second << "\n";
+	out << m0 << "\t" << up_limit.front().second << "\n";
+	out << m0 << "\t" << u0 << "\n";
 
 	/*
 		double totalBranch = 0;

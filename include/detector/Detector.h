@@ -30,8 +30,8 @@
 #include "detector/Materials.h"
 #include "detector/Track.h"
 #include "physics/Const.h"
-#include "physics/Channels.h"
 #include "physics/Particle.h"
+#include "physics/Decays.h"
 
 class Detector
 {
@@ -40,8 +40,8 @@ class Detector
 		using Module = std::map<std::string, double>;
 
 		Detector(const std::string &card);
-		double Efficiency(Channel::Name chan, double mass, double energy) const;
-		void LoadEfficiency(Channel::Name, std::string file);
+		//double Efficiency(Channel::Name chan, double mass, double energy) const;
+		//void LoadEfficiency(Channel::Name, std::string file);
 
 		Material::Name MadeOf(std::string mod) const;
 
@@ -72,8 +72,8 @@ class Detector
 		bool AngularAccept(const Particle &P) const;
 		bool AngularAccept(std::string mod, const Particle &P) const;
 
-		double Probability(double tby) const;
-		double Probability(std::string mod, double tby) const;
+		//double Probability(double tby) const;
+		//double Probability(std::string mod, double tby) const;
 
 		std::vector<std::string> Modules() const;
 		std::string WhichModule(const Track &t) const;
@@ -86,6 +86,9 @@ class Detector
 		double BeamEnergy() const;
 		double POTs() const;
 		double POTs(std::string hc) const;
+
+		double Probability(double tby) const;
+		double Probability(std::string mod, double tby) const;
 
 		friend std::ostream& operator<<(std::ostream &os, const Detector &box);
 

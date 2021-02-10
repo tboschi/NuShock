@@ -14,7 +14,7 @@
 #include "tools/RNG.h"
 
 #include "physics/Const.h"
-#include "physics/Channels.h"
+#include "physics/Decays.h"
 #include "physics/Particle.h"
 #include "detector/Track.h"
 #include "detector/Tracker.h"
@@ -24,10 +24,12 @@
 
 namespace GENIEback
 {
-	std::map<Channel::Name, std::shared_ptr<hnl> > GenerateBackground(const Tracker &box,
-						std::vector<Channel::Name> chan, std::string file,
-						double weight = 1., bool chargeID = false, bool kVerbose = false);
-	bool Identify(const std::vector<Tracker::Event> &events, Channel::Name chan, bool chargeID = false);
+	std::map<Decay::Channel, std::shared_ptr<hnl> >
+		GenerateBackground(const Tracker &box, std::vector<Decay::Channel> chan,
+				std::string file, double weight = 1., bool chargeID = false,
+				bool kVerbose = false);
+	bool Identify(const std::vector<Tracker::Event> &events, Decay::Channel chan,
+			bool chargeID = false);
 	bool IsPotentialBackground(const Particle &p);
 };
 

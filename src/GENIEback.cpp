@@ -3,13 +3,13 @@
 namespace GENIEback {
 
 	// more efficient to check multiple channels at once
-	std::map<Channel::Name, std::shared_ptr<hnl> > GenerateBackground(const Tracker &box,
-						std::vector<Channel::Name> chans,
+	std::map<Decay::Channel, std::shared_ptr<hnl> > GenerateBackground(const Tracker &box,
+						std::vector<Decay::Channel> chans,
 						std::string file, double weight, bool chargeID,
 						bool kVerbose)
 	{
 		// output
-		std::map<Channel::Name, std::shared_ptr<hnl> > datas;
+		std::map<Decay::Channel, std::shared_ptr<hnl> > datas;
 		for (auto & c : chans)
 			datas[std::move(c)] = std::shared_ptr<hnl>(new hnl);
 		chans.clear();
@@ -160,7 +160,7 @@ namespace GENIEback {
 								nu_evt, events[0], events[1]);
 						if (kVerbose) {
 							std::cout << "\nTRIGGER "
-								<< Channel::toString(dc.first)
+								<< Decay::toString(dc.first)
 								<< "\t" << dc.second->GetEntries() << "\n";
 							std::chrono::milliseconds stop(500);
 							std::this_thread::sleep_for(stop);
@@ -176,39 +176,16 @@ namespace GENIEback {
 	}
 
 	//verify that particle contains the particle sought for, in mProc
-	bool Identify(const std::vector<Tracker::Event> &events, Channel::Name chan, bool chargeID)
+	bool Identify(const std::vector<Tracker::Event> &events, Decay::Channel chan, bool chargeID)
 	{
-		if (chan == Channel::ExpALL) {
-			auto dets = Channel::Detections();
+		if (chan == Decay::Channel::ExpALL) {
+			auto dets = Decay::Detections();
 			return std::any_of(dets.begin(), dets.end(),
-					[&](Channel::Name chan) {
+					[&](Decay::Channel chan) {
 						return Identify(events, chan, chargeID); });
 		}
 
-		std::vector<int> proc;
-		switch (chan) {
-			case Channel::nEE:
-				proc = {-11, 11};
-				break;
-			case Channel::nEM:
-				proc = {-11, 13};
-				break;
-			case Channel::nMM:
-				proc = {-13, 13};
-				break;
-			case Channel::nPI0:
-				proc = {22, 22};
-				break;
-			case Channel::EPI:
-				proc = {11, 211};
-				break;
-			case Channel::MPI:
-				proc = {13, 211};
-				break;
-			default:
-				return false;
-		}
-
+		std::vector<int> proc = Decay::Pdgs(chan);
 		if (events.size() != proc.size())
 			return false;
 

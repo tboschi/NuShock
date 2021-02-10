@@ -11,7 +11,6 @@ Neutrino::Neutrino(double mass, size_t opts, int pdg) : Particle(pdg)
 std::ostream & operator<<(std::ostream &os, const Neutrino &N) {
 
 	return os << "<" << (N.IsMajorana() ? "majorana " : (N.IsAntiparticle() ? "anti" : "")) 
-			
 		  << "neutrino (v" << (N.IsDiracParticle() ? "" : "\u0305")
 		  << "), M=" << N.M() << ", h=" << N.Helicity()
 		  << ", p=(" << N.E() << ", " << N.Px() << ", " << N.Py()
@@ -21,7 +20,11 @@ std::ostream & operator<<(std::ostream &os, const Neutrino &N) {
 // neutrinos are identical if masses and quantum numbers are
 bool Neutrino::operator==(const Neutrino & rhs) const 
 {
-	return ( (M() == rhs.M()) && (_opts == rhs._opts) );
+	// check important bits
+	return ( (M() == rhs.M())
+	      && (IsMajorana() == IsMajorana())
+	      && (IsAntiparticle() == IsAntiparticle())
+	      && (Helicity() == rhs.Helicity()) );
 }
 
 bool Neutrino::operator!=(const Neutrino & rhs) const 

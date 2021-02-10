@@ -3,24 +3,24 @@
  * Author: Tommaso Boschi
  */
 
-#ifndef DECAYRATES_H
-#define DECAYRATES_H
+#ifndef DECAYRATE_H
+#define DECAYRATE_H
 
 // base class
 #include "physics/Amplitude.h"
+#include "physics/Decays.h"
 
+#include <unordered_map>
 #include "tools/Integration.h"
 
-class DecayRates : public Amplitude
+class DecayRate : public Amplitude
 {
 	public:
-		DecayRates(Neutrino N = Neutrino());
+		DecayRate(Neutrino N = Neutrino()) : Amplitude(std::move(N)) { };
 
-		bool IsAllowed(Channel::Name chan);
-
-		double Gamma(Channel::Name chan, const Mixing &mix = Mixing());
-		double Other(Channel::Name chan, const Mixing &mix = Mixing());
-		double Branch(Channel::Name chan, const Mixing &mix = Mixing());
+		double Gamma(Decay::Channel chan, const Mixing &mix = Mixing());
+		double Other(Decay::Channel chan, const Mixing &mix = Mixing());
+		double Branch(Decay::Channel chan, const Mixing &mix = Mixing());
 
 		double Total(const Mixing &mix = Mixing());
 		double ExpALL(const Mixing &mix = Mixing());
@@ -48,25 +48,30 @@ class DecayRates : public Amplitude
 		double nETA(const Mixing &mix = Mixing());
 		double nETAi(const Mixing &mix = Mixing());
 		double nPHI(const Mixing &mix = Mixing());
-		double ECHARM(const Mixing &mix = Mixing());
+		double EDs(const Mixing &mix = Mixing());
 
 		double LeptonPseudoMeson(double m_lepton, double m_meson);
-		double I_LeptonPseudoMeson(double x, double y);
+		//double I_LeptonPseudoMeson(double x, double y);
 
 		double NeutrinoPseudoMeson(double m_lepton, double m_meson);
-		double I_NeutrinoPseudoMeson(double x, double y);
+		//double I_NeutrinoPseudoMeson(double x, double y);
 
 		double LeptonVectorMeson(double m_lepton, double m_meson);
-		double I_LeptonVectorMeson(double x, double y);
+		//double I_LeptonVectorMeson(double x, double y);
 
 		double NeutrinoVectorMeson(double m_lepton, double m_meson);
-		double I_NeutrinoVectorMeson(double x, double y);
+		//double I_NeutrinoVectorMeson(double x, double y);
 
 		std::pair<double, double> NeutrinoLeptonAA(double m_neut, double m_lepton);
 		std::pair<double, double> NeutrinoLeptonAB(double m_neut, double m_leptonA, double m_leptonB);
 		double NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);
-		double I_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);//, double theta)
-		double F_NeutrinoLeptonLepton_s(double s);
+		//double I_NeutrinoLeptonLepton(double x, double y, double z, double gL, double gR);//, double theta)
+		double NeutrinoLeptonLepton_s(double s);
+
+		void Reset();
+
+	private:
+		std::unordered_map<Decay::Channel, double> _table;
 };
 
 #endif

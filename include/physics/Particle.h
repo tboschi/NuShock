@@ -9,6 +9,7 @@
 #define PARTICLE_H
 
 #include <iostream>
+#include <string>
 
 #include "TLorentzVector.h"
 

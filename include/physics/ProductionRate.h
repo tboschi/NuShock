@@ -3,23 +3,23 @@
  * Author: Tommaso Boschi
  */
 
-#ifndef PRODUCTION_H
-#define PRODUCTION_H
+#ifndef PRODUCTIONRATE_H
+#define PRODUCTIONRATE_H
 
 // base class
 #include "physics/Amplitude.h"
+#include "physics/Productions.h"
 
+#include <unordered_map>
 #include "tools/Integration.h"
 
-class Production : public Amplitude
+class ProductionRate : public Amplitude
 {
 	public:
-		Production(Neutrino N = Neutrino());
+		ProductionRate(Neutrino N = Neutrino());
 
-		bool IsAllowed(Channel::Name chan);
-
-		double Gamma(Channel::Name chan, const Mixing &mix = Mixing());
-		double Scale(Channel::Name chan, const Mixing &mix = Mixing());
+		double Gamma(Production::Channel chan, const Mixing &mix = Mixing());
+		double Scale(Production::Channel chan, const Mixing &mix = Mixing());
 
 	private:
 		double Total(const Mixing &mix = Mixing());
@@ -44,30 +44,34 @@ class Production : public Amplitude
                 double KaonCM(const Mixing &mix = Mixing());
 
 		double AntileptonNeutrinoDecay(double m_leptonA, double m_leptonB, double M_Neut);
-		double I_AntileptonNeutrino(double x, double y, double z);
-		double F_AntileptonNeutrino_s(double s);
+		//double I_AntileptonNeutrino(double x, double y, double z);
+		double AntileptonNeutrino_s(double s);
 
 		double LeptonNeutrinoDecay(double m_leptonA, double m_leptonB, double M_Neutrino);
-		double I_LeptonNeutrino(double x, double y, double z);
-		double F_LeptonNeutrino_u(double u);
+		//double I_LeptonNeutrino(double x, double y, double z);
+		double LeptonNeutrino_u(double u);
 
 		double LeptonTwoDecay(double m_lepton, double m_meson);
-		double I_LeptonTwo(double x, double y);
+		//double I_LeptonTwo(double x, double y);
 
 		double LeptonThreeDecay(double m_lepton, double m_meson, double m_meson0);
-		double I_LeptonThree(double x, double y, double z);
-		double F_LeptonThree_s(double s);
+		//double I_LeptonThree(double x, double y, double z);
+		double LeptonThree_s(double s);
 
 		double MesonTwoDecay(double m_meson, double m_lepton);
-		double I_MesonTwo(double x, double y);
+		//double I_MesonTwo(double x, double y);
 
 		double MesonThreeDecay(double m_meson0, double m_meson, double m_lepton, double L_, double L0);
-		double I_MesonThree(double x, double y, double z, double L_, double L0);
-		double F_MesonThree_s_t(double s, double t);
+		//double I_MesonThree(double x, double y, double z, double L_, double L0);
+		double MesonThree_s_t(double s, double t);
+
+		void Reset();
 
 	private:
-		static Production _sm;
+		static ProductionRate _sm;
 		bool kSM;
+
+		std::unordered_map<Production::Channel, double> _table;
 };
 
 #endif

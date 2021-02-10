@@ -8,228 +8,19 @@
 
 Amplitude::Amplitude(Neutrino N) :
 	_m_parent(0),
-	_channel(Channel::undefined),
 	_N(std::move(N))
 {
 }
 
-void Amplitude::LoadMass(Channel::Name chan)
+bool Amplitude::IsAllowed(Decay::Channel chan)
 {
-	switch(chan)
-	{
-		//masses in channelname order
-		case Channel::ALL:
-		case Channel::nnn:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MNeutrino, -12},
-				   {Const::MNeutrino, 12}};
-			break;
-		case Channel::nGAMMA:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MPhoton, 22}};
-			break;
-		case Channel::ExpALL:
-			//neutrino lepton lepton AA
-		case Channel::nEE:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MElectron, -11},
-				   {Const::MElectron, 11}};
-			break;
-		case Channel::nMM:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MMuon, -13},
-				   {Const::MMuon, 13}};
-			break;
-			//neutrino lepton lepton AB
-		case Channel::nEM:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MElectron, -11},
-				   {Const::MMuon, 13}};
-			break;
-		case Channel::nET:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MElectron, -11},
-				   {Const::MTau, 15}};
-			break;
-		case Channel::nMT:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MMuon, -13},
-				   {Const::MTau, 15}};
-			break;
-			//neutrino psuedomeson
-		case Channel::nPI0:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MPion0, 111}};
-			break;
-		case Channel::nETA:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MEta, 221}};
-			break;
-		case Channel::nETAi:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MEtai, 331}};
-			break;
-			//lepton psuedomeson
-		case Channel::EPI:
-			_masspdg = {{Const::MElectron, 11},
-				   {Const::MPion, 211}};
-			break;
-		case Channel::MPI:
-			_masspdg = {{Const::MMuon, 13},
-				   {Const::MPion, 211}};
-			break;
-		case Channel::TPI:
-			_masspdg = {{Const::MTau, 15},
-				   {Const::MPion, 211}};
-			break;
-		case Channel::EKA:
-			_masspdg = {{Const::MElectron, 11},
-				   {Const::MKaon, 321}};
-			break;
-		case Channel::MKA:
-			_masspdg = {{Const::MMuon, 13},
-				   {Const::MKaon, 321}};
-			break;
-		case Channel::ECHARM:
-			_masspdg = {{Const::MElectron, 12},
-				   {Const::MD, 411}};
-			break;
-			//neutrino vectormeson
-		case Channel::nRHO0:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MRho0, 113}};
-			break;
-		case Channel::nOMEGA:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MOmega, 223}};
-			break;
-		case Channel::nPHI:
-			_masspdg = {{Const::MNeutrino, 12},
-				   {Const::MPhi, 333}};
-			break;
-			//lepton vectormeson
-		case Channel::ERHO:
-			_masspdg = {{Const::MElectron, 11},
-				   {Const::MRho, 213}};
-			break;
-		case Channel::MRHO:
-			_masspdg = {{Const::MMuon, 13},
-				   {Const::MRho0, 213}};
-			break;
-		case Channel::EKAx:
-			_masspdg = {{Const::MElectron, 11},
-				   {Const::MKaonx, 9000321}};
-			break;
-		case Channel::MKAx:
-			_masspdg = {{Const::MMuon, 13},
-				   {Const::MKaonx, 9000321}};
-			break;
-		//PRODUCTION
-		//Parent first
-		case Channel::MuonE:
-			_masspdg = {{Const::MMuon, 13},
-				   {Const::MElectron, 11},
-				   {Const::MNeutrino, 14}};
-		case Channel::MuonM:
-			_masspdg = {{Const::MMuon, 13},
-				   {Const::MElectron, 11},
-				   {Const::MNeutrino, -12}};
-			break;
-		case Channel::TauEE:
-			_masspdg = {{Const::MTau, 15},
-				   {Const::MElectron, 11},
-				   {Const::MNeutrino, 16}};
-		case Channel::TauET:
-			_masspdg = {{Const::MTau, 15},
-				   {Const::MElectron, 11},
-				   {Const::MNeutrino, -12}};
-			break;
-		case Channel::TauMM:
-			_masspdg = {{Const::MTau, 15},
-				   {Const::MMuon, 13},
-				   {Const::MNeutrino, 16}};
-		case Channel::TauMT:
-			_masspdg = {{Const::MTau, 15},
-				   {Const::MMuon, 13},
-				   {Const::MNeutrino, -14}};
-			break;
-		case Channel::TauPI:
-			_masspdg = {{Const::MTau, 15},
-				   {Const::MPion, 211}};
-			break;
-		case Channel::Tau2PI:
-			_masspdg = {{Const::MTau, 15},
-				   {Const::MPion, -211},
-				   {Const::MPion0, 111}};
-			break;
-		case Channel::PionE:
-			_masspdg = {{Const::MPion, 211},
-				   {Const::MElectron, 11}};
-			break;
-		case Channel::PionM:
-			_masspdg = {{Const::MPion, 211},
-				   {Const::MMuon, 13}};
-			break;
-		case Channel::KaonE:
-			_masspdg = {{Const::MKaon, 321},
-				   {Const::MElectron, 11}};
-			break;
-		case Channel::KaonM:
-			_masspdg = {{Const::MKaon, 321},
-				   {Const::MMuon, 13}};
-			break;
-		case Channel::CharmE:
-			_masspdg = {{Const::MDs, 431},
-				   {Const::MElectron, 11}};
-			break;
-		case Channel::CharmM:
-			_masspdg = {{Const::MDs, 431},
-				   {Const::MMuon, 13}};
-			break;
-		case Channel::CharmT:
-			_masspdg = {{Const::MDs, 431},
-				   {Const::MTau, 15}};
-			break;
-		case Channel::Kaon0E:
-			_masspdg = {{Const::MKaon0, 130},
-				   {Const::MPion, 211},
-				   {Const::MElectron, -11}};
-			break;
-		case Channel::Kaon0M:
-			_masspdg = {{Const::MKaon0, 130},
-				   {Const::MPion, 211},
-				   {Const::MMuon, -13}};
-			break;
-		case Channel::KaonCE:
-			_masspdg = {{Const::MKaon, 321},
-				   {Const::MPion0, 111},
-				   {Const::MElectron, -11}};
-			break;
-		case Channel::KaonCM:
-			_masspdg = {{Const::MKaon, 321},
-				   {Const::MPion0, 111},
-				   {Const::MMuon, -13}};
-			break;
-		default:
-			throw std::invalid_argument("Channel " + Channel::toString(chan) + " unknown");
-	}
+	return IsAllowed(_N, chan);
 }
 
-double Amplitude::MassThreshold(Channel::Name chan)
+
+bool Amplitude::IsAllowed(Production::Channel chan)
 {
-	auto mass = Process::Mass(chan);
-	switch (Channel::whichType(chan)) {
-		case Channel::Type::decayrates:
-			return std::accumulate(mass.begin(), mass.end(), 0.,
-					[](double sum, double m) {
-						return sum + m; });
-		case Channel::Type::production:
-			return std::accumulate(mass.begin()+1, mass.end(), mass.front().first,
-					[](double sum, double m) {
-						return sum - m; });
-		default:
-			return 0.;
-	}
+	return IsAllowed(_N, chan);
 }
 
 //Kinematic function
@@ -309,9 +100,9 @@ double Amplitude::M2_LeptonPseudoMeson(double cos0, double x, double y)
 
 double Amplitude::M2_LeptonPseudoMeson(int hel, double cos0, double x, double y)
 {
-	return Const::GF2 * std::pow(_m_parent, 4) * 
-		((1 - x) * (1 - x) - y * (1 + x)
-		 - (1 - x) * hel * std::sqrt(Kallen(1, x, y)) * cos0);
+	return Const::GF2 * std::pow(_m_parent, 4.) * 
+		((1. - x) * (1. - x) - y * (1. + x)
+		 - (1. - x) * hel * std::sqrt(Kallen(1., x, y)) * cos0);
 }
 
 //						angle lep    lepton    meson	
@@ -325,7 +116,7 @@ double Amplitude::M2_NeutrinoPseudoMeson(double cos0, double x, double y)
 
 double Amplitude::M2_NeutrinoPseudoMeson(int hel, double cos0, double x, double y)
 {
-	return M2_LeptonPseudoMeson(hel, x, y, cos0) / 2.0;
+	return M2_LeptonPseudoMeson(hel, x, y, cos0) / 2.;
 }
 
 double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)
@@ -340,8 +131,8 @@ double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)
 double Amplitude::M2_LeptonVectorMeson(int hel, double cos0, double x, double y)	//must be divided by vector meson mass
 {
 	return Const::GF2 * std::pow(_m_parent, 4)
-	     * ((1 - x) * (1 - x) + y * (1 + x) - 2 * y * y
-		- (1 - x - 2 * y) *  hel * std::sqrt(Kallen(1, x, y)) * cos0);
+	     * ((1. - x) * (1. - x) + y * (1. + x) - 2. * y * y
+		- (1. - x - 2. * y) *  hel * std::sqrt(Kallen(1., x, y)) * cos0);
 }
 
 double Amplitude::M2_NeutrinoVectorMeson(double cos0, double x, double y)
@@ -368,8 +159,8 @@ double Amplitude::M2_WW(double s, double cos0, double x, double y, double z)	//g
 //					       neutrino, letpon,   lepton
 double Amplitude::M2_WW(int hel, double s, double cos0s, double x, double y, double z)	//gL^2 + gR^2
 {
-	return 16 * Const::GF2 * std::pow(_m_parent, 4) *
-	       (s - x - y) * (1 + z - s - hel * std::sqrt(Kallen(1, z, s)) * cos0s);
+	return 16. * Const::GF2 * std::pow(_m_parent, 4) *
+	       (s - x - y) * (1. + z - s - hel * std::sqrt(Kallen(1, z, s)) * cos0s);
 }
 
 double Amplitude::M2_WZ(double u, double cos0u, double x, double y, double z)	//gL^2 + gR^2
@@ -383,8 +174,8 @@ double Amplitude::M2_WZ(double u, double cos0u, double x, double y, double z)	//
 //			       neutrino, letpon,   lepton
 double Amplitude::M2_WZ(int hel, double u, double cos0u, double x, double y, double z)	//2gL*gR
 {
-	return 16 * Const::GF2 * std::pow(_m_parent, 4) *
-		sqrt(y * z) * (1 + x - u - hel * std::sqrt(Kallen(1, x, u)) * cos0u);
+	return 16. * Const::GF2 * std::pow(_m_parent, 4) *
+		sqrt(y * z) * (1. + x - u - hel * std::sqrt(Kallen(1, x, u)) * cos0u);
 }
 
 double Amplitude::M2_WZ(double s, double t, double cos0s, double cos0t, double x, double y, double z)	//2gL*gR
@@ -400,8 +191,8 @@ double Amplitude::M2_WZ(double s, double t, double cos0s, double cos0t, double x
 double Amplitude::M2_WZ(int hel, double s, double t, double cos0s, double cos0t, double x, double y, double z)	//2gL*gR
 {
 	double u = 1 + x + y + z - s - t;
-	double cos0u = (std::sqrt(Kallen(1, y, s)) * cos0s + std::sqrt(Kallen(1, z, t)) * cos0t)
-		     / std::sqrt(Kallen(1, x, u));
+	double cos0u = (std::sqrt(Kallen(1., y, s)) * cos0s + std::sqrt(Kallen(1., z, t)) * cos0t)
+		     / std::sqrt(Kallen(1., x, u));
 
 	return M2_WZ(hel, u, cos0u, x, y, z);
 }
@@ -498,6 +289,10 @@ double Amplitude::M2_MesonThree(int hel, double s, double t, double x, double y,
 		 - hel * (u - z + y) * std::sqrt(Kallen(1., z, s));
 
 	return Const::GF2 * std::pow(_m_parent, 4) * ( (F*F) * A + (G*G) * B - (F*G) * C );
+}
+
+Neutrino Amplitude::GetNeutrino() const {
+	return _N;
 }
 
 void Amplitude::SetNeutrino(const Neutrino &N)
