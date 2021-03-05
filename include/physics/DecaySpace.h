@@ -44,14 +44,18 @@ class DecaySpace : public PhaseSpace<Decay::Channel>
 
 		double nEE(const Mixing &mix = Mixing());
 		double nMM(const Mixing &mix = Mixing());
-		std::pair<double, double> NeutrinoLeptonAA(Decay::Channel chan, Decay::Channel chan_o, double m_neut, double m_lepton);
-		double NeutrinoLeptonAA_max(double p[]);
+		//std::pair<double, double> NeutrinoLeptonAA(Decay::Channel chan, Decay::Channel chan_o, double m_neut, double m_lepton);
+		double NeutrinoLeptonAA(Decay::Channel chan,
+				double m_neut, double m_lepton, double uu, double uo);
+		double NeutrinoLeptonAA_max(double s, double u, double cos0, double cos1);
 
 		double nEM(const Mixing &mix = Mixing());
 		double nET(const Mixing &mix = Mixing());
 		double nMT(const Mixing &mix = Mixing());
-		std::pair<double, double> NeutrinoLeptonAB(Decay::Channel chan, Decay::Channel chan_o, double m_neut, double m_leptonA, double m_leptonB);
-		double NeutrinoLeptonAB_max(double p[]);
+		double NeutrinoLeptonAB(Decay::Channel chan,
+				double m_neut, double m_leptonA, double m_leptonB,
+				double uu, double uo);
+		double NeutrinoLeptonAB_max(double s, double u, double cos0, double cos1);
 
 		//double NeutrinoLeptonLepton_max(double x, double y, double z, double gL, double gR);
 		//double F_NeutrinoLeptonLepton_max(double p[]);

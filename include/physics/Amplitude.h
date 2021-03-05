@@ -54,7 +54,9 @@ class Amplitude
 		}
 
 	protected:
-		double Kallen(double X, double Y, double Z);
+		static double Kallen(double x, double y, double z) {
+			return std::max(0., x*x + y*y + z*z - 2*(x*y + x*z + y*z));
+		}
 
 		double dGammad5_3B();
 		double dGammad2_3B();

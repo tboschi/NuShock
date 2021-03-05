@@ -23,11 +23,6 @@ bool Amplitude::IsAllowed(Production::Channel chan)
 	return IsAllowed(_N, chan);
 }
 
-//Kinematic function
-double Amplitude::Kallen(double x, double y, double z)
-{
-	return std::max(0., x*x + y*y + z*z - 2*(x*y + x*z + y*z));
-}
 
 /////////////////////
 //Diff decay widths//

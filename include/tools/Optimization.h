@@ -5,6 +5,9 @@
 #ifndef OPTIMIZATION_H
 #define OPTIMIZATION_H
 
+#include <vector>
+#include <functional>
+
 // nelmer mead implementation
 #include "tools/asa047.hpp"
 
@@ -36,10 +39,10 @@ namespace Optimization
 
 	// ndim function
 	template <typename T, typename Func>
-	std::vector<T> NelderMead(Func fn, int ndim, T err = 1.e-6)
+	std::vector<T> NelderMead(Func fn, int ndim, T err = 1.e-4)
 	{
 		int icount, ifault, numres;
-		int kcount = 100, konvge = 10;
+		int kcount = 100000, konvge = 100;
 
 		T *xmin = new T[ndim]; // output
 		T *start = new T[ndim];
