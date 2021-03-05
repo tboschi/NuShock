@@ -97,7 +97,8 @@ Tracker::Event Tracker::GenerateEvent(std::string mod, Particle &&P) const
 
 	Track T(x, y, z);
 	if (!IsDetectable(T))
-		std::cout << "T is out! " << T << "\n";
+		//std::cout << "T is out! " << T << "\n";
+		return GenerateEvent(mod, std::move(P));
 
 	// 99.99% of particles are inside the detector
 	P.SetTheta(std::atan2(std::sqrt(x*x + y*y), z));
@@ -322,12 +323,10 @@ void Tracker::Smearing(Event &evt) const
 			hires = hires || (1 - perc / T.Length()) > _resolutions.at("containment");
 			*/
 
-			if (1 - T.Importance("out") / T.Importance()
-					> _resolutions.at("containment")) {
-				sigma = _resolutions.at("muon_inrange") * P.P();
-			}
+			if (1 - T.Importance("out") / T.Importance() > _resolutions.at("containment"))
+				sigma = _resolutions.at("muon_inrange");
 			else
-				sigma = _resolutions.at("muon_exiting") * P.P();
+				sigma = _resolutions.at("muon_exiting");
 
 			gaus = std::normal_distribution<>(P.P(), sigma * P.P());
 			P.SetP(gaus(RNG::_mt));
@@ -350,12 +349,10 @@ void Tracker::Smearing(Event &evt) const
 			*/
 
 			//if (1 - T.Length("out") / T.Length() > _resolutions.at("containment")) {
-			if (1 - T.Importance("out") / T.Importance()
-					> _resolutions.at("containment")) {
-				sigma = _resolutions.at("pion_inrange") * P.P();
-			}
+			if (1 - T.Importance("out") / T.Importance() > _resolutions.at("containment"))
+				sigma = _resolutions.at("pion_inrange");
 			else
-				sigma = _resolutions.at("pion_exiting") * P.P();
+				sigma = _resolutions.at("pion_exiting");
 
 			gaus = std::normal_distribution<>(P.P(), sigma * P.P());
 			P.SetP(gaus(RNG::_mt));
@@ -365,11 +362,9 @@ void Tracker::Smearing(Event &evt) const
 	}
 
 	// do angles
-	gaus = std::normal_distribution<>(P.Theta(), _resolutions.at(angle)
-						   / Const::Deg);
+	gaus = std::normal_distribution<>(P.Theta(), _resolutions.at(angle) / Const::Deg);
 	P.SetTheta(gaus(RNG::_mt));
-	gaus = std::normal_distribution<>(P.Phi(), _resolutions.at(angle)
-						   / Const::Deg);
+	gaus = std::normal_distribution<>(P.Phi(), _resolutions.at(angle) / Const::Deg);
 	P.SetPhi(gaus(RNG::_mt));
 }
 
