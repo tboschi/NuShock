@@ -517,9 +517,10 @@ double DecayRate::NeutrinoLeptonLepton_s(double s)
 	double fcu = Limit(u, y, z, x);
 
 	if (gR > 0.)
-		return gL * gL * fcs * M2_WW(s, 0, x, y, z) +
-		       gR * gR * fct * M2_WW(t, 0, x, y, z) +
-	   	   2 * gL * gR * fcu * M2_WZ(u, 0, x, y, z);
+		return gL * gL * fcs * M2_WW(s, 0, x, y, z)
+		     + gR * gR * fct * M2_WW(t, 0, x, y, z)
+	   	-  2 * gL * gR * fcu * M2_WZ(u, 0, x, y, z);
+
 	return gL * gL * fcs * M2_WW(s, 0, x, y, z);
 }
 

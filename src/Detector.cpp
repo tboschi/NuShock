@@ -37,7 +37,7 @@ Detector::Detector(const std::string &card) :
 		if (cd.Get(k + "_material", type))
 			_materials[k] = Material::fromString(type);
 		else {
-			_materials[k] = Material::Air; // default material
+			_materials[k] = Material::Name::air; // default material
 			//std::cerr << "Detector: No material for module \"" << k << "\"\n";
 		}
 		if (cd.Get(k + "_shape", type))
@@ -48,7 +48,7 @@ Detector::Detector(const std::string &card) :
 		}
 	}
 	if (!_materials.count("out"))
-		_materials["out"] = Material::Lead;	// make outside of lead to stop everything
+		_materials["out"] = Material::Name::lead;	// make outside of lead to stop everything
 
 	// POTs is total number of POTs
 	if (!cd.Get("POT", _POTs)) {
@@ -79,6 +79,7 @@ Detector::Detector(const std::string &card) :
 
 	if (!cd.Get("beam", _Eb))
 		_Eb = 0.;	// no beam energy specified
+
 }
 
 std::ostream & operator<<(std::ostream &os, const Detector &box) {
@@ -91,43 +92,6 @@ std::ostream & operator<<(std::ostream &os, const Detector &box) {
 	}
 	return os << ">";
 }
-
-/*
-double Detector::Efficiency(Channel::Name chan, double mass, double energy) const
-{
-	if (_mass_ener_func.count(chan))
-		return _mass_ener_func.at(chan)->Interpolate(mass, energy);
-	else
-		return 1.;
-}
-
-//load efficiency file
-//key will be a combination such as CHANNEL_MODULE_FERMION
-void Detector::LoadEfficiency(Channel::Name chan, std::string file)
-{
-	double rate = 1.;
-	for (const auto &im : _modules)
-		if (file.find(im.first) != std::string::npos) {
-			if (_efficiencies.find(im.first) != _efficiencies.end()) {
-				std::cerr << "Efficiency file for module " << im.first
-					  << " already loaded\n";
-				return;
-			}
-			rate = Weight(im.first) / Weight();
-			break;
-		}
-
-
-	TFile infile(file.c_str());
-	std::shared_ptr<TH2D> hhfunc(static_cast<TH2D*>(infile.Get("hhfunc")));
-	hhfunc->SetDirectory(0);
-	hhfunc->Scale(rate);
-	if (!_mass_ener_func.count(chan))
-		_mass_ener_func[chan] = hhfunc;
-	else
-		_mass_ener_func[chan]->Add(hhfunc.get());
-}
-*/
 
 Material::Name Detector::MadeOf(std::string mod) const {
 	if (!_materials.count(mod))
@@ -394,10 +358,17 @@ bool Detector::IsInside(std::string mod, const Track &t) const {
 	return false;
 }
 
-double Detector::MagneticField(std::string mod) const {
-	if (!_modules.count(mod) || !_modules.at(mod).count("B_field"))
-		return _modules.at(_default).at("B_field");
-	return _modules.at(mod).at("B_field");
+std::array<double, 3> Detector::MagneticField(std::string mod) const {
+	if (!_modules.count(mod)
+	 || !_modules.at(mod).count("B_x")
+	 || !_modules.at(mod).count("B_y")
+	 || !_modules.at(mod).count("B_z"))
+		return {{_modules.at(_default).at("B_x"),
+			 _modules.at(_default).at("B_y"),
+			 _modules.at(_default).at("B_z")}};
+	return {{_modules.at(mod).at("B_x"),
+		 _modules.at(mod).at("B_y"),
+		 _modules.at(mod).at("B_z")}};
 }
 
 double Detector::BeamEnergy() const {

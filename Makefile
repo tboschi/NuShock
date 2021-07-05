@@ -15,6 +15,7 @@ CUBALIB		= -L$(CUBA)/lib	#libs for CUBA
 CUBAINC		= -I$(CUBA)/include 	#libs for CUBA
 LHAPDFLIB	= -L$(LHAPDF)/lib	#includes for LHAPDF
 LHAPDFINC	= -I$(LHAPDF)/include	#includes for LHAPDF
+FCCLINC		= -Ifccl/include	# include for fccl
 
 
 #optimization
@@ -22,7 +23,7 @@ ARCH ?= -march=native
 
 LDFLAGS  := $(LDFLAGS) $(CUBALIB) $(LHAPDFLIB)
 LDLIBS   := -Wl,--as-needed -lcuba -lLHAPDF $(ROOTLD) -lTMVA -lTMVAGui
-CXXFLAGS := -Wall -fPIC -std=c++11 -O2 $(ARCH) $(ROOTINC) $(CUBAINC) $(LHAPDFINC) -I$(INCDIR)
+CXXFLAGS := -Wall -fPIC -std=c++11 -O2 $(ARCH) $(ROOTINC) $(CUBAINC) $(LHAPDFINC) $(FCCLINC) -I$(INCDIR)
 
 
 #apps and exctuables

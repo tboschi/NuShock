@@ -17,6 +17,7 @@ class hnl
 		double True;	// true neutrino energy
 		double Vert[3]; // vertex position
 		double W;	// event weight
+		bool ChID;	// if event was correctly charge id'ed
 
 		// particle A info
 		int PdgA;
@@ -55,6 +56,7 @@ class hnl
 		TBranch * b_True;
 		TBranch * b_Vert;
 		TBranch * b_W;
+		TBranch * b_ChID;
 
 		// particle A info
 		TBranch * b_PdgA;
@@ -93,22 +95,27 @@ class hnl
 	public: 
 		hnl(std::string name = "hnl");	// write mode
 		hnl(TTree *tree);		// read mode
+		~hnl();
 
 		size_t GetEntries();
 		int GetEntry(size_t entry);
 		void Fill();
 		// special fill
-		void Fill(double weight, const Tracker::Event &e0,
-				const Tracker::Event &e1, const Tracker::Event &e2);
-
+		void Fill(double weight, bool chid,
+			const Tracker::Event &e0,
+			const Tracker::Event &e1,
+			const Tracker::Event &e2);
 		void Write();
 		TTree* Chain();
+
+		double Events();
 
 	private:
 		void Init(TTree *tree);
 		void New(std::string name);
 
-		std::shared_ptr<TTree> fChain;
+		TTree* fChain;
+		bool own;
 };
 
 #endif

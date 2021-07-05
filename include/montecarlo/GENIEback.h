@@ -21,16 +21,16 @@
 
 #include "montecarlo/gst.h"
 #include "montecarlo/hnl.h"
+#include "montecarlo/Process.h"
 
 namespace GENIEback
 {
 	std::map<Decay::Channel, std::shared_ptr<hnl> >
 		GenerateBackground(const Tracker &box, std::vector<Decay::Channel> chan,
-				std::string file, double weight = 1., bool chargeID = false,
+				std::string file, double weight = 1., //bool chargeID = false,
 				bool kVerbose = false);
-	bool Identify(const std::vector<Tracker::Event> &events, Decay::Channel chan,
-			bool chargeID = false);
-	bool IsPotentialBackground(const Particle &p);
+	Process::Match Identify(const std::vector<Tracker::Event> &events, Decay::Channel chan);
+			//bool chargeID = false);
 };
 
 #endif

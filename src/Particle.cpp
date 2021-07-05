@@ -73,7 +73,7 @@ double Particle::LifeTime() const
 		case 111:
 			return 8.52e-17;	//pion0
 		default:
-			return 1e26;		//lifetime of uni
+			return 1e26;		//lifetime of universe
 	}
 }
 
@@ -170,7 +170,7 @@ void Particle::SetE(double ee)
 
 void Particle::SetEKin(double ee)
 {
-	TLorentzVector::SetE(ee + M());
+	SetE(ee + M());
 }
 
 void Particle::SetP(double pp)

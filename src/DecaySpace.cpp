@@ -10,16 +10,18 @@ std::pair<std::vector<Particle>, double> DecaySpace::Generate(Decay::Channel cha
 	std::uniform_real_distribution<> rndm;
 	double weight = _genps->Generate();	// generate phase space
 	double val = Gamma(chan, mix); 
-	if (val <= 1e-12 || val - 1e-12 > 1.)	// phase space impossible
+	if (val - 1. > 1e-9)	// phase space impossible
 		return std::make_pair(parts, val);
 
-	while (rndm(RNG::_mt) > val && cc++ < 1e4) {
+	while (rndm(RNG::_mt) > val && ++cc < 1e4) {
 		weight = _genps->Generate();	// generate phase space
 		val = Gamma(chan, mix);
 	}
 
-	if (cc > 1e4)
+	if (cc > 1e4) {
+		std::cerr << "WARNING: no convergence reached\n";
 		return std::make_pair(parts, val);
+	}
 
 	// create parent frame
 	//TLorentzVector vec = *(_genps->GetDecay(0));
@@ -50,12 +52,11 @@ std::pair<std::vector<Particle>, double> DecaySpace::Generate(Decay::Channel cha
 
 bool DecaySpace::SetDecay(Decay::Channel chan)
 {
-	auto mass = Decay::Masses(chan);
-	double *ps_masses = &mass[0];
+	auto masses = Decay::Masses(chan);
 
 	// compute decay in rest frame, boost later
 	TLorentzVector rest(0, 0, 0, _N.M());
-	return _genps->SetDecay(rest, mass.size(), ps_masses);
+	return _genps->SetDecay(rest, masses.size(), &masses[0]);
 }
 
 double DecaySpace::Gamma(Decay::Channel chan, const Mixing &mix)
@@ -137,7 +138,13 @@ double DecaySpace::Gamma(Decay::Channel chan, const Mixing &mix)
 						+ Decay::toString(chan) + " is unknown");
 	}
 	
-	return (this->*gr)(mix);
+	double M2 = (this->*gr)(mix);
+	if (M2 < 0) {
+		std::cerr << "WARNING: negative amplitude (" << M2 << ") for channel " << chan << "\n";
+		return 0.;
+	}
+
+	return M2;
 }
 
 //Neutrino LeptonLepton AA -- phase space depends on the mixing!
@@ -163,54 +170,60 @@ double DecaySpace::NeutrinoLeptonAA(Decay::Channel chan, double m_neut, double m
 	double y = std::pow(m_lepton / _m_parent, 2);
 
 	//neutrino flavour is the same as leptons -> both Z and W interaction
-	double gLcc = +0.5 + Const::sin2W;	//times U(lepton flavour)
-	double gRcc = Const::sin2W;
+	//double gLcc = Const::sin2W + (_N.IsParticle() ? 0.5 : -0.5);
+	//double gRcc = Const::sin2W;
 
 	//neutrino flavour is different from leptons -> Z interaction
-	double gLnc = -0.5 + Const::sin2W;	//times U(neutrino flavour)
-	double gRnc = Const::sin2W;
+	double gL = -0.5 + Const::sin2W;
+	double gR = Const::sin2W;
 
-	double mixWW = uu * (gLcc * gLcc + gRcc * gRcc)
-		     + uo * (gLnc * gLnc + gRnc * gRnc);
-	double mixWZ = uu * (2 * gLcc * gRcc) + uo * (2 * gLnc * gRnc);
-
+	double ww = (uu + uo) * (gL * gL + gR * gR) + uu * (1 + 2 * gL);
+	double wz = - (uu + uo) * 2 * gL * gR - uu * 2 * gR;
 
 	// compute max first, if needed
 	if (!_table.count(chan)) {
-		auto func = [&](double p[]) {	    // s     u     cos0  cos1
-			return - NeutrinoLeptonAA_max(p[0], p[1], p[2], p[3]); };
+		// compute maximum of just one component
+		// forcing max for cos0 = 1 (h = -1) and cos0 = -1 (h = 1)
+		double cos0 = _N.IsMajorana() ? 0.
+				: (_N.IsParticle() ? - _N.Helicity() : _N.Helicity());
+		auto func = [=](double p[]) {
+			// s = p[0]; u = p[1]; cos0 = p[2]; cos1 = p[3];
+			//if (std::abs(p[2]) > 1. || std::abs(p[3]) > 1.)
+				//return 0.;
+			if (p[0] < 0. || p[1] < 0. || 1 + x + 2 * y - p[0] - p[1] < 0.)
+				return 0.;
 
-		_vars = {x, y, mixWW, mixWZ};
-		auto max_ = Optimization::NelderMead<double>(func, 4);
+			// negative sign to finx maximum!
+			return - ww * M2_WW(p[0], cos0,  x, y, y)
+			       - wz * M2_WZ(p[1], -cos0, x, y, y);
+		};
+		//return - NeutrinoLeptonAA_max(p[0], p[1], p[2], p[3], x, y, y, mw, mz);
 
+		auto max_ = Optimization::NelderMead<double>(func, 2, 1e-6, {0., 0.}, {1., 1.});
 		_table[chan] = - dGammad5_3B() * func(&max_[0]);
 	}
 
 	std::array<double, 6> k = Kinematic3B(); // s      u       cos0s     cos0u
-	return dGammad5_3B() * (mixWW * M2_WW(k[0], k[2], x, y, y)
-			      + mixWZ * M2_WZ(k[1], k[3], x, y, y) );
+	return dGammad5_3B() * (ww * M2_WW(k[0], k[3], x, y, y)
+			      + wz * M2_WZ(k[2], k[5], x, y, y) );
 }
 
 
+/*
 // returns a reversed sign for minimization algorithm
-double DecaySpace::NeutrinoLeptonAA_max(double s, double u, double cos0, double cos1)
+double DecaySpace::NeutrinoLeptonAA_max(double s, double u, double cos0, double cos1,
+		double x, double y, double mw, double mz)
 {
 	if (std::abs(cos0) > 1 || std::abs(cos1) > 1)
 		return 0.;
 	if (s < 0 || u < 0)
 		return 0.;
-
-	const double &x  = _vars[0];
-	const double &y  = _vars[1];
-
 	if (s + u > 1 + x + 2 * y)
 		return 0.;
 
-	const double &ww = _vars[2];
-	const double &wz = _vars[3];
-
-	return ww * M2_WW(s, cos0, x, y, y) + wz * M2_WZ(u, cos1, x, y, y);
+	return mw * M2_WW(s, cos0, x, y, y) + mz * M2_WZ(u, cos1, x, y, y);
 }
+*/
 
 
 //Neutrino LeptonLepton AB -- depends on mixing
@@ -251,11 +264,23 @@ double DecaySpace::NeutrinoLeptonAB(Decay::Channel chan,
 
 	if (!_table.count(chan)) {
 		// compute maximum of just one component
+		// forcing max for cos0 = 1 (h = -1) and cos0 = -1 (h = 1)
+		double cos0 = _N.IsMajorana() ? 0.
+				: (_N.IsParticle() ? - _N.Helicity() : _N.Helicity());
 		auto func = [&](double p[]) {
-			return - NeutrinoLeptonAB_max(p[0], p[1], p[2], p[3]); };
+			// s = p[0]; u = p[1]; cos0 = p[2]; cos1 = p[3];
+			//if (std::abs(p[2]) > 1. || std::abs(p[3]) > 1.)
+			//	return 0.;
+			if (p[0] < 0. || p[1] < 0. || 1 + x + y + z - p[0] - p[1] < 0.)
+				return 0.;
 
-		_vars = {x, z, y, uu, uo};
-		auto max_ = Optimization::NelderMead<double>(func, 4);
+			// negative sign to finx maximum!
+			return - uu * M2_WW(p[0], cos0, x, y, z)
+			       - uo * M2_WW(p[1], cos0, x, y, z);
+		};
+		//return - NeutrinoLeptonAB_max(p[0], p[1], p[2], p[3], x, y, z, uu, uo); };
+
+		auto max_ = Optimization::NelderMead<double>(func, 2, 1e-6, {0., 0.}, {1., 1.});
 		_table[chan] = - dGammad5_3B() * func(&max_[0]);
 		//NeutrinoLeptonLepton_max(x, z, y, 1., 0.);
 	}
@@ -263,29 +288,24 @@ double DecaySpace::NeutrinoLeptonAB(Decay::Channel chan,
 	// combine two components here with mixing
 	std::array<double, 6> k = Kinematic3B();// s    u    cos0s   cos0u
 	return dGammad5_3B() * (uu * M2_WW(k[0], k[3], x, y, z)
-			      + uo * M2_WW(k[2], k[5], x, y, z) );
+			      + uo * M2_WW(k[2], k[5], x, y, z));
 }
 
+/*
 // returns a reversed sign for minimization algorithm
-double DecaySpace::NeutrinoLeptonAB_max(double s, double u, double cos0, double cos1)
+double DecaySpace::NeutrinoLeptonAB_max(double s, double u, double cos0, double cos1,
+		double x, double y, double z, double uu, double uo)
 {
-	if (std::abs(cos0) > 1 || std::abs(cos1) > 1)
+	if (std::abs(cos0) > 1. || std::abs(cos1) > 1.)
 		return 0.;
-	if (s < 0 || u < 0)
+	if (s < 0. || u < 0.)
 		return 0.;
-
-	const double &x  = _vars[0];
-	const double &y  = _vars[1];
-	const double &z  = _vars[2];
-
-	if (s + u > 1 + x + y + z)
+	if (s + u > 1. + x + y + z)
 		return 0.;
 
-	const double &mu = _vars[3];
-	const double &mo = _vars[4];
-
-	return (mu + mo) * M2_WW(s, cos0, x, y, z); // + mo * M2_WW(u, cos1, x, y, z);
+	return uu * M2_WW(s, cos0, x, y, z) + uo * M2_WW(u, cos1, x, y, z);
 }
+*/
 
 // common max functions
 
@@ -341,10 +361,11 @@ double DecaySpace::NeutrinoPseudoMeson(Decay::Channel chan, double m_neut, doubl
 	double y = std::pow(m_meson / _m_parent, 2);
 
 	if (!_table.count(chan)) {
-		_vars = {x, y};
-
-		auto func = [&](double cos0) {
-			return - NeutrinoPseudoMeson_max(cos0); };
+		auto func = [=](double cos0) {
+			// negative sign to find maximum!
+			return - M2_NeutrinoPseudoMeson(-1. + 2. * cos0, x, y);
+		};
+			//return - NeutrinoPseudoMeson_max(cos0, x, y); };
 		double max_ = Optimization::GoldenRatio<double>(func);
 		_table[chan] = - dGammad2_2B(x, y) * func(max_);
 	}
@@ -356,15 +377,13 @@ double DecaySpace::NeutrinoPseudoMeson(Decay::Channel chan, double m_neut, doubl
 }	//     2 is factor from decay constant which is sqrt(2) wrt to charged meson
 
 
-double DecaySpace::NeutrinoPseudoMeson_max(double cos0)
+/*
+double DecaySpace::NeutrinoPseudoMeson_max(double cos0, double x, double y)
 {
-	double x = _vars[0];
-	double y = _vars[1];
 	cos0 = -1 + 2 * cos0;
-
-	//return -ToPseudoMeson(cos0_, x, y);
 	return M2_NeutrinoPseudoMeson(cos0, x, y);
 }
+*/
 
 
 //lepton psuedomeson
@@ -412,10 +431,11 @@ double DecaySpace::LeptonPseudoMeson(Decay::Channel chan, double m_lepton, doubl
 	double y = std::pow(m_meson / _m_parent, 2);
 
 	if (!_table.count(chan)) {
-		_vars = {x, y};
-
 		auto func = [&](double cos0) {
-			return - LeptonPseudoMeson_max(cos0); };
+			// negative sign to find maximum!
+			return - M2_LeptonPseudoMeson(-1. + 2. * cos0, x, y);
+		};
+			//return - LeptonPseudoMeson_max(cos0, x, y); };
 		double max_ = Optimization::GoldenRatio<double>(func);
 		_table[chan] = - dGammad2_2B(x, y) * func(max_);
 	}
@@ -440,14 +460,12 @@ double DecaySpace::ToPseudoMeson_max(double x, double y)
 }
 */
 
-double DecaySpace::LeptonPseudoMeson_max(double cos0)
+/*
+double DecaySpace::LeptonPseudoMeson_max(double cos0, double x, double y)
 {
-	double x = _vars[0];
-	double y = _vars[1];
-	cos0 = -1 + 2 * cos0;
-
-	return M2_LeptonPseudoMeson(cos0, x, y);
+	return M2_LeptonPseudoMeson(-1. + 2. * cos0, x, y);
 }
+*/
 
 
 /*
@@ -487,10 +505,10 @@ double DecaySpace::NeutrinoVectorMeson(Decay::Channel chan, double m_neut, doubl
 
 	if (!_table.count(chan)) {
 		// find max
-		_vars = {x, y};
-
-		auto func = [&](double cos0) {
-			return - NeutrinoVectorMeson_max(cos0); };
+		auto func = [=](double cos0) {
+			return - M2_NeutrinoVectorMeson(-1. + 2. * cos0, x, y);
+		};
+			//return - NeutrinoVectorMeson_max(cos0, x, y); };
 		double max_ = Optimization::GoldenRatio<double>(func);
 		_table[chan] = - dGammad2_2B(x, y) * func(max_);
 	}
@@ -501,15 +519,13 @@ double DecaySpace::NeutrinoVectorMeson(Decay::Channel chan, double m_neut, doubl
 	//return ToVectorMeson(cos0, dMn2, dMM2);
 }
 
-double DecaySpace::NeutrinoVectorMeson_max(double cos0)
+/*
+double DecaySpace::NeutrinoVectorMeson_max(double cos0, double x, double y)
 {
-	double x = _vars[0];
-	double y = _vars[1];
 	cos0 = -1 + 2 * cos0;
-
-	//return -ToVectorMeson(cos0_, x, y);
 	return M2_NeutrinoVectorMeson(cos0, x, y);
 }
+*/
 
 
 double DecaySpace::ERHO(const Mixing &mix)
@@ -544,10 +560,10 @@ double DecaySpace::LeptonVectorMeson(Decay::Channel chan, double m_lepton, doubl
 
 	if (!_table.count(chan)) {
 		// find max
-		_vars = {x, y};
-
-		auto func = [&](double cos0) {
-			return - LeptonVectorMeson_max(cos0); };
+		auto func = [=](double cos0) {
+			return - M2_LeptonVectorMeson(-1. + 2. * cos0, x, y);
+		};
+			//return - LeptonVectorMeson_max(cos0, x, y); };
 		double max_ = Optimization::GoldenRatio<double>(func);
 		_table[chan] = - dGammad2_2B(x, y) * func(max_);
 	}
@@ -571,14 +587,12 @@ double DecaySpace::ToVectorMeson_max(double x, double y)
 }
 */
 
-double DecaySpace::LeptonVectorMeson_max(double cos0)
+/*
+double DecaySpace::LeptonVectorMeson_max(double cos0, double x, double y)
 {
-	double x = _vars[0];
-	double y = _vars[1];
-	cos0 = -1 + 2 * cos0;
-
-	return M2_LeptonVectorMeson(cos0, x, y);
+	return M2_LeptonVectorMeson(-1. + 2. * cos0, x, y);
 }
+*/
 
 /*
 double DecaySpace::ToVectorMeson(double cos0, double x, double y)

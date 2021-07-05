@@ -33,7 +33,7 @@ struct Mixing {
 	}
 	*/
 
-	Mixing &operator*=(double x) {
+	inline Mixing &operator*=(double x) {
 		_mix[0] *= x;
 		_mix[1] *= x;
 		_mix[2] *= x;
@@ -41,12 +41,12 @@ struct Mixing {
 		return *this;
 	}
 
-	Mixing operator*(double x) const {
+	inline Mixing operator*(double x) const {
 		Mixing rhs = *this;
 		return rhs *= x;
 	}
 
-	double operator()(Nu::Flavour flv, int e = 1) const {
+	inline double operator()(Nu::Flavour flv, int e = 1) const {
 		switch (flv) {
 			case Nu::EB:
 			case Nu::E0:
@@ -62,20 +62,20 @@ struct Mixing {
 		}
 	}
 
-	double Ue(int e = 1) const {
+	inline double Ue(int e = 1) const {
 		return fast_pow(_mix[0], e);
 	}
 
-	double Um(int e = 1) const {
+	inline double Um(int e = 1) const {
 		return fast_pow(_mix[1], e);
 	}
 
-	double Ut(int e = 1) const {
+	inline double Ut(int e = 1) const {
 		return fast_pow(_mix[2], e);
 	}
 
 	// set mixing value to 1 or 0
-	void Flatten() {
+	inline void Flatten() {
 		for (double &m : _mix)
 			m = bool(m);
 	}

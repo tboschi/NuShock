@@ -43,9 +43,8 @@
 class CardDealer
 {
 	public:
-		template <typename T>
-		CardDealer(T cardFile, bool verb = false) :
-			_cardFile(cardFile),
+		CardDealer(const std::string &cardFile, bool verb = false) :
+			_cardFile(std::move(cardFile)),
 			kVerbosity(verb)
 		{
 			size_t lines = Parse(_cardFile);

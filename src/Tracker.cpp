@@ -97,7 +97,7 @@ Tracker::Event Tracker::GenerateEvent(std::string mod, Particle &&P) const
 
 	Track T(x, y, z);
 	if (!IsDetectable(T))
-		//std::cout << "T is out! " << T << "\n";
+		//std::5out << "T is out! " << T << "\n";
 		return GenerateEvent(mod, std::move(P));
 
 	// 99.99% of particles are inside the detector
@@ -123,28 +123,17 @@ bool Tracker::Reconstruct(Event &evt) const
 		if (T.Length() <= 0.)
 			ComputeTrack(evt);
 
-		//std::cout << "Particle " << P.RealPdg() << "\n";
-		double sag = ComputeSagitta(evt);
-		//std::cout << "sag = " << sag << "\n";
-		//if (ComputeSagitta(evt) > _resolutions.at("sagitta"))
-		if (sag > _resolutions.at("sagitta"))
-			P.ChargeID(); // I can charge ID correctly
-		else {	// particle is chargeless to detector, random assignment
-			/*
-			std::bernoulli_distribution b(0.5);
-			if (b(RNG::_mt))
-				P.ChargeID();
-			else
-				P.ChargeMisID();
-			*/
-			// instead set it to 0
+		//double sag = ComputeSagitta(evt);
+		//if (sag > _resolutions.at("sagitta"))
+		if (DetectSagitta(evt))
+			P.ChargeID(); // can charge ID correctly
+		else
 			P.ChargeID(0.);
-		}
 
 		// do some smearing
 		Smearing(evt);
 
-		// check just threshold
+		// check just threshold again
 		return (IsDetectable(P));
 	}
 
@@ -176,20 +165,19 @@ void Tracker::ComputeTrack(Event &evt) const	//This should not change P
 		case 11:
 			tmax = std::log( P.E() / Material::CriticalEnergy(mat) ) - 1.0;
 			gaus = std::normal_distribution<>(tmax, tmax / 3.);
-			depth = Material::RadiationLength(mat) * gaus(RNG::_mt);
+			depth = Material::RadiationLength(mat) * gaus(RNG::_mt) * 0.01;
 			T.SetLength(mod, depth);
 			T.SetEnergyDeposited(mod, P.E());
 			break;
 		case 22:
-			depth = 9./7. * Material::RadiationLength(mat);
-			expd = std::exponential_distribution<>(depth);
+			depth = 9./7. * Material::RadiationLength(mat) * 0.01;
+			expd = std::exponential_distribution<>(1. / depth);
 			T.SetLength(mod, expd(RNG::_mt));
 			T.SetEnergyDeposited(mod, P.E());
 			break;
 		case 13: //quit when particle decays too!
 			gaus = std::normal_distribution<>(_step, _resolutions.at("vertex"));
 			while (IsDetectable(evt) && !IsDecayed(P, T.Length())) {
-
 				double dx = gaus(RNG::_mt);	// random step
 				double loss = dx * Material::Bethe(MadeOf(mod), P.M(), P.Beta(), P.Gamma());
 				P.SetE(P.E() - loss); // reduce energy
@@ -204,8 +192,9 @@ void Tracker::ComputeTrack(Event &evt) const	//This should not change P
 			}
 			break;
 		case 211:
+			depth = Material::NuclearRadiationLength(mat) * 0.01;
 			gaus = std::normal_distribution<>(_step, _resolutions.at("vertex"));
-			expd = std::exponential_distribution<>(Material::NuclearRadiationLength(mat));
+			expd = std::exponential_distribution<>(1. / depth);
 			while (IsDetectable(evt) && !IsDecayed(P, T.Length())) {
 				if (cover > radlen)	//distance more than interaction length
 				{	//multiplicity of hadronic interaction
@@ -242,6 +231,36 @@ void Tracker::ComputeTrack(Event &evt) const	//This should not change P
 	T.SetPosition(pos);
 }
 
+// return true if sagitta can be computed in any module
+bool Tracker::DetectSagitta(Event &evt) const {
+	const Particle &P = evt.first;
+	Track &T = evt.second;
+
+	if (P.RealQ() == 0)
+		return false;
+
+	for (const auto &m : _modules) {
+		auto B = MagneticField(m.first);
+		double sag = 0.;
+		std::array<double, 3> p = {{P.Px(), P.Py(), P.Pz()}};
+		for (int i = 0; i < 3; ++i) {
+			if (B[i] > 0) {
+				// perpendicular P component wrt to B
+				double pp = std::sqrt(std::pow(p[(i+1)%3], 2) + std::pow(p[(i+2)%3], 2));
+				double s = 0.3 / 8. * std::pow(T.Length(m.first), 2)
+					* P.RealQ() * B[i] / pp;
+				sag += s * s;
+			}
+		}
+
+		if (std::sqrt(sag) * _resolutions.at("sagitta") > _resolutions.at("vertex"))
+			return true;
+	}
+
+	return false;
+}
+
+/*
 double Tracker::ComputeSagitta(Event &evt) const
 {
 	const Particle &P = evt.first;
@@ -265,6 +284,8 @@ double Tracker::ComputeSagitta(Event &evt) const
 		if (max_B < MagneticField(m.first))
 			max_B = MagneticField(m.first);
 	}
+	
+	//double rad = std::abs(0.3 * P.RealCharge()) * minB / P.Momentum());
 
 	return std::abs(0.3 * P.RealQ() * max_B * sag / P.P())
 	    * (std::pow(std::cos(P.Theta()), 2)
@@ -277,6 +298,7 @@ double Tracker::ComputeSagitta(Event &evt) const
 	//				   pow(P.Theta() * P.Phi(), 2));
 	//double sag = rad * ( 1 - cos(track/rad) );
 }
+*/
 
 
 // smear the track
@@ -422,9 +444,11 @@ bool Tracker::IsDetectable(const Particle &P) const
 }
 
 // special treatment for pi0
-std::vector<Tracker::Event> Tracker::Pi0Decay(Tracker::Event &&pi0) const
+std::array<Tracker::Event, 2> Tracker::Pi0Decay(Tracker::Event &&pi0) const
 {
 	Particle &P0 = pi0.first;
+	if (std::abs(P0.Pdg()) != 111)
+		throw std::invalid_argument("Tracker: given particle is not a PI0");
 	Track &T0 = pi0.second;
 
 	Particle gammaA(22, P0.M()/2.0, 0, 0,  P0.M()/2.0); 
@@ -444,15 +468,15 @@ std::vector<Tracker::Event> Tracker::Pi0Decay(Tracker::Event &&pi0) const
 	gammaB.Boost(P0.BoostVector());
 
 	// gamma decay here
-	double depth = 9./7. * Material::RadiationLength(MadeOf(WhichModule(T0)));
-	std::exponential_distribution<> expd(depth);
+	double depth = 9./7. * Material::RadiationLength(MadeOf(WhichModule(T0))) * 0.01;
+	std::exponential_distribution<> expd(1. / depth);
 	//
 
 	Track moveA = T0 + T0.Unit() * expd(RNG::_mt);
 	Track moveB = T0 + T0.Unit() * expd(RNG::_mt);
 
-	Tracker::Event pA(gammaA, moveA);
-	Tracker::Event pB(gammaB, moveB);
+	Tracker::Event pA{gammaA, moveA};
+	Tracker::Event pB{gammaB, moveB};
 	return {pA, pB};
 }
 

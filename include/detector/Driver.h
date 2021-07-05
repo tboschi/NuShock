@@ -58,7 +58,7 @@ class Driver
 		std::shared_ptr<TH1D> MakeMuon(ProductionRate &heavy, const Flux::Component &fxNu) const;
 		std::shared_ptr<TH1D> MakeTau(ProductionRate &heavy, const Flux::Component &fxNu,
 					double mass = 0.) const;
-		double Stretch(std::shared_ptr<TH1D> hist, const Modifier &mod, double mass = 0.) const;
+		void Stretch(std::shared_ptr<TH1D> hist, const Modifier &mod, double mass = 0.) const;
 
 
 		std::unordered_map<Nu::Flavour, Flux::Component> _fxNu;

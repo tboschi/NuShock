@@ -17,6 +17,7 @@
 
 #include "montecarlo/hnl.h"
 #include "montecarlo/Sampler.h"
+#include "montecarlo/Process.h"
 
 int main(int argc, char** argv)
 {
@@ -42,9 +43,9 @@ int main(int argc, char** argv)
 	
 	double mass = 0.;
 	std::string ferm;
-	bool UeFlag = false, UmFlag = false, UtFlag = false;
+	double ue = 0., um = 0., ut = 0.;
 
-	while((iarg = getopt_long(argc,argv, "m:c:EMTrj", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "m:c:E:M:T:rj", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
@@ -55,13 +56,13 @@ int main(int argc, char** argv)
 				channel.assign(optarg);
 				break;
 			case 'E':
-				UeFlag = true;
+				ue = std::strtod(optarg, NULL);
 				break;
 			case 'M':
-				UmFlag = true;
+				um = std::strtod(optarg, NULL);
 				break;
 			case 'T':
-				UtFlag = true;
+				ut = std::strtod(optarg, NULL);
 				break;
 			case 'r':
 				ferm = "d";
@@ -78,33 +79,43 @@ int main(int argc, char** argv)
 
 	//output file name
 	//
-	if (channel.empty())
-		throw std::logic_error("HNLSimulation: a channel must be selected with -c <channel>");
+	if (channel.empty()) {
+		std::cerr << "HNLSimulation: a channel must be selected with -c <channel>\n";
+		return 0;
+	}
 
-	if (!UeFlag && !UmFlag && !UtFlag)
-		throw std::invalid_argument("HNLSimulation: at least one mixing must be selected with -E -M or -T");
+	if (!ue && !um && !ut) {
+		std::cerr << "HNLSimulation: at least one mixing must be selected with -E -M or -T\n";
+		return 0;
+	}
 
-	if (ferm.empty())
-		throw std::logic_error("HNLSimulation: fermion type must be selected with --dirac or --majorana");
+	if (ferm.empty()) {
+		std::cerr << "HNLSimulation: fermion type must be selected with --dirac or --majorana\n";
+		return 0;
+	}
 
 	CardDealer cd(argv[optind]);
 
 	std::string config;
-	if (!cd.Get("detector_configuration", config))
-		throw std::logic_error("HNLSimulation: There is no detector configuration\n");
+	if (!cd.Get("detector_configuration", config)) {
+		std::cerr << "HNLSimulation: There is no detector configuration\n";
+		return 0;
+	}
 	Tracker box(config);
 
-	if (!cd.Get("flux_configuration", config))
-		throw std::logic_error("HNLSimulation: There is no flux configuration\n");
+	if (!cd.Get("flux_configuration", config)) {
+		std::cerr << "HNLSimulation: There is no flux configuration\n";
+		return 0;
+	}
 	Driver drive(config);
 
-	Mixing mix(UeFlag, UmFlag, UtFlag);
-	mix *= 1e-4;
+	Mixing mix(ue, um, ut);
 	Decay::Channel chan = Decay::fromString(channel);
 
-	if (!DecayRate::IsAllowed(mass, chan))
-		throw std::invalid_argument("HNLSimulation: mass " + std::to_string(mass)
-						+ "does not allow for decay");
+	if (!DecayRate::IsAllowed(mass, chan)) {
+		std::cerr << "HNLSimulation: mass " << mass << " is not allowed for " << channel << " decay\n";
+		return 0;
+	}
 	// MC config
 
 	size_t nEvents;
@@ -128,7 +139,7 @@ int main(int argc, char** argv)
 	std::unordered_map<size_t, DecaySpace> decayps;
 	for (size_t opt : nus) {
 		Neutrino N(mass, opt);
-		auto smp = Sampler::Compute(box, drive, chan, mix, N);
+		auto smp = Sampler::Compute(box, drive, chan, mix, {N});
 		if (!smp)
 			continue;
 		samples[opt] = smp;
@@ -140,26 +151,28 @@ int main(int argc, char** argv)
 	if (!samples.size()) {
 		std::cerr << "HNLSimulation: HNL decay of mass " << std::to_string(mass)
 			<< " into " << channel << " is not allowed\n";
-		return 1;
+		return 0;
 	}
 
 
 	// output creation
 	
 	std::string outname;
-	if (!cd.Get("output", outname))
-		throw std::logic_error("HNLSimulation: no output \".root\" file specified in card");
+	if (!cd.Get("output", outname)) {
+		std::cerr << "HNLSimulation: no output \".root\" file specified in card\n";
+		return 0;
+	}
 
 	if (outname.find(".root") == std::string::npos)
 		outname += ".root";
 
-	outname.insert(outname.find(".root"), channel);
+	outname.insert(outname.find(".root"), "_" + channel);
 
-	if (UeFlag)
+	if (ue > 0.)
 		outname.insert(outname.find(".root"), "_E");
-	if (UmFlag)
+	if (um > 0.)
 		outname.insert(outname.find(".root"), "_M");
-	if (UtFlag)
+	if (ut > 0.)
 		outname.insert(outname.find(".root"), "_T");
 	
 	outname.insert(outname.find(".root"), "_" + ferm);
@@ -189,18 +202,20 @@ int main(int argc, char** argv)
 		mod_ratios.emplace(mod, box.Volume(mod) / box.Volume());
 
 	for (size_t id = 0; id < nEvents; ++id) {
+		//std::cout << " Event " << id << "\n";
 		for (const auto & s : samples) {
 			// random energy for this neutrino
-			double energy = s.second->GetRandom();
+			double energy = (s.second)->GetRandom();
 			// generate same event in all detector modules
 			for (const auto & mrat : mod_ratios) {
 
 				//neutrino probe
 				Particle nu(12, energy, 0, 0, std::sqrt(energy*energy - mass*mass));
-				Tracker::Event nu_evt = box.GenerateEvent(mrat.first,
-								          std::move(nu));
+				Tracker::Event nu_evt = box.GenerateEvent(mrat.first, std::move(nu));
 
-				auto prods = decayps[s.first].Generate(chan, nu_evt.first);
+				auto prods = decayps[s.first].Generate(chan, nu_evt.first, mix);
+				if (prods.first.size() != Decay::Ns(chan))
+					continue; 
 				std::vector<Tracker::Event> events;
 				events.reserve(prods.first.size());
 				for (Particle &part : prods.first) {
@@ -211,6 +226,7 @@ int main(int argc, char** argv)
 						Tracker::Event gA_evt = std::move(decay_res[0]);
 						Tracker::Event gB_evt = std::move(decay_res[1]);
 
+
 						if (box.Reconstruct(gA_evt))
 							events.push_back(std::move(gA_evt));
 						if (box.Reconstruct(gB_evt))
@@ -220,13 +236,18 @@ int main(int argc, char** argv)
 						events.push_back(std::move(part_evt));
 				}
 
-				if (events.size() >= 2)
+				if (events.size() >= 2) {
 					//make some simple misidentification of events
 					events = box.MisIdentify(std::move(events));
-				// if still ok then fill
-				if (events.size() >= 2)
-					data->Fill(weights[s.first] * prods.second, // * mrat.second,
-							nu_evt, events[0], events[1]);
+
+					auto id = Process::Identify(chan, events);
+					if (id == Process::Match::no_id)
+						continue;
+
+					data->Fill(weights[s.first] * prods.second * mrat.second,
+						   (id == Process::Match::charge_id),
+						   nu_evt, events[0], events[1]);
+				}
 			}
 		}
 	}

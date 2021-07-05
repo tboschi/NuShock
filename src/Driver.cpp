@@ -1,21 +1,5 @@
 #include "detector/Driver.h"
 
-/*
-// return spectrum based on flavour
-std::shared_ptr<TH1D> Driver::Spectrum(Nu::Flavour flv, const Mixing &mix) const {
-
-	if (!_distr.count(flv))	// skip null histograms
-		return nullptr;
-	if (!_distr.at(flv))
-		return nullptr;
-
-	auto spec = std::shared_ptr<TH1D>(static_cast<TH1D*>(_distr.at(flv)->Clone()));
-	spec->Scale(mix(flv, 2));
-	return spec;
-}
-*/
-
-
 Driver::Driver(const std::string &card) :
 	_mass(-1.),
 	_helix(0)
@@ -133,7 +117,7 @@ Spectrum Driver::MakeSpectrum(const Neutrino &N, const Mixing &mix) const
 
 	Spectrum::Distribution distr;
 
-	for (const auto &flv : Nu::All())
+	for (const auto &flv : flvs)
 		if (mix(flv))
 			distr[flv] = MakeComponent(hnl, flv, N.M()); 
 
@@ -301,10 +285,9 @@ std::shared_ptr<TH1D> Driver::MakeTau(ProductionRate &heavy, const Flux::Compone
 	&& heavy.IsAllowed(Production::Channel::CharmT)) {
 		fxHNL[Flux::Parent::Charm] = std::shared_ptr<TH1D>(static_cast<TH1D*>
 					(fxNu.at(Flux::Parent::Charm)->Clone()));
-		double mul = 1.;
 		if (_modifiers.count(Flux::Parent::Charm))
-			mul = Stretch(fxHNL[Flux::Parent::Charm], _modifiers.at(Flux::Parent::Charm), mass);
-		fxHNL[Flux::Parent::Charm]->Scale(heavy.Scale(Production::Channel::CharmT) * mul);
+			Stretch(fxHNL[Flux::Parent::Charm], _modifiers.at(Flux::Parent::Charm), mass);
+		fxHNL[Flux::Parent::Charm]->Scale(heavy.Scale(Production::Channel::CharmT));
 	}
 
 	//tau+ -> pi+ nu_tau
@@ -312,10 +295,9 @@ std::shared_ptr<TH1D> Driver::MakeTau(ProductionRate &heavy, const Flux::Compone
 	&& heavy.IsAllowed(Production::Channel::TauPI)) {
 		fxHNL[Flux::Parent::Pion] = std::shared_ptr<TH1D>(static_cast<TH1D*>
 					(fxNu.at(Flux::Parent::Pion)->Clone()));
-		double mul = 1.;
 		if (_modifiers.count(Flux::Parent::Pion))
-			mul = Stretch(fxHNL[Flux::Parent::Pion], _modifiers.at(Flux::Parent::Pion), mass);
-		fxHNL[Flux::Parent::Pion]->Scale(heavy.Scale(Production::Channel::TauPI) * mul);
+			Stretch(fxHNL[Flux::Parent::Pion], _modifiers.at(Flux::Parent::Pion), mass);
+		fxHNL[Flux::Parent::Pion]->Scale(heavy.Scale(Production::Channel::TauPI));
 	}
 
 	//tau+ -> pi+ pi0 nu_tau	//crossing simmetries
@@ -323,10 +305,9 @@ std::shared_ptr<TH1D> Driver::MakeTau(ProductionRate &heavy, const Flux::Compone
 	&& heavy.IsAllowed(Production::Channel::Tau2PI)) {
 		fxHNL[Flux::Parent::PPion] = std::shared_ptr<TH1D>(static_cast<TH1D*>
 					(fxNu.at(Flux::Parent::PPion)->Clone()));
-		double mul = 1.;
 		if (_modifiers.count(Flux::Parent::PPion))
-			mul = Stretch(fxHNL[Flux::Parent::PPion], _modifiers.at(Flux::Parent::PPion), mass);
-		fxHNL[Flux::Parent::PPion]->Scale(heavy.Scale(Production::Channel::Tau2PI) * mul);
+			Stretch(fxHNL[Flux::Parent::PPion], _modifiers.at(Flux::Parent::PPion), mass);
+		fxHNL[Flux::Parent::PPion]->Scale(heavy.Scale(Production::Channel::Tau2PI));
 	}
 
 	//tau+ -> nu_tau_bar e+ nu_e
@@ -334,10 +315,9 @@ std::shared_ptr<TH1D> Driver::MakeTau(ProductionRate &heavy, const Flux::Compone
 	&& heavy.IsAllowed(Production::Channel::TauET)) {
 		fxHNL[Flux::Parent::TauE] = std::shared_ptr<TH1D>(static_cast<TH1D*>
 					(fxNu.at(Flux::Parent::TauE)->Clone()));
-		double mul = 1.;
 		if (_modifiers.count(Flux::Parent::TauE))
-			mul = Stretch(fxHNL[Flux::Parent::TauE], _modifiers.at(Flux::Parent::TauE), mass);
-		fxHNL[Flux::Parent::TauE]->Scale(heavy.Scale(Production::Channel::TauET) * mul);
+			Stretch(fxHNL[Flux::Parent::TauE], _modifiers.at(Flux::Parent::TauE), mass);
+		fxHNL[Flux::Parent::TauE]->Scale(heavy.Scale(Production::Channel::TauET));
 	}
 
 	//tau+ -> nu_tau_bar mu+ nu_mu
@@ -345,10 +325,9 @@ std::shared_ptr<TH1D> Driver::MakeTau(ProductionRate &heavy, const Flux::Compone
 	&& heavy.IsAllowed(Production::Channel::TauMT)) {
 		fxHNL[Flux::Parent::TauM] = std::shared_ptr<TH1D>(static_cast<TH1D*>
 					(fxNu.at(Flux::Parent::TauM)->Clone()));
-		double mul = 1.;
 		if (_modifiers.count(Flux::Parent::TauM))
-			mul = Stretch(fxHNL[Flux::Parent::TauM], _modifiers.at(Flux::Parent::TauM), mass);
-		fxHNL[Flux::Parent::TauM]->Scale(heavy.Scale(Production::Channel::TauMT) * mul);
+			Stretch(fxHNL[Flux::Parent::TauM], _modifiers.at(Flux::Parent::TauM), mass);
+		fxHNL[Flux::Parent::TauM]->Scale(heavy.Scale(Production::Channel::TauMT));
 	}
 
 	if (!fxHNL.size())
@@ -363,31 +342,29 @@ std::shared_ptr<TH1D> Driver::MakeTau(ProductionRate &heavy, const Flux::Compone
 
 
 //Modificator for charm to tau flux
-double Driver::Stretch(std::shared_ptr<TH1D> hist, const Driver::Modifier &mod, double mass) const
+void Driver::Stretch(std::shared_ptr<TH1D> hist, const Driver::Modifier &mod, double mass) const
 {
-	double sx = 0., ex = 0., vp = 0.;
-	for (const auto &m : mod)
+	double y0 = 0., y1 = 0., vp = 0.;
+	for (const auto &m : mod) {
 		if (m[0] > mass || std::abs(m[0] - mass) < 1.e-9) {
-			sx = m[1]; ex = m[2]; vp = 1./m[3];
+			y0 = m[1]; y1 = m[2]; vp = m[3];
 			break;
 		}
+	}
+	vp /= hist->Integral("WIDTH");
 
-	if (sx >= hist->GetXaxis()->GetXmin() && ex <= hist->GetXaxis()->GetXmax())
-	{
-		TH1D *htmp = static_cast<TH1D*>(hist->Clone());
-		hist->Reset("ICES");
+	TH1D *htmp = static_cast<TH1D*>(hist->Clone());
+	hist->Reset("ICES");
 
-		int ia = htmp->FindFirstBinAbove();
-		int ib = htmp->FindLastBinAbove();
-		double eA = htmp->GetBinContent(ia);
-		double eB = htmp->GetBinContent(ib);
-		for (int i = ia; i <= ib; ++i) {
-			double shift = sx + (htmp->GetBinContent(i) - eA) * (ex - sx);
-			hist->SetBinContent(htmp->FindBin(shift),
-					    htmp->GetBinContent(i) * (ex - sx) / (eB - eA));
-		}
-		return vp;
+	int ia = htmp->FindFirstBinAbove();
+	int ib = htmp->FindLastBinAbove();
+	double x0 = htmp->GetBinCenter(ia);
+	double x1 = htmp->GetBinCenter(ib);
+	for (int i = ia; i <= ib; ++i) {
+		double shift = y0 + (htmp->GetBinCenter(i) - x0)
+				* (y1 - y0) / (x1 - x0);
+		hist->Fill(shift, vp * htmp->GetBinContent(i));	
 	}
 
-	return 0.;
+	htmp->Delete();
 }

@@ -27,7 +27,6 @@ int main(int argc, char** argv)
 	const struct option longopts[] = 
 	{
 		{"channel", 	required_argument,	0, 'c'},
-		{"chargeID", 	required_argument,	0, 'I'},
 		{"verbose", 	required_argument,	0, 'v'},
 		{"help", 	no_argument,	 	0, 'h'},
 		{0,	0, 	0,	0},
@@ -36,18 +35,15 @@ int main(int argc, char** argv)
 	int index; 
 	int iarg = 0;
 	opterr = 1;
-	bool chargeID = false, verbose = false;
+	bool verbose = false;
 	
 	std::string channel;
-	while((iarg = getopt_long(argc,argv, "c:Iv", longopts, &index)) != -1)
+	while((iarg = getopt_long(argc,argv, "c:v", longopts, &index)) != -1)
 	{
 		switch(iarg)
 		{
 			case 'c':
 				channel.assign(optarg);
-				break;
-			case 'I':
-				chargeID = true;
 				break;
 			case 'v':
 				verbose = true;
@@ -64,16 +60,18 @@ int main(int argc, char** argv)
 	while (std::getline(sschan, llchan, ','))
 		chans.push_back(Decay::fromString(llchan));
 
-	// for flux building
-	std::string flux(argv[optind]);
-	Driver drive(flux);
-
-	// for detector configuration
-	std::string det(argv[optind+1]);
-	Tracker trk(det);
-
 	// for background info
-	CardDealer cd(argv[optind+2]);
+	CardDealer cd(argv[optind]);
+
+	std::string config;
+	if (!cd.Get("detector_configuration", config))
+		throw std::logic_error("There is no detector configuration\n");
+	Tracker trk(config);
+
+	if (!cd.Get("flux_configuration", config))
+		throw std::logic_error("There is no flux configuration\n");
+	Driver drive(config);
+
 
 	// contains xsec and gst per neutrino flavour
 	std::map<std::string, std::vector<std::string> > file_backs;
@@ -93,11 +91,10 @@ int main(int argc, char** argv)
 
 	if (outname.find(".root") == std::string::npos)
 		outname += ".root";
-	if (chargeID)
-		outname.insert(outname.find(".root"), "_I");
 
 	std::map<Decay::Channel, std::string> files;
 
+	std::map<Decay::Channel, double> totevts;
 	for (const auto &fb : file_backs) {
 		std::cout << "Doing flavour " << fb.first << "\n";
 		Nu::Flavour flv = Nu::fromString(fb.first);
@@ -105,7 +102,7 @@ int main(int argc, char** argv)
 		//drive.MakeFlux(n, mix);
 		// get full flux
 		std::shared_ptr<TH1D> hist = drive.MakeComponent(phnl, flv, 0.);
-		hist->Scale(std::pow(1./trk.Baseline(),2) * 1e20); //trk.POTs() * trk.Weight());
+		hist->Scale(std::pow(1./trk.Baseline(),2) * trk.POTs() * trk.Weight());
 
 		std::string cc = fb.second[0] + "/tot_cc";
 		std::string nc = fb.second[0] + "/tot_nc";
@@ -118,24 +115,24 @@ int main(int argc, char** argv)
 			events += hist->GetBinContent(bin) * hist->GetBinWidth(bin)
 			    * 1.e-38 * (xsecCC->Eval(en) + xsecNC->Eval(en));
 		}
-		// multiply per number of targets per ton
-		// to get number of events per ton per 1e20 POTs
-		events *= Const::Na * 1e6 / Material::A(Material::LAr);
+		// multiply by number of targets per ton
+		// to get number of events per detector mass and POT exposure
+		events *= Const::Na * 1e6 / 40.; //Material::A(Material::LAr);
 
-		std::cout << "Event rate for " << fb.first << " are " << events << "\n";
-		auto d0 = GENIEback::GenerateBackground(trk, chans, fb.second[1], events,
-							chargeID, verbose);
+		std::cout << "Expected events from " << fb.first << " are " << events << "\n";
+		auto d0 = GENIEback::GenerateBackground(trk, chans, fb.second[1], events, verbose);
 		std::cout << "Background events:\n";
 		size_t sum = 0;
 		for (const auto & dc : d0) {
 			sum += dc.second->GetEntries();
+			totevts[dc.first] += dc.second->Events();
 
 			std::string name = outname;
 			name.insert(name.find(".root"), "_" + Decay::toString(dc.first));
 			name.insert(name.find(".root"), "_" + fb.first);
 			files[dc.first] += " " + name;
 
-			std::cout << "\t" << Decay::toString(dc.first) << "   "
+			std::cout << "    " << Decay::toString(dc.first) << "\t"
 				  << dc.second->GetEntries() << " ("
 				  << dc.second->GetEntries() / 1.e4 << " %)"
 				  << "\t-> " << name << "\n";
@@ -148,14 +145,13 @@ int main(int argc, char** argv)
 	}
 
 	for (const auto & ff : files) { 
-		std::cout << "solving for " << Decay::toString(ff.first) << "\n";
+		std::cout << "solving for " << Decay::toString(ff.first)
+			  << ", total number of events " << totevts[ff.first] << "\n";
 		std::string name = outname;
 		name.insert(name.find(".root"), "_" + Decay::toString(ff.first));
 		std::string cmd = "hadd -f " + name + ff.second;
-		std::cout << cmd << "\n";
 		system(cmd.c_str());
 		cmd = "rm " + ff.second;
-		std::cout << cmd << "\n";
 		system(cmd.c_str());
 	}
 

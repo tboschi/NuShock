@@ -42,6 +42,7 @@ namespace Production
 	std::vector<Channel> Channels();
 	std::vector<double> Masses(Channel chan);
 	std::vector<int> Pdgs(Channel chan);
+	unsigned int Ns(Channel chan);
 }
 
 inline std::ostream & operator<<(std::ostream &os, const Production::Channel &chan) {

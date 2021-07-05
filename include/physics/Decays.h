@@ -61,6 +61,7 @@ namespace Decay
 	std::vector<Channel> Detections();
 	std::vector<double> Masses(Channel chan);
 	std::vector<int> Pdgs(Channel chan);
+	unsigned int Ns(Channel chan);
 }
 
 inline std::ostream & operator<<(std::ostream &os, const Decay::Channel &chan) {

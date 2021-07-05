@@ -1,11 +1,14 @@
 # give a xsec and gst background file per neutrino type
 
-#back_nuE0	"nu_e_Ar40",	   "data/gst.nuE0.root"
-#back_nuEB	"nu_e_bar_Ar40",   "data/gst.nuEB.root"
+detector_configuration	"config/detector.card"
+flux_configuration	"config/fluxfiles.card"
+
+back_nuE0	"nu_e_Ar40",	   "data/gst.nuE0.root"
+back_nuEB	"nu_e_bar_Ar40",   "data/gst.nuEB.root"
 back_nuM0	"nu_mu_Ar40",	   "data/gst.nuM0.root"
-#back_nuMB	"nu_mu_bar_Ar40",  "data/gst.nuMB.root"
-#back_nuT0	"nu_tau_Ar40",	   "data/gst.nuT0.root"
-#back_nuTB	"nu_tau_bar_Ar40", "data/gst.nuTB.root"
+back_nuMB	"nu_mu_bar_Ar40",  "data/gst.nuMB.root"
+back_nuT0	"nu_tau_Ar40",	   "data/gst.nuT0.root"
+back_nuTB	"nu_tau_bar_Ar40", "data/gst.nuTB.root"
 
 xsec_file	"data/xsec_graphs.root"
-output		"background/test"
+output		"background/back"

@@ -47,7 +47,8 @@ class DecaySpace : public PhaseSpace<Decay::Channel>
 		//std::pair<double, double> NeutrinoLeptonAA(Decay::Channel chan, Decay::Channel chan_o, double m_neut, double m_lepton);
 		double NeutrinoLeptonAA(Decay::Channel chan,
 				double m_neut, double m_lepton, double uu, double uo);
-		double NeutrinoLeptonAA_max(double s, double u, double cos0, double cos1);
+		//double NeutrinoLeptonAA_max(double s, double u, double cos0, double cos1, 
+				//double x, double y, double mw, double mz);
 
 		double nEM(const Mixing &mix = Mixing());
 		double nET(const Mixing &mix = Mixing());
@@ -55,7 +56,8 @@ class DecaySpace : public PhaseSpace<Decay::Channel>
 		double NeutrinoLeptonAB(Decay::Channel chan,
 				double m_neut, double m_leptonA, double m_leptonB,
 				double uu, double uo);
-		double NeutrinoLeptonAB_max(double s, double u, double cos0, double cos1);
+		//double NeutrinoLeptonAB_max(double s, double u, double cos0, double cos1,
+				//double x, double y, double z, double mw, double mz);
 
 		//double NeutrinoLeptonLepton_max(double x, double y, double z, double gL, double gR);
 		//double F_NeutrinoLeptonLepton_max(double p[]);
@@ -66,7 +68,7 @@ class DecaySpace : public PhaseSpace<Decay::Channel>
 		double nETA(const Mixing &mix = Mixing());
 		double nETAi(const Mixing &mix = Mixing());
 		double NeutrinoPseudoMeson(Decay::Channel chan, double m_neut, double m_meson);
-		double NeutrinoPseudoMeson_max(double cos0);
+		//double NeutrinoPseudoMeson_max(double cos0);
 
 		double EPI(const Mixing &mix = Mixing());
 		double MPI(const Mixing &mix = Mixing());
@@ -75,7 +77,7 @@ class DecaySpace : public PhaseSpace<Decay::Channel>
 		double MKA(const Mixing &mix = Mixing());
 		double EDs(const Mixing &mix = Mixing());
 		double LeptonPseudoMeson(Decay::Channel chan, double m_lepton, double m_meson);
-		double LeptonPseudoMeson_max(double cos0);
+		//double LeptonPseudoMeson_max(double cos0);
 
 		//double ToPseudoMeson_max(double x, double y);
 		//double ToPseudoMeson_cos0_max(double cos0);
@@ -87,14 +89,14 @@ class DecaySpace : public PhaseSpace<Decay::Channel>
 		double nOMEGA(const Mixing &mix = Mixing());
 		double nPHI(const Mixing &mix = Mixing());
 		double NeutrinoVectorMeson(Decay::Channel chan, double m_neut, double m_meson);
-		double NeutrinoVectorMeson_max(double cos0);
+		//double NeutrinoVectorMeson_max(double cos0);
 
 		double ERHO(const Mixing &mix = Mixing());
 		double MRHO(const Mixing &mix = Mixing());
 		double EKAx(const Mixing &mix = Mixing());
 		double MKAx(const Mixing &mix = Mixing());
 		double LeptonVectorMeson(Decay::Channel chan, double M_Neut, double M_Meson);
-		double LeptonVectorMeson_max(double cos0);
+		//double LeptonVectorMeson_max(double cos0);
 
 		//double ToVectorMeson_max(double x, double y);
 		//double ToVectorMeson_cos0_max(double cos0);

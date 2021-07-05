@@ -12,6 +12,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <set>
+#include <array>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -40,8 +41,7 @@ class Detector
 		using Module = std::map<std::string, double>;
 
 		Detector(const std::string &card);
-		//double Efficiency(Channel::Name chan, double mass, double energy) const;
-		//void LoadEfficiency(Channel::Name, std::string file);
+
 
 		Material::Name MadeOf(std::string mod) const;
 
@@ -81,7 +81,7 @@ class Detector
 		bool IsInside(std::string mod, const Track &t) const;
 		bool IsContained(const Track &t) const;
 
-		double MagneticField(std::string mod) const;
+		std::array<double, 3> MagneticField(std::string mod) const;
 
 		double BeamEnergy() const;
 		double POTs() const;
@@ -97,7 +97,6 @@ class Detector
 		std::unordered_map<std::string, Material::Name> _materials;
 		std::unordered_map<std::string, std::string> _shapes;
 		std::unordered_map<std::string, double> _modes;
-		//std::set<std::string> _efficiencies;
 		std::string _default;
 
 		// memoization
@@ -105,8 +104,6 @@ class Detector
 
 		double _POTs, _Eb;
 
-		
-		//std::map<Channel::Name, std::shared_ptr<TH2D> > _mass_ener_func;
 };
 
 #endif

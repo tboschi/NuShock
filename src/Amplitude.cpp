@@ -111,7 +111,7 @@ double Amplitude::M2_NeutrinoPseudoMeson(double cos0, double x, double y)
 
 double Amplitude::M2_NeutrinoPseudoMeson(int hel, double cos0, double x, double y)
 {
-	return M2_LeptonPseudoMeson(hel, x, y, cos0) / 2.;
+	return M2_LeptonPseudoMeson(hel, cos0, x, y) / 2.;
 }
 
 double Amplitude::M2_LeptonVectorMeson(double cos0, double x, double y)
@@ -170,12 +170,12 @@ double Amplitude::M2_WZ(double u, double cos0u, double x, double y, double z)	//
 double Amplitude::M2_WZ(int hel, double u, double cos0u, double x, double y, double z)	//2gL*gR
 {
 	return 16. * Const::GF2 * std::pow(_m_parent, 4) *
-		sqrt(y * z) * (1. + x - u - hel * std::sqrt(Kallen(1, x, u)) * cos0u);
+		std::sqrt(y * z) * (1. + x - u - hel * std::sqrt(Kallen(1, x, u)) * cos0u);
 }
 
 double Amplitude::M2_WZ(double s, double t, double cos0s, double cos0t, double x, double y, double z)	//2gL*gR
 {
-		// added only if Majorana
+	// added only if Majorana
 	int hel = _N.IsParticle() ? _N.Helicity() : -_N.Helicity();
 	return (!_N.IsMajorana() ? 0. : M2_WZ(-hel, s, t, cos0s, cos0t, x, y, z))
 				      + M2_WZ( hel, s, t, cos0s, cos0t, x, y, z);

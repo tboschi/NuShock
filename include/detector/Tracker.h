@@ -12,6 +12,7 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <array>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -38,14 +39,15 @@ class Tracker : public Detector
 		Event GenerateEvent(std::string mod, Particle &&P) const;
 		bool Reconstruct(Event &evt) const;
 		void ComputeTrack(Event &evt) const;
-		double ComputeSagitta(Event &evt) const;
+		//double ComputeSagitta(Event &evt) const;
+		bool DetectSagitta(Event &evt) const;
 		void Smearing(Event &evt) const;
 		bool IsDecayed(const Particle &P, double dx) const;
 		bool IsDetectable(const Event &evt) const;
 		bool IsDetectable(const Track &T) const;
 		bool IsDetectable(const Particle &P) const;
 
-		std::vector<Event> Pi0Decay(Event &&pi0) const;
+		std::array<Event, 2> Pi0Decay(Event &&pi0) const;
 		std::vector<Event> MisIdentify(std::vector<Tracker::Event> &&evts) const;
 
 	private:

@@ -207,4 +207,50 @@ namespace Production {
 						+ toString(chan) + " is unknwon");
 		}
 	}
+
+	unsigned int Ns(Channel chan) {
+		switch(chan) {
+			case Channel::MuonE:
+				return 3;
+			case Channel::MuonM:
+				return 3;
+			case Channel::TauEE:
+				return 3;
+			case Channel::TauET:
+				return 3;
+			case Channel::TauMM:
+				return 3;
+			case Channel::TauMT:
+				return 3;
+			case Channel::TauPI:
+				return 2;
+			case Channel::Tau2PI:
+				return 3;
+			case Channel::PionE:
+				return 2;
+			case Channel::PionM:
+				return 2;
+			case Channel::KaonE:
+				return 2;
+			case Channel::KaonM:
+				return 2;
+			case Channel::CharmE:
+				return 2;
+			case Channel::CharmM:
+				return 2;
+			case Channel::CharmT:
+				return 2;
+			case Channel::Kaon0E:
+				return 3;
+			case Channel::Kaon0M:
+				return 3;
+			case Channel::KaonCE:
+				return 3;
+			case Channel::KaonCM:
+				return 3;
+			default:
+				throw std::invalid_argument("Production channel "
+						+ toString(chan) + " is unknwon");
+		}
+	}
 }

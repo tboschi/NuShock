@@ -39,28 +39,28 @@ TargetOut	Pb
 #	if the particle is staying or escaping the detecor
 #
 Thres_Hadron	0.050
-Angle_Hadron	5.0
+Angle_Hadron	1.0
 Energ_Hadron	0.30
 Ebias_Hadron	0.05
 Range_Hadron	0.0
 Exiti_Hadron	0.0
 
 Thres_Muon	0.030
-Angle_Muon	1.0
+Angle_Muon	0.3
 Energ_Muon	0.0
 Ebias_Muon	0.0
 Range_Muon	0.05
 Exiti_Muon	0.30
 
 Thres_Pion	0.100
-Angle_Pion	1.0
+Angle_Pion	0.3
 Energ_Pion	0.0
 Ebias_Pion	0.0
 Range_Pion	0.05
 Exiti_Pion	0.30
 
 Thres_Gamma	0.030
-Angle_Gamma	1.0
+Angle_Gamma	0.3
 Energ_Gamma	0.15
 Ebias_Gamma	0.02
 Range_Gamma	0.0

@@ -35,4 +35,9 @@ namespace Flux
 	std::vector<Parent> Parents();
 };
 
+inline std::ostream & operator<<(std::ostream &os, const Flux::Parent &comp) {
+	return os << Flux::toString(comp);
+}
+
+
 #endif

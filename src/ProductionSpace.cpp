@@ -43,13 +43,12 @@ std::pair<std::vector<Particle>, double> ProductionSpace::Generate(Production::C
 
 bool ProductionSpace::SetProduction(Production::Channel chan)
 {
-	auto mass = Production::Masses(chan);
-	double *ps_masses = &mass[0];
-	ps_masses[0] = _N.M();
+	auto masses = Production::Masses(chan);
+	masses[0] = _N.M();
 
 	// compute decay in rest frame, boost later
-	TLorentzVector rest(0, 0, 0, mass.front());
-	return _genps->SetDecay(rest, mass.size(), ps_masses);
+	TLorentzVector rest(0, 0, 0, masses.front());
+	return _genps->SetDecay(rest, masses.size(), &masses[0]);
 }
 
 double ProductionSpace::Gamma(Production::Channel chan, const Mixing &mix)

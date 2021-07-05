@@ -119,8 +119,7 @@ namespace Decay {
 			case Channel::EDs:
 				return "EDs";
 			default:
-				throw std::invalid_argument("Decay channel "
-							+ toString(chan) + " is unknwon");
+				throw std::invalid_argument("Decay channel is unknwon");
 		}
 	}
 
@@ -213,8 +212,7 @@ namespace Decay {
 			case Channel::MKAx:
 				return {Const::MMuon, Const::MKaonx};
 			default:
-				throw std::invalid_argument("Decay channel "
-							+ toString(chan) + " is unknwon");
+				throw std::invalid_argument("Decay channel is unknwon");
 		}
 	}
 
@@ -270,8 +268,63 @@ namespace Decay {
 			case Channel::MKAx:
 				return {13, 9000321};
 			default:
-				throw std::invalid_argument("Decay channel "
-							+ toString(chan) + " is unknwon");
+				throw std::invalid_argument("Decay channel is unknwon");
+		}
+	}
+
+	unsigned int Ns(Channel chan) {
+		switch(chan) {
+			//DECAYS
+			//case Channel::ALL:
+			case Channel::nnn:
+				return 3;
+			case Channel::nGAMMA:
+				return 2;
+			case Channel::ExpALL:
+			case Channel::nEE:
+				return 3;
+			case Channel::nMM:
+				return 3;
+			case Channel::nEM:
+				return 3;
+			case Channel::nET:
+				return 3;
+			case Channel::nMT:
+				return 3;
+			case Channel::nPI0:
+				return 2;
+			case Channel::nETA:
+				return 2;
+			case Channel::nETAi:
+				return 2;
+			case Channel::EPI:
+				return 2;
+			case Channel::MPI:
+				return 2;
+			case Channel::TPI:
+				return 2;
+			case Channel::EKA:
+				return 2;
+			case Channel::MKA:
+				return 2;
+			case Channel::EDs:
+				return 2;
+			case Channel::nRHO0:
+				return 2;
+			case Channel::nOMEGA:
+				return 2;
+			case Channel::nPHI:
+				return 2;
+			case Channel::ERHO:
+				return 2;
+			case Channel::MRHO:
+				return 2;
+			case Channel::EKAx:
+				return 2;
+			case Channel::MKAx:
+				return 2;
+			default:
+				throw std::invalid_argument("Decay channel is unknwon");
 		}
 	}
 }

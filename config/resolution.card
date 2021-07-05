@@ -1,38 +1,42 @@
 # resolution for tracking device
 
 threshold_hadron	0.050	# GeV
-resolution_hadron_angle		5.0
+resolution_hadron_angle		2.5
 resolution_hadron_energy	0.30
 resolution_hadron_enbias	0.05
 #resolution_hadron_inrange	0.0
 #resolution_hadron_exiting	0.0
 
 threshold_muon		0.030	# GeV
-resolution_muon_angle		1.0
+#resolution_muon_angle		0.5
+resolution_muon_angle		1.
 #resolution_muon_energy		0.0
 #resolution_muon_enbias		0.0
 resolution_muon_inrange		0.05
 resolution_muon_exiting		0.30
 
 threshold_pion		0.100	# GeV
-resolution_pion_angle		5.0
+#resolution_pion_angle		0.3
+resolution_pion_angle		5.
 #resolution_pion_energy		0.0
 #resolution_pion_enbias		0.0
 resolution_pion_inrange		0.05
 resolution_pion_exiting		0.30
 
 threshold_gamma		0.030	# GeV
-resolution_gamma_angle		1.0
+#resolution_gamma_angle		0.3
+resolution_gamma_angle		1.
 resolution_gamma_energy		0.15
 resolution_gamma_enbias		0.02
 #resolution_gamma_inrange	0.0
 #resolution_gamma_exiting	0.0
 
-# <containment>% the track inside and then the track is contaneid
+# <containment>% the track inside and then the track is contained
 resolution_containment	0.80 # %
 # vertex resolution
-resolution_vertex		0.001 # m
-resolution_sagitta		0.01  # m
+resolution_vertex		0.01  # m
+resolution_sagitta		0.15  # relative error
+# allows for a maximum sagitta error of 15%
 
 #to provide some misidentification for background
 
@@ -48,3 +52,5 @@ identify_pair_angle	3.0
 #resolution for pion0 mass in reconstruction
 #identify_respi0mass	0.040
 
+# step for track computation
+track_step	0.05	# m
